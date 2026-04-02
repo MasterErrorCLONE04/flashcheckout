@@ -1,24 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  ShoppingBag, 
-  MapPin, 
-  User, 
-  Minus, 
-  Plus, 
-  MessageCircle, 
-  Package, 
-  X, 
-  Trash2, 
-  Search, 
+import {
+  ShoppingBag,
+  MapPin,
+  User,
+  Minus,
+  Plus,
+  MessageCircle,
+  X,
+  Trash2,
+  Search,
   CreditCard,
   Zap,
   ChevronRight,
   ArrowRight,
   Globe,
+  ShoppingCart,
+  PlusCircle,
+  Star,
+  Flame,
+  Timer,
+  Play,
+  Percent,
+  HelpCircle,
+  Eye,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 type Product = {
   id: string
@@ -33,6 +40,7 @@ type Store = {
   name: string
   whatsapp: string
   products: Product[]
+  logoUrl: string | null
   cardPaymentsEnabled: boolean
 }
 
@@ -43,58 +51,44 @@ export default function CheckoutForm({ store }: { store: Store }) {
     address: '',
     city: '',
   })
-  const [loadingAction, setLoadingAction] = useState<null | 'whatsapp' | 'card'>(
-    null
-  )
+  const [loadingAction, setLoadingAction] = useState<null | 'whatsapp' | 'card'>(null)
   const [payError, setPayError] = useState<string | null>(null)
   const loading = loadingAction !== null
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const itemsInCart = Object.values(cart).reduce((s, q) => s + q, 0)
-  const total = store.products.reduce(
-    (s, p) => s + p.price * (cart[p.id] ?? 0),
-    0
-  )
+  const total = store.products.reduce((s, p) => s + p.price * (cart[p.id] ?? 0), 0)
+  const cartProducts = store.products.filter(p => (cart[p.id] ?? 0) > 0)
 
-  const displayProducts = store.products.filter(p => 
+  const displayProducts = store.products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const cartProducts = store.products.filter(p => (cart[p.id] ?? 0) > 0)
-
   useEffect(() => {
-    if (isCartOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
+    document.body.style.overflow = isCartOpen ? 'hidden' : 'unset'
+    return () => { document.body.style.overflow = 'unset' }
   }, [isCartOpen])
 
   useEffect(() => {
-    if (isCartOpen && itemsInCart === 0) {
-      setIsCartOpen(false)
-    }
+    if (isCartOpen && itemsInCart === 0) setIsCartOpen(false)
   }, [itemsInCart, isCartOpen])
 
   function changeQty(id: string, delta: number) {
     const product = store.products.find(p => p.id === id)!
     setCart(prev => {
       const newQty = Math.max(0, Math.min((prev[id] ?? 0) + delta, product.stock))
-      const newCart = { ...prev, [id]: newQty }
-      if (newQty === 0) delete newCart[id]
-      return newCart
+      const next = { ...prev, [id]: newQty }
+      if (newQty === 0) delete next[id]
+      return next
     })
   }
 
   function removeFromCart(id: string) {
     setCart(prev => {
-      const newCart = { ...prev }
-      delete newCart[id]
-      return newCart
+      const next = { ...prev }
+      delete next[id]
+      return next
     })
   }
 
@@ -102,27 +96,15 @@ export default function CheckoutForm({ store }: { store: Store }) {
     if (!form.customerName.trim() || !form.address.trim() || !form.city.trim()) return
     setLoadingAction('whatsapp')
     setPayError(null)
-
-    const items = cartProducts.map(p => ({
-      productId: p.id,
-      name: p.name,
-      qty: cart[p.id],
-      price: p.price,
-    }))
-
+    const items = cartProducts.map(p => ({ productId: p.id, name: p.name, qty: cart[p.id], price: p.price }))
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ storeId: store.id, ...form, items }),
       })
-
       const data = await res.json()
-      if (!res.ok) {
-        setPayError(data.error || 'No se pudo crear el pedido')
-        setLoadingAction(null)
-        return
-      }
+      if (!res.ok) { setPayError(data.error || 'No se pudo crear el pedido'); setLoadingAction(null); return }
       window.location.href = data.whatsappUrl
     } catch {
       setPayError('Error de red. Intenta de nuevo.')
@@ -134,30 +116,15 @@ export default function CheckoutForm({ store }: { store: Store }) {
     if (!form.customerName.trim() || !form.address.trim() || !form.city.trim()) return
     setLoadingAction('card')
     setPayError(null)
-
-    const items = cartProducts.map(p => ({
-      productId: p.id,
-      qty: cart[p.id]!,
-    }))
-
+    const items = cartProducts.map(p => ({ productId: p.id, qty: cart[p.id]! }))
     try {
       const res = await fetch('/api/checkout/store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId: store.id,
-          customerName: form.customerName.trim(),
-          address: form.address.trim(),
-          city: form.city.trim(),
-          items,
-        }),
+        body: JSON.stringify({ storeId: store.id, customerName: form.customerName.trim(), address: form.address.trim(), city: form.city.trim(), items }),
       })
       const data = await res.json()
-      if (!res.ok) {
-        setPayError(data.error || 'No se pudo iniciar el pago')
-        setLoadingAction(null)
-        return
-      }
+      if (!res.ok) { setPayError(data.error || 'No se pudo iniciar el pago'); setLoadingAction(null); return }
       if (data.url) window.location.href = data.url
     } catch {
       setPayError('Error de red. Intenta de nuevo.')
@@ -166,329 +133,459 @@ export default function CheckoutForm({ store }: { store: Store }) {
   }
 
   return (
-    <div className="min-h-screen bg-secondary text-foreground selection:bg-primary/20 font-sans animate-in">
-      {/* Soft Background Accents */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary/[0.02] blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-[#F4F4F7] font-sans text-foreground">
+      <StoreHeader storeName={store.name} itemsInCart={itemsInCart} logoUrl={store.logoUrl} onCartOpen={() => setIsCartOpen(true)} />
 
-      {/* Apple-Style Navigation */}
-      <header className="sticky top-0 z-40 glass border-b border-black/[0.05] py-4">
-        <div className="max-w-lg mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-black flex items-center justify-center shadow-lg">
-              <Zap className="w-6 h-6 text-white fill-current" />
-            </div>
-            <div>
-              <h1 className="font-bold text-xl tracking-tighter text-black leading-none font-display">
-                {store.name}
-              </h1>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <p className="text-xs text-zinc-400 font-bold tracking-widest uppercase">Tienda verificada</p>
-              </div>
-            </div>
+      <main className="max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 pt-10 pb-40">
+        {/* Heading */}
+        <div className="mb-10">
+          <h1 className="text-5xl font-extrabold tracking-tighter text-foreground leading-none m-0">
+            Catálogo
+          </h1>
+          <p className="text-[10px] text-muted-foreground font-bold tracking-[0.15em] uppercase mt-2.5 mb-0">
+            Suministros seleccionados de alta gama
+          </p>
+        </div>
+
+        {/* Search */}
+        {store.products.length > 4 && (
+          <div className="relative max-w-[560px] mb-10">
+            <Search className="absolute left-[18px] top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-card border border-border rounded-xl py-3 pl-11 pr-[18px] text-[15px] font-medium text-foreground outline-none focus:ring-2 focus:ring-accent/30"
+            />
           </div>
-          
-          {itemsInCart > 0 && (
-            <button 
-              onClick={() => setIsCartOpen(true)}
-              className="btn-premium !px-6 !py-2.5 flex items-center gap-2"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              {itemsInCart}
-            </button>
+        )}
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {displayProducts.length === 0 ? (
+            <div className="col-span-full text-center py-20 text-muted-foreground">
+              No se encontraron productos.
+            </div>
+          ) : (
+            displayProducts.map(p => (
+              <ProductCard key={p.id} product={p} qty={cart[p.id] ?? 0} onChangeQty={changeQty} />
+            ))
           )}
         </div>
-      </header>
-
-      {/* Content Area */}
-      <main className="max-w-lg mx-auto px-6 pb-40 relative z-10">
-        <section className="pt-10">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-black tracking-tighter font-display">Catálogo</h2>
-              <p className="text-xs font-bold text-zinc-400 tracking-widest mt-2 uppercase">Suministros seleccionados</p>
-            </div>
-          </div>
-
-          {/* Clean Search */}
-          {store.products.length > 4 && (
-            <div className="relative mb-10 group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-primary transition-colors" />
-              <input 
-                type="text"
-                placeholder="Buscar productos..."
-                className="w-full bg-white border border-black/[0.05] rounded-2xl pl-16 pr-6 py-5 text-sm font-semibold placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 focus:shadow-[0_0_20px_rgba(0,102,204,0.05)] transition-all"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          )}
-          
-          <div className="grid gap-5">
-            {displayProducts.length === 0 ? (
-              <div className="text-center py-20 premium-card rounded-[3rem] border-dashed bg-white/50 px-8">
-                <Search className="w-10 h-10 text-zinc-200 mx-auto mb-6" />
-                <p className="text-zinc-400 text-xs font-bold tracking-widest uppercase">No se encontraron productos</p>
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="mt-6 text-primary text-xs font-bold tracking-widest border border-primary/20 px-8 py-3 rounded-full hover:bg-primary/5 transition-all uppercase"
-                >
-                  Ver todo
-                </button>
-              </div>
-            ) : (
-              displayProducts.map(p => (
-                <div
-                  key={p.id}
-                  className="premium-card rounded-[2rem] p-4 flex gap-5 bg-white border-black/[0.03] group active:scale-[0.98]"
-                >
-                  <div className="w-28 h-28 rounded-2xl flex-shrink-0 bg-zinc-50 overflow-hidden relative border border-black/[0.02]">
-                    {p.imageUrl ? (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center opacity-10">
-                        <ShoppingBag className="w-10 h-10" />
-                      </div>
-                    )}
-                    {p.stock <= 3 && p.stock > 0 && (
-                      <div className="absolute inset-x-0 bottom-0 bg-red-500 text-white text-xs font-bold text-center py-1.5 uppercase">
-                        Últimas unidades
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                    <div>
-                      <h3 className="font-semibold text-base text-zinc-800 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
-                        {p.name}
-                      </h3>
-                      <p className="text-black font-bold text-lg mt-3 tabular-nums">
-                        ${p.price.toLocaleString('es-CO')}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 mt-4">
-                      <div className="flex items-center bg-zinc-50 border border-black/[0.03] rounded-xl p-1">
-                        <button
-                          onClick={() => changeQty(p.id, -1)}
-                          disabled={(cart[p.id] ?? 0) === 0}
-                          className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-black hover:bg-black/[0.05] transition-all disabled:opacity-0"
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="w-8 text-center text-sm font-bold tabular-nums text-zinc-800">
-                          {cart[p.id] ?? 0}
-                        </span>
-                        <button
-                          onClick={() => changeQty(p.id, +1)}
-                          disabled={(cart[p.id] ?? 0) >= p.stock}
-                          className="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-primary-hover transition-all shadow-sm active:scale-90"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
       </main>
 
-      {/* Floating Cart Trigger */}
-      {!isCartOpen && total > 0 && (
-        <div className="fixed bottom-8 inset-x-6 z-40 animate-in flex justify-center">
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="w-full max-w-lg btn-premium h-16 flex items-center justify-between px-10"
-          >
-            <div className="flex items-center gap-3 bg-white/10 px-5 py-2.5 rounded-full border border-white/5">
-              <ShoppingBag className="w-5 h-5 text-white" />
-              <span className="tabular-nums text-base font-bold text-white">{itemsInCart}</span>
-            </div>
-            <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase text-white/90">
-              Ver pedido <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-            <span className="tabular-nums font-bold text-xl text-white">
-              ${total.toLocaleString('es-CO')}
-            </span>
-          </button>
-        </div>
+      {!isCartOpen && (
+        <FloatingCartBar itemsInCart={itemsInCart} total={total} onOpen={() => setIsCartOpen(true)} />
       )}
 
-      {/* Premium Checkout Modal */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center">
-          <div 
-            className="absolute inset-0 bg-white/60 backdrop-blur-md"
-            onClick={() => setIsCartOpen(false)}
-          />
-          
-          <div className="absolute bottom-0 w-full max-w-lg bg-white border-t border-black/[0.1] rounded-t-[2.5rem] shadow-[0_-10px_60px_rgba(0,0,0,0.1)] flex flex-col h-[90vh] animate-in overflow-hidden relative">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between px-8 py-8 border-b border-black/[0.05] bg-zinc-50/50">
-              <div>
-                <h2 className="text-3xl font-bold text-black tracking-tighter font-display">
-                  Tu <span className="text-primary underline underline-offset-8 decoration-primary/20">pedido</span>
-                </h2>
-                <p className="text-xs font-bold text-zinc-400 tracking-widest mt-2 uppercase">Revisión final de compra</p>
-              </div>
-              <button 
-                onClick={() => setIsCartOpen(false)}
-                className="w-12 h-12 bg-white border border-black/[0.05] rounded-full flex items-center justify-center text-zinc-400 hover:text-black hover:border-black/10 transition-all active:scale-90 shadow-sm"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      <CartModal
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartProducts={cartProducts}
+        cart={cart}
+        itemsInCart={itemsInCart}
+        total={total}
+        cardPaymentsEnabled={store.cardPaymentsEnabled}
+        onRemove={removeFromCart}
+        onChangeQty={changeQty}
+        form={form}
+        setForm={setForm}
+        loadingAction={loadingAction}
+        payError={payError}
+        handleSubmit={handleSubmit}
+        handlePayWithCard={handlePayWithCard}
+      />
+    </div>
+  )
+}
+
+interface StoreHeaderProps {
+  storeName: string
+  itemsInCart: number
+  logoUrl: string | null
+  onCartOpen: () => void
+}
+
+function StoreHeader({ storeName, itemsInCart, logoUrl, onCartOpen }: StoreHeaderProps) {
+  return (
+    <header className="sticky top-0 z-40 border-b border-border bg-card px-6 md:px-12 py-4 flex items-center justify-center">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-primary flex items-center justify-center shrink-0 border border-border/10">
+          {logoUrl ? (
+            <img src={logoUrl} alt={storeName} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-black text-xl italic skew-x-[-10deg]">
+              {storeName.charAt(0).toUpperCase()}
             </div>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-8 py-10 space-y-12 no-scrollbar">
-              
-              {/* Manifest */}
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-zinc-400 tracking-widest ml-1 uppercase">Resumen de ítems</h3>
-                  <span className="text-xs font-bold text-zinc-500 px-3 py-1 bg-zinc-50 rounded-full border border-black/[0.03] uppercase">{itemsInCart} unidades</span>
-                </div>
-                <div className="space-y-3">
-                  {cartProducts.map(p => (
-                    <div key={p.id} className="premium-card p-4 rounded-2xl flex justify-between items-center group bg-white border-black/[0.03]">
-                      <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 rounded-xl bg-zinc-50 overflow-hidden flex-shrink-0 border border-black/[0.02]">
-                           {p.imageUrl ? (
-                             <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                           ) : (
-                             <ShoppingBag className="w-6 h-6 text-zinc-200 m-5" />
-                           )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-zinc-800 text-[15px] leading-tight truncate">{p.name}</p>
-                          <p className="text-primary font-bold text-sm mt-2 tabular-nums">
-                            <span className="text-zinc-400 font-medium mr-2">x{cart[p.id]}</span>
-                            ${(p.price * cart[p.id]).toLocaleString('es-CO')}
-                          </p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => removeFromCart(p.id)}
-                        className="w-10 h-10 flex items-center justify-center bg-zinc-50 border border-black/[0.03] rounded-xl text-zinc-300 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-all active:scale-90"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Delivery Form */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-2 px-1">
-                  <MapPin className="w-3.5 h-3.5 text-primary" />
-                  <h3 className="text-xs font-bold text-zinc-400 tracking-widest uppercase">Información de envío</h3>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* Field: Name */}
-                  <div className="group space-y-3">
-                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1 group-focus-within:text-primary transition-colors uppercase">Nombre de recibo</label>
-                    <div className="relative">
-                      <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
-                      <input
-                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-14 pr-6 py-4.5 text-sm font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all"
-                        placeholder="Nombre de quién recibe"
-                        value={form.customerName}
-                        onChange={e => setForm(f => ({ ...f, customerName: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Field: Address */}
-                  <div className="group space-y-3">
-                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1 group-focus-within:text-primary transition-colors uppercase">Dirección de entrega</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
-                      <input
-                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-14 pr-6 py-4.5 text-sm font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all"
-                        placeholder="Calle, carrera, número..."
-                        value={form.address}
-                        onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Field: City */}
-                  <div className="group space-y-3">
-                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1 group-focus-within:text-primary transition-colors uppercase">Ciudad / municipio</label>
-                    <div className="relative">
-                      <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
-                      <input
-                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-14 pr-6 py-4.5 text-sm font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all"
-                        placeholder="Ciudad o municipio"
-                        value={form.city}
-                        onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Footer Checkout */}
-            <div className="w-full bg-white/80 backdrop-blur-xl border-t border-black/[0.05] p-8 pb-10 shadow-[0_-20px_50px_rgba(0,0,0,0.05)]">
-              <div className="flex items-end justify-between mb-8 px-2">
-                <div>
-                  <p className="text-xs font-bold text-zinc-400 tracking-widest mb-2 uppercase">Valor total a pagar</p>
-                  <h3 className="text-4xl font-bold text-black tracking-tighter leading-none tabular-nums font-display">
-                    ${total.toLocaleString('es-CO')}
-                  </h3>
-                </div>
-                {itemsInCart > 0 && <span className="text-xs font-bold text-primary bg-primary/10 px-4 py-2 rounded-full uppercase">Confirmado</span>}
-              </div>
-
-              {payError && (
-                <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-bold text-center py-4 rounded-xl mb-6 flex items-center justify-center gap-2 uppercase">
-                   <X className="w-4 h-4" />
-                   {payError}
-                </div>
-              )}
-              
-              <div className="flex flex-col gap-3">
-                 {store.cardPaymentsEnabled && (
-                  <button
-                    onClick={handlePayWithCard}
-                    disabled={loading || !form.customerName.trim() || !form.address.trim() || !form.city.trim()}
-                    className="w-full btn-premium h-14 flex items-center justify-center gap-4 group"
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    {loadingAction === 'card' ? 'Procesando...' : 'Pagar con Tarjeta'}
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                )}
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading || !form.customerName.trim() || !form.address.trim() || !form.city.trim()}
-                  className="w-full h-14 bg-[#25D366] text-white rounded-full font-bold text-sm tracking-widest flex items-center justify-center gap-4 disabled:opacity-20 transition-all hover:brightness-110 active:scale-95 group shadow-xl shadow-green-500/10 uppercase"
-                >
-                  <MessageCircle className="w-6 h-6 fill-current" />
-                  {loadingAction === 'whatsapp' ? 'Iniciando...' : 'Confirmar por WhatsApp'}
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-              <p className="text-xs text-zinc-300 font-bold tracking-widest text-center mt-8 uppercase">Protocolo de seguridad activo • FlashCheckout 2026</p>
-            </div>
-
+          )}
+        </div>
+        <div>
+          <div className="font-bold text-[17px] tracking-tight text-foreground leading-none">
+            {storeName}
+          </div>
+          <div className="flex items-center gap-[5px] mt-[3px]">
+            <div className="w-1.5 h-1.5 rounded-full bg-success" />
+            <span className="text-[9px] text-success font-bold tracking-[0.12em] uppercase">
+              Tienda verificada
+            </span>
           </div>
         </div>
+      </div>
+
+      {itemsInCart > 0 && (
+        <button
+          onClick={onCartOpen}
+          className="absolute right-6 md:right-12 bg-primary text-primary-foreground border-none rounded-full cursor-pointer px-[18px] py-[9px] font-bold text-[13px] flex items-center gap-2 tracking-tight"
+        >
+          <ShoppingBag className="w-[15px] h-[15px]" />
+          {itemsInCart}
+        </button>
       )}
+    </header>
+  )
+}
+
+interface ProductCardProps {
+  product: Product
+  qty: number
+  onChangeQty: (id: string, delta: number) => void
+}
+
+function ProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
+  // Mock data derived from ID for consistency
+  const originalPrice = Math.floor(p.price * 1.62)
+  const salesCount = (parseInt(p.id.slice(-2), 16) || 5) + 'K+'
+  const discountPct = Math.round((1 - p.price / originalPrice) * 100)
+  
+  return (
+    <div className="flex flex-col group relative">
+      {/* Image Container - Strictly Square */}
+      <div className="aspect-square w-full rounded-none overflow-hidden relative bg-[#F8F8F8]">
+        {p.imageUrl ? (
+          <img
+            src={p.imageUrl}
+            alt={p.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ShoppingBag className="w-10 h-10 text-zinc-200" />
+          </div>
+        )}
+
+        {/* Hover State Overlays */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.02] transition-colors flex items-end justify-start p-3 opacity-0 group-hover:opacity-100 duration-300">
+          <button className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-full py-1.5 px-4 flex items-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black font-bold text-[13px]">
+            <Eye className="w-4 h-4" />
+            Vista rápida
+          </button>
+        </div>
+      </div>
+
+      {/* Info Area - Dense & Clean */}
+      <div className="pt-2.5 flex flex-col gap-1">
+        {/* Product Name */}
+        <p className="text-[13px] font-medium text-zinc-500 leading-tight line-clamp-2">
+          {p.name}
+        </p>
+
+        {/* Price Row */}
+        <div className="flex items-center justify-between gap-1 mt-0.5">
+          <div className="flex items-baseline gap-1 flex-wrap">
+            <span className="text-[#FF5000] font-bold text-[14px] whitespace-nowrap">
+              Último día
+            </span>
+            <span className="text-[#FF5000] text-[22px] font-black tabular-nums tracking-tighter leading-none">
+              ${p.price.toLocaleString('es-CO')}
+            </span>
+          </div>
+          
+          {/* Oval Cart Button */}
+          <button
+            onClick={() => onChangeQty(p.id, +1)}
+            disabled={qty >= p.stock}
+            className="w-12 h-7 border-[1px] border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-colors active:scale-90 shrink-0"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <Plus className="w-2.5 h-2.5 ml-0.5" />
+          </button>
+        </div>
+
+        {/* Extra Savings Banner */}
+        <div className="flex items-center gap-1 mt-0.5">
+          <div className="bg-[#FF5000] text-white px-1.5 py-0.5 flex items-center gap-1 rounded-sm text-[10px] font-black italic tracking-tight">
+            <Flame className="w-3 h-3 fill-current" />
+            ${(originalPrice - p.price).toLocaleString('es-CO')} Ahorro extra
+          </div>
+          <div className="border border-[#FF5000] text-[#FF5000] px-1.5 py-0.5 font-bold text-[10px] flex items-center gap-1 rounded-sm">
+            11:52:01 <HelpCircle className="w-2.5 h-2.5" />
+          </div>
+        </div>
+
+        {/* Stock Status */}
+        <div className="flex items-center gap-1 mt-1 text-[#FF5000]">
+          <span className="text-[14px] font-bold tracking-tight">
+            SOLO HAY {p.stock}
+          </span>
+          <HelpCircle className="w-4 h-4 text-zinc-300 shrink-0" />
+        </div>
+
+        {/* Social Proof Row */}
+        <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className={`w-3.5 h-3.5 ${i < 4 ? 'fill-black text-black' : 'fill-zinc-200 text-zinc-200'}`} />
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            <Flame className="w-3.5 h-3.5 fill-[#FF5000] text-[#FF5000]" />
+            <span className="text-[12px] font-medium text-zinc-500">{salesCount} ventas</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Cart Counter Pop-up */}
+      {qty > 0 && (
+        <div className="absolute top-2 left-2 bg-black text-white text-[10px] font-black w-5 h-5 flex items-center justify-center border border-white/20">
+          {qty}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface FloatingCartBarProps {
+  itemsInCart: number
+  total: number
+  onOpen: () => void
+}
+
+function FloatingCartBar({ itemsInCart, total, onOpen }: FloatingCartBarProps) {
+  if (total <= 0) return null
+
+  return (
+    <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-48px)] max-w-[560px]">
+      <button
+        onClick={onOpen}
+        className="w-full bg-primary border-none rounded-full h-14 flex items-center justify-between px-5 cursor-pointer shadow-2xl"
+      >
+        <div className="flex items-center gap-2 bg-primary-foreground/10 rounded-full px-3.5 py-1.5">
+          <ShoppingBag className="w-[15px] h-[15px] text-primary-foreground" />
+          <span className="text-primary-foreground font-bold text-sm">{itemsInCart}</span>
+        </div>
+        <span className="text-primary-foreground/80 text-[11px] font-bold tracking-[0.12em] uppercase flex items-center gap-1">
+          Ver pedido <ChevronRight className="w-3.5 h-3.5" />
+        </span>
+        <span className="text-primary-foreground font-extrabold text-lg tracking-tight tabular-nums">
+          ${total.toLocaleString('es-CO')}
+        </span>
+      </button>
+    </div>
+  )
+}
+
+interface CartModalProps {
+  isOpen: boolean
+  onClose: () => void
+  cartProducts: Product[]
+  cart: Record<string, number>
+  itemsInCart: number
+  total: number
+  cardPaymentsEnabled: boolean
+  onRemove: (id: string) => void
+  onChangeQty: (id: string, delta: number) => void
+  form: { customerName: string; address: string; city: string }
+  setForm: React.Dispatch<React.SetStateAction<{ customerName: string; address: string; city: string }>>
+  loadingAction: null | 'whatsapp' | 'card'
+  payError: string | null
+  handleSubmit: () => void
+  handlePayWithCard: () => void
+}
+
+function CartModal({
+  isOpen, onClose, cartProducts, cart, itemsInCart, total,
+  cardPaymentsEnabled, onRemove, onChangeQty, form, setForm, loadingAction, payError,
+  handleSubmit, handlePayWithCard
+}: CartModalProps) {
+  const loading = loadingAction !== null
+  const formValid = form.customerName.trim() && form.address.trim() && form.city.trim()
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : 'unset'
+    return () => { document.body.style.overflow = 'unset' }
+  }, [isOpen])
+
+  if (!isOpen) return null
+
+  const fields = [
+    { key: 'customerName', label: 'Nombre de recibo', placeholder: 'Nombre de quién recibe', Icon: User },
+    { key: 'address', label: 'Dirección de entrega', placeholder: 'Calle, carrera, número...', Icon: MapPin },
+    { key: 'city', label: 'Ciudad / municipio', placeholder: 'Ciudad o municipio', Icon: Globe },
+  ] as const
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-center items-end">
+      <div onClick={onClose} className="absolute inset-0 bg-foreground/30 backdrop-blur-sm" />
+      <div className="relative w-full max-w-[540px] bg-card rounded-t-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-start p-7 pb-5 border-b border-border">
+          <div>
+            <h2 className="text-[28px] font-extrabold tracking-tight text-card-foreground m-0">Tu pedido</h2>
+            <p className="text-[9px] text-muted-foreground font-bold tracking-[0.15em] uppercase mt-1.5 mb-0">
+              Revisión final de compra
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full border border-border bg-secondary cursor-pointer flex items-center justify-center text-muted-foreground"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Scrollable */}
+        <div className="flex-1 overflow-y-auto p-7 pt-6">
+          {/* Items */}
+          <div className="mb-7">
+            <div className="flex justify-between items-center mb-3.5">
+              <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-muted-foreground">Resumen de ítems</span>
+              <span className="text-[10px] font-bold text-muted-foreground bg-secondary px-2.5 py-[3px] rounded-full uppercase tracking-wide">
+                {itemsInCart} unidades
+              </span>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              {cartProducts.map(p => (
+                <div key={p.id} className="bg-secondary/60 rounded-[14px] border border-border p-3 flex justify-between items-center">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-[52px] h-[52px] rounded-[10px] bg-card border border-border overflow-hidden shrink-0">
+                      {p.imageUrl
+                        ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                        : <ShoppingBag className="w-5 h-5 m-4 text-muted-foreground/40" />
+                      }
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-[13px] text-card-foreground mb-1 truncate max-w-[200px] m-0">{p.name}</p>
+                      
+                      <div className="flex items-center gap-3 mt-1">
+                        {/* Compact Qty Selector */}
+                        <div className="flex items-center border border-[#e5e5e5] rounded-lg h-7 bg-white shrink-0">
+                          <button
+                            onClick={() => onChangeQty(p.id, -1)}
+                            className="w-7 h-full flex items-center justify-center text-[#aeaeb2] disabled:opacity-30 cursor-pointer"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="w-5 text-center text-[12px] font-medium text-[#1d1d1f] tabular-nums">
+                            {cart[p.id]}
+                          </span>
+                          <button
+                            onClick={() => onChangeQty(p.id, +1)}
+                            disabled={cart[p.id] >= p.stock}
+                            className="w-7 h-full flex items-center justify-center text-blue-500 disabled:opacity-30 cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <p className="text-[13px] font-semibold text-blue-500 m-0">
+                          ${(p.price * (cart[p.id] ?? 0)).toLocaleString('es-CO')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onRemove(p.id)}
+                    className="w-8 h-8 rounded-lg border border-border bg-card cursor-pointer flex items-center justify-center text-muted-foreground shrink-0 ml-2"
+                  >
+                    <Trash2 className="w-[13px] h-[13px]" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Form */}
+          <div className="border-t border-border pt-6">
+            <div className="flex items-center gap-1.5 mb-4">
+              <MapPin className="w-3 h-3 text-accent" />
+              <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-muted-foreground">Información de envío</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {fields.map(({ key, label, placeholder, Icon }) => (
+                <div key={key}>
+                  <label className="block text-[9px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-1.5">{label}</label>
+                  <div className="relative">
+                    <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+                    <input
+                      className="w-full bg-secondary border border-border rounded-xl pl-10 pr-3.5 py-3 text-sm font-medium text-card-foreground outline-none focus:ring-2 focus:ring-accent/30"
+                      placeholder={placeholder}
+                      value={(form as any)[key]}
+                      onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-border px-7 pt-5 pb-7 bg-card">
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground uppercase mb-1 m-0">Valor total a pagar</p>
+              <h3 className="text-4xl font-extrabold text-card-foreground tracking-tight m-0 tabular-nums">
+                ${total.toLocaleString('es-CO')}
+              </h3>
+            </div>
+            {itemsInCart > 0 && (
+              <span className="text-[10px] font-bold text-accent bg-accent/10 px-3.5 py-1.5 rounded-full uppercase tracking-wide">
+                Confirmado
+              </span>
+            )}
+          </div>
+
+          {payError && (
+            <div className="bg-destructive/5 border border-destructive/20 text-destructive text-[11px] font-bold text-center px-4 py-2.5 rounded-[10px] mb-3 flex items-center justify-center gap-1.5">
+              <X className="w-3 h-3" /> {payError}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2.5">
+            {cardPaymentsEnabled && (
+              <button
+                onClick={handlePayWithCard}
+                disabled={loading || !formValid}
+                className="w-full h-[52px] bg-primary text-primary-foreground border-none rounded-full font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <CreditCard className="w-[17px] h-[17px]" />
+                {loadingAction === 'card' ? 'Procesando...' : 'Pagar con Tarjeta'}
+                <ArrowRight className="w-[15px] h-[15px]" />
+              </button>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !formValid}
+              className="w-full h-[52px] bg-[#25D366] text-white border-none rounded-full font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-[#25D366]/25"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-[17px] h-[17px]"
+              >
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .018 5.396.015 12.03c0 2.12.554 4.189 1.604 6.04L0 24l6.105-1.602a11.832 11.832 0 005.942 1.6h.005c6.634 0 12.032-5.396 12.035-12.03a11.782 11.782 0 00-3.417-8.467z" />
+              </svg>
+              {loadingAction === 'whatsapp' ? 'Iniciando...' : 'Confirmar por WhatsApp'}
+              <ArrowRight className="w-[15px] h-[15px]" />
+            </button>
+          </div>
+
+          <p className="text-[9px] text-muted-foreground/50 font-bold tracking-[0.1em] text-center uppercase mt-3.5 mb-0">
+            Protocolo de seguridad activo • FlashCheckout 2026
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

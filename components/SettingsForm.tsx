@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Store, Phone, AlignLeft, ImagePlus, X, Check, Globe, HelpCircle } from 'lucide-react'
+import { Loader2, Store, Phone, AlignLeft, ImagePlus, X, Check, Globe, HelpCircle, Shirt, Smartphone, Home, Sparkles, Utensils, Dumbbell, Gamepad2, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type SettingsStore = {
@@ -10,6 +10,7 @@ type SettingsStore = {
   whatsapp: string
   bio: string | null
   logoUrl: string | null
+  category: string | null
 }
 
 export default function SettingsForm({
@@ -21,6 +22,7 @@ export default function SettingsForm({
     name: initialStore.name,
     whatsapp: initialStore.whatsapp,
     bio: initialStore.bio || '',
+    category: initialStore.category || 'General',
     logoFile: null as File | null,
   })
   
@@ -74,6 +76,7 @@ export default function SettingsForm({
           name: form.name,
           whatsapp: form.whatsapp,
           bio: form.bio,
+          category: form.category,
           ...(finalLogoUrl !== undefined && { logoUrl: finalLogoUrl }),
         }),
       })
@@ -194,6 +197,48 @@ export default function SettingsForm({
           <div className="flex justify-between text-[11px] font-bold tracking-widest text-zinc-400 px-1 opacity-60 uppercase">
             <span>Se mostrará en la cabecera de tu tienda pública.</span>
             <span>{form.bio.length} / 300</span>
+          </div>
+        </div>
+
+        {/* Category Selection */}
+        <div className="space-y-6 pt-4">
+          <div className="flex items-center justify-between px-1">
+            <label className="text-xs font-bold tracking-widest text-zinc-400 uppercase">
+              Categoría comercial
+            </label>
+            <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full uppercase tracking-widest">
+              Actual: {form.category}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { id: 'Moda', icon: Shirt, label: 'Moda' },
+              { id: 'Tecnología', icon: Smartphone, label: 'Tecnología' },
+              { id: 'Hogar', icon: Home, label: 'Hogar' },
+              { id: 'Belleza', icon: Sparkles, label: 'Belleza' },
+              { id: 'Comida', icon: Utensils, label: 'Comida' },
+              { id: 'Deportes', icon: Dumbbell, label: 'Deportes' },
+              { id: 'Juguetes', icon: Gamepad2, label: 'Juguetes' },
+              { id: 'Otros', icon: MoreHorizontal, label: 'Otros' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {setForm(f => ({ ...f, category: cat.id })); setSuccess(false)}}
+                className={cn(
+                  "flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group",
+                  form.category === cat.id
+                    ? "bg-black border-black text-white shadow-xl scale-[1.02]"
+                    : "bg-white border-black/[0.05] text-zinc-500 hover:border-black/20 hover:bg-zinc-50"
+                )}
+              >
+                <cat.icon className={cn(
+                  "w-5 h-5 transition-transform group-hover:scale-110",
+                  form.category === cat.id ? "text-white" : "text-zinc-300"
+                )} />
+                <span className="text-[13px] font-bold tracking-tight">{cat.label}</span>
+              </button>
+            ))}
           </div>
         </div>
 

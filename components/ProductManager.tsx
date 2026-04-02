@@ -17,7 +17,7 @@ import {
   Zap,
   Image as ImageIcon,
   ArrowUpRight,
-  Globe,
+  ChevronRight,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -28,16 +28,19 @@ type Product = {
   price: number
   stock: number
   imageUrl: string | null
+  category?: string | null
   active: boolean
 }
 
 export default function ProductManager({
   initialProducts,
   storeId,
+  storeSlug,
   isPro,
 }: {
   initialProducts: Product[]
   storeId: string
+  storeSlug: string
   isPro: boolean
 }) {
   const [products, setProducts] = useState<Product[]>(initialProducts)
@@ -48,6 +51,7 @@ export default function ProductManager({
     name: '',
     price: '',
     stock: '',
+    category: 'General',
     image: null as File | null,
   })
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -58,6 +62,7 @@ export default function ProductManager({
       name: product.name,
       price: String(product.price),
       stock: String(product.stock),
+      category: product.category || 'General',
       image: null,
     })
     setImagePreview(product.imageUrl)
@@ -68,7 +73,7 @@ export default function ProductManager({
   function closeForm() {
     setShowForm(false)
     setEditingId(null)
-    setForm({ name: '', price: '', stock: '', image: null })
+    setForm({ name: '', price: '', stock: '', category: 'General', image: null })
     setImagePreview(null)
   }
 
@@ -97,12 +102,13 @@ export default function ProductManager({
 
       const method = editingId ? 'PUT' : 'POST'
       const payload: any = {
+        id: editingId,
         name: form.name,
         price: parseInt(form.price),
         stock: parseInt(form.stock) || 0,
+        category: form.category,
       }
       
-      if (editingId) payload.id = editingId
       if (imageUrl !== undefined) payload.imageUrl = imageUrl
 
       const res = await fetch('/api/products', {
@@ -184,7 +190,7 @@ export default function ProductManager({
             <button
               onClick={() => {
                 setEditingId(null)
-                setForm({ name: '', price: '', stock: '', image: null })
+                setForm({ name: '', price: '', stock: '', category: 'General', image: null })
                 setImagePreview(null)
                 setShowForm(true)
               }}
@@ -244,6 +250,27 @@ export default function ProductManager({
                       onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                       required
                     />
+                  </div>
+                </div>
+
+                {/* Field: Category */}
+                <div className="space-y-3">
+                  <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Categoría</label>
+                  <div className="relative group">
+                    <Package className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                    <select
+                      className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black appearance-none focus:outline-none focus:border-primary/30 transition-all"
+                      value={form.category}
+                      onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                    >
+                      <option value="General">General</option>
+                      <option value="Tecnología">Tecnología</option>
+                      <option value="Moda">Moda</option>
+                      <option value="Hogar">Hogar</option>
+                      <option value="Mascotas">Mascotas</option>
+                      <option value="Salud">Salud</option>
+                      <option value="Deportes">Deportes</option>
+                    </select>
                   </div>
                 </div>
 
@@ -403,6 +430,9 @@ export default function ProductManager({
 
               <div className="p-10 flex-1 flex flex-col justify-between">
                 <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{product.category || 'General'}</span>
+                  </div>
                   <h4 className="text-2xl font-bold text-black group-hover:text-primary transition-colors duration-500 tracking-tighter font-display">
                     {product.name}
                   </h4>
@@ -425,7 +455,7 @@ export default function ProductManager({
                     </p>
                   </div>
                   <Link 
-                    href={`/dashboard`} 
+                    href={`/tienda/${storeSlug}`} 
                     className="w-10 h-10 rounded-full bg-zinc-50 border border-black/[0.03] flex items-center justify-center text-zinc-300 hover:text-primary hover:bg-primary/5 transition-all active:scale-90"
                   >
                     <ArrowUpRight className="w-4 h-4" />

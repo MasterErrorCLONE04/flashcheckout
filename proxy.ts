@@ -8,6 +8,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook/stripe(.*)', // Stripe firma el cuerpo; no hay sesión Clerk
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/explorar(.*)',
+  '/work/doc(.*)',
 ])
 
 export default clerkMiddleware(async (auth, req) => {

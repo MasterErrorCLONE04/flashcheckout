@@ -14,6 +14,7 @@ model Store {
   userId    String    // clerk user id
   logoUrl   String?
   bio       String?
+  category  String?   @default("General")
   active    Boolean   @default(true)
   products  Product[]
   orders                Order[]
@@ -38,6 +39,7 @@ model Product {
   price     Int      // en pesos colombianos enteros
   stock     Int      @default(0)
   imageUrl  String?
+  category  String?  @default("General")
   active    Boolean  @default(true)
   storeId   String
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)

@@ -38,7 +38,7 @@ export default async function ProductosPage() {
           </div>
         )}
       </div>
-      <ProductManager initialProducts={products} storeId={store.id} isPro={isPro} />
+      <ProductManager initialProducts={products} storeId={store.id} storeSlug={store.slug} isPro={isPro} />
     </div>
   )
 }

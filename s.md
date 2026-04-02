@@ -1,0 +1,1 @@
+idea, migrar a servicio de sitas, facturas en pdf reenviadas al correo electronico del cliente, generar excel con balance 

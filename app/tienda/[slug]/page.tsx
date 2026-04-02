@@ -48,6 +48,7 @@ export default async function StorePage({ params }: Props) {
         name: store.name,
         whatsapp: store.whatsapp,
         products: store.products,
+        logoUrl: store.logoUrl,
         cardPaymentsEnabled,
       }}
     />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Store, Loader2, Zap, Layout, ArrowRight } from 'lucide-react'
+import { Store, Loader2, Zap, Layout, ArrowRight, Shirt, Smartphone, Home, Sparkles, Utensils, Dumbbell, Gamepad2, MoreHorizontal } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -11,6 +11,7 @@ export default function StoreSetupForm() {
     name: '',
     slug: '',
     whatsapp: '',
+    category: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -137,6 +138,43 @@ export default function StoreSetupForm() {
           </p>
         </div>
 
+        {/* Category Selection */}
+        <div className="space-y-4 pt-4">
+          <label className="text-xs font-bold tracking-widest text-zinc-400 px-1 uppercase transition-colors">
+            Categoría comercial
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { id: 'Moda', icon: Shirt, label: 'Moda' },
+              { id: 'Tecnología', icon: Smartphone, label: 'Tecnología' },
+              { id: 'Hogar', icon: Home, label: 'Hogar' },
+              { id: 'Belleza', icon: Sparkles, label: 'Belleza' },
+              { id: 'Comida', icon: Utensils, label: 'Comida' },
+              { id: 'Deportes', icon: Dumbbell, label: 'Deportes' },
+              { id: 'Juguetes', icon: Gamepad2, label: 'Juguetes' },
+              { id: 'Otros', icon: MoreHorizontal, label: 'Otros' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, category: cat.id }))}
+                className={cn(
+                  "flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group",
+                  form.category === cat.id
+                    ? "bg-black border-black text-white shadow-xl scale-[1.02]"
+                    : "bg-white border-black/[0.05] text-zinc-500 hover:border-black/20 hover:bg-zinc-50"
+                )}
+              >
+                <cat.icon className={cn(
+                  "w-5 h-5 transition-transform group-hover:scale-110",
+                  form.category === cat.id ? "text-white" : "text-zinc-300"
+                )} />
+                <span className="text-[13px] font-bold tracking-tight">{cat.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-bold tracking-widest rounded-2xl px-6 py-4 animate-in fade-in">
             {error}
@@ -145,7 +183,7 @@ export default function StoreSetupForm() {
 
         <button
           type="submit"
-          disabled={loading || !form.name || !form.slug || !form.whatsapp}
+          disabled={loading || !form.name || !form.slug || !form.whatsapp || !form.category}
           className="btn-premium w-full h-14 flex items-center justify-center gap-4 mt-12"
         >
           {loading ? (

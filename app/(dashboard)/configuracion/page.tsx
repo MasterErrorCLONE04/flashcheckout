@@ -18,6 +18,7 @@ export default async function SettingsPage() {
       whatsapp: true,
       bio: true,
       logoUrl: true,
+      category: true,
     },
   })
 

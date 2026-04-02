@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, slug, whatsapp } = body
+    const { name, slug, whatsapp, category } = body
 
     if (!name || !slug || !whatsapp) {
       return NextResponse.json(
@@ -76,6 +76,7 @@ export async function POST(req: Request) {
         slug: cleanSlug,
         whatsapp: whatsapp.replace(/\D/g, ''),
         userId,
+        category: category || 'Otros',
       },
     })
 
@@ -97,7 +98,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, whatsapp, logoUrl, bio } = body
+    const { name, whatsapp, logoUrl, bio, category } = body
 
     const store = await prisma.store.findFirst({
       where: { userId },
@@ -117,6 +118,7 @@ export async function PUT(req: Request) {
         ...(whatsapp && { whatsapp: whatsapp.replace(/\D/g, '') }),
         ...(logoUrl !== undefined && { logoUrl }),
         ...(bio !== undefined && { bio }),
+        ...(category !== undefined && { category }),
       },
     })
 

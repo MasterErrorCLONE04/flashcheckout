@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
+// Re-evaluating Prisma types for marketplace integration
 
 export async function GET() {
   const { userId } = await auth()
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, price, stock, imageUrl } = body
+    const { name, price, stock, imageUrl, category } = body
 
     if (!name || price == null) {
       return NextResponse.json(
@@ -62,12 +63,13 @@ export async function POST(req: Request) {
       )
     }
 
-    const product = await prisma.product.create({
+    const product = await (prisma.product as any).create({
       data: {
         name,
         price: Math.round(price),
         stock: stock ?? 0,
         imageUrl: imageUrl ?? null,
+        category: category ?? "General",
         storeId: store.id,
       },
     })
@@ -90,7 +92,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
-    const { id, name, price, stock, imageUrl, active } = body
+    const { id, name, price, stock, imageUrl, category, active } = body
 
     if (!id) {
       return NextResponse.json(
@@ -112,13 +114,14 @@ export async function PUT(req: Request) {
       )
     }
 
-    const updated = await prisma.product.update({
+    const updated = await (prisma.product as any).update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
         ...(price !== undefined && { price: Math.round(price) }),
         ...(stock !== undefined && { stock }),
         ...(imageUrl !== undefined && { imageUrl }),
+        ...(category !== undefined && { category }),
         ...(active !== undefined && { active }),
       },
     })
