@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Store {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  whatsapp  String    // formato: 573001234567
+  userId    String    // clerk user id
+  logoUrl   String?
+  bio       String?
+  active    Boolean   @default(true)
+  products  Product[]
+  orders                Order[]
+  
+  // Stripe Data (Membresía)
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
+  // Stripe Connect (cobros de clientes en /tienda)
+  stripeConnectAccountId      String? @unique
+  stripeConnectChargesEnabled Boolean @default(false)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String
+  price     Int      // en pesos colombianos enteros
+  stock     Int      @default(0)
+  imageUrl  String?
+  active    Boolean  @default(true)
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  customerName  String
+  customerPhone String?
+  address       String
+  city          String
+  items         Json     // [{ productId, name, qty, price }]
+  total         Int
+  status        String   @default("pending") // legacy status
+  
+  // Mercado Pago
+  paymentStatus PaymentStatus @default(PENDING)
+  mpPreferenceId String?
+  mpPaymentId    String?
+
+  stripeCheckoutSessionId String?
+  storeId       String
+  store         Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+}

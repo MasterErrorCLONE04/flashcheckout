@@ -1,0 +1,43 @@
+{
+  "name": "flashcheckout",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^7.0.8",
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@stripe/connect-js": "^3.3.34",
+    "@stripe/react-connect-js": "^3.3.33",
+    "@stripe/stripe-js": "^9.0.1",
+    "@supabase/supabase-js": "^2.101.1",
+    "@types/recharts": "^1.8.29",
+    "dotenv": "^17.3.1",
+    "lucide-react": "^1.7.0",
+    "mercadopago": "^2.12.0",
+    "next": "16.2.2",
+    "pg": "^8.20.0",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "stripe": "^21.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.2",
+    "prisma": "^7.6.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
