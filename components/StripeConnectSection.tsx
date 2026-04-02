@@ -11,6 +11,7 @@ import {
   Sparkles,
   Shield,
   Building2,
+  Lock,
 } from 'lucide-react'
 import { loadConnectAndInitialize } from '@stripe/connect-js'
 import {
@@ -18,6 +19,7 @@ import {
   ConnectAccountOnboarding,
 } from '@stripe/react-connect-js'
 import type { StripeConnectInstance } from '@stripe/connect-js'
+import { cn } from '@/lib/utils'
 
 const PK = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
@@ -121,11 +123,11 @@ export default function StripeConnectSection() {
         appearance: {
           overlays: 'dialog',
           variables: {
-            colorPrimary: '#059669',
+            colorPrimary: '#0066CC',
             colorBackground: '#ffffff',
-            colorText: '#0f172a',
-            borderRadius: '12px',
-            fontFamily: 'var(--font-outfit), ui-sans-serif, system-ui, sans-serif',
+            colorText: '#1D1D1F',
+            borderRadius: '16px',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
           },
         },
       })
@@ -151,96 +153,99 @@ export default function StripeConnectSection() {
   }, [initConnectInstance])
 
   return (
-    <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
-      <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-        <CreditCard className="w-5 h-5 text-emerald-600" />
-        Cobros con tarjeta (Stripe)
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4 max-w-xl">
-        Activa cobros con tarjeta sin salir de FlashCheckout: el formulario de Stripe va
-        dentro de un panel propio, con el mínimo de pasos posible en cada momento.
+    <div className="bg-white border border-black/[0.03] rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.02] rounded-full blur-[100px] -mr-32 -mt-32" />
+      
+      <div className="flex items-center justify-between mb-8 relative z-10">
+        <div>
+          <p className="text-xs font-bold tracking-widest text-primary mb-2 uppercase">Pasarela de pagos</p>
+          <h2 className="text-2xl font-bold text-black tracking-tight flex items-center gap-3 font-display">
+            Pagos con tarjeta
+          </h2>
+        </div>
+        <div className="w-12 h-12 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-300">
+           <CreditCard className="w-6 h-6" />
+        </div>
+      </div>
+
+      <p className="text-sm text-zinc-400 font-bold tracking-widest mb-10 max-w-xl leading-relaxed uppercase">
+        Activa cobros globales sin salir de FlashCheckout. Integración nativa con Stripe para una experiencia de pago premium y segura.
       </p>
 
-      <div className="rounded-xl border border-border/80 bg-muted/30 px-4 py-3 text-xs text-muted-foreground mb-6 space-y-1.5">
-        <p className="font-medium text-foreground/80 flex items-center gap-2">
-          <Shield className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
-          Qué pedirá Stripe (regulación, no se puede omitir)
+      <div className="rounded-2xl border border-black/[0.02] bg-zinc-50 p-6 text-xs font-bold text-zinc-400 tracking-widest mb-10 space-y-4 uppercase">
+        <p className="text-black flex items-center gap-3 font-display">
+          <Shield className="w-4 h-4 text-primary" />
+          Requisitos de verificación (Stripe)
         </p>
-        <ul className="list-disc pl-5 space-y-0.5">
-          <li>Nombre e identificación del titular</li>
-          <li>Cuenta bancaria para recibir transferencias</li>
-        </ul>
-        <p className="pt-1 text-[11px] leading-relaxed">
-          Solo pedimos lo necesario en cada fase; el resto puede pedirse más adelante
-          cuando tu volumen lo requiera. En algunos casos Stripe abre una ventana extra
-          para verificar identidad.
+ bitumen
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3 shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-primary" />
+            Titular e Identificación
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3 shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-primary" />
+            Cuenta Bancaria para Depósitos
+          </div>
+        </div>
+        <p className="text-[11px] opacity-60 leading-relaxed uppercase">
+          Solo solicitamos información esencial. Cumplimos con los más altos estándares internacionales de seguridad financiera.
         </p>
       </div>
 
-      {/* Progreso global (fuera del modal) */}
-      <div className="grid grid-cols-3 gap-2 mb-6 text-center text-[11px] sm:text-xs">
+      {/* Progress indicators */}
+      <div className="grid grid-cols-3 gap-4 mb-10">
         <StepPill
           done={connected}
-          label="Cuenta creada"
-          icon={<Sparkles className="w-3.5 h-3.5" />}
+          label="Cuenta Creada"
+          icon={<Sparkles className="w-4 h-4" />}
         />
         <StepPill
           done={detailsSubmitted || chargesEnabled}
-          label="Datos en Stripe"
-          icon={<Building2 className="w-3.5 h-3.5" />}
+          label="Sincronizado"
+          icon={<Building2 className="w-4 h-4" />}
         />
         <StepPill
           done={chargesEnabled}
-          label="Cobros activos"
-          icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+          label="Activo"
+          icon={<CheckCircle2 className="w-4 h-4" />}
         />
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          Comprobando estado…
+        <div className="flex items-center gap-3 text-zinc-400 text-xs font-bold uppercase tracking-[0.2em]">
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          Validando Estado...
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6 relative z-10">
           {chargesEnabled ? (
-            <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900">
-              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">Cobros con tarjeta activos</p>
-                <p className="text-emerald-800/90 mt-1">
-                  Tus clientes pueden pagar con tarjeta en la tienda pública.
-                </p>
-              </div>
+            <div className="flex items-center gap-4 rounded-2xl border border-primary/10 bg-primary/[0.02] px-6 py-5 text-sm font-bold tracking-widest text-primary shadow-sm animate-in fade-in uppercase">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <p>Tu terminal está lista para procesar cobros electrónicos.</p>
             </div>
           ) : connected ? (
-            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">Falta un paso</p>
-                <p className="text-amber-900/90 mt-1">
-                  Abre el panel embebido para completar o corregir datos.
-                </p>
-              </div>
+            <div className="flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-sm font-bold tracking-widest text-amber-700 shadow-sm animate-in zoom-in-95 uppercase">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p>Falta validación adicional para activar los cobros.</p>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Aún no has activado cobros con tarjeta para tu tienda.
-            </p>
-          )}
+          ) : null}
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+            <p className="text-[10px] font-bold tracking-widest text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
               {error}
             </p>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-1">
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <button
               type="button"
               onClick={openEmbeddedOnboarding}
               disabled={chargesEnabled || bootingConnect}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-3 disabled:opacity-50"
+              className={cn(
+                "h-16 inline-flex items-center justify-center gap-3 rounded-full text-sm font-bold tracking-widest px-8 transition-all active:scale-95 shadow-xl min-w-[240px] uppercase",
+                chargesEnabled ? "bg-zinc-100 text-zinc-400 cursor-default" : "bg-primary text-white hover:bg-primary-hover"
+              )}
             >
               {bootingConnect ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -248,19 +253,19 @@ export default function StripeConnectSection() {
                 <CreditCard className="w-4 h-4" />
               )}
               {chargesEnabled
-                ? 'Cobros activos'
+                ? 'Panel activo'
                 : connected
-                  ? 'Continuar / corregir datos'
-                  : 'Activar cobros con tarjeta'}
+                  ? 'Continuar configuración'
+                  : 'Configurar pagos'}
             </button>
             <a
               href="https://dashboard.stripe.com/connect"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium px-5 py-3 hover:bg-muted/60 transition-colors"
+              className="h-16 inline-flex items-center justify-center gap-3 rounded-full border border-black/[0.05] bg-white text-zinc-400 hover:text-black hover:bg-zinc-50 text-sm font-bold tracking-widest px-8 transition-all active:scale-95 uppercase"
             >
               <ExternalLink className="w-4 h-4" />
-              Panel Stripe
+              External dashboard
             </a>
           </div>
         </div>
@@ -268,83 +273,80 @@ export default function StripeConnectSection() {
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-300"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="stripe-onboarding-title"
         >
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-white/60 backdrop-blur-xl"
             aria-hidden
           />
-          <div className="relative w-full max-w-lg max-h-[min(92vh,880px)] flex flex-col rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
-            <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-border bg-gradient-to-r from-emerald-600/10 to-transparent">
+          <div className="relative w-full max-w-xl max-h-[min(92vh,880px)] flex flex-col rounded-[3rem] border border-black/[0.05] bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+            <div className="flex items-start justify-between gap-6 px-10 py-10 border-b border-black/[0.02] bg-gradient-to-r from-primary/[0.03] to-transparent">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/90">
-                  FlashCheckout
+                <p className="text-xs font-bold tracking-widest text-primary mb-3 uppercase">
+                  FlashCheckout × Stripe
                 </p>
-                <h3
-                  id="stripe-onboarding-title"
-                  className="text-lg font-bold text-foreground mt-0.5"
-                >
-                  Configuración de cobros
+                <h3 className="text-2xl font-bold text-black tracking-tight font-display">
+                  Configuración segura
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                  Formulario seguro de Stripe. Puedes cerrar cuando termines; guardamos el
-                  avance automáticamente.
+                <p className="text-xs text-zinc-400 font-bold tracking-widest mt-3 leading-relaxed max-w-sm uppercase">
+                  Proceso de validación internacional. Los datos están protegidos por el cifrado de Stripe.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="shrink-0 rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                aria-label="Cerrar"
+                className="w-12 h-12 rounded-full text-zinc-300 hover:bg-zinc-50 hover:text-black flex items-center justify-center transition-all active:scale-90"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="px-5 py-2 border-b border-border/60 bg-muted/20 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-0.5 border border-border/60">
-                Paso Stripe
-                {stepHint ? `: ${stepHint}` : ': en curso'}
+            <div className="px-10 py-4 border-b border-black/[0.02] bg-zinc-50/50 flex flex-wrap items-center gap-4 text-[11px] font-bold text-zinc-400 tracking-widest uppercase">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 border border-black/[0.02] shadow-sm">
+                <Lock className="w-3 h-3 text-primary" />
+                Estado seguro
+                {stepHint ? `: ${stepHint}` : ': Iniciando'}
               </span>
               <button
                 type="button"
                 onClick={() => void retrySessionInModal()}
-                className="text-emerald-700 font-medium hover:underline ml-auto disabled:opacity-50"
+                className="text-primary hover:text-zinc-600 ml-auto transition-colors"
                 disabled={bootingConnect}
               >
-                Reintentar sesión
+                Reintentar Sesión
               </button>
             </div>
 
-            <div className="flex-1 min-h-[min(420px,50vh)] overflow-y-auto p-4 sm:p-5">
+            <div className="flex-1 min-h-[min(420px,50vh)] overflow-y-auto p-10 bg-white">
               {connectBootError && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
                   {connectBootError}
                 </p>
               )}
               {bootingConnect && !connectInstance && (
-                <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-                  <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                  <p className="text-sm">Preparando el panel seguro…</p>
+                <div className="flex flex-col items-center justify-center gap-6 py-20 text-zinc-400">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-xs font-bold tracking-widest uppercase">Sincronizando con Stripe...</p>
                 </div>
               )}
               {connectInstance && (
-                <ConnectComponentsProvider connectInstance={connectInstance}>
-                  <ConnectAccountOnboarding
-                    onExit={handleOnboardingExit}
-                    onStepChange={sc => setStepHint(sc.step)}
-                    onLoadError={({ error: err }) => {
-                      setConnectBootError(err.message ?? 'Error al cargar onboarding')
-                    }}
-                    collectionOptions={{
-                      fields: 'currently_due',
-                      futureRequirements: 'omit',
-                    }}
-                  />
-                </ConnectComponentsProvider>
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <ConnectComponentsProvider connectInstance={connectInstance}>
+                    <ConnectAccountOnboarding
+                      onExit={handleOnboardingExit}
+                      onStepChange={sc => setStepHint(sc.step)}
+                      onLoadError={({ error: err }) => {
+                        setConnectBootError(err.message ?? 'Error al cargar onboarding')
+                      }}
+                      collectionOptions={{
+                        fields: 'currently_due',
+                        futureRequirements: 'omit',
+                      }}
+                    />
+                  </ConnectComponentsProvider>
+                </div>
               )}
             </div>
           </div>
@@ -365,14 +367,19 @@ function StepPill({
 }) {
   return (
     <div
-      className={`rounded-lg border px-2 py-2 flex flex-col items-center gap-1 transition-colors ${
+      className={cn(
+        "rounded-2xl border px-4 py-5 flex flex-col items-center gap-3 transition-all flex-1 group shadow-sm",
         done
-          ? 'border-emerald-300 bg-emerald-50/90 text-emerald-900'
-          : 'border-border bg-muted/40 text-muted-foreground'
-      }`}
+          ? "border-primary/10 bg-primary/[0.02] text-primary"
+          : "border-black/[0.02] bg-zinc-50 text-zinc-300"
+      )}
     >
-      <span className={done ? 'text-emerald-600' : 'opacity-50'}>{icon}</span>
-      <span className="font-medium leading-tight">{label}</span>
+      <span className={cn("transition-transform group-hover:scale-110", done ? "text-primary" : "opacity-30")}>
+        {icon}
+      </span>
+      <span className="text-[11px] font-bold tracking-widest leading-none text-center uppercase">
+        {label}
+      </span>
     </div>
   )
 }

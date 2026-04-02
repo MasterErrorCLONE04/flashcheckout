@@ -24,15 +24,15 @@ export default async function SettingsPage() {
   if (!store) redirect('/') // if no store, they should see onboarding
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Configuración</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Personaliza cómo se ve tu tienda ante los clientes.
+        <h1 className="text-3xl font-black tracking-tighter glow-text uppercase">Configuración de Comandos</h1>
+        <p className="text-sm text-muted-foreground mt-1 font-medium">
+          Personaliza la identidad visual y operativa de tu tienda.
         </p>
       </div>
 
-      <div className="max-w-3xl space-y-8">
+      <div className="w-full space-y-8">
         <SettingsForm initialStore={store} />
         {/* Stripe Connect desactivado por migración a Mercado Pago */}
         {/* <StripeConnectSection /> */}

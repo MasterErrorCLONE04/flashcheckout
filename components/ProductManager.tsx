@@ -14,8 +14,13 @@ import {
   EyeOff,
   Pencil,
   Lock,
+  Zap,
+  Image as ImageIcon,
+  ArrowUpRight,
+  Globe,
 } from 'lucide-react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 type Product = {
   id: string
@@ -87,7 +92,6 @@ export default function ProductManager({
         const uploadData = await uploadRes.json()
         imageUrl = uploadData.url
       } else if (imagePreview === null) {
-        // User removed the image preview
         imageUrl = null
       }
 
@@ -165,10 +169,17 @@ export default function ProductManager({
   const canAddProduct = isPro || products.length < 10
 
   return (
-    <div className="space-y-6">
-      {/* Botón superior de Añadir o Banner de Bloqueo */}
+    <div className="space-y-10 pb-20 animate-in">
+      {/* Dynamic Action Bar */}
       {!showForm && (
-        <div className="flex justify-end mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-bold text-black tracking-tighter font-display">Catálogo</h1>
+            <p className="text-zinc-400 font-bold mt-2 text-xs tracking-widest">
+              Gestionando <span className="text-primary">{products.length} productos</span> en inventario
+            </p>
+          </div>
+          
           {canAddProduct ? (
             <button
               onClick={() => {
@@ -177,209 +188,249 @@ export default function ProductManager({
                 setImagePreview(null)
                 setShowForm(true)
               }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-xl flex items-center gap-2 transition-colors shadow-sm"
+              className="btn-premium h-14 flex items-center gap-3"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5 truncate" />
               Añadir Producto
             </button>
           ) : (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between w-full gap-4">
-              <div className="flex items-center gap-3 text-amber-800">
-                <Lock className="w-5 h-5 flex-shrink-0" />
-                <p className="text-sm font-medium">
-                  Has alcanzado el límite del plan gratuito (10 productos).
-                </p>
-              </div>
+            <div className="premium-card p-4 flex items-center gap-4 bg-amber-50 border-amber-100">
+              <Lock className="w-5 h-5 text-amber-600" />
+              <p className="text-xs font-bold text-amber-700 tracking-widest">Límite gratuito alcanzado (10/10)</p>
               <Link 
                 href="/suscripcion"
-                className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0"
+                className="bg-amber-600 text-white px-4 py-2 rounded-full text-xs font-bold tracking-widest hover:brightness-110 transition-all shadow-md uppercase"
               >
-                Mejorar a Pro
+                Upgrade
               </Link>
             </div>
           )}
         </div>
       )}
 
-      {/* Formulario de Creación/Edición */}
+      {/* Modern Creation Engine */}
       {showForm && (
-        <div className="bg-white border border-border rounded-2xl p-5 mb-6 animate-scale-in">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-sm">
-              {editingId ? 'Editar producto' : 'Nuevo producto'}
-            </h3>
+        <div className="premium-card rounded-[3rem] p-10 md:p-14 mb-12 animate-in relative overflow-hidden bg-white border-black/[0.05]">
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/[0.03] blur-[100px] -mr-40 -mt-20" />
+          
+          <div className="flex items-center justify-between mb-12 relative z-10">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-primary mb-2">Editor de inventario</p>
+              <h3 className="text-3xl font-bold text-black tracking-tight font-display">
+                {editingId ? 'Modificar producto' : 'Nuevo registro'}
+              </h3>
+            </div>
             <button
               onClick={closeForm}
-              className="p-1 rounded-lg hover:bg-muted transition-colors"
+              className="w-12 h-12 rounded-full bg-zinc-50 border border-black/[0.05] flex items-center justify-center text-zinc-400 hover:text-black hover:border-black/10 transition-all active:scale-90"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="relative">
-              <Type className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                className="w-full border border-border rounded-xl pl-10 pr-4 py-3 text-sm bg-white placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
-                placeholder="Nombre del producto"
-                value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="number"
-                  className="w-full border border-border rounded-xl pl-10 pr-4 py-3 text-sm bg-white placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
-                  placeholder="Precio (COP)"
-                  value={form.price}
-                  onChange={e =>
-                    setForm(f => ({ ...f, price: e.target.value }))
-                  }
-                  required
-                  min="0"
-                />
-              </div>
-              <div className="relative">
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="number"
-                  className="w-full border border-border rounded-xl pl-10 pr-4 py-3 text-sm bg-white placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
-                  placeholder="Stock"
-                  value={form.stock}
-                  onChange={e =>
-                    setForm(f => ({ ...f, stock: e.target.value }))
-                  }
-                  min="0"
-                />
-              </div>
-            </div>
-
-            {/* Subida de Foto Opcional */}
-            <div className="flex items-center gap-3">
-              <label className="flex-1 w-full border-2 border-dashed border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/50 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors text-center group">
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/jpeg, image/png, image/webp" 
-                  onChange={handleImageSelect} 
-                />
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                  <Plus className="w-4 h-4 text-emerald-600" />
+          <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
+            <div className="grid lg:grid-cols-2 gap-16">
+              <div className="space-y-8">
+                {/* Field: Name */}
+                <div className="space-y-3">
+                  <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Nombre del producto</label>
+                  <div className="relative group">
+                    <Type className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                    <input
+                      type="text"
+                      className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all"
+                      placeholder="Ej: AirPods Max"
+                      value={form.name}
+                      onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                      required
+                    />
+                  </div>
                 </div>
-                <span className="text-sm font-semibold text-emerald-700">Añadir Foto del Producto (Opcional)</span>
-                <span className="text-xs text-emerald-600/60 mt-0.5">JPEG, PNG o WEBP</span>
-              </label>
 
-              {imagePreview && (
-                <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-border/70 shadow-sm group">
-                  <img src={imagePreview} alt="Vista" className="w-full h-full object-cover" />
-                  <button 
-                    type="button"
-                    title="Remover imagen"
-                    onClick={() => { setForm(prev => ({...prev, image: null})); setImagePreview(null) }}
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                <div className="grid sm:grid-cols-2 gap-8">
+                  {/* Field: Price */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Precio unitario</label>
+                    <div className="relative group">
+                      <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                      <input
+                        type="number"
+                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all tabular-nums"
+                        placeholder="0"
+                        value={form.price}
+                        onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                        required
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field: Stock */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Stock disponible</label>
+                    <div className="relative group">
+                      <Hash className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                      <input
+                        type="number"
+                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all tabular-nums"
+                        placeholder="0"
+                        value={form.stock}
+                        onChange={e => setForm(f => ({ ...f, stock: e.target.value }))}
+                        min="0"
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* Visual System */}
+              <div className="space-y-4">
+                <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Imagen del producto</label>
+                <div className="flex h-full gap-6">
+                  <label className="flex-1 border-2 border-dashed border-black/[0.05] hover:border-primary/30 hover:bg-primary/[0.02] rounded-[2.5rem] flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden relative min-h-[220px]">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/jpeg, image/png, image/webp" 
+                      onChange={handleImageSelect} 
+                    />
+                    <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                      <ImageIcon className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors">Seleccionar archivo</span>
+                  </label>
+
+                  {imagePreview && (
+                    <div className="relative w-56 h-full min-h-[220px] rounded-[2.5rem] overflow-hidden border border-black/[0.05] group animate-in shadow-xl">
+                      <img src={imagePreview} alt="Vista" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          type="button"
+                          onClick={() => { setForm(prev => ({...prev, image: null})); setImagePreview(null) }}
+                          className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full btn-premium h-14 flex items-center justify-center gap-4 group"
             >
               {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Guardando...
-                </>
+                <Loader2 className="w-6 h-6 animate-spin text-white" />
               ) : (
-                editingId ? 'Actualizar producto' : 'Guardar producto'
+                <>
+                  <Zap className="w-5 h-5 fill-current" />
+                  {editingId ? 'Guardar cambios' : 'Añadir al catálogo'}
+                </>
               )}
             </button>
           </form>
         </div>
       )}
 
-      {/* Products List */}
+      {/* Product Display Grid */}
       {products.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-            <Package className="w-8 h-8 text-muted-foreground" />
+        <div className="text-center py-32 premium-card rounded-[3rem] border-dashed border-black/[0.05] bg-white/50">
+          <div className="w-20 h-20 rounded-[2rem] bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-black/[0.02]">
+            <Package className="w-10 h-10 text-zinc-200" />
           </div>
-          <p className="text-sm font-medium">Sin productos todavía</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Agrega tu primer producto para empezar a vender
-          </p>
+          <h3 className="text-xl font-bold text-black tracking-tight font-display">Sin productos</h3>
+          <p className="text-zinc-400 text-xs font-bold tracking-widest mt-2 leading-relaxed uppercase">Comienza añadiendo productos a tu catálogo digital</p>
         </div>
       ) : (
-        <div className="space-y-2 stagger">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map(product => (
             <div
               key={product.id}
-              className={`flex items-center gap-4 bg-white border rounded-xl px-4 py-3 transition-all ${
-                product.active
-                  ? 'border-border/60'
-                  : 'border-border/40 opacity-60'
-              }`}
-            >
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center flex-shrink-0">
-                  <Package className="w-5 h-5 text-emerald-400" />
-                </div>
+              className={cn(
+                "group premium-card rounded-[3rem] overflow-hidden transition-all duration-700 flex flex-col bg-white border-black/[0.02]",
+                !product.active && "opacity-40 grayscale blur-[1px] scale-[0.98]"
               )}
+            >
+              <div className="relative h-64 w-full overflow-hidden bg-zinc-50">
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center opacity-10">
+                    <Package className="w-12 h-12 text-zinc-400" />
+                  </div>
+                )}
+                
+                {/* Status Float */}
+                <div className="absolute top-6 left-6">
+                  <div className={cn(
+                    "px-4 py-1.5 rounded-full text-xs font-bold tracking-widest border transition-all duration-300 shadow-sm uppercase",
+                    product.active ? "bg-white text-black border-black/5" : "bg-black text-white border-black/10"
+                  )}>
+                    {product.active ? 'Activo' : 'Inactivo'}
+                  </div>
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{product.name}</p>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-sm text-emerald-600 font-bold">
-                    ${product.price.toLocaleString('es-CO')}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Stock: {product.stock}
-                  </span>
+                {/* Tactical Overlay */}
+                <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 flex items-center justify-center gap-4">
+                  <button
+                    onClick={() => openEditForm(product)}
+                    className="w-14 h-14 rounded-2xl bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => toggleActive(product.id, product.active)}
+                    className="w-14 h-14 rounded-2xl bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
+                  >
+                    {product.active ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={() => deleteProduct(product.id)}
+                    className="w-14 h-14 rounded-2xl bg-red-600 text-white hover:bg-red-700 transition-all shadow-xl flex items-center justify-center active:scale-90"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={() => openEditForm(product)}
-                  className="p-2 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
-                  title="Editar"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => toggleActive(product.id, product.active)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
-                  title={product.active ? 'Desactivar' : 'Activar'}
-                >
-                  {product.active ? (
-                    <Eye className="w-4 h-4 text-emerald-600" />
-                  ) : (
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </button>
-                <button
-                  onClick={() => deleteProduct(product.id)}
-                  className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                  title="Eliminar"
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </button>
+              <div className="p-10 flex-1 flex flex-col justify-between">
+                <div>
+                  <h4 className="text-2xl font-bold text-black group-hover:text-primary transition-colors duration-500 tracking-tighter font-display">
+                    {product.name}
+                  </h4>
+                  <div className="flex flex-col mt-6">
+                    <p className="text-xs font-bold tracking-widest text-zinc-400 mb-2">Valor unitario</p>
+                    <p className="text-2xl font-bold text-black tabular-nums tracking-tight">
+                      ${product.price.toLocaleString('es-CO')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-black/[0.03] flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <p className="text-xs font-bold tracking-widest text-zinc-400">Stock actual</p>
+                    <p className={cn(
+                      "text-sm font-bold tabular-nums tracking-tight mt-1",
+                      product.stock <= 5 ? "text-red-500" : "text-zinc-600"
+                    )}>
+                      {product.stock} unidades
+                    </p>
+                  </div>
+                  <Link 
+                    href={`/dashboard`} 
+                    className="w-10 h-10 rounded-full bg-zinc-50 border border-black/[0.03] flex items-center justify-center text-zinc-300 hover:text-primary hover:bg-primary/5 transition-all active:scale-90"
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

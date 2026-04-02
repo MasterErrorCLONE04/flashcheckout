@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Store, Loader2, Zap } from 'lucide-react'
+import { Store, Loader2, Zap, Layout, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 export default function StoreSetupForm() {
   const router = useRouter()
@@ -51,89 +52,93 @@ export default function StoreSetupForm() {
   }
 
   return (
-    <div className="max-w-md mx-auto py-12 animate-fade-in">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200">
-          <Zap className="w-8 h-8 text-white" />
+    <div className="max-w-md mx-auto py-24 animate-in relative">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/[0.03] rounded-full blur-[100px] -z-10" />
+      
+      <div className="text-center mb-14">
+        <div className="w-20 h-20 rounded-[2rem] bg-black flex items-center justify-center mx-auto mb-10 shadow-2xl active:scale-95 transition-transform">
+          <Store className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Configura tu tienda
+        <h1 className="text-4xl font-bold text-black tracking-tighter font-display">
+          Crear tienda
         </h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          Completa estos datos para generar tu link de checkout
+        <p className="text-sm text-zinc-400 font-bold tracking-widest mt-5 leading-relaxed uppercase">
+          Configura tu presencia digital en segundos
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="store-name" className="block text-sm font-medium mb-1.5">
-            Nombre de tu tienda
-          </label>
-          <div className="relative">
-            <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              id="store-name"
-              type="text"
-              className="w-full border border-border rounded-xl pl-10 pr-4 py-3 text-sm bg-white placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
-              placeholder="Ej: Joyería Luna"
-              value={form.name}
-              onChange={e => {
-                const name = e.target.value
-                setForm(f => ({
-                  ...f,
-                  name,
-                  slug: generateSlug(name),
-                }))
-              }}
-              required
-            />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-8">
+          <div className="group space-y-3">
+            <label htmlFor="store-name" className="text-xs font-bold tracking-widest text-zinc-400 px-1 group-focus-within:text-black transition-colors uppercase">
+              Nombre de la tienda
+            </label>
+            <div className="relative">
+              <Layout className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+              <input
+                id="store-name"
+                type="text"
+                className="w-full bg-white border border-black/[0.05] rounded-2xl pl-16 pr-6 py-5 text-base font-semibold text-black placeholder:text-zinc-200 focus:outline-none focus:border-primary/30 transition-all shadow-sm"
+                placeholder="Ej: Tienda de moda"
+                value={form.name}
+                onChange={e => {
+                  const name = e.target.value
+                  setForm(f => ({
+                    ...f,
+                    name,
+                    slug: generateSlug(name),
+                  }))
+                }}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="group space-y-3">
+            <label htmlFor="store-slug" className="text-xs font-bold tracking-widest text-zinc-400 px-1 group-focus-within:text-black transition-colors uppercase">
+              Enlace de tu tienda
+            </label>
+            <div className="flex items-center bg-white border border-black/[0.05] rounded-2xl overflow-hidden focus-within:border-primary/30 transition-all shadow-sm">
+              <span className="pl-6 text-xs font-bold text-zinc-300 tracking-widest whitespace-nowrap uppercase">
+                flash/
+              </span>
+              <input
+                id="store-slug"
+                type="text"
+                className="flex-1 py-5 pr-6 border-none text-base bg-transparent focus:outline-none font-semibold text-primary tracking-tight"
+                placeholder="tienda-moda"
+                value={form.slug}
+                onChange={e =>
+                  setForm(f => ({ ...f, slug: e.target.value }))
+                }
+                required
+              />
+            </div>
           </div>
         </div>
 
-        <div>
-          <label htmlFor="store-slug" className="block text-sm font-medium mb-1.5">
-            URL de tu tienda
-          </label>
-          <div className="flex items-center border border-border rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500 transition-all">
-            <span className="pl-4 text-sm text-muted-foreground whitespace-nowrap">
-              flashcheckout.com/tienda/
-            </span>
-            <input
-              id="store-slug"
-              type="text"
-              className="flex-1 py-3 pr-4 text-sm bg-transparent focus:outline-none font-medium"
-              placeholder="joyeria-luna"
-              value={form.slug}
-              onChange={e =>
-                setForm(f => ({ ...f, slug: e.target.value }))
-              }
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="store-whatsapp" className="block text-sm font-medium mb-1.5">
-            Número de WhatsApp
+        <div className="group space-y-3 pt-2">
+          <label htmlFor="store-whatsapp" className="text-xs font-bold tracking-widest text-zinc-400 px-1 group-focus-within:text-black transition-colors uppercase">
+            WhatsApp de negocio
           </label>
           <input
             id="store-whatsapp"
             type="tel"
-            className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-white placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
-            placeholder="573001234567 (con código de país)"
+            className="w-full bg-white border border-black/[0.05] rounded-2xl px-6 py-5 text-base font-semibold text-black placeholder:text-zinc-200 focus:outline-none focus:border-primary/30 transition-all shadow-sm tabular-nums"
+            placeholder="573001234567"
             value={form.whatsapp}
             onChange={e =>
               setForm(f => ({ ...f, whatsapp: e.target.value }))
             }
             required
           />
-          <p className="text-xs text-muted-foreground mt-1.5">
-            Incluye el código de país (57 para Colombia)
+          <p className="text-[11px] text-zinc-300 font-bold tracking-widest px-1 mt-3 uppercase">
+            Incluir código de país sin el símbolo "+" (Colombia: 57)
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+          <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-bold tracking-widest rounded-2xl px-6 py-4 animate-in fade-in">
             {error}
           </div>
         )}
@@ -141,15 +146,18 @@ export default function StoreSetupForm() {
         <button
           type="submit"
           disabled={loading || !form.name || !form.slug || !form.whatsapp}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="btn-premium w-full h-14 flex items-center justify-center gap-4 mt-12"
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Creando...
+              <Loader2 className="w-6 h-6 animate-spin" />
+              Sincronizando...
             </>
           ) : (
-            'Crear mi tienda'
+            <>
+              Comenzar ahora
+              <ArrowRight className="w-5 h-5" />
+            </>
           )}
         </button>
       </form>

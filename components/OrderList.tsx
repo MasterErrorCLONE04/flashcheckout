@@ -10,7 +10,10 @@ import {
   ChevronUp,
   Package,
   MessageCircle,
+  ExternalLink,
+  Zap,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 type OrderItem = {
   name: string
@@ -31,11 +34,11 @@ type Order = {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Nuevo', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  { value: 'confirmed', label: 'Confirmado', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { value: 'shipped', label: 'Enviado', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { value: 'delivered', label: 'Entregado', color: 'bg-green-50 text-green-700 border-green-200' },
-  { value: 'cancelled', label: 'Cancelado', color: 'bg-red-50 text-red-700 border-red-200' },
+  { value: 'pending', label: 'NUEVO', color: 'text-amber-600 bg-amber-50 border-amber-100' },
+  { value: 'confirmed', label: 'CONFIRMADO', color: 'text-blue-600 bg-blue-50 border-blue-100' },
+  { value: 'shipped', label: 'EN CAMINO', color: 'text-primary bg-primary/5 border-primary/10' },
+  { value: 'delivered', label: 'ENTREGADO', color: 'text-white bg-primary border-primary shadow-sm' },
+  { value: 'cancelled', label: 'CANCELADO', color: 'text-red-500 bg-red-50 border-red-100' },
 ]
 
 export default function OrderList({
@@ -57,28 +60,38 @@ export default function OrderList({
     setOrders(prev =>
       prev.map(o => (o.id === orderId ? { ...o, status: newStatus } : o))
     )
+    
+    try {
+      await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+    } catch (error) {
+      console.error('Error updating status:', error)
+    }
   }
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-          <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+      <div className="text-center py-24 premium-card rounded-[3rem] border-dashed bg-white/50 border-black/[0.05]">
+        <div className="w-20 h-20 rounded-[2rem] bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-black/[0.03]">
+          <ShoppingBag className="w-8 h-8 text-zinc-200" />
         </div>
-        <p className="text-sm font-medium">Sin pedidos todavía</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Cuando alguien compre por tu link, los pedidos aparecerán aquí
+        <h3 className="text-xl font-semibold text-black mb-2 uppercase">Sin actividad</h3>
+        <p className="text-zinc-400 text-xs max-w-xs mx-auto font-bold uppercase tracking-widest leading-relaxed">
+          Tus pedidos aparecerán aquí automáticamente en tiempo real.
         </p>
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="space-y-8 pb-20 animate-in">
       {/* Filter tabs */}
-      <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
+      <div className="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar">
         <FilterTab
-          label="Todos"
+          label="TODOS"
           value="all"
           active={filter === 'all'}
           count={orders.length}
@@ -86,7 +99,7 @@ export default function OrderList({
         />
         {STATUS_OPTIONS.map(s => {
           const count = orders.filter(o => o.status === s.value).length
-          if (count === 0) return null
+          if (count === 0 && filter !== s.value) return null
           return (
             <FilterTab
               key={s.value}
@@ -100,38 +113,39 @@ export default function OrderList({
         })}
       </div>
 
-      {/* Orders */}
-      <div className="space-y-2 stagger">
+      {/* Orders Grid */}
+      <div className="space-y-4">
         {filteredOrders.map(order => {
           const isExpanded = expandedId === order.id
-          const items = Array.isArray(order.items)
-            ? (order.items as OrderItem[])
-            : []
+          const items = Array.isArray(order.items) ? order.items : []
 
           return (
             <div
               key={order.id}
-              className="bg-white border border-border/60 rounded-xl overflow-hidden transition-all"
+              className={cn(
+                "premium-card rounded-[2.5rem] overflow-hidden transition-all duration-500",
+                isExpanded ? "ring-2 ring-primary/10 shadow-2xl scale-[1.01] bg-white" : "hover:scale-[1.005] hover:border-black/5 bg-white/80"
+              )}
             >
               {/* Header */}
               <button
-                onClick={() =>
-                  setExpandedId(isExpanded ? null : order.id)
-                }
-                className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
+                onClick={() => setExpandedId(isExpanded ? null : order.id)}
+                className="w-full flex flex-col md:flex-row md:items-center justify-between px-10 py-10 text-left group"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-emerald-600" />
+                <div className="flex items-center gap-8 min-w-0">
+                  <div className={cn(
+                    "w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-700",
+                    isExpanded ? "bg-primary text-white rotate-90 shadow-xl shadow-primary/20" : "bg-zinc-50 text-zinc-300 group-hover:text-primary group-hover:bg-primary/5"
+                  )}>
+                    <User className="w-7 h-7" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate">
+                    <h4 className="text-2xl font-semibold text-black truncate group-hover:text-primary transition-colors uppercase tracking-tight">
                       {order.customerName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {order.city} ·{' '}
-                      {new Date(order.createdAt).toLocaleDateString('es-CO', {
-                        day: 'numeric',
+                    </h4>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-1">
+                      {order.city} · {new Date(order.createdAt).toLocaleDateString('es-CO', {
+                        day: '2-digit',
                         month: 'short',
                         hour: '2-digit',
                         minute: '2-digit',
@@ -140,87 +154,106 @@ export default function OrderList({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <StatusBadge status={order.status} />
-                  <span className="text-sm font-bold">
-                    ${order.total.toLocaleString('es-CO')}
-                  </span>
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                  )}
+                <div className="flex items-center gap-10 mt-6 md:mt-0 ml-24 md:ml-0">
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-black tabular-nums mb-1 tracking-tight">
+                      ${order.total.toLocaleString('es-CO')}
+                    </p>
+                    <StatusBadge status={order.status} />
+                  </div>
+                  <div className={cn(
+                    "w-10 h-10 rounded-full border border-black/[0.05] flex items-center justify-center transition-all",
+                    isExpanded ? "bg-primary/10 border-primary/10 text-primary" : "text-zinc-200 group-hover:bg-zinc-50"
+                  )}>
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </div>
                 </div>
               </button>
 
-              {/* Expanded Details */}
+              {/* Details Pane */}
               {isExpanded && (
-                <div className="border-t border-border/50 px-4 py-4 space-y-4 animate-fade-in bg-muted/20">
-                  {/* Items */}
-                  <div>
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Package className="w-3.5 h-3.5" />
-                      Productos
-                    </h4>
-                    <div className="space-y-1.5">
-                      {items.map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span>
-                            {item.qty}× {item.name}
-                          </span>
-                          <span className="font-medium">
-                            ${(item.price * item.qty).toLocaleString('es-CO')}
-                          </span>
+                <div className="border-t border-black/[0.05] px-10 py-12 bg-zinc-50/30 space-y-12 animate-in">
+                  <div className="grid lg:grid-cols-2 gap-16">
+                    {/* Items Table */}
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2 px-1">
+                        <Package className="w-3.5 h-3.5 text-primary" />
+                        <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Resumen de Orden</h5>
+                      </div>
+                      <div className="space-y-2">
+                        {items.map((item, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-5 bg-white rounded-2xl border border-black/[0.03] hover:border-primary/20 transition-colors shadow-sm"
+                          >
+                            <span className="text-sm font-semibold text-zinc-600">
+                              <span className="text-primary font-bold tabular-nums mr-3">{item.qty}×</span>
+                              {item.name}
+                            </span>
+                            <span className="text-sm font-bold text-black tabular-nums">
+                              ${(item.price * item.qty).toLocaleString('es-CO')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Logistics */}
+                    <div className="space-y-8">
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2 px-1">
+                          <MapPin className="w-3.5 h-3.5 text-primary" />
+                          <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Entrega</h5>
                         </div>
-                      ))}
+                        <div className="p-8 bg-white rounded-[2.5rem] border border-black/[0.05] shadow-sm">
+                          <p className="text-sm font-semibold text-zinc-800 leading-relaxed uppercase">
+                            {order.address}
+                          </p>
+                          <p className="text-[10px] font-bold text-primary mt-3 uppercase tracking-widest">
+                            COLOMBIA · {order.city}
+                          </p>
+                        </div>
+                      </div>
+
+                      {order.customerPhone && (
+                        <a
+                          href={`https://wa.me/${order.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                            `¡Hola ${order.customerName}! Confirmamos tu pedido en ${storeName}, saldrá pronto a reparto.`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-premium flex items-center justify-center gap-3 w-full bg-[#25D366] text-white hover:brightness-110 group h-14"
+                        >
+                          <MessageCircle className="w-5 h-5 fill-current text-white" />
+                          NOTIFICAR POR WHATSAPP
+                        </a>
+                      )}
                     </div>
                   </div>
 
-                  {/* Delivery Info */}
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-start gap-2 text-sm">
-                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span>{order.address}, {order.city}</span>
-                    </div>
-
-                    {order.customerPhone && (
-                      <a
-                        href={`https://wa.me/${order.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
-                          `¡Hola ${order.customerName}! Confirmamos tu pedido en ${storeName}, saldrá pronto a reparto.`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex w-fit items-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#075E54] border border-[#25D366]/30 px-4 py-2 rounded-xl transition-colors font-semibold text-xs mt-1"
-                      >
-                        <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                        Confirmar Envío por WhatsApp
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Status Changer */}
-                  <div>
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Cambiar estado
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
+                  {/* Actions Bar */}
+                  <div className="pt-10 border-t border-black/[0.05] flex flex-col sm:flex-row items-center justify-between gap-8">
+                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                       {STATUS_OPTIONS.map(s => (
                         <button
                           key={s.value}
                           onClick={() => updateStatus(order.id, s.value)}
-                          className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
-                            order.status === s.value
-                              ? s.color + ' ring-2 ring-offset-1 ring-emerald-200'
-                              : 'bg-white border-border text-muted-foreground hover:border-emerald-200'
-                          }`}
+                          className={cn(
+                            "text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-xl border transition-all active:scale-95",
+                            order.status === s.value 
+                              ? s.color + " shadow-md" 
+                              : "bg-white border-black/[0.05] text-zinc-400 hover:text-black hover:border-black/10"
+                          )}
                         >
                           {s.label}
                         </button>
                       ))}
                     </div>
+                    
+                    <button className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 hover:text-black transition-colors uppercase tracking-[0.2em] px-4 py-2 hover:bg-zinc-100 rounded-lg">
+                      <Zap className="w-3.5 h-3.5" />
+                      Finalizar Gestión
+                    </button>
                   </div>
                 </div>
               )}
@@ -235,9 +268,10 @@ export default function OrderList({
 function StatusBadge({ status }: { status: string }) {
   const option = STATUS_OPTIONS.find(s => s.value === status) ?? STATUS_OPTIONS[0]
   return (
-    <span
-      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${option.color}`}
-    >
+    <span className={cn(
+      "text-[8px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border tabular-nums shadow-sm",
+      option.color
+    )}>
       {option.label}
     </span>
   )
@@ -259,18 +293,18 @@ function FilterTab({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-        active
-          ? 'bg-emerald-600 text-white'
-          : 'bg-white border border-border text-muted-foreground hover:border-emerald-200'
-      }`}
+      className={cn(
+        "flex items-center gap-3 px-6 py-3.5 rounded-full text-[10px] font-bold tracking-[0.1em] whitespace-nowrap transition-all border active:scale-95 shadow-sm",
+        active 
+          ? "bg-primary text-white border-primary shadow-lg shadow-primary/10" 
+          : "bg-white border-black/[0.05] text-zinc-400 hover:text-black hover:border-black/10"
+      )}
     >
       {label}
-      <span
-        className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-          active ? 'bg-white/20' : 'bg-muted'
-        }`}
-      >
+      <span className={cn(
+        "px-2 py-0.5 rounded-md font-bold min-w-[20px] text-center",
+        active ? "bg-white/20 text-white" : "bg-zinc-50 text-zinc-300"
+      )}>
         {count}
       </span>
     </button>

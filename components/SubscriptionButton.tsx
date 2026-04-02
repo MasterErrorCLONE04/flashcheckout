@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { CreditCard, Loader2 } from 'lucide-react'
+import { CreditCard, Loader2, Sparkles, Settings2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export default function SubscriptionButton({ isPro }: { isPro: boolean }) {
   const [loading, setLoading] = useState(false)
@@ -29,18 +30,21 @@ export default function SubscriptionButton({ isPro }: { isPro: boolean }) {
     <button 
       onClick={onClick}
       disabled={loading}
-      className={`w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+      className={cn(
+        "w-full sm:w-auto h-16 px-10 rounded-full font-bold text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl",
         isPro 
-          ? 'bg-white border border-border text-foreground hover:bg-muted' 
-          : 'bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 hover:shadow-emerald-600/20 shadow-emerald-600/10 hover:scale-[1.02]'
-      }`}
+          ? "bg-white border border-black/[0.05] text-zinc-400 hover:text-black hover:bg-zinc-50" 
+          : "bg-primary text-white hover:bg-primary-hover shadow-primary/20"
+      )}
     >
       {loading ? (
         <Loader2 className="w-5 h-5 animate-spin" />
+      ) : isPro ? (
+        <Settings2 className="w-4 h-4 text-primary" />
       ) : (
-        <CreditCard className="w-5 h-5" />
+        <Sparkles className="w-4 h-4 text-primary" />
       )}
-      {isPro ? 'Gestionar Facturación' : 'Desbloquear PRO'}
+      {isPro ? 'Gestionar Facturación' : 'Desbloquear Pro'}
     </button>
   )
 }

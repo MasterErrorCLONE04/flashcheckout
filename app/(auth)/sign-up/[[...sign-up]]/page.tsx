@@ -2,14 +2,25 @@ import { SignUp } from '@clerk/nextjs'
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-green-50">
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#0066CC_0.01,transparent_0.5)] pointer-events-none opacity-[0.03]" />
       <SignUp
         fallbackRedirectUrl="/dashboard"
         appearance={{
           elements: {
             formButtonPrimary:
-              'bg-emerald-600 hover:bg-emerald-700 text-sm normal-case',
-            card: 'shadow-xl border border-emerald-100',
+              'bg-black hover:bg-zinc-800 text-xs font-bold uppercase tracking-widest h-12 rounded-full transition-all active:scale-95 shadow-xl',
+            card: 'shadow-2xl border-none p-8 rounded-[2.5rem]',
+            headerTitle: 'text-2xl font-semibold tracking-tight text-black uppercase',
+            headerSubtitle: 'text-[10px] font-bold uppercase tracking-widest text-zinc-400',
+            socialButtonsBlockButton: 'rounded-2xl border-black/[0.05] hover:bg-zinc-50 transition-all',
+            socialButtonsBlockButtonText: 'text-[10px] font-bold uppercase tracking-widest text-zinc-400',
+            dividerLine: 'bg-black/[0.03]',
+            dividerText: 'text-[10px] font-bold uppercase tracking-widest text-zinc-200',
+            formFieldLabel: 'text-[10px] font-bold uppercase tracking-widest text-zinc-400',
+            formFieldInput: 'rounded-2xl border-black/[0.05] bg-zinc-50/50 focus:bg-white focus:ring-primary/20 transition-all h-12 text-sm',
+            footerActionText: 'text-[10px] font-bold uppercase tracking-widest text-zinc-400',
+            footerActionLink: 'text-[10px] font-bold uppercase tracking-widest text-primary hover:text-black transition-colors',
           },
         }}
       />

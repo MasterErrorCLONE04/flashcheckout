@@ -1,27 +1,24 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { QrCode, Download, X } from 'lucide-react'
+import { QrCode, Download, X, Share2, CornerRightUp } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
+import { cn } from '@/lib/utils'
 
 export default function QrGenerator({ url, storeName }: { url: string; storeName: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
 
   const downloadQR = () => {
-    // Buscar directamente el documento de la gráfica creada por la librería
     const canvas = qrRef.current?.querySelector('canvas')
     if (!canvas) return
 
-    // Transformar a imagen pura
     const pngUrl = canvas
       .toDataURL('image/png')
       .replace('image/png', 'image/octet-stream')
 
-    // Disparar click en link invisible
     let downloadLink = document.createElement('a')
     downloadLink.href = pngUrl
-    // Nombre que recibirá el cliente al bajarlo a su explorador de archivos
     downloadLink.download = `QR-${storeName.replace(/\s+/g, '-')}-FlashCheckout.png`
     document.body.appendChild(downloadLink)
     downloadLink.click()
@@ -30,57 +27,67 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
 
   return (
     <>
-      {/* Botón Accionador (Se verá en el Dashboard) */}
+      {/* Action Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all w-fit mt-3 sm:mt-0"
+        className="flex items-center gap-3 bg-white border border-black/[0.05] hover:bg-zinc-50 text-black text-[10px] font-bold tracking-widest px-5 py-3 rounded-full transition-all shadow-sm active:scale-95 group"
       >
-        <QrCode className="w-4 h-4" />
-        Generar QR
+        <QrCode className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+        Generar QR de tienda
       </button>
 
-      {/* Modal / Dialogo de Descarga */}
+      {/* Modal / Download Dialog */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-white/60 backdrop-blur-xl"
             onClick={() => setIsOpen(false)}
           />
-          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm relative z-10 animate-scale-in">
+          <div className="bg-white rounded-[3rem] border border-black/[0.05] shadow-2xl p-10 w-full max-w-md relative z-10 animate-in zoom-in-95 duration-500">
             <button 
               onClick={() => setIsOpen(false)}
-              className="absolute right-4 top-4 text-muted-foreground w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
+              className="absolute right-8 top-8 text-zinc-300 w-10 h-10 rounded-full hover:bg-zinc-50 hover:text-black flex items-center justify-center transition-all active:scale-90"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
             
-            <div className="text-center mb-6 mt-2">
-              <h3 className="text-xl font-bold tracking-tight mb-2 text-foreground">Tu Código QR</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed px-4">
-                Entrégale esto a tu diseñador o imprímelo para que tus clientes escaneen y abran <b>{storeName}</b> directamente.
+            <div className="text-center mb-10 mt-4">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                <Share2 className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold text-black tracking-tight mb-3">Código QR de acceso</h3>
+              <p className="text-[11px] text-zinc-400 font-bold tracking-widest leading-relaxed px-6">
+                Descarga este código para tus impresiones o material publicitario. Abre <b>{storeName}</b> instantáneamente.
               </p>
             </div>
 
-            {/* Contenedor Ref que engloba el Canvas para poder descargarlo */}
+            {/* QR Container */}
             <div 
-              className="bg-[#F9FAFB] border border-border rounded-2xl p-6 flex justify-center mb-6"
+              className="bg-zinc-50 border border-black/[0.02] rounded-[2.5rem] p-10 flex justify-center mb-10 shadow-inner group/qr"
               ref={qrRef}
             >
-              <QRCodeCanvas 
-                value={url} 
-                size={220}
-                level="H" // El nivel más alto de rectificación de error para tolerar logos en él o manchas
-                includeMargin={true}
-                fgColor="#052e16" // Very Dark Emerald
-              />
+              <div className="relative p-4 bg-white rounded-3xl shadow-xl group-hover/qr:scale-105 transition-transform duration-700">
+                <QRCodeCanvas 
+                  value={url} 
+                  size={200}
+                  level="H"
+                  includeMargin={false}
+                  fgColor="#0066CC"
+                />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover/qr:opacity-100 transition-opacity">
+                   <div className="bg-white p-2 rounded-xl shadow-lg border border-primary/20">
+                     <CornerRightUp className="w-6 h-6 text-primary" />
+                   </div>
+                </div>
+              </div>
             </div>
 
             <button
               onClick={downloadQR}
-              className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl transition-colors text-[15px]"
+              className="w-full h-14 flex justify-center items-center gap-4 bg-primary text-white font-bold tracking-widest rounded-full transition-all hover:bg-primary-hover active:scale-98 text-xs shadow-2xl shadow-primary/10 uppercase"
             >
               <Download className="w-5 h-5" />
-              Descargar Imagen Alta Calidad
+              Descargar imagen (HD)
             </button>
           </div>
         </div>

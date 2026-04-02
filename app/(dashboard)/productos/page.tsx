@@ -22,17 +22,19 @@ export default async function ProductosPage() {
   const isPro = await checkSubscription()
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="animate-fade-in space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestiona el catálogo de tu tienda
-          </p>
+          <h1 className="text-3xl font-black tracking-tighter glow-text uppercase leading-none">Suministros y Activos</h1>
+          <div className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-3 flex items-center gap-2 opacity-60">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
+            Inventario Operativo — {products.length} MÓDULOS ACTIVOS
+          </div>
         </div>
         {!isPro && (
-          <div className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold">
-            {products.length} / 10 Gratis
+          <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+            {products.length} / 10 Espacios Usados
           </div>
         )}
       </div>

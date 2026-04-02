@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Outfit } from "next/font/google";
+import { dark } from "@clerk/themes";
 import "./globals.css";
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
 
 export const metadata: Metadata = {
   title: "FlashCheckout — Cierra ventas en 30 segundos",
@@ -30,9 +24,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${outfit.variable} antialiased`}>
-      <body className="min-h-screen bg-background text-foreground font-sans">
-        <ClerkProvider>{children}</ClerkProvider>
+    <html lang="es" className="antialiased">
+      <body className="min-h-screen bg-secondary text-foreground font-sans">
+        <ClerkProvider
+          appearance={{
+            variables: {
+              colorPrimary: "#0066cc",
+              colorBackground: "#ffffff",
+              colorInputBackground: "#f5f5f7",
+              colorInputText: "#1d1d1f",
+              borderRadius: "0.75rem",
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+            },
+            elements: {
+              card: "border border-black/5 shadow-sm premium-card",
+              navbar: "hidden",
+              headerTitle: "font-semibold tracking-tight text-2xl text-black",
+              formButtonPrimary: "bg-[#0066cc] text-white hover:bg-[#0077ed] transition-all duration-300 font-semibold rounded-full py-4",
+            }
+          }}
+        >
+          {children}
+        </ClerkProvider>
       </body>
     </html>
   );

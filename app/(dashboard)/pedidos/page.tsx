@@ -27,11 +27,14 @@ export default async function PedidosPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Pedidos</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {orders.length} {orders.length === 1 ? 'pedido recibido' : 'pedidos recibidos'}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-black tracking-tighter glow-text uppercase leading-none">Registros de Comando</h1>
+          <div className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-3 flex items-center gap-2 opacity-60">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
+            Monitoreo en Tiempo Real — {orders.length} {orders.length === 1 ? 'OPERACIÓN' : 'OPERACIONES'}
+          </div>
+        </div>
       </div>
       <OrderList initialOrders={serializedOrders} storeName={store.name} />
     </div>

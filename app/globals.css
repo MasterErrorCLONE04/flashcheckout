@@ -1,24 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafcfb;
-  --foreground: #0f1a14;
+  --background: #ffffff;
+  --foreground: #1d1d1f; /* Apple Carbon */
+  
   --card: #ffffff;
-  --card-foreground: #0f1a14;
-  --primary: #059669;
+  --card-foreground: #1d1d1f;
+  
+  --primary: #007aff; /* Apple Vibrant Blue */
   --primary-foreground: #ffffff;
-  --primary-hover: #047857;
-  --secondary: #f0fdf4;
-  --secondary-foreground: #065f46;
-  --muted: #f1f5f3;
-  --muted-foreground: #6b7c73;
-  --border: #e2e8e5;
-  --ring: #059669;
-  --destructive: #ef4444;
+  --primary-hover: #0071e3;
+  
+  --secondary: #f5f5f7; /* Apple Surface */
+  --secondary-foreground: #86868b;
+  
+  --muted: #f5f5f7;
+  --muted-foreground: #86868b;
+  
+  --accent: #0066cc;
+  --border: #d2d2d7; /* Apple Border */
+  --input: #ffffff;
+  --ring: #0066cc;
+  
+  --destructive: #ff3b30; /* Apple Red */
   --whatsapp: #25d366;
-  --whatsapp-dark: #128c7e;
-  --accent: #ecfdf5;
-  --radius: 12px;
+  --radius: 12px; /* Apple Radius */
+
+  /* Universal Glass Effects (Apple Style) */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --apple-glow: rgba(0, 102, 204, 0.08);
 }
 
 @theme inline {
@@ -36,149 +47,95 @@
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
-  --color-whatsapp: var(--whatsapp);
-  --color-whatsapp-dark: var(--whatsapp-dark);
   --color-accent: var(--accent);
-  --font-sans: var(--font-outfit), system-ui, sans-serif;
-  --radius: 12px;
+  
+  --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  --shadow-premium: 0 4px 24px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
-/* ─── Base ────────────────────────────────────────────── */
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-}
-
-/* ─── Smooth Scrolling ────────────────────────────────── */
-html {
-  scroll-behavior: smooth;
-}
-
-/* ─── Selections ──────────────────────────────────────── */
-::selection {
-  background-color: #059669;
-  color: #ffffff;
-}
-
-/* ─── Animations ──────────────────────────────────────── */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+/* ─── Base Styles ────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  body {
+    @apply bg-secondary text-foreground selection:bg-primary/20 selection:text-primary;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em; /* SF Pro Text default tracking */
   }
-}
+  
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    @apply tracking-tight font-semibold text-black;
+    letter-spacing: -0.022em; /* SF Pro Display default tracking */
+  }
 
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  h4, h5, h6 {
+    font-family: var(--font-sans);
+    @apply tracking-tight font-semibold text-black;
   }
 }
 
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+/* ─── Elite Components ───────────────────────────────────── */
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-black/[0.05];
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  
+  .premium-card {
+    @apply bg-white border border-black/[0.05] shadow-premium rounded-[22px] transition-all duration-300;
   }
-}
 
-@keyframes pulse-soft {
-  0%, 100% {
-    opacity: 1;
+  .premium-card:hover {
+    @apply shadow-elevated;
   }
-  50% {
-    opacity: 0.7;
-  }
-}
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
+  .btn-premium {
+    @apply bg-primary text-white font-semibold px-10 py-4 rounded-full hover:bg-primary-hover transition-all duration-300 active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-40 text-sm tracking-tight;
   }
-  50% {
-    transform: translateY(-6px);
+
+  .btn-secondary {
+    @apply bg-secondary text-foreground font-semibold px-6 py-3 rounded-full hover:bg-zinc-200 transition-all duration-300 active:scale-95 disabled:opacity-40;
+  }
+
+  .glow-text-apple {
+    @apply text-primary drop-shadow-[0_0_8px_rgba(0,102,204,0.3)];
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
+/* ─── Animations ─────────────────────────────────────────── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.6s ease-out forwards;
+.animate-in {
+  animation: fade-in-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.animate-scale-in {
-  animation: scale-in 0.4s ease-out forwards;
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* ─── Stagger children ────────────────────────────────── */
 .stagger > * {
   opacity: 0;
-  animation: fade-in 0.5s ease-out forwards;
+  animation: fade-in-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.stagger > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger > *:nth-child(5) { animation-delay: 0.25s; }
-.stagger > *:nth-child(6) { animation-delay: 0.3s; }
-.stagger > *:nth-child(7) { animation-delay: 0.35s; }
-.stagger > *:nth-child(8) { animation-delay: 0.4s; }
+.stagger > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger > *:nth-child(2) { animation-delay: 0.15s; }
+.stagger > *:nth-child(3) { animation-delay: 0.2s; }
+.stagger > *:nth-child(4) { animation-delay: 0.25s; }
+.stagger > *:nth-child(5) { animation-delay: 0.3s; }
 
-/* ─── Glass effect ────────────────────────────────────── */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* ─── WhatsApp button gradient ────────────────────────── */
-.btn-whatsapp {
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-  color: white;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
-}
-
-.btn-whatsapp:hover {
-  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
-  transform: translateY(-1px);
-}
-
-.btn-whatsapp:active {
-  transform: translateY(0);
-}
-
-/* ─── Noise texture overlay ───────────────────────────── */
-.noise::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 1;
+/* ─── Typography & Utilities ─────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 }
