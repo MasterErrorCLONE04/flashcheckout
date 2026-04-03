@@ -7,68 +7,60 @@ datasource db {
 }
 
 model Store {
-  id        String    @id @default(cuid())
-  slug      String    @unique
-  name      String
-  whatsapp  String    // formato: 573001234567
-  userId    String    // clerk user id
-  logoUrl   String?
-  bio       String?
-  category  String?   @default("General")
-  active    Boolean   @default(true)
-  products  Product[]
-  orders                Order[]
-  
-  // Stripe Data (Membresía)
-  stripeCustomerId       String?   @unique
-  stripeSubscriptionId   String?   @unique
-  stripePriceId          String?
-  stripeCurrentPeriodEnd DateTime?
-
-  // Stripe Connect (cobros de clientes en /tienda)
-  stripeConnectAccountId      String? @unique
-  stripeConnectChargesEnabled Boolean @default(false)
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                          String    @id @default(cuid())
+  slug                        String    @unique
+  name                        String
+  whatsapp                    String
+  userId                      String
+  active                      Boolean   @default(true)
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  bio                         String?
+  logoUrl                     String?
+  stripeCurrentPeriodEnd      DateTime?
+  stripeCustomerId            String?   @unique
+  stripePriceId               String?
+  stripeSubscriptionId        String?   @unique
+  stripeConnectAccountId      String?   @unique
+  stripeConnectChargesEnabled Boolean   @default(false)
+  category                    String?   @default("General")
+  orders                      Order[]
+  products                    Product[]
 }
 
 model Product {
   id        String   @id @default(cuid())
   name      String
-  price     Int      // en pesos colombianos enteros
+  price     Int
   stock     Int      @default(0)
   imageUrl  String?
-  category  String?  @default("General")
   active    Boolean  @default(true)
   storeId   String
-  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  category  String?  @default("General")
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id                      String        @id @default(cuid())
+  customerName            String
+  customerPhone           String?
+  address                 String
+  city                    String
+  items                   Json
+  total                   Int
+  status                  String        @default("pending")
+  storeId                 String
+  createdAt               DateTime      @default(now())
+  stripeCheckoutSessionId String?
+  mpPaymentId             String?
+  mpPreferenceId          String?
+  paymentStatus           PaymentStatus @default(PENDING)
+  store                   Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 enum PaymentStatus {
   PENDING
   PAID
   FAILED
-}
-
-model Order {
-  id            String   @id @default(cuid())
-  customerName  String
-  customerPhone String?
-  address       String
-  city          String
-  items         Json     // [{ productId, name, qty, price }]
-  total         Int
-  status        String   @default("pending") // legacy status
-  
-  // Mercado Pago
-  paymentStatus PaymentStatus @default(PENDING)
-  mpPreferenceId String?
-  mpPaymentId    String?
-
-  stripeCheckoutSessionId String?
-  storeId       String
-  store         Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
 }

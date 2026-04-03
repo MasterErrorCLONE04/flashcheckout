@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 import {
   ShoppingBag,
   MapPin,
@@ -25,7 +28,9 @@ import {
   Percent,
   HelpCircle,
   Eye,
+  Heart,
 } from 'lucide-react'
+import { cn } from "@/lib/utils"
 
 type Product = {
   id: string
@@ -50,6 +55,8 @@ export default function CheckoutForm({ store }: { store: Store }) {
     customerName: '',
     address: '',
     city: '',
+    lat: null as number | null,
+    lng: null as number | null
   })
   const [loadingAction, setLoadingAction] = useState<null | 'whatsapp' | 'card'>(null)
   const [payError, setPayError] = useState<string | null>(null)
@@ -101,7 +108,7 @@ export default function CheckoutForm({ store }: { store: Store }) {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, ...form, items }),
+        body: JSON.stringify({ storeId: store.id, ...form, items, latitude: form.lat, longitude: form.lng }),
       })
       const data = await res.json()
       if (!res.ok) { setPayError(data.error || 'No se pudo crear el pedido'); setLoadingAction(null); return }
@@ -136,7 +143,7 @@ export default function CheckoutForm({ store }: { store: Store }) {
     <div className="min-h-screen bg-[#F4F4F7] font-sans text-foreground">
       <StoreHeader storeName={store.name} itemsInCart={itemsInCart} logoUrl={store.logoUrl} onCartOpen={() => setIsCartOpen(true)} />
 
-      <main className="max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 pt-10 pb-40">
+      <main className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 pt-10 pb-40">
         {/* Heading */}
         <div className="mb-10">
           <h1 className="text-5xl font-extrabold tracking-tighter text-foreground leading-none m-0">
@@ -161,15 +168,15 @@ export default function CheckoutForm({ store }: { store: Store }) {
           </div>
         )}
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {/* Grid: 5 Columnas de alta densidad */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
           {displayProducts.length === 0 ? (
             <div className="col-span-full text-center py-20 text-muted-foreground">
               No se encontraron productos.
             </div>
           ) : (
             displayProducts.map(p => (
-              <ProductCard key={p.id} product={p} qty={cart[p.id] ?? 0} onChangeQty={changeQty} />
+              <StoreProductCard key={p.id} product={p} qty={cart[p.id] ?? 0} onChangeQty={changeQty} />
             ))
           )}
         </div>
@@ -246,22 +253,46 @@ function StoreHeader({ storeName, itemsInCart, logoUrl, onCartOpen }: StoreHeade
   )
 }
 
+import {
+  ProductCard,
+  ProductCardImage,
+  ProductCardBadge,
+  ProductCardContent,
+  ProductCardCategory,
+  ProductCardTitle,
+  ProductCardDescription,
+  ProductCardRating,
+  ProductCardPrice,
+  ProductCardPriceAmount,
+  ProductCardPriceOriginal,
+  ProductCardActions,
+} from "@/components/product-card"
+import { Button } from "@/components/ui/button"
+
 interface ProductCardProps {
   product: Product
   qty: number
   onChangeQty: (id: string, delta: number) => void
 }
 
-function ProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
-  // Mock data derived from ID for consistency
-  const originalPrice = Math.floor(p.price * 1.62)
-  const salesCount = (parseInt(p.id.slice(-2), 16) || 5) + 'K+'
-  const discountPct = Math.round((1 - p.price / originalPrice) * 100)
+function StoreProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
+  // Datos calculados para la estética de la imagen
+  const originalPrice = Math.floor(p.price * 1.15)
   
   return (
-    <div className="flex flex-col group relative">
-      {/* Image Container - Strictly Square */}
-      <div className="aspect-square w-full rounded-none overflow-hidden relative bg-[#F8F8F8]">
+    <ProductCard 
+      layout="vertical" 
+      size="md" 
+      className="group bg-transparent border border-transparent rounded-none transition-all duration-500 flex flex-col h-full hover:bg-white hover:border-zinc-100/80 hover:shadow-2xl hover:shadow-black/5"
+    >
+      {/* Contenedor de Imagen con cobertura total */}
+      <div className="bg-zinc-100/50 aspect-square relative flex items-center justify-center overflow-hidden shrink-0">
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <span className="bg-[#FF5000] text-white text-[9px] font-black px-2 py-0.5 rounded-none uppercase tracking-wider">
+            New
+          </span>
+        </div>
+        
         {p.imageUrl ? (
           <img
             src={p.imageUrl}
@@ -270,91 +301,81 @@ function ProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <ShoppingBag className="w-10 h-10 text-zinc-200" />
-          </div>
+          <ShoppingBag className="w-12 h-12 text-zinc-300" />
         )}
-
-        {/* Hover State Overlays */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.02] transition-colors flex items-end justify-start p-3 opacity-0 group-hover:opacity-100 duration-300">
-          <button className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-full py-1.5 px-4 flex items-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all text-black font-bold text-[13px]">
-            <Eye className="w-4 h-4" />
-            Vista rápida
-          </button>
-        </div>
       </div>
 
-      {/* Info Area - Dense & Clean */}
-      <div className="pt-2.5 flex flex-col gap-1">
-        {/* Product Name */}
-        <p className="text-[13px] font-medium text-zinc-500 leading-tight line-clamp-2">
-          {p.name}
-        </p>
-
-        {/* Price Row */}
-        <div className="flex items-center justify-between gap-1 mt-0.5">
-          <div className="flex items-baseline gap-1 flex-wrap">
-            <span className="text-[#FF5000] font-bold text-[14px] whitespace-nowrap">
-              Último día
-            </span>
-            <span className="text-[#FF5000] text-[22px] font-black tabular-nums tracking-tighter leading-none">
-              ${p.price.toLocaleString('es-CO')}
-            </span>
-          </div>
+      <div className="p-4 flex flex-col space-y-3">
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
+            Electronics
+          </p>
           
-          {/* Oval Cart Button */}
-          <button
-            onClick={() => onChangeQty(p.id, +1)}
-            disabled={qty >= p.stock}
-            className="w-12 h-7 border-[1px] border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-colors active:scale-90 shrink-0"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <Plus className="w-2.5 h-2.5 ml-0.5" />
-          </button>
+          <h3 className="text-base font-bold text-[#111111] leading-tight line-clamp-2">
+            {p.name}
+          </h3>
         </div>
 
-        {/* Extra Savings Banner */}
-        <div className="flex items-center gap-1 mt-0.5">
-          <div className="bg-[#FF5000] text-white px-1.5 py-0.5 flex items-center gap-1 rounded-sm text-[10px] font-black italic tracking-tight">
-            <Flame className="w-3 h-3 fill-current" />
-            ${(originalPrice - p.price).toLocaleString('es-CO')} Ahorro extra
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col min-w-0">
+            <span className="text-xl font-black text-[#FF5000] leading-none tabular-nums truncate tracking-tighter">
+              ${p.price.toLocaleString('en-US')}
+            </span>
+            <span className="text-[11px] text-zinc-400 font-bold line-through mt-1 tracking-tight">
+              ${originalPrice.toLocaleString('en-US')}
+            </span>
           </div>
-          <div className="border border-[#FF5000] text-[#FF5000] px-1.5 py-0.5 font-bold text-[10px] flex items-center gap-1 rounded-sm">
-            11:52:01 <HelpCircle className="w-2.5 h-2.5" />
-          </div>
-        </div>
 
-        {/* Stock Status */}
-        <div className="flex items-center gap-1 mt-1 text-[#FF5000]">
-          <span className="text-[14px] font-bold tracking-tight">
-            SOLO HAY {p.stock}
-          </span>
-          <HelpCircle className="w-4 h-4 text-zinc-300 shrink-0" />
-        </div>
-
-        {/* Social Proof Row */}
-        <div className="flex items-center gap-2 mt-0.5">
-          <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className={`w-3.5 h-3.5 ${i < 4 ? 'fill-black text-black' : 'fill-zinc-200 text-zinc-200'}`} />
-            ))}
-          </div>
-          <div className="flex items-center gap-1">
-            <Flame className="w-3.5 h-3.5 fill-[#FF5000] text-[#FF5000]" />
-            <span className="text-[12px] font-medium text-zinc-500">{salesCount} ventas</span>
+          <div className="shrink-0 flex items-center">
+            {qty > 0 ? (
+              <div className="flex items-center gap-1 bg-[#FF5000] text-white p-1 rounded-none shadow-sm h-9">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-none hover:bg-white/20 text-white"
+                  onClick={(e) => { e.stopPropagation(); onChangeQty(p.id, -1); }}
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </Button>
+                <span className="text-xs font-bold w-3 text-center tabular-nums">{qty}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-none hover:bg-white/20 text-white"
+                  onClick={(e) => { e.stopPropagation(); onChangeQty(p.id, +1); }}
+                  disabled={qty >= p.stock}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                size="icon"
+                className="bg-[#FF5000] hover:bg-[#E64500] text-white rounded-none transition-all active:scale-95"
+                onClick={() => onChangeQty(p.id, +1)}
+                disabled={p.stock <= 0}
+              >
+                <ShoppingCart className="w-5 h-5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Cart Counter Pop-up */}
-      {qty > 0 && (
-        <div className="absolute top-2 left-2 bg-black text-white text-[10px] font-black w-5 h-5 flex items-center justify-center border border-white/20">
-          {qty}
-        </div>
-      )}
-    </div>
+    </ProductCard>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 interface FloatingCartBarProps {
   itemsInCart: number
@@ -378,7 +399,7 @@ function FloatingCartBar({ itemsInCart, total, onOpen }: FloatingCartBarProps) {
         <span className="text-primary-foreground/80 text-[11px] font-bold tracking-[0.12em] uppercase flex items-center gap-1">
           Ver pedido <ChevronRight className="w-3.5 h-3.5" />
         </span>
-        <span className="text-primary-foreground font-extrabold text-lg tracking-tight tabular-nums">
+        <span className="text-primary-foreground font-black text-xl tracking-tight tabular-nums">
           ${total.toLocaleString('es-CO')}
         </span>
       </button>
@@ -396,8 +417,8 @@ interface CartModalProps {
   cardPaymentsEnabled: boolean
   onRemove: (id: string) => void
   onChangeQty: (id: string, delta: number) => void
-  form: { customerName: string; address: string; city: string }
-  setForm: React.Dispatch<React.SetStateAction<{ customerName: string; address: string; city: string }>>
+  form: { customerName: string; address: string; city: string; lat: number | null; lng: number | null }
+  setForm: React.Dispatch<React.SetStateAction<{ customerName: string; address: string; city: string; lat: number | null; lng: number | null }>>
   loadingAction: null | 'whatsapp' | 'card'
   payError: string | null
   handleSubmit: () => void
@@ -488,7 +509,7 @@ function CartModal({
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
-                        <p className="text-[13px] font-semibold text-blue-500 m-0">
+                        <p className="text-[13px] font-black text-blue-500 m-0">
                           ${(p.price * (cart[p.id] ?? 0)).toLocaleString('es-CO')}
                         </p>
                       </div>
@@ -524,6 +545,19 @@ function CartModal({
                       onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                     />
                   </div>
+                  {key === 'address' && (
+                    <MapPicker 
+                      onLocationSelectAction={(lat, lng, address, city) => setForm(f => ({ 
+                        ...f, 
+                        lat, 
+                        lng,
+                        address: address || f.address,
+                        city: city || f.city
+                      }))} 
+                      initialLat={form.lat || undefined} 
+                      initialLng={form.lng || undefined} 
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -535,7 +569,7 @@ function CartModal({
           <div className="flex justify-between items-end mb-4">
             <div>
               <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground uppercase mb-1 m-0">Valor total a pagar</p>
-              <h3 className="text-4xl font-extrabold text-card-foreground tracking-tight m-0 tabular-nums">
+              <h3 className="text-4xl font-black text-card-foreground tracking-tight m-0 tabular-nums">
                 ${total.toLocaleString('es-CO')}
               </h3>
             </div>

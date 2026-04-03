@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "FlashCheckout — Cierra ventas en 30 segundos",
@@ -24,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="antialiased">
+    <html lang="es" className={`${inter.variable} antialiased`}>
       <body className="min-h-screen bg-secondary text-foreground font-sans">
         <ClerkProvider
           appearance={{

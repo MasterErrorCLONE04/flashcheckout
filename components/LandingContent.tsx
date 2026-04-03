@@ -117,16 +117,6 @@ export default function LandingContent({ userId, stores }: LandingContentProps) 
           animate="animate"
           className="space-y-10"
         >
-          <motion.div 
-            variants={fadeInUp}
-            className="inline-flex items-center gap-3 bg-zinc-50 border border-black/[0.02] rounded-full px-6 py-2.5 shadow-sm"
-          >
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-semibold tracking-tight text-zinc-400">
-              Versión 2.0 • Sincronización global activa
-            </span>
-          </motion.div>
-
           <motion.h1 
             variants={fadeInUp}
             className="text-6xl sm:text-[10rem] font-bold tracking-tight leading-[0.85] text-black max-w-5xl mx-auto"
