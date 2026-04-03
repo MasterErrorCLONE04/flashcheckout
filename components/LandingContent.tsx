@@ -32,6 +32,7 @@ import {
   Store,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Footer from './Footer'
 
 interface LandingContentProps {
   userId: string | null
@@ -536,19 +537,7 @@ export default function LandingContent({ userId, stores }: LandingContentProps) 
       </section>
 
       {/* Premium Footer */}
-      <footer className="relative z-10 py-20 px-8 border-t border-black/[0.02]">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-12">
-          <div className="flex items-center gap-4 opacity-20 hover:opacity-100 transition-opacity group">
-            <div className="w-8 h-8 rounded-none bg-black flex items-center justify-center group-hover:bg-primary transition-colors">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-[12px] font-bold tracking-tighter">Flash<span className="text-zinc-400">Checkout</span></span>
-          </div>
-          <p className="text-[11px] text-zinc-400 font-normal tracking-tight text-center opacity-60">
-            © {new Date().getFullYear()} FlashCheckout • Hecho en Colombia 🇨🇴
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
