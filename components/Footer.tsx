@@ -239,35 +239,29 @@ const Footer = () => {
       {/* Monumental Stealth Watermark */}
       <section className="mx-auto flex w-full max-w-7xl px-6 xl:-mt-14 lg:-mt-10 md:-mt-4 sm:-mt-10 overflow-hidden pb-1 md:pb-3 lg:pb-0 relative z-10 pointer-events-none select-none">
         <svg 
-          viewBox="0 0 1242 269" 
-          width="1242" 
-          height="269" 
+          viewBox="0 0 3200 600" 
+          width="100%" 
+          height="auto" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg" 
-          className="aspect-[4.65/1] h-auto w-full max-w-7xl translate-y-8 sm:translate-y-16 md:translate-y-12 lg:translate-y-16 xl:translate-y-20 opacity-30"
+          className="h-auto w-full translate-y-[25%] opacity-50 transition-all duration-700 hover:opacity-65"
         >
           <title>FlashCheckout Logo</title>
-          <defs>
-             <mask id="path-1-inside-1_200_433" fill="white">
-                <path fillRule="evenodd" clipRule="evenodd" d="M199.286 2H68.8889C31.9472 2 2 31.9471 2 68.8889V199.286C2 236.227 31.9471 266.175 68.8889 266.175H199.286C236.227 266.175 266.175 236.227 266.175 199.286V68.8889C266.175 31.9472 236.227 2 199.286 2ZM68.8889 0C30.8426 0 0 30.8426 0 68.8889V199.286C0 237.332 30.8426 268.175 68.8889 268.175H199.286C237.332 268.175 268.175 237.332 268.175 199.286V68.8889C268.175 30.8426 237.332 0 199.286 0H68.8889Z" />
-             </mask>
-          </defs>
-          
-          <path 
-            fillRule="evenodd" 
-            clipRule="evenodd" 
-            d="M199.286 2H68.8889C31.9472 2 2 31.9471 2 68.8889V199.286C2 236.227 31.9471 266.175 68.8889 266.175H199.286C236.227 266.175 266.175 236.227 266.175 199.286V68.8889C266.175 31.9472 236.227 2 199.286 2ZM68.8889 0C30.8426 0 0 30.8426 0 68.8889V199.286C0 237.332 30.8426 268.175 68.8889 268.175H199.286C237.332 268.175 268.175 237.332 268.175 199.286V68.8889C268.175 30.8426 237.332 0 199.286 0H68.8889Z" 
-            fill="#27272A" 
-          />
-          
-          <text 
-            x="340" 
-            y="210" 
-            className="text-[145px] font-bold tracking-[-0.05em] fill-none stroke-[#27272A] stroke-[4]"
-            style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}
-          >
-            FlashCheckout
-          </text>
+          <g stroke="#3F3F46" strokeWidth="8" fill="#09090B" textRendering="geometricPrecision">
+            {/* Centered Outlined FlashCheckout Text (Surgical Refined) */}
+            <text 
+              x="50%" 
+              y="480" 
+              textAnchor="middle"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              paintOrder="stroke fill"
+              className="text-[420px] font-medium tracking-normal"
+              style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}
+            >
+              FlashCheckout
+            </text>
+          </g>
         </svg>
       </section>
     </footer>
