@@ -100,7 +100,7 @@ const Footer = () => {
   }
 
   return (
-    <footer className="relative overflow-hidden bg-[#09090B] pt-24 pb-0 text-white border-t border-white/5">
+    <footer className="relative overflow-hidden bg-[#09090B] pt-24 pb-0 text-white">
       <section className="mx-auto w-full max-w-7xl px-6 grid items-center gap-10 md:grid-cols-2 md:items-start relative z-20">
         
         {/* Brand & Socials Section */}
