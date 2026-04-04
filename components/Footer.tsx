@@ -1,33 +1,32 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { 
-  Zap, 
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  ChevronDown,
+  LucideIcon
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
-// Custom SVG Icons because the project's lucide-react version is older
 const Linkedin = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-    <rect width="4" height="12" x="2" y="9" />
-    <circle cx="4" cy="4" r="2" />
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" fill="currentColor" />
   </svg>
 )
 
 const Instagram = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
   </svg>
 )
 
 const Youtube = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 2-2 58.4 58.4 0 0 1 15 0 2 2 0 0 1 2 2 24.12 24.12 0 0 1 0 10 2 2 0 0 1-2 2 58.4 58.4 0 0 1-15 0 2 2 0 0 1-2-2z" />
-    <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" />
+  <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <title>YouTube Icon</title>
+    <path d="M23.498 6.186a2.966 2.966 0 00-2.084-2.084C19.654 3.333 12 3.333 12 3.333s-7.654 0-9.414.769A2.966 2.966 0 00.502 6.186C0 8.102 0 12 0 12s0 3.898.502 5.814a2.966 2.966 0 002.084 2.084c1.76.769 9.414.769 9.414.769s7.654 0 9.414-.769a2.966 2.966 0 002.084-2.084C24 15.898 24 12 24 12s0-3.898-.502-5.814zM9.545 15.568v-7.136L15.545 12l-6 3.568z"></path>
   </svg>
 )
 
@@ -37,170 +36,240 @@ const XIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const Footer = () => {
-  const currentYear = new Date().getFullYear()
+const FooterHeading = ({ children }: { children: React.ReactNode }) => (
+  <h6 className="font-semibold text-sm text-zinc-50 capitalize tracking-[0.2em] mb-4">
+    {children}
+  </h6>
+)
 
-  const footerLinks = [
-    {
-      title: 'PRODUCTO',
-      links: [
-        { label: 'Servicio al Cliente', href: '#' },
-        { label: 'Precios', href: '#' },
-        { label: 'Seguridad', href: '#' },
-        { label: 'Expertos Flash', href: '#' },
-        { label: 'Contrata un Experto', href: '#' },
-        { label: 'Afiliados', href: '#' },
-      ],
-    },
-    {
-      title: 'RECURSOS',
-      links: [
-        { label: 'Contáctanos', href: '#' },
-        { label: 'API', href: '#' },
-        { label: 'Guía', href: '#' },
-        { label: 'Blog', href: '#' },
-        { label: 'Registro de cambios', href: '#' },
-      ],
-    },
-    {
-      title: 'COMPAÑÍA',
-      links: [
-        { label: 'Carreras', href: '#' },
-        { label: 'Política de privacidad', href: '#' },
-        { label: 'Términos de servicio', href: '#' },
-        { label: 'DPA', href: '#' },
-        { label: 'Política de cookies', href: '#' },
-        { label: 'Centro de confianza', href: '#' },
-        { label: 'Preferencias de cookies', href: '#' },
-      ],
-    },
-  ]
+const FooterLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
+  <Link 
+    href={href} 
+    className="font-medium text-sm text-zinc-400 transition-colors duration-200 ease-in-out hover:text-white"
+  >
+    {children}
+  </Link>
+)
+
+const SocialButton = ({ icon: Icon, label, href }: { icon: any, label: string, href: string }) => (
+  <Link href={href} target="_blank" className="contents">
+    <button 
+      className="flex items-center justify-center rounded-md font-medium text-sm outline-none transition-all duration-200 border border-zinc-800 bg-transparent shadow-sm h-11 p-3 text-zinc-400 hover:bg-zinc-800/90 hover:text-white md:col-span-1"
+      aria-label={label}
+    >
+      {typeof Icon === 'function' ? (
+        <Icon className="w-5 h-5" />
+      ) : (
+        Icon
+      )}
+    </button>
+  </Link>
+)
+
+const Footer = () => {
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null)
+
+  const toggleAccordion = (id: string) => {
+    setOpenAccordion(openAccordion === id ? null : id)
+  }
+
+  const footerLinks = {
+    PRODUCT: [
+      { label: 'Servicio al Cliente', href: '#' },
+      { label: 'Precios', href: '#pricing' },
+      { label: 'Seguridad', href: '#' },
+      { label: 'Expertos Flash', href: '#' },
+      { label: 'Contrata un Experto', href: '#' },
+      { label: 'Afiliados', href: '#' },
+    ],
+    RESOURCES: [
+      { label: 'Contáctanos', href: '#' },
+      { label: 'API', href: '#' },
+      { label: 'Guía', href: '#' },
+      { label: 'Blog', href: '#' },
+      { label: 'Changelog', href: '#' },
+    ],
+    COMPANY: [
+      { label: 'Carreras', href: '#' },
+      { label: 'Política de privacidad', href: '#' },
+      { label: 'Términos de servicio', href: '#' },
+      { label: 'DPA', href: '#' },
+      { label: 'Política de cookies', href: '#' },
+      { label: 'Trust Center', href: '#' },
+    ]
+  }
 
   return (
-    <footer className="relative bg-black text-white/50 py-24 overflow-hidden min-h-[600px] flex flex-col justify-between border-t border-white/5">
-      {/* Background Watermark Text */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[25%] pointer-events-none select-none">
-        <h2 className="text-[18vw] font-bold tracking-tight text-transparent leading-none" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.15)' }}>
-          FlashCheckout
-        </h2>
-      </div>
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24">
-          
-          {/* Left Side: Brand & Socials */}
-          <div className="md:col-span-4 space-y-10">
-            <div className="space-y-4">
-              <Link href="/" className="flex items-center gap-3 group translate-x-[-4px]">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center transition-transform group-hover:scale-110">
-                  <Zap className="w-6 h-6 text-black fill-black" />
-                </div>
-                <span className="text-2xl font-bold tracking-tighter text-white">FlashCheckout</span>
-              </Link>
-              <p className="text-sm font-medium tracking-tight opacity-40">
-                © {currentYear} FlashCheckout, Inc.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="h-12 px-10 bg-zinc-100 hover:bg-white text-black font-bold text-sm rounded-xl transition-all active:scale-95">
-                Contacto
-              </button>
-              
-              <div className="flex items-center gap-2">
-                {[
-                  { icon: Linkedin, href: '#' },
-                  { icon: Instagram, href: '#' },
-                  { icon: XIcon, href: '#' },
-                  { icon: Youtube, href: '#' }
-                ].map((social, i) => (
-                  <Link 
-                    key={i}
-                    href={social.href} 
-                    className="w-12 h-12 flex items-center justify-center border border-white/10 hover:border-white/20 hover:bg-white/5 rounded-xl transition-all group"
-                  >
-                    <social.icon className="w-5 h-5 text-white/60 group-hover:text-white" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Verification Badges */}
-            <div className="flex items-center gap-6 pt-4">
-              <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
-                <div className="w-16 h-16 rounded-full border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-[10px] font-bold text-center leading-none p-2">
-                  <span className="mb-0.5">AICPA</span>
-                  <span className="text-[12px]">SOC 2</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
-                <div className="relative w-16 h-16 flex items-center justify-center border-2 border-dashed border-white/20 rounded-full">
-                  <span className="text-[11px] font-bold">GDPR</span>
-                  <div className="absolute inset-0">
-                    {[...Array(12)].map((_, i) => (
-                      <div 
-                        key={i} 
-                        className="absolute w-1 h-1 bg-white/40 rounded-full"
-                        style={{
-                          top: '50%',
-                          left: '50%',
-                          transform: `rotate(${i * 30}deg) translateY(-28px)`
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+    <footer className="relative overflow-hidden bg-[#09090B] pt-24 pb-0 text-white border-t border-white/5">
+      <section className="mx-auto w-full max-w-7xl px-6 grid items-center gap-10 md:grid-cols-2 md:items-start relative z-20">
+        
+        {/* Brand & Socials Section */}
+        <div className="flex flex-col items-center gap-8 md:items-start">
+          <div className="flex flex-col items-center gap-4 md:items-start">
+            <Link href="/" className="pointer-events-auto inline-block">
+              <svg width="24" height="24" viewBox="0 0 504 109" fill="none" strokeWidth="1.3333333333333333" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeDasharray="0" strokeDashoffset="0" strokeOpacity="1" className="h-7 aspect-video w-32">
+                <title>FlashCheckout</title>
+                <rect width="109" height="109" fill="white" rx="28" />
+                <path fill="#09090B" d="M84.5 46.5H66.9a12 12 0 0 0-1-4 9.1 9.1 0 0 0-5.5-5 13 13 0 0 0-4.5-.8c-3 0-5.4.7-7.4 2.1-2 1.4-3.6 3.5-4.6 6.1-1 2.7-1.5 5.9-1.5 9.6 0 4 .5 7.2 1.5 9.9 1.1 2.6 2.6 4.6 4.6 6 2 1.3 4.4 2 7.3 2 1.6 0 3-.3 4.3-.7 1.2-.4 2.3-1 3.3-1.8 1-.7 1.7-1.7 2.3-2.8.6-1 1-2.3 1.2-3.7l17.6.1a24 24 0 0 1-2.3 8.3 27 27 0 0 1-14.5 13.5 32.5 32.5 0 0 1-12.3 2.2c-5.9 0-11.2-1.3-15.8-3.8a27.5 27.5 0 0 1-11-11.2c-2.8-4.9-4.1-10.9-4.1-18 0-7.2 1.4-13.2 4.1-18 2.8-5 6.5-8.7 11.1-11.2a35.8 35.8 0 0 1 26.8-2.1c3.4 1 6.4 2.7 9 4.8a24 24 0 0 1 6.2 7.8c1.5 3.1 2.5 6.7 2.8 10.7Z" />
+                <g>
+                   <text x="130" y="80" fill="white" className="text-[72px] font-medium tracking-tighter">FlashCheckout</text>
+                </g>
+                <mask id="flash-logo-mask" width="44" height="66" x="21" y="23" maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }}>
+                  <path fill="#A1A1AA" d="M41.5 23 51 37.5 62.5 71 65 87l-31.5 2L21 71l3.5-35 17-13Z" />
+                </mask>
+                <g mask="url(#flash-logo-mask)">
+                  <path fill="#B2AEB9" opacity="0.2" d="M84.5 46.5H66.9a12 12 0 0 0-1-4 9.1 9.1 0 0 0-5.5-5 13 13 0 0 0-4.5-.8c-3 0-5.4.7-7.4 2.1-2 1.4-3.6 3.5-4.6 6.1-1 2.7-1.5 5.9-1.5 9.6 0 4 .5 7.2 1.5 9.9 1.1 2.6 2.6 4.6 4.6 6 2 1.3 4.4 2 7.3 2 1.6 0 3-.3 4.3-.7 1.2-.4 2.3-1 3.3-1.8 1-.7 1.7-1.7 2.3-2.8.6-1 1-2.3 1.2-3.7l17.6.1a24 24 0 0 1-2.3 8.3 27 27 0 0 1-14.5 13.5 32.5 32.5 0 0 1-12.3 2.2c-5.9 0-11.2-1.3-15.8-3.8a27.5 27.5 0 0 1-11-11.2c-2.8-4.9-4.1-10.9-4.1-18 0-7.2 1.4-13.2 4.1-18 2.8-5 6.5-8.7 11.1-11.2a35.8 35.8 0 0 1 26.8-2.1c3.4 1 6.4 2.7 9 4.8a24 24 0 0 1 6.2 7.8c1.5 3.1 2.5 6.7 2.8 10.7Z" />
+                </g>
+              </svg>
+            </Link>
+            <p className="text-center font-medium text-zinc-400 leading-5">© 2026 FlashCheckout, Inc. </p>
           </div>
 
-          {/* Right Side: Links Columns */}
-          <div className="md:col-span-8">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
-              {footerLinks.map((column, i) => (
-                <div key={i} className="space-y-8">
-                  <h3 className="text-[11px] font-black tracking-[0.3em] text-white">
-                    {column.title}
-                  </h3>
-                  <ul className="space-y-4">
-                    {column.links.map((link, j) => (
-                      <li key={j}>
-                        <Link 
-                          href={link.href}
-                          className="text-[15px] font-medium hover:text-white transition-colors tracking-tight opacity-70 hover:opacity-100"
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+          <div className="grid w-full grid-cols-4 gap-4 md:w-auto md:grid-cols-6">
+            <Link href="/help" className="contents" target="_blank">
+              <button 
+                data-slot="button"
+                className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 px-5 py-3 col-span-4 h-11 text-base md:col-span-2"
+                aria-label="Help"
+              >
+                Contact
+              </button>
+            </Link>
+            
+            <Link href="https://www.linkedin.com/company/flashcheckout/" target="_blank" className="contents">
+              <button 
+                data-slot="button"
+                className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 border bg-transparent shadow-inner-sm dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-11 border-zinc-800 p-3 text-primary-foreground hover:bg-zinc-800/90 hover:text-white md:col-span-1"
+                aria-label="Linkedin"
+              >
+                <Linkedin className="size-5" />
+              </button>
+            </Link>
+
+            <Link href="https://www.instagram.com/flashcheckout/" target="_blank" className="contents">
+              <button 
+                data-slot="button"
+                className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 border bg-transparent shadow-inner-sm dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-11 border-zinc-800 p-3 text-primary-foreground hover:bg-zinc-800/90 hover:text-white md:col-span-1"
+                aria-label="Instagram"
+              >
+                <Instagram className="size-5" />
+              </button>
+            </Link>
+
+            <Link href="https://x.com/flashcheckout" target="_blank" className="contents">
+              <button 
+                data-slot="button"
+                className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 border bg-transparent shadow-inner-sm dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-11 border-zinc-800 p-3 text-primary-foreground hover:bg-zinc-800/90 hover:text-white md:col-span-1"
+                aria-label="Twitter"
+              >
+                <XIcon className="size-5" />
+              </button>
+            </Link>
+
+            <Link href="https://www.youtube.com/@flashcheckout" target="_blank" className="contents">
+              <button 
+                data-slot="button"
+                className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 border bg-transparent shadow-inner-sm dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-11 border-zinc-800 p-3 text-primary-foreground hover:bg-zinc-800/90 hover:text-white md:col-span-1"
+                aria-label="Youtube"
+              >
+                <Youtube className="size-5" />
+              </button>
+            </Link>
+          </div>
+
+          {/* Compliance Badges */}
+          <div className="hidden flex-row gap-4 md:flex items-center">
+            <div className="w-20 h-20 border border-zinc-800 rounded-xl flex flex-col items-center justify-center text-[10px] font-bold text-center leading-tight text-zinc-500 bg-zinc-900/30 shadow-inner-sm">
+               <span className="opacity-40">AICPA</span>
+               <span className="text-xs text-zinc-300">SOC 2</span>
+            </div>
+            <div className="w-20 h-20 border border-zinc-800 rounded-xl flex flex-col items-center justify-center text-[10px] font-bold text-center leading-tight text-zinc-500 bg-zinc-900/30 shadow-inner-sm">
+               <span className="text-xs text-zinc-300">GDPR</span>
+               <div className="mt-1 flex gap-0.5">
+                 {[...Array(6)].map((_, i) => <div key={i} className="w-0.5 h-0.5 bg-zinc-700 rounded-full" />)}
+               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Link Columns Section (Desktop) */}
+        <div className="hidden md:flex md:gap-10 lg:gap-24 xl:gap-32">
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title} className="flex flex-col gap-4">
+              <FooterHeading>{title}</FooterHeading>
+              {links.map((link) => (
+                <FooterLink key={link.label} href={link.href}>{link.label}</FooterLink>
               ))}
             </div>
-          </div>
-
+          ))}
         </div>
-      </div>
 
-      {/* Floating Chat Button */}
-      {/* 
-        The image shows a chat button. Not strictly part of footer but common in this layout.
-        I'll wrap it in a client-side only check if needed, but it's okay for now.
-      */}
-      <div className="fixed bottom-10 right-10 z-50">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-16 h-16 bg-white text-black rounded-2xl flex items-center justify-center shadow-[0_20px_60px_rgba(0,0,0,0.3)] group transition-all"
+        {/* Accordions Section (Mobile) */}
+        <div className="flex w-full flex-col gap-4 md:hidden">
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title} className="border-b border-zinc-500/30">
+              <button 
+                onClick={() => toggleAccordion(title)}
+                className="flex w-full items-center justify-between py-4 font-bold text-white transition-all text-base uppercase tracking-widest outline-none"
+              >
+                {title}
+                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${openAccordion === title ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {openAccordion === title && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex flex-col gap-3 pb-6">
+                      {links.map((link) => (
+                        <FooterLink key={link.label} href={link.href}>{link.label}</FooterLink>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Monumental Stealth Watermark */}
+      <section className="mx-auto flex w-full max-w-7xl px-6 xl:-mt-14 lg:-mt-10 md:-mt-4 sm:-mt-10 overflow-hidden pb-1 md:pb-3 lg:pb-0 relative z-10 pointer-events-none select-none">
+        <svg 
+          viewBox="0 0 1242 269" 
+          width="1242" 
+          height="269" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg" 
+          className="aspect-[4.65/1] h-auto w-full max-w-7xl translate-y-8 sm:translate-y-16 md:translate-y-12 lg:translate-y-16 xl:translate-y-20 opacity-30"
         >
-          <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 group-hover:scale-110 transition-transform" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-            <path d="M8 12h.01" className="text-black/20" />
-            <path d="M12 12h.01" className="text-black/20" />
-            <path d="M16 12h.01" className="text-black/20" />
-          </svg>
-        </motion.button>
-      </div>
+          <title>FlashCheckout Logo</title>
+          <defs>
+             <mask id="path-1-inside-1_200_433" fill="white">
+                <path fillRule="evenodd" clipRule="evenodd" d="M199.286 2H68.8889C31.9472 2 2 31.9471 2 68.8889V199.286C2 236.227 31.9471 266.175 68.8889 266.175H199.286C236.227 266.175 266.175 236.227 266.175 199.286V68.8889C266.175 31.9472 236.227 2 199.286 2ZM68.8889 0C30.8426 0 0 30.8426 0 68.8889V199.286C0 237.332 30.8426 268.175 68.8889 268.175H199.286C237.332 268.175 268.175 237.332 268.175 199.286V68.8889C268.175 30.8426 237.332 0 199.286 0H68.8889Z" />
+             </mask>
+          </defs>
+          
+          <path 
+            fillRule="evenodd" 
+            clipRule="evenodd" 
+            d="M199.286 2H68.8889C31.9472 2 2 31.9471 2 68.8889V199.286C2 236.227 31.9471 266.175 68.8889 266.175H199.286C236.227 266.175 266.175 236.227 266.175 199.286V68.8889C266.175 31.9472 236.227 2 199.286 2ZM68.8889 0C30.8426 0 0 30.8426 0 68.8889V199.286C0 237.332 30.8426 268.175 68.8889 268.175H199.286C237.332 268.175 268.175 237.332 268.175 199.286V68.8889C268.175 30.8426 237.332 0 199.286 0H68.8889Z" 
+            fill="#27272A" 
+          />
+          
+          <text 
+            x="340" 
+            y="210" 
+            className="text-[145px] font-bold tracking-[-0.05em] fill-none stroke-[#27272A] stroke-[4]"
+            style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}
+          >
+            FlashCheckout
+          </text>
+        </svg>
+      </section>
     </footer>
   )
 }

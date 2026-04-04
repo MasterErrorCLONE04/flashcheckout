@@ -1,37 +1,43 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import {
-  Zap,
-  MessageCircle,
-  ShoppingBag,
-  Clock,
-  ArrowRight,
-  CheckCircle2,
-  Smartphone,
-  Globe,
-  BarChart3,
-  ShieldCheck,
-  ZapOff,
-  Layout,
-  MousePointer2,
-  Shirt,
-  Home,
-  Sparkles,
-  Utensils,
-  Dumbbell,
-  Gamepad2,
-  MoreHorizontal,
+import { motion } from 'framer-motion'
+import { 
+  Zap, 
+  ArrowRight, 
+  ShieldCheck, 
+  BarChart3, 
+  MessageCircle, 
+  Globe, 
+  Smartphone, 
   Star,
+  CheckCircle2,
+  Lock,
+  ChevronRight,
+  Play,
+  CreditCard,
   Users,
-  Flame,
-  LineChart,
-  Heart,
-  Link as LinkIcon,
-  Store,
+  ShoppingBag,
+  GraduationCap,
+  Activity,
+  Plane,
+  HelpCircle,
+  BookOpen,
+  Newspaper,
+  Layout,
+  Rocket
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import Footer from './Footer'
 
 interface LandingContentProps {
@@ -39,607 +45,468 @@ interface LandingContentProps {
   stores: any[]
 }
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
-}
+const ChatbaseLogo = () => (
+  <Link href="/" className="flex items-center gap-2.5 group transition-all hover:opacity-80">
+    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm group-hover:scale-105 transition-transform">
+      F
+    </div>
+    <span className="text-[20px] font-medium tracking-tight text-[#111827]">FlashCheckout</span>
+  </Link>
+)
 
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+const NAVIGATION_CONFIG = [
+  {
+    title: 'Solutions',
+    sections: [
+      {
+        header: 'BY USE-CASE',
+        items: [
+          { icon: MessageCircle, title: 'Customer Support', description: 'Instant answers, lower volume, fewer escalations.', href: '#features' },
+          { icon: Zap, title: 'Sales Agent', description: 'Qualify leads, answer questions, and book meetings.', href: '#features' },
+        ]
+      },
+      {
+        header: 'BY INDUSTRY',
+        items: [
+          { icon: ShoppingBag, title: 'Ecommerce & Retail', description: 'Product questions, shipping, and returns.', href: '#features' },
+          { icon: GraduationCap, title: 'Education & Training', description: 'Admissions, enrolment, and student questions.', href: '#features' },
+          { icon: Activity, title: 'Fitness & Wellness', description: 'Bookings, cancellations, and member support.', href: '#features' },
+          { icon: Plane, title: 'Travel & Hospitality', description: 'Bookings, disruptions, and refunds.', href: '#features' },
+        ]
+      }
+    ]
+  },
+  {
+    title: 'Resources',
+    sections: [
+      {
+        header: 'LEARN',
+        items: [
+          { icon: BookOpen, title: 'Documentation', description: 'Full API reference and integration guides.', href: '#docs' },
+          { icon: HelpCircle, title: 'Help Center', description: 'Tutorials and community support.', href: '#faq' },
+          { icon: Newspaper, title: 'Blog', description: 'Latest news and product updates.', href: '#' },
+        ]
+      }
+    ]
+  },
+  { title: 'Enterprise', href: '#' },
+  { title: 'Pricing', href: '#pricing' }
+]
+
+function NavItem({ item }: { item: any }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div 
+      className="relative h-full flex items-center"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <Link 
+        href={item.href || '#'} 
+        className={`text-[14px] font-medium transition-colors flex items-center gap-1 h-full pt-1 ${isOpen ? 'text-black' : 'text-[#374151] hover:text-black'}`}
+      >
+        {item.title}
+        {item.sections && <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronRight className="w-3.5 h-3.5 rotate-90" /></motion.span>}
+      </Link>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        animate={{ 
+          opacity: isOpen ? 1 : 0, 
+          y: isOpen ? 0 : 10, 
+          scale: isOpen ? 1 : 0.98,
+          pointerEvents: isOpen ? 'auto' : 'none'
+        }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="absolute top-[calc(100%-8px)] left-1/2 -translate-x-1/2 pt-4 z-50 min-w-[560px]"
+      >
+        {item.sections && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 overflow-hidden grid grid-cols-2 gap-8">
+            {item.sections.map((section: any, idx: number) => (
+              <div key={idx}>
+                <h4 className="p-3 font-semibold text-zinc-400 text-[12px] uppercase tracking-[0.1em]">
+                  {section.header}
+                </h4>
+                <div className="flex flex-col gap-1">
+                  {section.items.map((subItem: any, subIdx: number) => (
+                    <Link 
+                      key={subIdx} 
+                      href={subItem.href}
+                      className="group flex flex-row items-center gap-4 rounded-2xl p-2 text-sm transition-all hover:bg-zinc-50 hover:text-zinc-900 focus:bg-zinc-50 outline-none w-full"
+                    >
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-zinc-100 bg-white group-hover:shadow-sm transition-all">
+                        <subItem.icon className="w-5 h-5 text-zinc-400 group-hover:text-black transition-colors" />
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-medium text-sm tracking-tight text-zinc-950">{subItem.title}</span>
+                        <span className="line-clamp-1 font-medium text-sm tracking-tight text-zinc-400">{subItem.description}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+    </div>
+  )
 }
 
 export default function LandingContent({ userId, stores }: LandingContentProps) {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(true)
+  const [progress, setProgress] = useState(0)
+  const videoRef = React.useRef<HTMLVideoElement>(null)
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handleTimeUpdate = () => {
+      const p = (video.currentTime / video.duration) * 100
+      setProgress(p)
+    }
+
+    video.addEventListener('timeupdate', handleTimeUpdate)
+    return () => video.removeEventListener('timeupdate', handleTimeUpdate)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans relative overflow-hidden selection:bg-primary/20">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#0066CC_0.02,transparent_0.5)] pointer-events-none opacity-20" />
-      <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/[0.03] rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-white text-[#111827] font-sans selection:bg-black selection:text-white antialiased">
       
-      {/* Premium Nav - Apple Luxe Pill */}
-      <motion.header 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed top-8 left-0 right-0 z-50 px-6"
-      >
-        <div className="mx-auto max-w-5xl h-20 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-full px-8 flex items-center justify-between shadow-2xl shadow-primary/5">
-          <Link href="/" className="flex items-center gap-3 active:scale-95 transition-transform cursor-pointer group">
-            <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow-lg shadow-primary/10">
-              <Zap className="w-5 h-5 text-white fill-primary" />
-            </div>
-            <span className="font-bold text-xl tracking-tighter">
-              Flash<span className="text-primary tracking-tighter">Checkout</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-8">
-            <Link
-              href="/explorar"
-              className="hidden sm:block text-[13px] font-medium tracking-tight text-zinc-500 hover:text-black transition-colors"
-            >
-              Marketplace
-            </Link>
+      {/* Navigation (Chatbase Style) */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-white/80 backdrop-blur-md border-[#E5E7EB] py-3' : 'bg-transparent border-transparent py-5'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <ChatbaseLogo />
+          
+          <nav className="hidden lg:flex items-center gap-8 h-10">
+            {NAVIGATION_CONFIG.map((item, i) => (
+              <NavItem key={i} item={item} />
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-4">
             {!userId ? (
               <>
-                <Link
-                  href="/sign-in"
-                  className="hidden sm:block text-[13px] font-medium tracking-tight text-zinc-500 hover:text-black transition-colors"
-                >
-                  Ingresar
+                <Link href="/sign-in" className="text-[14px] font-medium text-[#111827] hover:underline underline-offset-4 hidden sm:block">
+                  Sign in
                 </Link>
-                <Link
-                  href="/sign-up"
-                  className="h-12 bg-primary hover:bg-primary-hover text-white font-bold text-[11px] tracking-widest px-8 flex items-center justify-center transition-all active:scale-95 shadow-xl shadow-primary/20 rounded-full"
-                >
-                  Comenzar
-                </Link>
+                <Button asChild className="bg-black hover:bg-[#1f1f1f] text-white font-medium rounded-lg px-5 h-10 transition-all text-[14px] shadow-sm">
+                  <Link href="/sign-up">Sign up</Link>
+                </Button>
               </>
             ) : (
-              <Link
-                href="/dashboard"
-                className="h-12 bg-black text-white font-bold text-[11px] tracking-widest px-8 flex items-center justify-center transition-all active:scale-95 shadow-xl shadow-black/10 rounded-full"
-              >
-                Dashboard
-              </Link>
+              <Button asChild className="bg-black hover:bg-[#1f1f1f] text-white font-medium rounded-lg px-5 h-10 transition-all text-[14px] shadow-sm">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
             )}
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-48 pb-20 text-center">
-        <motion.div 
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="space-y-10"
-        >
-          <motion.h1 
-            variants={fadeInUp}
-            className="text-6xl sm:text-[10rem] font-bold tracking-tight leading-[0.85] text-black max-w-5xl mx-auto"
-          >
-            Marketplace <br/>
-            <span className="text-primary drop-shadow-2xl">Inmersivo.</span>
-          </motion.h1>
-
-          <motion.p 
-            variants={fadeInUp}
-            className="mt-12 text-lg sm:text-2xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-medium tracking-tight opacity-70"
-          >
-            Diseñamos el checkout más rápido del mundo. <br/>
-            Optimizado para la simplicidad y la alta escala.
-          </motion.p>
-
-          <motion.div 
-            variants={fadeInUp}
-            className="mt-20 flex flex-col sm:flex-row items-center justify-center gap-6"
-          >
-            {!userId ? (
-                <Link
-                  href="/sign-up"
-                  className="w-full sm:w-auto h-24 bg-primary text-white px-20 flex items-center justify-center gap-6 transition-all text-sm font-bold tracking-widest shadow-[0_30px_90px_rgba(255,80,0,0.2)] rounded-full hover:scale-[1.02] active:scale-95"
+      {/* Hero Section (New High-Fidelity Layout) */}
+      <section className="w-full py-24 lg:py-40">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="relative flex w-full flex-col gap-12 overflow-hidden">
+            <div className="container relative mx-auto grid items-center gap-12 lg:grid-cols-2">
+              {/* Left Column: Heading & CTA */}
+              <div className="flex flex-col gap-8">
+                <motion.h1 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                  className="font-medium text-[42px] text-zinc-950 leading-[2.9rem] tracking-tight lg:text-[4.4rem] lg:leading-[5rem]"
                 >
-                  Crear mi tienda
-                  <ArrowRight className="w-6 h-6" />
-                </Link>
-            ) : (
-              <Link
-                href="/dashboard"
-                className="w-full sm:w-auto h-24 bg-black text-white px-20 flex items-center justify-center gap-6 transition-all text-sm font-bold tracking-widest shadow-[0_30px_90px_rgba(0,0,0,0.15)] rounded-full hover:scale-[1.02] active:scale-95"
-              >
-                Panel de Control
-                <ArrowRight className="w-6 h-6" />
-              </Link>
-            )}
-            <a
-              href="#explorar"
-              className="w-full sm:w-auto h-24 bg-white/70 backdrop-blur-xl border border-black/5 text-zinc-500 hover:text-black px-16 font-bold text-sm tracking-widest flex items-center justify-center gap-4 transition-all rounded-full hover:bg-white active:scale-95 shadow-sm"
-            >
-              Explorar red
-            </a>
-          </motion.div>
-        </motion.div>
+                  Flash Automation for magical payment experiences
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="text-[18px] text-zinc-500 lg:w-[90%] font-normal leading-relaxed"
+                >
+                  FlashCheckout is the complete platform for building & deploying AI payment agents for your business.
+                </motion.p>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="flex flex-col gap-6 sm:flex-row sm:items-center"
+                >
+                  <Link href="/sign-up" className="contents">
+                    <button 
+                      data-slot="button" 
+                      className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap font-medium outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 shadow-inner-sm rounded-md py-2 relative h-14 w-full sm:w-[320px] px-6 text-base bg-primary text-white hover:bg-primary/90"
+                    >
+                      Build your agent for free
+                    </button>
+                  </Link>
+                  <div className="flex items-center gap-2 font-medium text-zinc-400 text-sm">
+                    <CreditCard className="w-4 h-4 text-zinc-300" />
+                    No credit card required
+                  </div>
+                </motion.div>
+              </div>
 
-        {/* Storefront Mockup - Apple Luxe Rounded Style */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 50 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-48 relative px-4"
-        >
-          <motion.div 
-            animate={{ y: [0, -15, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="max-w-xl mx-auto bg-white/70 backdrop-blur-3xl rounded-[3rem] border border-white/50 overflow-hidden shadow-[0_50px_150px_rgba(0,0,0,0.06)] relative z-10"
-          >
-            <div className="bg-zinc-50/50 backdrop-blur-md px-12 py-10 flex items-center justify-between border-b border-black/[0.03]">
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center shadow-lg shadow-primary/10">
-                  <Zap className="w-6 h-6 text-primary fill-primary" />
-                </div>
-                <div className="text-left">
-                  <p className="text-[11px] font-bold text-zinc-300 tracking-widest">Tienda verificada</p>
-                  <p className="text-xl font-bold text-black tracking-tight">Premium Terminal</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 h-8 bg-primary/10 px-4 rounded-full border border-primary/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] font-bold text-primary">Flash Sync</span>
-              </div>
-            </div>
-            
-            <div className="p-12 space-y-12">
-              <div className="space-y-8 text-left">
-                <div className="relative aspect-square bg-zinc-50 rounded-[2.5rem] overflow-hidden group border border-black/[0.02] shadow-inner">
-                  <div className="absolute top-8 left-8 z-10 bg-white/90 backdrop-blur-sm text-black text-[10px] font-bold px-4 py-2 tracking-widest shadow-xl rounded-full">
-                    Nuevo Lanzamiento
-                  </div>
-                  <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-1000">
-                    <ShoppingBag className="w-32 h-32 text-zinc-100" />
-                  </div>
-                </div>
+              {/* Right Column: Video Player */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="group relative aspect-[0.939] w-full overflow-hidden rounded-3xl border border-black/[0.03] shadow-2xl bg-zinc-50"
+              >
+                <video 
+                  ref={videoRef}
+                  className="aspect-[0.939] w-full rounded-3xl" 
+                  preload="metadata" 
+                  poster="https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/hero/hero-thumbnail.png"
+                  playsInline
+                  loop 
+                  autoPlay
+                  muted 
+                  style={{ objectFit: 'contain', display: 'block', width: '100%', cursor: 'pointer' }}
+                  src="https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/hero/hero.webm"
+                  onClick={togglePlay}
+                >
+                  Your browser does not support the video tag.
+                </video>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-3xl font-bold tracking-tight">Audiófilo Series X</h3>
-                    <div className="flex text-amber-300">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-current" />)}
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-4">
-                    <span className="text-5xl font-bold text-black tracking-tighter">$249.900</span>
-                    <span className="text-lg text-zinc-300 line-through font-medium tracking-tight opacity-50">$399.000</span>
-                  </div>
+                <button 
+                  type="button" 
+                  onClick={togglePlay}
+                  className="absolute bottom-6 left-6 rounded-full bg-black/40 backdrop-blur-md p-3 opacity-90 transition-opacity group-hover:opacity-100 z-20"
+                  aria-label={isPlaying ? "Pause video" : "Play video"}
+                >
+                  <svg className="-rotate-90 absolute top-0 left-0 h-full w-full" viewBox="0 0 32 32">
+                    <circle 
+                      cx="16" 
+                      cy="16" 
+                      r="14.8" 
+                      fill="none" 
+                      stroke="white" 
+                      strokeWidth="2.3" 
+                      strokeDasharray="94.2" 
+                      strokeDashoffset={94.2 - (94.2 * progress) / 100}
+                      className="opacity-90 transition-all duration-200"
+                    />
+                  </svg>
+                  {isPlaying ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" className="relative h-5 w-5"><rect x="14" y="4" width="4" height="16" rx="1"></rect><rect x="6" y="4" width="4" height="16" rx="1"></rect></svg>
+                  ) : (
+                    <Play className="w-5 h-5 fill-white text-white relative ml-0.5" />
+                  )}
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Social Proof Section (Logos) */}
+            <div className="flex w-full flex-col items-center gap-12 mt-32">
+              <p className="font-medium text-base text-zinc-500 uppercase tracking-widest">
+                Trusted by <span className="mx-1 font-bold text-black font-sans">10,000+</span> businesses worldwide
+              </p>
+              <div className="w-full">
+                {/* Desktop Grid (Hidden on Mobile) */}
+                <div className="hidden items-center justify-center gap-16 lg:flex opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
+                  <LogoItem alt="Sage" src="https://www.vectorlogo.zone/logos/sage/sage-ar21.svg" />
+                  <LogoItem alt="Stripe" src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" />
+                  <LogoItem alt="Vercel" src="https://www.vectorlogo.zone/logos/vercel/vercel-ar21.svg" />
+                  <LogoItem alt="Google" src="https://www.vectorlogo.zone/logos/google/google-ar21.svg" />
+                  <LogoItem alt="Airbnb" src="https://www.vectorlogo.zone/logos/airbnb/airbnb-ar21.svg" />
+                  <LogoItem alt="Meta" src="https://www.vectorlogo.zone/logos/facebook/facebook-ar21.svg" />
+                </div>
+
+                {/* Mobile Marquee (Hidden on Desktop) */}
+                <div className="relative overflow-hidden lg:hidden h-20">
+                  <motion.div 
+                    initial={{ x: 0 }}
+                    animate={{ x: "-50%" }}
+                    transition={{ ease: "linear", duration: 20, repeat: Infinity }}
+                    className="flex items-center gap-12 whitespace-nowrap"
+                  >
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-12 pr-12">
+                        <LogoItem alt="Sage" src="https://www.vectorlogo.zone/logos/sage/sage-ar21.svg" />
+                        <LogoItem alt="Stripe" src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" />
+                        <LogoItem alt="Vercel" src="https://www.vectorlogo.zone/logos/vercel/vercel-ar21.svg" />
+                        <LogoItem alt="Google" src="https://www.vectorlogo.zone/logos/google/google-ar21.svg" />
+                        <LogoItem alt="Airbnb" src="https://www.vectorlogo.zone/logos/airbnb/airbnb-ar21.svg" />
+                      </div>
+                    ))}
+                  </motion.div>
+                  {/* Faders */}
+                  <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-white to-transparent z-10" />
+                  <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-white to-transparent z-10" />
                 </div>
               </div>
-
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="h-24 bg-primary text-white flex items-center justify-center gap-5 transition-colors text-sm font-bold tracking-[0.25em] shadow-2xl shadow-primary/30 hover:bg-primary-hover rounded-full cursor-pointer"
-              >
-                <MessageCircle className="w-6 h-6 fill-white" />
-                Pedir por WhatsApp
-              </motion.div>
             </div>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* Categories Grid Section - Apple Luxe Rounded Style */}
-      <section id="categorias" className="relative z-10 py-52 bg-secondary">
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col md:flex-row md:items-end justify-between gap-16 mb-32"
-          >
-            <div className="text-left space-y-6">
-              <p className="text-[12px] font-bold text-primary tracking-[0.6em]">Ecosistemas</p>
-              <h2 className="text-6xl md:text-8xl font-bold tracking-tighter leading-[0.9]">
-                Nichos de <br/> <span className="text-zinc-300">Especialidad.</span>
-              </h2>
-            </div>
-            <p className="text-lg font-medium text-zinc-400 max-w-sm tracking-tight leading-relaxed opacity-60">
-              Protocolos optimizados para elevar cualquier vertical comercial a estándares de lujo.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {[
-              { label: 'Moda & Accesorios', icon: Shirt },
-              { label: 'Tecnología', icon: Smartphone },
-              { label: 'Hogar & Decoración', icon: Home },
-              { label: 'Belleza & Salud', icon: Sparkles },
-              { label: 'Comida & Drinks', icon: Utensils },
-              { label: 'Deportes', icon: Dumbbell },
-              { label: 'Gaming', icon: Gamepad2 },
-              { label: 'Otros', icon: MoreHorizontal }
-            ].map((cat, i) => (
-              <motion.div 
-                key={i} 
-                variants={fadeInUp}
-                whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                className="bg-white p-12 border border-black/[0.02] hover:shadow-[0_40px_120px_rgba(0,0,0,0.06)] transition-all group relative overflow-hidden rounded-[2.5rem] cursor-pointer"
-              >
-                <div className="w-16 h-16 rounded-[1.25rem] bg-zinc-50 flex items-center justify-center mb-12 group-hover:bg-primary/5 transition-colors">
-                   <cat.icon className="w-7 h-7 text-zinc-300 group-hover:text-primary transition-all group-hover:scale-110" />
-                </div>
-                <h3 className="font-bold text-base tracking-tight mb-2">{cat.label}</h3>
-                <p className="text-[10px] font-bold text-zinc-200 tracking-[0.25em]">Premium Protocol</p>
-                <div className="absolute bottom-12 right-12 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                  <ArrowRight className="w-6 h-6 text-primary" />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Philosophy Section - Apple Luxe Rounded Style */}
-      <section id="vision" className="relative z-10 py-60 overflow-hidden bg-white">
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-zinc-100 to-transparent" />
-        
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="text-center mb-48"
-          >
-            <h2 className="text-7xl sm:text-[9rem] font-bold tracking-tight mb-10">
-              Sistema <span className="text-primary tracking-tighter opacity-90">Flash.</span>
-            </h2>
-            <p className="text-xs font-bold tracking-[0.6em] text-zinc-300">
-              Protocolo de conversión de alta frecuencia
-            </p>
-          </motion.div>
+      {/* Features (Bento Grid Style) */}
+      <section id="features" className="py-24 lg:py-40 bg-zinc-50/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-20 space-y-4">
+            <h2 className="text-[32px] sm:text-[48px] font-bold tracking-tight text-[#111827]">Everything you need to sell.</h2>
+            <p className="text-[16px] text-zinc-500 font-normal">FlashCheckout is designed for high-performance sales teams who value speed and conversion.</p>
+          </div>
 
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-10 relative"
-          >
-            <StepCard
-              number="01"
-              icon={Layout}
-              title="Terminal ID"
-              description="Despliega tu catálogo optimizado. Una interfaz etérea de alta densidad transaccional."
-            />
-            <StepCard
-              number="02"
-              icon={Smartphone}
-              title="Broadcast"
-              description="Conecta tu link directo. Captura el tráfico de redes sociales y procésalo al instante."
-            />
-            <StepCard
-              number="03"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard 
               icon={Zap}
-              title="Escalado"
-              description="Recibe pedidos estructurados. Gestiona ventas masivas con simplicidad absoluta."
+              title="Flash Checkout"
+              description="A payment experience optimized for mobile users that lets them pay in under 30 seconds."
+              color="bg-amber-50"
+              iconColor="text-amber-500"
             />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Capabilities */}
-      <section className="relative z-10 py-40 px-6 bg-white">
-        <div className="max-w-6xl mx-auto text-center">
-          <motion.h2 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold text-black tracking-tight mb-20"
-          >
-            Estándares de elite
-          </motion.h2>
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            <BenefitCard
-              icon={Clock}
-              title="Velocidad Pura"
-              description="Checkout optimizado para cargar en menos de un segundo. Tus clientes no esperan."
+            <FeatureCard 
+              icon={Globe}
+              title="Global Scaling"
+              description="Deploy checkouts in multiple currencies and languages to reach a worldwide audience."
+              color="bg-blue-50"
+              iconColor="text-blue-500"
             />
-            <BenefitCard
-              icon={MessageCircle}
-              title="WhatsApp Nativo"
-              description="Cada pedido llega estructurado. Datos de envío, productos y total listos para facturar."
-            />
-            <BenefitCard
+            <FeatureCard 
               icon={ShieldCheck}
-              title="Seguridad Total"
-              description="Protección de datos bajo protocolos bancarios internacionales. Tu negocio, blindado."
+              title="Secure Processing"
+              description="Bank-grade security and fraud protection built into every transaction."
+              color="bg-green-50"
+              iconColor="text-green-500"
             />
-            <BenefitCard
+            <FeatureCard 
               icon={BarChart3}
-              title="Analítica Avanzada"
-              description="Dashboard profesional para visualizar tu crecimiento y flujo de caja en tiempo real."
+              title="Deep Analytics"
+              description="Understand your customers with detailed insights into conversion rates and revenue."
+              color="bg-purple-50"
+              iconColor="text-purple-500"
             />
-            <BenefitCard
+            <FeatureCard 
+              icon={MessageCircle}
+              title="WhatsApp Sync"
+              description="Receive every order structured and ready to ship on your WhatsApp."
+              color="bg-emerald-50"
+              iconColor="text-emerald-500"
+            />
+            <FeatureCard 
               icon={Smartphone}
               title="Mobile First"
-              description="Experiencia de usuario calibrada para dispositivos de alta gama. UI/UX impecable."
+              description="A checkout interface that looks and feel native on every mobile device."
+              color="bg-rose-50"
+              iconColor="text-rose-500"
             />
-            <BenefitCard
-              icon={MousePointer2}
-              title="Gestión Simple"
-              description="Panel administrativo intuitivo. Añade productos y cambia precios en un instante."
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* All You Need Section - Apple Luxe Rounded Style */}
-      <section className="relative z-10 py-52 bg-zinc-50/50">
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-32 space-y-8"
-          >
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-black max-w-4xl mx-auto leading-tight">
-              Todo lo que necesitas <br/> <span className="text-primary opacity-80">en un solo lugar.</span>
-            </h2>
-            <p className="text-lg font-medium text-zinc-400 max-w-2xl mx-auto tracking-tight opacity-70">
-              Hemos condensado el poder de un e-commerce complejo en una interfaz etérea y minimalista.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {[
-              { 
-                title: 'Link Inteligente', 
-                desc: 'Un entorno de pago optimizado que procesa pedidos en menos de 30 segundos.',
-                icon: LinkIcon 
-              },
-              { 
-                title: 'WhatsApp Sync', 
-                desc: 'Notificaciones automáticas y estructuradas para un cierre de venta impecable.',
-                icon: MessageCircle 
-              },
-              { 
-                title: 'Terminal Pro', 
-                desc: 'Control total de inventario, precios y tiendas desde cualquier dispositivo.',
-                icon: LineChart 
-              },
-              { 
-                title: 'Social Ready', 
-                desc: 'Diseñado para capturar tráfico masivo desde tus bios de Instagram y TikTok.',
-                icon: Heart 
-              }
-            ].map((feat, i) => (
-              <motion.div 
-                key={i} 
-                variants={fadeInUp}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white p-12 border border-black/[0.02] shadow-[0_30px_90px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_120px_rgba(0,0,0,0.08)] transition-all group rounded-[2.5rem]"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
-                  <feat.icon className="w-6 h-6 transition-transform group-hover:scale-110" />
-                </div>
-                <h3 className="font-bold text-xl tracking-tight mb-4">{feat.title}</h3>
-                <p className="text-sm font-medium text-zinc-400 leading-relaxed opacity-80">
-                  {feat.desc}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Marketplace Section */}
-      <section className="relative z-10 py-40 bg-zinc-50/50 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-32 space-y-6"
-          >
-            <h2 className="text-5xl sm:text-7xl font-bold text-black tracking-tighter leading-none">
-              Explora tiendas <span className="text-primary tracking-tighter">Flash.</span>
-            </h2>
-            <p className="text-[11px] text-primary font-bold tracking-[0.5em]">
-              La nueva red comercial de alta gama
-            </p>
-          </motion.div>
-
-          {stores.length > 0 ? (
-            <motion.div 
-              variants={staggerContainer}
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {stores.map((s: any) => (
-                <StoreCard key={s.id} store={s} />
-              ))}
-            </motion.div>
-          ) : (
-            <div className="text-center py-32 bg-white border border-black/[0.03] shadow-sm rounded-none">
-              <ShoppingBag className="w-16 h-16 text-zinc-100 mx-auto mb-8" />
-              <p className="text-zinc-400 font-bold tracking-tight text-sm opacity-60">
-                Aún no hay tiendas registradas en esta zona. <br/>
-                Inicia tu legado hoy mismo.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Final Deployment CTA */}
-      <section className="relative z-10 py-40 px-6 pb-60">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="max-w-3xl mx-auto text-center space-y-12"
-        >
-          <h2 className="text-7xl sm:text-[11rem] font-bold tracking-tighter text-black leading-[0.8]">
-            Inicia tu <br/> <span className="text-primary glow-text-apple">legado.</span>
-          </h2>
-          <p className="text-[12px] font-bold tracking-[1em] max-w-sm mx-auto leading-relaxed opacity-40">
-            Escalado global habilitado
-          </p>
-          
-          <div className="pt-20">
-            {!userId ? (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  href="/sign-up"
-                  className="h-32 inline-flex items-center gap-10 bg-black text-white px-28 text-[15px] font-bold tracking-[0.4em] transition-all shadow-[0_40px_120px_rgba(0,0,0,0.25)] rounded-full"
-                >
-                  Comenzar ahora
-                  <Zap className="w-8 h-8 fill-primary text-primary" />
-                </Link>
-              </motion.div>
-            ) : (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  href="/dashboard"
-                  className="h-32 inline-flex items-center gap-10 bg-black text-white px-28 text-[15px] font-bold tracking-[0.4em] transition-all shadow-[0_40px_120px_rgba(0,0,0,0.25)] rounded-full"
-                >
-                  Panel de Control
-                  <Zap className="w-8 h-8 fill-primary text-primary" />
-                </Link>
-              </motion.div>
-            )}
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Premium Footer */}
+      {/* CTA Section (Chatbase Style) */}
+      <section className="py-24 lg:py-40 bg-white border-y border-[#E5E7EB]">
+        <div className="max-w-4xl mx-auto px-6 text-center space-y-10">
+          <h2 className="text-[32px] sm:text-[48px] font-bold tracking-tight text-[#111827]">Scale your sales today.</h2>
+          <p className="text-[16px] text-zinc-500 font-normal max-w-2xl mx-auto">Join thousands of merchants who are already growing their businesses with FlashCheckout.</p>
+          <div className="pt-6">
+            <Button asChild size="lg">
+              <Link href="/sign-up">Get started for free</Link>
+            </Button>
+          </div>
+          <p className="text-[14px] text-zinc-400 font-medium">Ready to deploy in less than 5 minutes.</p>
+        </div>
+      </section>
+
+      {/* FAQ Section (Accordion) */}
+      <section className="py-24 lg:py-40 bg-white">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-[32px] sm:text-[48px] font-bold text-center mb-16">Frequently Asked Questions</h2>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1" className="border-b-[#E5E7EB] py-2">
+              <AccordionTrigger className="text-[16px] font-bold hover:no-underline text-left">How fast is FlashCheckout?</AccordionTrigger>
+              <AccordionContent className="text-zinc-500 text-[16px] leading-relaxed">
+                FlashCheckout is optimized for high conversion. Most customers complete their purchase in under 30 seconds, significantly faster than traditional e-commerce flows.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2" className="border-b-[#E5E7EB] py-2">
+              <AccordionTrigger className="text-[16px] font-bold hover:no-underline text-left">Do I need a Stripe account?</AccordionTrigger>
+              <AccordionContent className="text-zinc-500 text-[16px] leading-relaxed">
+                Yes, FlashCheckout integrates directly with Stripe to process payments securely and deposit funds into your bank account.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3" className="border-b-[#E5E7EB] py-2">
+              <AccordionTrigger className="text-[16px] font-bold hover:no-underline text-left">Is there a transaction fee?</AccordionTrigger>
+              <AccordionContent className="text-zinc-500 text-[16px] leading-relaxed">
+                We offer competitive pricing. Depending on your plan, fees range from a small percentage per transaction to fixed monthly pricing for enterprise clients.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </section>
+
       <Footer />
     </div>
   )
 }
 
-
-function StepCard({
-  number,
-  icon: Icon,
-  title,
-  description,
-}: {
-  number: string
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  description: string
+function FeatureCard({ 
+  icon: Icon, 
+  title, 
+  description, 
+  color, 
+  iconColor 
+}: { 
+  icon: any, 
+  title: string, 
+  description: string, 
+  color: string, 
+  iconColor: string 
 }) {
   return (
-    <motion.div 
-      variants={fadeInUp}
-      className="text-center group p-14 bg-zinc-50/30 hover:bg-white border border-black/[0.02] hover:shadow-[0_50px_120px_rgba(0,0,0,0.06)] transition-all relative rounded-[2.5rem] overflow-hidden h-full"
-    >
-      <div className="absolute top-10 right-10">
-         <span className="text-5xl font-bold text-zinc-100 group-hover:text-primary/10 transition-colors">{number}</span>
+    <Card className="border-[#E5E7EB] bg-white rounded-2xl shadow-sm hover:shadow-md transition-all p-8 flex flex-col group h-full">
+      <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+        <Icon className={`w-6 h-6 ${iconColor}`} />
       </div>
-      <div className="mb-14 inline-flex items-center justify-center w-24 h-24 rounded-[1.5rem] bg-white group-hover:bg-primary/5 transition-all text-zinc-300 group-hover:text-primary shadow-sm hover:shadow-md">
-        <Icon className="w-10 h-10 transition-transform group-hover:scale-110" />
+      <h3 className="text-xl font-bold text-[#111827] mb-3">{title}</h3>
+      <p className="text-[16px] text-zinc-500 leading-relaxed font-normal">{description}</p>
+      <div className="mt-8 pt-6 border-t border-[#F9FAFB] flex items-center text-[14px] font-bold text-zinc-300 group-hover:text-black transition-colors">
+        Learn more <ChevronRight className="w-4 h-4 ml-1" />
       </div>
-      <h3 className="font-bold text-2xl tracking-tight mb-6 text-black">{title}</h3>
-      <p className="text-base text-zinc-400 font-medium tracking-tight leading-relaxed max-w-[240px] mx-auto opacity-70">
-        {description}
-      </p>
-    </motion.div>
+    </Card>
   )
 }
 
-function BenefitCard({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  description: string
-}) {
+function LogoItem({ src, alt }: { src: string, alt: string }) {
   return (
-    <motion.div 
-      variants={fadeInUp}
-      className="bg-white border border-black/[0.02] p-14 hover:shadow-[0_50px_150px_rgba(0,0,0,0.08)] transition-all group relative overflow-hidden text-left h-full flex flex-col rounded-[2.5rem]"
-    >
-      <div className="w-16 h-16 rounded-[1.25rem] bg-zinc-50 flex items-center justify-center mb-12 group-hover:bg-primary/5 transition-all text-zinc-300 group-hover:text-primary">
-        <Icon className="w-8 h-8 transition-transform group-hover:scale-110" />
-      </div>
-      <h3 className="font-bold text-2xl tracking-tighter mb-4 text-black">{title}</h3>
-      <p className="text-base text-zinc-500 font-medium tracking-tight leading-relaxed flex-grow opacity-60">
-        {description}
-      </p>
-      <div className="mt-14 flex items-center gap-4">
-        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <span className="text-[10px] font-bold tracking-[0.4em] text-zinc-300">Flash Core 1.0</span>
-      </div>
-    </motion.div>
-  )
-}
-
-function StoreCard({ store }: { store: any }) {
-  return (
-    <motion.div variants={fadeInUp}>
-      <Link 
-        href={`/tienda/${store.slug}`}
-        className="group bg-white border border-black/[0.03] p-10 hover:shadow-[0_40px_100px_rgba(0,0,0,0.05)] transition-all flex flex-col h-full relative overflow-hidden rounded-[2.5rem]"
-      >
-        <div className="flex items-center gap-6 mb-10">
-          <div className="w-20 h-20 rounded-2xl bg-zinc-50 flex items-center justify-center overflow-hidden border border-black/[0.03] group-hover:scale-105 transition-transform duration-700">
-            {store.logoUrl ? (
-              <img src={store.logoUrl} alt={store.name} className="w-full h-full object-cover" />
-            ) : (
-              <Store className="w-8 h-8 text-zinc-200" />
-            )}
-          </div>
-          <div className="text-left">
-            <h3 className="font-bold text-2xl tracking-tighter text-black truncate max-w-[150px]">
-              {store.name}
-            </h3>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] text-primary font-bold tracking-[0.2em]">Verified</span>
-              <div className="w-1 h-1 rounded-none bg-primary/40" />
-              <span className="text-[10px] text-zinc-300 font-bold tracking-[0.2em]">Store</span>
-            </div>
-          </div>
-        </div>
-        
-        <p className="text-base text-zinc-400 font-medium tracking-tight leading-relaxed line-clamp-2 flex-grow mb-12 opacity-80">
-          {store.bio || 'Sin descripción comercial oficial.'}
-        </p>
-
-        <div className="flex items-center justify-between border-t border-black/[0.03] pt-10 group/link">
-          <span className="text-[11px] font-bold tracking-[0.3em] text-zinc-300 group-hover/link:text-primary transition-colors">Ver Terminal</span>
-          <div className="w-12 h-12 flex items-center justify-center bg-zinc-50 group-hover/link:bg-black group-hover/link:text-white transition-all text-zinc-300 rounded-full">
-            <ArrowRight className="w-5 h-5 transition-transform group-hover/link:translate-x-1" />
-          </div>
-        </div>
-      </Link>
-    </motion.div>
+    <img 
+      alt={alt} 
+      loading="lazy" 
+      width="120" 
+      height="48" 
+      decoding="async" 
+      className="h-8 w-auto lg:h-10 shrink-0" 
+      src={src} 
+      style={{ color: 'transparent' }} 
+    />
   )
 }
