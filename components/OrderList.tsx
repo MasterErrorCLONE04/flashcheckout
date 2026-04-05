@@ -34,11 +34,11 @@ type Order = {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'pending', label: 'NUEVO', color: 'text-amber-600 bg-amber-50 border-amber-100' },
-  { value: 'confirmed', label: 'CONFIRMADO', color: 'text-blue-600 bg-blue-50 border-blue-100' },
-  { value: 'shipped', label: 'EN CAMINO', color: 'text-primary bg-primary/5 border-primary/10' },
-  { value: 'delivered', label: 'ENTREGADO', color: 'text-white bg-primary border-primary shadow-sm' },
-  { value: 'cancelled', label: 'CANCELADO', color: 'text-red-500 bg-red-50 border-red-100' },
+  { value: 'pending', label: 'Nuevo', color: 'text-amber-600 bg-amber-50 border-gray-200' },
+  { value: 'confirmed', label: 'Confirmado', color: 'text-blue-600 bg-blue-50 border-gray-200' },
+  { value: 'shipped', label: 'En camino', color: 'text-emerald-600 bg-emerald-50 border-gray-200' },
+  { value: 'delivered', label: 'Entregado', color: 'text-white bg-emerald-600 border-emerald-600 shadow-sm' },
+  { value: 'cancelled', label: 'Cancelado', color: 'text-rose-500 bg-rose-50 border-gray-200' },
 ]
 
 export default function OrderList({
@@ -74,8 +74,8 @@ export default function OrderList({
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-24 premium-card rounded-[3rem] border-dashed bg-white/50 border-black/[0.05]">
-        <div className="w-20 h-20 rounded-[2rem] bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-black/[0.03]">
+      <div className="text-center py-24 premium-card rounded-lg border-dashed bg-white/50 border-gray-200">
+        <div className="w-20 h-20 rounded-lg bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-gray-200">
           <ShoppingBag className="w-8 h-8 text-zinc-200" />
         </div>
         <h3 className="text-xl font-semibold text-black mb-2 uppercase">Sin actividad</h3>
@@ -91,7 +91,7 @@ export default function OrderList({
       {/* Filter tabs */}
       <div className="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar">
         <FilterTab
-          label="TODOS"
+          label="Todos"
           value="all"
           active={filter === 'all'}
           count={orders.length}
@@ -123,8 +123,8 @@ export default function OrderList({
             <div
               key={order.id}
               className={cn(
-                "premium-card rounded-[2.5rem] overflow-hidden transition-all duration-500",
-                isExpanded ? "ring-2 ring-primary/10 shadow-2xl scale-[1.01] bg-white" : "hover:scale-[1.005] hover:border-black/5 bg-white/80"
+                "premium-card rounded-lg overflow-hidden transition-all duration-500",
+                isExpanded ? "ring-2 ring-primary/10 shadow-2xl scale-[1.01] bg-white border-primary/20" : "hover:scale-[1.005] hover:border-gray-200 bg-white/80 border-gray-200"
               )}
             >
               {/* Header */}
@@ -134,16 +134,16 @@ export default function OrderList({
               >
                 <div className="flex items-center gap-8 min-w-0">
                   <div className={cn(
-                    "w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-700",
+                    "w-16 h-16 rounded-lg flex items-center justify-center transition-all duration-700",
                     isExpanded ? "bg-primary text-white rotate-90 shadow-xl shadow-primary/20" : "bg-zinc-50 text-zinc-300 group-hover:text-primary group-hover:bg-primary/5"
                   )}>
                     <User className="w-7 h-7" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-2xl font-semibold text-black truncate group-hover:text-primary transition-colors uppercase tracking-tight">
+                    <h4 className="text-2xl font-medium text-zinc-950 truncate group-hover:text-emerald-600 transition-colors tracking-tight">
                       {order.customerName}
                     </h4>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-1">
+                    <p className="text-[13px] font-normal tracking-tight text-zinc-400 mt-1">
                       {order.city} · {new Date(order.createdAt).toLocaleDateString('es-CO', {
                         day: '2-digit',
                         month: 'short',
@@ -162,7 +162,7 @@ export default function OrderList({
                     <StatusBadge status={order.status} />
                   </div>
                   <div className={cn(
-                    "w-10 h-10 rounded-full border border-black/[0.05] flex items-center justify-center transition-all",
+                    "w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center transition-all",
                     isExpanded ? "bg-primary/10 border-primary/10 text-primary" : "text-zinc-200 group-hover:bg-zinc-50"
                   )}>
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -172,7 +172,7 @@ export default function OrderList({
 
               {/* Details Pane */}
               {isExpanded && (
-                <div className="border-t border-black/[0.05] px-10 py-12 bg-zinc-50/30 space-y-12 animate-in">
+                <div className="border-t border-gray-200 px-10 py-12 bg-zinc-50/30 space-y-12 animate-in">
                   <div className="grid lg:grid-cols-2 gap-16">
                     {/* Items Table */}
                     <div className="space-y-6">
@@ -184,7 +184,7 @@ export default function OrderList({
                         {items.map((item, i) => (
                           <div
                             key={i}
-                            className="flex items-center justify-between p-5 bg-white rounded-2xl border border-black/[0.03] hover:border-primary/20 transition-colors shadow-sm"
+                            className="flex items-center justify-between p-5 bg-white rounded-lg border border-gray-200 hover:border-primary/20 transition-colors shadow-sm"
                           >
                             <span className="text-sm font-semibold text-zinc-600">
                               <span className="text-primary font-bold tabular-nums mr-3">{item.qty}×</span>
@@ -205,11 +205,11 @@ export default function OrderList({
                           <MapPin className="w-3.5 h-3.5 text-primary" />
                           <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Entrega</h5>
                         </div>
-                        <div className="p-8 bg-white rounded-[2.5rem] border border-black/[0.05] shadow-sm">
-                          <p className="text-sm font-semibold text-zinc-800 leading-relaxed uppercase">
+                        <div className="p-8 bg-white rounded-lg border border-gray-200 shadow-sm">
+                          <p className="text-[15px] font-normal text-zinc-800 leading-relaxed">
                             {order.address}
                           </p>
-                          <p className="text-[10px] font-bold text-primary mt-3 uppercase tracking-widest">
+                          <p className="text-[11px] font-medium text-emerald-600 mt-3 tracking-tight">
                             COLOMBIA · {order.city}
                           </p>
                         </div>
@@ -239,10 +239,10 @@ export default function OrderList({
                           key={s.value}
                           onClick={() => updateStatus(order.id, s.value)}
                           className={cn(
-                            "text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-xl border transition-all active:scale-95",
+                            "text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-lg border transition-all active:scale-95",
                             order.status === s.value 
                               ? s.color + " shadow-md" 
-                              : "bg-white border-black/[0.05] text-zinc-400 hover:text-black hover:border-black/10"
+                              : "bg-white border-gray-200 text-zinc-400 hover:text-black hover:border-black/10"
                           )}
                         >
                           {s.label}
@@ -250,8 +250,8 @@ export default function OrderList({
                       ))}
                     </div>
                     
-                    <button className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 hover:text-black transition-colors uppercase tracking-[0.2em] px-4 py-2 hover:bg-zinc-100 rounded-lg">
-                      <Zap className="w-3.5 h-3.5" />
+                    <button className="flex items-center gap-2 text-[13px] font-medium text-zinc-400 hover:text-zinc-950 transition-colors tracking-tight px-4 py-2 hover:bg-zinc-100 rounded-lg">
+                      <Zap className="w-4 h-4" />
                       Finalizar Gestión
                     </button>
                   </div>
@@ -269,7 +269,7 @@ function StatusBadge({ status }: { status: string }) {
   const option = STATUS_OPTIONS.find(s => s.value === status) ?? STATUS_OPTIONS[0]
   return (
     <span className={cn(
-      "text-[8px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border tabular-nums shadow-sm",
+      "text-[8px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border tabular-nums shadow-sm",
       option.color
     )}>
       {option.label}
@@ -294,10 +294,10 @@ function FilterTab({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 px-6 py-3.5 rounded-full text-[10px] font-bold tracking-[0.1em] whitespace-nowrap transition-all border active:scale-95 shadow-sm",
+        "flex items-center gap-3 px-6 py-3.5 rounded-lg text-[10px] font-bold tracking-[0.1em] whitespace-nowrap transition-all border active:scale-95 shadow-sm",
         active 
           ? "bg-primary text-white border-primary shadow-lg shadow-primary/10" 
-          : "bg-white border-black/[0.05] text-zinc-400 hover:text-black hover:border-black/10"
+          : "bg-white border-gray-200 text-zinc-400 hover:text-black hover:border-black/10"
       )}
     >
       {label}

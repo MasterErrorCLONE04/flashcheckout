@@ -16,7 +16,7 @@ import {
   Bell,
   ArrowUpRight,
 } from 'lucide-react'
-import StoreSetupForm from '@/components/StoreSetupForm'
+import StoreCreationWizard from '@/components/StoreCreationWizard'
 import CopyButton from '@/components/CopyButton'
 import SalesChart from '@/components/SalesChart'
 import QrGenerator from '@/components/QrGenerator'
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
 
   // If no store, show setup
   if (!store) {
-    return <StoreSetupForm />
+    return <StoreCreationWizard />
   }
 
   const recentOrders = await prisma.order.findMany({
@@ -103,22 +103,22 @@ export default async function DashboardPage() {
       {/* Header Premium */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-black font-display">
-            Panel de <span className="text-primary">control</span>
+          <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-zinc-950 font-display">
+            Panel de control
           </h1>
-          <p className="text-zinc-500 font-medium mt-3 max-w-md text-[15px]">
-            Gestionando <span className="text-black font-semibold">{store.name}</span> · Status: Operativo
+          <p className="text-[17px] text-zinc-500 font-normal mt-3 max-w-lg leading-relaxed">
+            Gestionando <span className="text-zinc-950 font-medium">{store.name}</span> · <span className="text-emerald-600 font-medium">Status: Operativo</span>
           </p>
         </div>
         
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-bold text-zinc-400 tracking-widest leading-none">Última actividad</span>
-            <span className="text-sm font-bold text-primary mt-1.5 tracking-tight">Hace 2 minutos</span>
+            <span className="text-[13px] font-medium text-zinc-400 tracking-tight leading-none">Última actividad</span>
+            <span className="text-sm font-medium text-emerald-600 mt-2 tracking-tight">Hace 2 minutos</span>
           </div>
-          <div className="w-11 h-11 rounded-xl glass border border-black/5 flex items-center justify-center relative group cursor-pointer hover:bg-zinc-50 transition-colors">
-            <div className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(0,102,204,0.4)]" />
-            <Bell className="w-5 h-5 text-zinc-400 group-hover:text-black transition-colors" />
+          <div className="w-11 h-11 rounded-lg bg-white border border-gray-200 flex items-center justify-center relative group cursor-pointer hover:bg-zinc-50 transition-all shadow-sm">
+            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+            <Bell className="w-5 h-5 text-zinc-400 group-hover:text-zinc-950 transition-colors" />
           </div>
         </div>
       </div>
@@ -132,18 +132,18 @@ export default async function DashboardPage() {
           
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-10">
-              <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center shadow-xl">
+              <div className="w-14 h-14 rounded-lg bg-zinc-950 flex items-center justify-center shadow-xl">
                 <Globe className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs font-bold tracking-widest text-primary mb-1">Link de despacho</p>
-                <p className="text-[17px] font-bold text-zinc-800 tracking-tight">Terminal operativo FlashCheckout</p>
+                <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-0.5">Link de despacho</p>
+                <p className="text-[19px] font-medium text-zinc-950 tracking-tight">Terminal operativo FlashCheckout</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 bg-zinc-50 border border-black/[0.05] rounded-2xl px-6 py-5 flex items-center gap-4 group-hover:border-primary/20 transition-all">
+                <div className="flex-1 bg-zinc-50 border border-gray-200 rounded-lg px-6 py-5 flex items-center gap-4 group-hover:border-primary/20 transition-all">
                   <span className="text-primary font-mono text-sm opacity-50 hidden sm:inline">https://</span>
                   <code className="text-sm md:text-base font-mono font-bold text-zinc-800 flex-1 truncate">
                     {store.slug}.flashcheckout.co
@@ -173,7 +173,7 @@ export default async function DashboardPage() {
 
         {/* Cell 2: QR System (Medium) */}
         <div className="md:col-span-4 premium-card p-8 flex flex-col items-center justify-center text-center group bg-white">
-          <div className="p-5 bg-zinc-50 rounded-2xl mb-6 group-hover:scale-105 transition-transform duration-500 border border-black/[0.03]">
+          <div className="p-5 bg-zinc-50 rounded-lg mb-6 group-hover:scale-105 transition-transform duration-500 border border-gray-200">
             <QrGenerator url={storeUrl} storeName={store.name} />
           </div>
           <p className="text-xs font-bold tracking-widest text-zinc-400 mb-1.5">Código QR</p>
@@ -181,53 +181,53 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 3: Revenue (Medium/Small) */}
-        <div className="md:col-span-4 premium-card p-8 group bg-white">
-          <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
-            <DollarSign className="w-6 h-6 text-primary" />
+        <div className="md:col-span-4 premium-card p-10 group bg-white">
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center mb-6 group-hover:scale-105 transition-all">
+            <DollarSign className="w-6 h-6 text-emerald-600" />
           </div>
-          <p className="text-xs font-bold tracking-widest text-zinc-400 mb-3">Ingresos totales</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-3">Ingresos totales</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl md:text-4xl font-semibold text-black tabular-nums">
+            <span className="text-3xl md:text-4xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
               ${(totalRevenue._sum.total ?? 0).toLocaleString('es-CO')}
             </span>
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">+12.5%</span>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">+12.5%</span>
           </div>
         </div>
 
         {/* Cell 4: Weekly Performance (Medium/Small) */}
-        <div className="md:col-span-4 premium-card p-8 group bg-white">
-          <div className="w-12 h-12 rounded-xl bg-zinc-50 border border-black/[0.03] flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
-            <ShoppingCart className="w-6 h-6 text-zinc-500" />
+        <div className="md:col-span-4 premium-card p-10 group bg-white">
+          <div className="w-12 h-12 rounded-lg bg-zinc-50 border border-gray-200 flex items-center justify-center mb-6 group-hover:scale-105 transition-all">
+            <ShoppingCart className="w-6 h-6 text-zinc-400" />
           </div>
-          <p className="text-xs font-bold tracking-widest text-zinc-400 mb-3">Pedidos / 7 días</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-3">Pedidos / 7 días</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl md:text-4xl font-semibold text-black tabular-nums">
+            <span className="text-3xl md:text-4xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
               {weeklyOrdersCount}
             </span>
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Activo</span>
+            <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md tracking-tight">Activo</span>
           </div>
         </div>
 
         {/* Cell 5: Stock Alerts (Medium/Small) */}
-        <div className="md:col-span-4 premium-card p-8 group overflow-hidden bg-white">
+        <div className="md:col-span-4 premium-card p-10 group overflow-hidden bg-white">
           <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-all",
-            lowStockCount > 0 ? "bg-red-50 text-red-500" : "bg-zinc-50 text-zinc-400"
+            "w-12 h-12 rounded-lg flex items-center justify-center mb-6 transition-all",
+            lowStockCount > 0 ? "bg-rose-50 text-rose-500" : "bg-zinc-50 text-zinc-400"
           )}>
             <AlertTriangle className="w-6 h-6" />
           </div>
-          <p className="text-xs font-bold tracking-widest text-zinc-400 mb-3">Stock crítico</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-3">Stock crítico</p>
           <div className="flex items-baseline gap-3">
             <span className={cn(
-              "text-3xl md:text-4xl font-semibold tabular-nums",
-              lowStockCount > 0 ? "text-red-500" : "text-black"
+              "text-3xl md:text-4xl font-semibold tabular-nums tracking-tighter",
+              lowStockCount > 0 ? "text-rose-500" : "text-zinc-950"
             )}>
               {lowStockCount}
             </span>
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Items</span>
+            <span className="text-[11px] font-medium text-zinc-400 tracking-tight">unidades restantes</span>
           </div>
-          <Link href="/productos" className="absolute bottom-6 right-6 text-zinc-300 hover:text-black transition-colors">
-            <ArrowRight className="w-5 h-5" />
+          <Link href="/productos" className="absolute bottom-6 right-8 text-zinc-300 hover:text-zinc-950 transition-colors">
+            <ArrowRight className="w-6 h-6" />
           </Link>
         </div>
 
@@ -238,16 +238,16 @@ export default async function DashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-12 relative z-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                <p className="text-xs font-bold tracking-widest text-primary leading-none">Rendimiento operativo</p>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+                <p className="text-[13px] font-medium tracking-tight text-zinc-500 leading-none">Rendimiento operativo</p>
               </div>
-              <h3 className="text-3xl font-bold text-black tracking-tighter font-display">Actividad comercial</h3>
-              <p className="text-xs font-bold text-zinc-400 tracking-widest mt-3">Métrica: Ventas brutas por canal</p>
+              <h3 className="text-3xl font-medium text-zinc-950 tracking-tight font-display">Actividad comercial</h3>
+              <p className="text-[13px] text-zinc-400 font-normal mt-3 tracking-tight">Métrica: Ventas brutas consolidado</p>
             </div>
             
-            <div className="flex items-center gap-3 bg-zinc-50 border border-black/[0.03] p-1.5 rounded-2xl shadow-inner">
-               <button className="px-6 py-3 rounded-xl text-xs font-bold tracking-wide bg-white shadow-sm text-black transition-all">7 días</button>
-               <button className="px-6 py-3 rounded-xl text-xs font-bold tracking-wide text-zinc-400 hover:text-zinc-600 transition-all">30 días</button>
+            <div className="flex items-center gap-3 bg-zinc-50 border border-gray-200 p-1 rounded-lg shadow-inner">
+               <button className="px-6 py-2.5 rounded-md text-xs font-medium tracking-tight bg-white shadow-sm text-zinc-950 transition-all">7 días</button>
+               <button className="px-6 py-2.5 rounded-md text-xs font-medium tracking-tight text-zinc-400 hover:text-zinc-600 transition-all">30 días</button>
             </div>
           </div>
 
@@ -259,9 +259,9 @@ export default async function DashboardPage() {
         {/* Cell 7: Recent Orders (Medium Sidebar Style) */}
         <div className="md:col-span-4 premium-card p-8 overflow-hidden bg-white">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xs font-bold text-black tracking-widest font-display">Últimos pedidos</h3>
-            <Link href="/pedidos" className="p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-all border border-black/[0.03]">
-              <ArrowUpRight className="w-5 h-5 text-zinc-500" />
+            <h3 className="text-[15px] font-medium text-zinc-950 tracking-tight font-display">Últimos pedidos</h3>
+            <Link href="/pedidos" className="p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all border border-gray-200">
+              <ArrowUpRight className="w-5 h-5 text-zinc-400" />
             </Link>
           </div>
 
@@ -269,7 +269,7 @@ export default async function DashboardPage() {
             {recentOrders.map(order => (
               <div
                 key={order.id}
-                className="group flex items-center justify-between p-4 rounded-2xl hover:bg-zinc-50 transition-colors border border-transparent hover:border-black/[0.02]"
+                className="group flex items-center justify-between p-4 rounded-lg hover:bg-zinc-50 transition-colors border border-transparent hover:border-gray-200"
               >
                 <div className="min-w-0">
                   <p className="text-[15px] font-semibold text-black truncate group-hover:text-primary transition-colors">
@@ -316,7 +316,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "text-[11px] font-bold px-3 py-1 rounded-full border border-black/[0.03] tracking-tight uppercase",
+        "text-[11px] font-bold px-3 py-1 rounded-md border border-gray-100 tracking-tight uppercase",
         style.bg,
         style.text,
       )}

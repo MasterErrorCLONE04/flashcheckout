@@ -5,7 +5,7 @@ import { Store, Loader2, Zap, Layout, ArrowRight, Shirt, Smartphone, Home, Spark
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
-export default function StoreSetupForm() {
+export default function StoreCreationWizard() {
   const router = useRouter()
   const [form, setForm] = useState({
     name: '',
@@ -57,13 +57,13 @@ export default function StoreSetupForm() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/[0.03] rounded-full blur-[100px] -z-10" />
       
       <div className="text-center mb-14">
-        <div className="w-20 h-20 rounded-[2rem] bg-black flex items-center justify-center mx-auto mb-10 shadow-2xl active:scale-95 transition-transform">
+        <div className="w-20 h-20 rounded-lg bg-black flex items-center justify-center mx-auto mb-10 shadow-2xl active:scale-95 transition-transform">
           <Store className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-4xl font-bold text-black tracking-tighter font-display">
+        <h1 className="text-4xl font-medium text-zinc-950 tracking-tight font-display">
           Crear tienda
         </h1>
-        <p className="text-sm text-zinc-400 font-bold tracking-widest mt-5 leading-relaxed uppercase">
+        <p className="text-[17px] text-zinc-500 font-normal mt-5 leading-relaxed tracking-tight">
           Configura tu presencia digital en segundos
         </p>
       </div>
@@ -71,7 +71,7 @@ export default function StoreSetupForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-8">
           <div className="group space-y-3">
-            <label htmlFor="store-name" className="text-xs font-bold tracking-widest text-zinc-400 px-1 group-focus-within:text-black transition-colors uppercase">
+            <label htmlFor="store-name" className="text-[13px] font-medium tracking-tight text-zinc-500 px-1 group-focus-within:text-emerald-600 transition-colors">
               Nombre de la tienda
             </label>
             <div className="relative">
@@ -79,7 +79,7 @@ export default function StoreSetupForm() {
               <input
                 id="store-name"
                 type="text"
-                className="w-full bg-white border border-black/[0.05] rounded-2xl pl-16 pr-6 py-5 text-base font-semibold text-black placeholder:text-zinc-200 focus:outline-none focus:border-primary/30 transition-all shadow-sm"
+                className="w-full bg-white border border-gray-200 rounded-lg pl-16 pr-6 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all shadow-sm"
                 placeholder="Ej: Tienda de moda"
                 value={form.name}
                 onChange={e => {
@@ -96,17 +96,17 @@ export default function StoreSetupForm() {
           </div>
 
           <div className="group space-y-3">
-            <label htmlFor="store-slug" className="text-xs font-bold tracking-widest text-zinc-400 px-1 group-focus-within:text-black transition-colors uppercase">
+            <label htmlFor="store-slug" className="text-[13px] font-medium tracking-tight text-zinc-500 px-1 group-focus-within:text-emerald-600 transition-colors">
               Enlace de tu tienda
             </label>
-            <div className="flex items-center bg-white border border-black/[0.05] rounded-2xl overflow-hidden focus-within:border-primary/30 transition-all shadow-sm">
-              <span className="pl-6 text-xs font-bold text-zinc-300 tracking-widest whitespace-nowrap uppercase">
-                flash/
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden focus-within:border-primary/30 transition-all shadow-sm">
+              <span className="pl-6 text-[13px] font-medium text-zinc-300 tracking-tight whitespace-nowrap">
+                flash.checkout /
               </span>
               <input
                 id="store-slug"
                 type="text"
-                className="flex-1 py-5 pr-6 border-none text-base bg-transparent focus:outline-none font-semibold text-primary tracking-tight"
+                className="flex-1 py-5 pr-6 border-none text-base bg-transparent focus:outline-none font-normal text-emerald-600 tracking-tight"
                 placeholder="tienda-moda"
                 value={form.slug}
                 onChange={e =>
@@ -119,13 +119,13 @@ export default function StoreSetupForm() {
         </div>
 
         <div className="group space-y-3 pt-2">
-          <label htmlFor="store-whatsapp" className="text-xs font-bold tracking-widest text-zinc-400 px-1 group-focus-within:text-black transition-colors uppercase">
+          <label htmlFor="store-whatsapp" className="text-[13px] font-medium tracking-tight text-zinc-500 px-1 group-focus-within:text-emerald-600 transition-colors">
             WhatsApp de negocio
           </label>
           <input
             id="store-whatsapp"
             type="tel"
-            className="w-full bg-white border border-black/[0.05] rounded-2xl px-6 py-5 text-base font-semibold text-black placeholder:text-zinc-200 focus:outline-none focus:border-primary/30 transition-all shadow-sm tabular-nums"
+            className="w-full bg-white border border-gray-200 rounded-lg px-6 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all shadow-sm tabular-nums"
             placeholder="573001234567"
             value={form.whatsapp}
             onChange={e =>
@@ -133,14 +133,14 @@ export default function StoreSetupForm() {
             }
             required
           />
-          <p className="text-[11px] text-zinc-300 font-bold tracking-widest px-1 mt-3 uppercase">
+          <p className="text-[11px] text-zinc-400 font-medium tracking-tight px-1 mt-3">
             Incluir código de país sin el símbolo "+" (Colombia: 57)
           </p>
         </div>
 
         {/* Category Selection */}
         <div className="space-y-4 pt-4">
-          <label className="text-xs font-bold tracking-widest text-zinc-400 px-1 uppercase transition-colors">
+          <label className="text-[13px] font-medium tracking-tight text-zinc-500 px-1 transition-colors">
             Categoría comercial
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -159,24 +159,24 @@ export default function StoreSetupForm() {
                 type="button"
                 onClick={() => setForm(f => ({ ...f, category: cat.id }))}
                 className={cn(
-                  "flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group",
+                  "flex items-center gap-3 p-4 rounded-lg border transition-all text-left group",
                   form.category === cat.id
-                    ? "bg-black border-black text-white shadow-xl scale-[1.02]"
-                    : "bg-white border-black/[0.05] text-zinc-500 hover:border-black/20 hover:bg-zinc-50"
+                    ? "bg-zinc-950 border-zinc-950 text-white shadow-xl scale-[1.02]"
+                    : "bg-white border-gray-200 text-zinc-500 hover:border-zinc-200 hover:bg-zinc-50"
                 )}
               >
                 <cat.icon className={cn(
                   "w-5 h-5 transition-transform group-hover:scale-110",
                   form.category === cat.id ? "text-white" : "text-zinc-300"
                 )} />
-                <span className="text-[13px] font-bold tracking-tight">{cat.label}</span>
+                <span className="text-[13px] font-medium tracking-tight">{cat.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-bold tracking-widest rounded-2xl px-6 py-4 animate-in fade-in">
+          <div className="bg-red-50 border border-red-100 text-red-600 text-xs font-bold tracking-widest rounded-lg px-6 py-4 animate-in fade-in">
             {error}
           </div>
         )}

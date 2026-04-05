@@ -68,14 +68,13 @@ const CustomSignIn = () => {
     try {
       setLoading(true)
       setError('')
-      const si = getVal(signIn)
-      const result = await (si as any).create({ identifier: email, password } as any)
-      if ((result as any).status === 'complete') {
-        const sa = getVal(setActive)
-        if (sa) {
-          await sa({ session: (result as any).createdSessionId })
-          router.push('/dashboard')
-        }
+      const clerk = (window as any).Clerk
+      const si = clerk.client.signIn
+      const result = await si.create({ identifier: email, password })
+      
+      if (result.status === 'complete') {
+        await clerk.setActive({ session: result.createdSessionId })
+        router.push('/dashboard')
       }
     } catch (err: any) {
       console.error('SignIn error:', err)
@@ -185,7 +184,7 @@ const CustomSignIn = () => {
             </div>
 
             <div className="h-6">
-              <div id="cf-turnstile" className="w-full h-auto"></div>
+              <div id="clerk-captcha" className="w-full h-auto"></div>
             </div>
 
             {error && (

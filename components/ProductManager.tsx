@@ -180,9 +180,9 @@ export default function ProductManager({
       {!showForm && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-bold text-black tracking-tighter font-display">Catálogo</h1>
-            <p className="text-zinc-400 font-bold mt-2 text-xs tracking-widest">
-              Gestionando <span className="text-primary">{products.length} productos</span> en inventario
+            <h1 className="text-4xl font-medium text-zinc-950 tracking-tight font-display">Catálogo</h1>
+            <p className="text-[17px] text-zinc-500 font-normal mt-2 tracking-tight">
+              Gestionando <span className="text-zinc-950 font-medium">{products.length} productos</span> en inventario
             </p>
           </div>
           
@@ -200,12 +200,12 @@ export default function ProductManager({
               Añadir Producto
             </button>
           ) : (
-            <div className="premium-card p-4 flex items-center gap-4 bg-amber-50 border-amber-100">
+            <div className="premium-card p-4 flex items-center gap-4 bg-amber-50 border-amber-200">
               <Lock className="w-5 h-5 text-amber-600" />
               <p className="text-xs font-bold text-amber-700 tracking-widest">Límite gratuito alcanzado (10/10)</p>
               <Link 
                 href="/suscripcion"
-                className="bg-amber-600 text-white px-4 py-2 rounded-full text-xs font-bold tracking-widest hover:brightness-110 transition-all shadow-md uppercase"
+                className="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold tracking-widest hover:brightness-110 transition-all shadow-md uppercase"
               >
                 Upgrade
               </Link>
@@ -216,19 +216,19 @@ export default function ProductManager({
 
       {/* Modern Creation Engine */}
       {showForm && (
-        <div className="premium-card rounded-[3rem] p-10 md:p-14 mb-12 animate-in relative overflow-hidden bg-white border-black/[0.05]">
+        <div className="premium-card p-10 md:p-14 mb-12 animate-in relative overflow-hidden bg-white border-gray-200">
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/[0.03] blur-[100px] -mr-40 -mt-20" />
           
           <div className="flex items-center justify-between mb-12 relative z-10">
             <div>
-              <p className="text-xs font-bold tracking-widest text-primary mb-2">Editor de inventario</p>
-              <h3 className="text-3xl font-bold text-black tracking-tight font-display">
+              <p className="text-[13px] font-medium tracking-tight text-emerald-600 mb-1">Editor de inventario</p>
+              <h3 className="text-3xl font-medium text-zinc-950 tracking-tight font-display">
                 {editingId ? 'Modificar producto' : 'Nuevo registro'}
               </h3>
             </div>
             <button
               onClick={closeForm}
-              className="w-12 h-12 rounded-full bg-zinc-50 border border-black/[0.05] flex items-center justify-center text-zinc-400 hover:text-black hover:border-black/10 transition-all active:scale-90"
+              className="w-12 h-12 rounded-lg bg-zinc-50 border border-gray-200 flex items-center justify-center text-zinc-400 hover:text-black hover:border-black/10 transition-all active:scale-90"
             >
               <X className="w-5 h-5" />
             </button>
@@ -239,12 +239,12 @@ export default function ProductManager({
               <div className="space-y-8">
                 {/* Field: Name */}
                 <div className="space-y-3">
-                  <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Nombre del producto</label>
+                  <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Nombre del producto</label>
                   <div className="relative group">
                     <Type className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
                     <input
                       type="text"
-                      className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all"
+                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-16 pr-8 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all shadow-sm"
                       placeholder="Ej: AirPods Max"
                       value={form.name}
                       onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -255,11 +255,11 @@ export default function ProductManager({
 
                 {/* Field: Category */}
                 <div className="space-y-3">
-                  <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Categoría</label>
+                  <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Categoría</label>
                   <div className="relative group">
                     <Package className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
                     <select
-                      className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black appearance-none focus:outline-none focus:border-primary/30 transition-all"
+                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-16 pr-8 py-5 text-base font-semibold text-black appearance-none focus:outline-none focus:border-primary/30 transition-all"
                       value={form.category}
                       onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                     >
@@ -277,12 +277,12 @@ export default function ProductManager({
                 <div className="grid sm:grid-cols-2 gap-8">
                   {/* Field: Price */}
                   <div className="space-y-3">
-                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Precio unitario</label>
+                    <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Precio unitario</label>
                     <div className="relative group">
                       <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
                       <input
                         type="number"
-                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all tabular-nums"
+                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-16 pr-8 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all tabular-nums"
                         placeholder="0"
                         value={form.price}
                         onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
@@ -294,12 +294,12 @@ export default function ProductManager({
 
                   {/* Field: Stock */}
                   <div className="space-y-3">
-                    <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Stock disponible</label>
+                    <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Stock disponible</label>
                     <div className="relative group">
                       <Hash className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
                       <input
                         type="number"
-                        className="w-full bg-zinc-50 border border-black/[0.05] rounded-2xl pl-16 pr-8 py-5 text-base font-semibold text-black placeholder:text-zinc-300 focus:outline-none focus:border-primary/30 transition-all tabular-nums"
+                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-16 pr-8 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all tabular-nums"
                         placeholder="0"
                         value={form.stock}
                         onChange={e => setForm(f => ({ ...f, stock: e.target.value }))}
@@ -312,29 +312,29 @@ export default function ProductManager({
 
               {/* Visual System */}
               <div className="space-y-4">
-                <label className="text-xs font-bold tracking-widest text-zinc-400 ml-1">Imagen del producto</label>
+                <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Imagen del producto</label>
                 <div className="flex h-full gap-6">
-                  <label className="flex-1 border-2 border-dashed border-black/[0.05] hover:border-primary/30 hover:bg-primary/[0.02] rounded-[2.5rem] flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden relative min-h-[220px]">
+                  <label className="flex-1 border-2 border-dashed border-gray-200 hover:border-primary/30 hover:bg-primary/[0.02] rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden relative min-h-[220px]">
                     <input 
                       type="file" 
                       className="hidden" 
                       accept="image/jpeg, image/png, image/webp" 
                       onChange={handleImageSelect} 
                     />
-                    <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <div className="w-14 h-14 rounded-lg bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
                       <ImageIcon className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors">Seleccionar archivo</span>
                   </label>
 
                   {imagePreview && (
-                    <div className="relative w-56 h-full min-h-[220px] rounded-[2.5rem] overflow-hidden border border-black/[0.05] group animate-in shadow-xl">
+                    <div className="relative w-56 h-full min-h-[220px] rounded-lg overflow-hidden border border-gray-200 group animate-in shadow-xl">
                       <img src={imagePreview} alt="Vista" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
                           type="button"
                           onClick={() => { setForm(prev => ({...prev, image: null})); setImagePreview(null) }}
-                          className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                          className="w-12 h-12 rounded-lg bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -365,8 +365,8 @@ export default function ProductManager({
 
       {/* Product Display Grid */}
       {products.length === 0 ? (
-        <div className="text-center py-32 premium-card rounded-[3rem] border-dashed border-black/[0.05] bg-white/50">
-          <div className="w-20 h-20 rounded-[2rem] bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-black/[0.02]">
+        <div className="text-center py-32 premium-card rounded-lg border-dashed border-gray-200 bg-white/50">
+          <div className="w-20 h-20 rounded-lg bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-gray-200">
             <Package className="w-10 h-10 text-zinc-200" />
           </div>
           <h3 className="text-xl font-bold text-black tracking-tight font-display">Sin productos</h3>
@@ -378,7 +378,7 @@ export default function ProductManager({
             <div
               key={product.id}
               className={cn(
-                "group premium-card rounded-[3rem] overflow-hidden transition-all duration-700 flex flex-col bg-white border-black/[0.02]",
+                "group premium-card overflow-hidden transition-all duration-700 flex flex-col bg-white border-gray-200",
                 !product.active && "opacity-40 grayscale blur-[1px] scale-[0.98]"
               )}
             >
@@ -398,8 +398,8 @@ export default function ProductManager({
                 {/* Status Float */}
                 <div className="absolute top-6 left-6">
                   <div className={cn(
-                    "px-4 py-1.5 rounded-full text-xs font-bold tracking-widest border transition-all duration-300 shadow-sm uppercase",
-                    product.active ? "bg-white text-black border-black/5" : "bg-black text-white border-black/10"
+                    "px-4 py-1.5 rounded-lg text-xs font-bold tracking-widest border transition-all duration-300 shadow-sm uppercase",
+                    product.active ? "bg-white text-black border-gray-200" : "bg-black text-white border-zinc-800"
                   )}>
                     {product.active ? 'Activo' : 'Inactivo'}
                   </div>
@@ -409,19 +409,19 @@ export default function ProductManager({
                 <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 flex items-center justify-center gap-4">
                   <button
                     onClick={() => openEditForm(product)}
-                    className="w-14 h-14 rounded-2xl bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
+                    className="w-14 h-14 rounded-lg bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
                   >
                     <Pencil className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => toggleActive(product.id, product.active)}
-                    className="w-14 h-14 rounded-2xl bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
+                    className="w-14 h-14 rounded-lg bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
                   >
                     {product.active ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                   <button
                     onClick={() => deleteProduct(product.id)}
-                    className="w-14 h-14 rounded-2xl bg-red-600 text-white hover:bg-red-700 transition-all shadow-xl flex items-center justify-center active:scale-90"
+                    className="w-14 h-14 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all shadow-xl flex items-center justify-center active:scale-90"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -437,8 +437,8 @@ export default function ProductManager({
                     {product.name}
                   </h4>
                   <div className="flex flex-col mt-6">
-                    <p className="text-xs font-bold tracking-widest text-zinc-400 mb-2">Valor unitario</p>
-                    <p className="text-2xl font-bold text-black tabular-nums tracking-tight">
+                    <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-1">Valor unitario</p>
+                    <p className="text-3xl font-medium text-zinc-950 tabular-nums tracking-tighter">
                       ${product.price.toLocaleString('es-CO')}
                     </p>
                   </div>
@@ -446,17 +446,17 @@ export default function ProductManager({
 
                 <div className="mt-8 pt-8 border-t border-black/[0.03] flex items-center justify-between">
                   <div className="flex flex-col">
-                    <p className="text-xs font-bold tracking-widest text-zinc-400">Stock actual</p>
+                    <p className="text-[11px] font-medium tracking-tight text-zinc-400">Stock actual</p>
                     <p className={cn(
-                      "text-sm font-bold tabular-nums tracking-tight mt-1",
-                      product.stock <= 5 ? "text-red-500" : "text-zinc-600"
+                      "text-sm font-medium tabular-nums tracking-tight mt-0.5",
+                      product.stock <= 5 ? "text-rose-500" : "text-zinc-500"
                     )}>
                       {product.stock} unidades
                     </p>
                   </div>
                   <Link 
                     href={`/tienda/${storeSlug}`} 
-                    className="w-10 h-10 rounded-full bg-zinc-50 border border-black/[0.03] flex items-center justify-center text-zinc-300 hover:text-primary hover:bg-primary/5 transition-all active:scale-90"
+                    className="w-10 h-10 rounded-lg bg-zinc-50 border border-gray-200 flex items-center justify-center text-zinc-300 hover:text-primary hover:bg-primary/5 transition-all active:scale-90"
                   >
                     <ArrowUpRight className="w-4 h-4" />
                   </Link>

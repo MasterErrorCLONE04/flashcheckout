@@ -18,7 +18,7 @@ type SalesData = {
 export default function SalesChart({ data }: { data: SalesData[] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-zinc-400 text-xs font-bold tracking-widest border border-black/[0.03] bg-zinc-50/50 rounded-3xl uppercase">
+      <div className="h-64 flex items-center justify-center text-zinc-400 text-[13px] font-medium tracking-tight border border-gray-200 bg-white rounded-lg">
         Sincronizando registros financieros...
       </div>
     )
@@ -28,15 +28,15 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white/90 backdrop-blur-2xl border border-black/[0.03] p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] ring-1 ring-black/[0.01] uppercase">
-          <p className="font-bold text-[11px] tracking-widest text-zinc-400 mb-2">{label}</p>
+        <div className="bg-white/80 backdrop-blur-2xl border border-gray-200 p-5 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.08)] ring-1 ring-zinc-950/5">
+          <p className="font-medium text-[13px] tracking-tight text-zinc-400 mb-2">{label}</p>
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(0,102,204,0.4)]" />
-            <p className="text-black font-bold text-2xl tracking-tighter tabular-nums font-display">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+            <p className="text-zinc-950 font-medium text-2xl tracking-tighter tabular-nums font-display">
               ${payload[0].value.toLocaleString('es-CO')}
             </p>
           </div>
-          <p className="text-[10px] font-bold text-zinc-300 tracking-widest mt-2">Sincronizado vía Stripe</p>
+          <p className="text-[11px] font-medium text-zinc-300 tracking-tight mt-2">Sincronizado vía Flash</p>
         </div>
       )
     }
@@ -47,12 +47,12 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
     <div className="w-full h-full flex flex-col pt-2 transition-all duration-700">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="bg-zinc-50 border border-black/[0.03] px-4 py-2 rounded-2xl flex items-center gap-3 shadow-inner uppercase">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(0,102,204,0.4)]" />
-            <span className="text-xs font-bold text-zinc-500 tracking-widest">En tiempo real</span>
+          <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-3 shadow-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+            <span className="text-[11px] font-medium text-zinc-500 tracking-tight">Tiempo real</span>
           </div>
-          <div className="h-4 w-px bg-black/[0.05]" />
-          <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">Protocolo: Activo</span>
+          <div className="h-4 w-px bg-zinc-100" />
+          <span className="text-[11px] font-medium text-zinc-400 tracking-tight">Protocolo: Activo</span>
         </div>
       </div>
 
@@ -64,7 +64,7 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
               dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 11, fill: '#A1A1AA', fontWeight: '700', letterSpacing: '0.15em' }}
+              tick={{ fontSize: 13, fill: '#A1A1AA', fontWeight: '400', letterSpacing: '-0.02em' }}
               dy={15}
             />
             <YAxis hide domain={['dataMin - 1000', 'dataMax + 5000']} />
@@ -74,12 +74,12 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
             />
             <defs>
               <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0066CC" stopOpacity={0.15}/>
-                <stop offset="95%" stopColor="#0066CC" stopOpacity={0.01}/>
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.08}/>
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.00}/>
               </linearGradient>
               <linearGradient id="lineColor" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#0066CC" />
-                <stop offset="100%" stopColor="#2997FF" />
+                <stop offset="0%" stopColor="#10B981" />
+                <stop offset="100%" stopColor="#34D399" />
               </linearGradient>
             </defs>
             <Area
@@ -92,10 +92,10 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
               strokeLinecap="round"
               animationDuration={2500}
               activeDot={{ 
-                r: 6, 
+                r: 5, 
                 stroke: '#ffffff', 
                 strokeWidth: 3, 
-                fill: '#0066CC',
+                fill: '#10B981',
               }}
             />
           </AreaChart>

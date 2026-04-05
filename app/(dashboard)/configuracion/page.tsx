@@ -1,28 +1,19 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import SettingsForm from '@/components/SettingsForm'
-import StripeConnectSection from '@/components/StripeConnectSection'
+import StoreSettingsManager from '@/components/StoreSettingsManager'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
   const { userId } = await auth()
-  if (!userId) redirect('/sign-in')
+  if (!userId) redirect('/login')
 
   const store = await prisma.store.findFirst({
-    where: { userId },
-    select: {
-      id: true,
-      name: true,
-      whatsapp: true,
-      bio: true,
-      logoUrl: true,
-      category: true,
-    },
+    where: { userId }
   })
 
-  if (!store) redirect('/') // if no store, they should see onboarding
+  if (!store) redirect('/dashboard')
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -34,7 +25,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="w-full space-y-8">
-        <SettingsForm initialStore={store} />
+        <StoreSettingsManager initialStore={store} />
         {/* Stripe Connect desactivado por migración a Mercado Pago */}
         {/* <StripeConnectSection /> */}
       </div>

@@ -95,11 +95,11 @@ const IntegrationPill = ({ name, logo, type = 'pill' }: { name: string; logo: st
     )
   }
   return (
-    <div className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-zinc-100/50 p-1 pr-3 transition-colors hover:border-zinc-300">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white transition-colors group-hover:border-zinc-300">
-        <img loading="lazy" alt={name} className="h-5 w-5 object-contain" src={logo} />
+    <div className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-muted p-1">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-background transition-colors hover:border-zinc-300">
+        <img loading="lazy" alt={name} className="h-8 w-8" src={logo} />
       </div>
-      <div className="font-medium text-sm text-zinc-800">{name}</div>
+      <div className="pr-2 font-medium text-sm text-zinc-800">{name}</div>
     </div>
   )
 }
@@ -317,7 +317,7 @@ function NavItem({ item }: { item: any }) {
   )
 }
 
-export default function LandingContent({ userId }: { userId?: string }) {
+export default function LandingContent({ userId, stores }: { userId?: string, stores?: any[] }) {
   const [activeTab, setActiveTab] = useState(EXPLORE_TABS[0].id)
   const [activeMobileStep, setActiveMobileStep] = useState(0)
   const [activeBenefitId, setActiveBenefitId] = useState('observability')
@@ -972,42 +972,17 @@ export default function LandingContent({ userId }: { userId?: string }) {
                     <h3 className="font-medium text-xl text-zinc-950 tracking-tight">Works with your tools</h3>
                     <p className="max-w-[400px] text-base text-zinc-500 leading-relaxed font-normal">Integrate diverse data sources to enrich your agent's knowledge and capabilities.</p>
                   </div>
-                  <div className="relative flex flex-col gap-4 overflow-hidden pointer-events-none">
-                    <div className="flex gap-4">
-                      {INTEGRATIONS.concat(INTEGRATIONS).map((item, i) => (
-                        <div key={i} className="inline-flex h-12 shrink-0 items-center gap-3 rounded-full bg-zinc-50 p-1.5 border border-zinc-100">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white">
-                            <item.icon className="h-5 w-5 text-zinc-500" />
-                          </div>
-                          <span className="pr-3 font-medium text-sm text-zinc-800">{item.name}</span>
-                        </div>
+                  <div className="relative flex max-h-[180px] max-w-[60%] flex-col gap-3 overflow-x-auto lg:overflow-hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div className="flex gap-3">
+                      {INTEGRATIONS_ROW_1.map((item, i) => (
+                        <IntegrationPill key={i} name={item.name} logo={item.logo} type={item.type as any} />
                       ))}
                     </div>
-                    <div className="flex gap-4 ml-12">
-                      {INTEGRATIONS.slice().reverse().concat(INTEGRATIONS.slice().reverse()).map((item, i) => (
-                        <div key={i} className="inline-flex h-12 shrink-0 items-center gap-3 rounded-full bg-zinc-50 p-1.5 border border-zinc-100">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white">
-                            <item.icon className="h-5 w-5 text-zinc-500" />
-                          </div>
-                          <span className="pr-3 font-medium text-sm text-zinc-800">{item.name}</span>
-                        </div>
+                    <div className="ml-8 flex gap-3">
+                      {INTEGRATIONS_ROW_2.map((item, i) => (
+                        <IntegrationPill key={i} name={item.name} logo={item.logo} type={item.type as any} />
                       ))}
                     </div>
-                  </div>
-                </div>
-
-                {/* Mobile Marquee (Static stack for mobile for now or simple scroll) */}
-                <div className="md:hidden flex flex-col gap-6 p-8">
-                  <h3 className="font-medium text-xl text-zinc-950 tracking-tight">Works with your tools</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {INTEGRATIONS.map((item, i) => (
-                      <div key={i} className="inline-flex h-10 items-center gap-2 rounded-full bg-zinc-50 p-1 border border-zinc-100">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white">
-                          <item.icon className="h-4 w-4 text-zinc-500" />
-                        </div>
-                        <span className="pr-2 font-medium text-xs text-zinc-800">{item.name}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -1043,47 +1018,36 @@ export default function LandingContent({ userId }: { userId?: string }) {
         </div>
       </section>
 
-      {/* CTA Section (Chatbase Style) */}
-      <section className="py-24 lg:py-40">
-        <div className="max-w-4xl mx-auto px-6 text-center space-y-10">
-          <h2 className="text-[32px] sm:text-[48px] font-bold tracking-tight text-[#111827]">Scale your sales today.</h2>
-          <p className="text-[16px] text-zinc-500 font-normal max-w-2xl mx-auto">Join thousands of merchants who are already growing their businesses with FlashCheckout.</p>
-          <div className="pt-6">
-            <Button asChild size="lg">
-              <Link href="/sign-up">Get started for free</Link>
-            </Button>
+      {/* CTA Section (FlashCheckout Style) */}
+      <div className="w-full px-0 md:px-8 md:bg-[linear-gradient(to_bottom,transparent_60%,black_40%)] lg:bg-[linear-gradient(to_bottom,transparent_50%,black_50%)]">
+        <div className="relative flex w-full flex-col items-center justify-center gap-6 overflow-hidden border-zinc-200 border-t bg-[length:100%_auto] bg-bottom bg-white bg-no-repeat px-6 py-12 pb-30 md:gap-8 md:rounded-3xl md:border md:p-15 lg:p-25">
+          <div className="flex flex-col gap-4 md:max-w-[850px] md:gap-6 relative z-10">
+            <h2 className="text-center font-medium text-4xl text-foreground leading-tight tracking-tighter md:text-balance md:text-5xl lg:text-[54px]">
+              Haz de tus cierres tu ventaja competitiva
+            </h2>
+            <p className="text-center font-normal text-base text-zinc-600 tracking-[-0.4px] md:text-balance md:text-xl">
+              Usa FlashCheckout para automatizar tus ventas por WhatsApp y superar a la competencia con un cierre impecable.
+            </p>
           </div>
-          <p className="text-[14px] text-zinc-400 font-medium">Ready to deploy in less than 5 minutes.</p>
-        </div>
-      </section>
 
-      {/* FAQ Section (Accordion) */}
-      <section className="py-24 lg:py-40">
-        <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-[32px] sm:text-[48px] font-bold text-center mb-16">Frequently Asked Questions</h2>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1" className="border-b-[#E5E7EB] py-2">
-              <AccordionTrigger className="text-[16px] font-bold hover:no-underline text-left">How fast is FlashCheckout?</AccordionTrigger>
-              <AccordionContent className="text-zinc-500 text-[16px] leading-relaxed">
-                FlashCheckout is optimized for high conversion. Most customers complete their purchase in under 30 seconds, significantly faster than traditional e-commerce flows.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2" className="border-b-[#E5E7EB] py-2">
-              <AccordionTrigger className="text-[16px] font-bold hover:no-underline text-left">Do I need a Stripe account?</AccordionTrigger>
-              <AccordionContent className="text-zinc-500 text-[16px] leading-relaxed">
-                Yes, FlashCheckout integrates directly with Stripe to process payments securely and deposit funds into your bank account.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-3" className="border-b-[#E5E7EB] py-2">
-              <AccordionTrigger className="text-[16px] font-bold hover:no-underline text-left">Is there a transaction fee?</AccordionTrigger>
-              <AccordionContent className="text-zinc-500 text-[16px] leading-relaxed">
-                We offer competitive pricing. Depending on your plan, fees range from a small percentage per transaction to fixed monthly pricing for enterprise clients.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      </section>
+          <div className="flex w-full flex-col items-center justify-center gap-6 md:gap-4 relative z-10">
+            <div className="relative z-0 h-14 w-full md:w-fit group">
+              <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 opacity-75 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200"></div>
+              <Button asChild size="lg" className="relative h-full w-full bg-black text-white hover:bg-zinc-900 rounded-lg px-8">
+                <Link href="/sign-up">Crea tu checkout gratis</Link>
+              </Button>
+            </div>
 
+            <div className="flex flex-row items-center gap-2 text-muted-foreground text-sm">
+              <svg width="24" height="24" viewBox="0 0 16 17" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M14.6615 6.50521H14.6577M14.6577 6.50521H1.33185M14.6577 6.50521C14.6615 6.78028 14.6615 7.08895 14.6615 7.43854V9.50521M14.6577 6.50521C14.6455 5.60514 14.5934 5.06481 14.3708 4.6279C14.1151 4.12613 13.7072 3.71819 13.2054 3.46252C12.635 3.17188 11.8883 3.17188 10.3948 3.17188H5.59479C4.10132 3.17188 3.35458 3.17188 2.78415 3.46252C2.28238 3.71819 1.87444 4.12613 1.61877 4.6279C1.39616 5.06481 1.34405 5.60514 1.33185 6.50521M1.33185 6.50521H1.32812M1.33185 6.50521C1.32812 6.78028 1.32812 7.08895 1.32812 7.43854V9.57188C1.32812 11.0653 1.32812 11.8121 1.61877 12.3825C1.87444 12.8843 2.28238 13.2922 2.78415 13.5479C3.35458 13.8385 4.10132 13.8385 5.59479 13.8385H8.10677M5.99479 9.17188H3.99479"></path>
+                <path d="M11.2498 14.5786L12.6641 13.1644M12.6641 13.1644L14.0783 11.7502M12.6641 13.1644L11.2498 11.7502M12.6641 13.1644L14.0783 14.5786"></path>
+              </svg>
+              <p>Sin tarjeta de crédito</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <Footer />
     </div>
   )

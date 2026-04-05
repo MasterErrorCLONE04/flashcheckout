@@ -10,5 +10,5 @@ export default async function HomePage() {
     take: 12
   })
 
-  return <LandingContent userId={userId || null} stores={stores} />
+  return <LandingContent userId={userId ?? undefined} stores={stores} />
 }

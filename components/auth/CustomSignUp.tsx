@@ -76,9 +76,11 @@ const CustomSignUp = () => {
     setLoading(true)
     setError('')
     try {
-      const su = getVal(signUp)
-      await (su as any).create({ emailAddress: email, password } as any)
-      await (su as any).prepareEmailAddressVerification({ strategy: 'email_code' })
+      const clerk = (window as any).Clerk
+      const su = clerk.client.signUp
+      await su.create({ emailAddress: email, password })
+      await su.prepareVerification({ strategy: 'email_code' })
+      
       setPendingVerification(true)
     } catch (err: any) {
       console.error('SignUp error:', err)
@@ -94,14 +96,13 @@ const CustomSignUp = () => {
     setLoading(true)
     setError('')
     try {
-      const su = getVal(signUp)
-      const result = await (su as any).attemptEmailAddressVerification({ code })
-      if ((result as any).status === 'complete') {
-        const sa = getVal(setActive)
-        if (sa) {
-          await sa({ session: (result as any).createdSessionId })
-          router.push('/dashboard')
-        }
+      const clerk = (window as any).Clerk
+      const su = clerk.client.signUp
+      const result = await su.attemptVerification({ code, strategy: 'email_code' })
+      
+      if (result.status === 'complete') {
+        await clerk.setActive({ session: result.createdSessionId })
+        router.push('/dashboard')
       }
     } catch (err: any) {
       console.error('Verification error:', err)
@@ -115,54 +116,6 @@ const CustomSignUp = () => {
     return (
       <div className="w-full flex-1 flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-6 h-6 animate-spin text-zinc-200" />
-      </div>
-    )
-  }
-
-  if (pendingVerification) {
-    return (
-      <div className="w-full flex-1 flex flex-col pt-4">
-        <div className="space-y-1 mb-9">
-          <h2 className="text-[26px] font-bold tracking-tight text-[#111827]">Check your email</h2>
-          <p className="text-[14px] font-normal text-zinc-400">
-            We sent a verification code to {email}.
-          </p>
-        </div>
-
-        <form onSubmit={handleVerify} className="space-y-8">
-          <div className="space-y-1.5">
-            <Label htmlFor="code" className="text-[14px] font-medium text-[#374151]">Verification Code</Label>
-            <Input
-              id="code"
-              type="text"
-              placeholder="123456"
-              className="h-14 border-[#E5E7EB] rounded-[8px] bg-white focus:ring-0 focus:border-[#D1D5DB] transition-all text-center text-2xl font-bold tracking-[0.5em] focus:placeholder:opacity-0"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="text-[14px] font-medium text-red-600 bg-red-50/50 p-4 rounded-[8px] border border-red-100/50">
-              {error}
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full h-11 bg-[#000000] hover:bg-[#1f1f1f] text-white font-medium rounded-[8px] transition-all shadow-sm text-[14px] active:scale-[0.98]"
-          >
-            {loading ? 'Verifying...' : 'Verify Email'}
-          </Button>
-
-          <p className="text-center text-[14px] text-zinc-400 mt-6">
-            Didn't receive a code?{' '}
-            <button type="button" className="text-black font-medium hover:underline decoration-black/20 underline-offset-4">
-              Resend
-            </button>
-          </p>
-        </form>
       </div>
     )
   }
@@ -332,7 +285,7 @@ const CustomSignUp = () => {
             </div>
 
             <div className="h-6">
-              <div id="cf-turnstile" className="w-full h-auto"></div>
+              <div id="clerk-captcha" className="w-full h-auto"></div>
             </div>
 
             {error && (
