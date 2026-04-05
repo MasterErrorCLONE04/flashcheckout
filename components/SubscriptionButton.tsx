@@ -31,10 +31,10 @@ export default function SubscriptionButton({ isPro }: { isPro: boolean }) {
       onClick={onClick}
       disabled={loading}
       className={cn(
-        "w-full sm:w-auto h-16 px-10 rounded-full font-bold text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl",
+        "w-full sm:w-auto h-16 px-10 rounded-full font-bold text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-3 transition-all active:scale-95 border border-primary/20",
         isPro 
-          ? "bg-white border border-black/[0.05] text-zinc-400 hover:text-black hover:bg-zinc-50" 
-          : "bg-primary text-white hover:bg-primary-hover shadow-primary/20"
+          ? "bg-white border-zinc-200 text-zinc-400 hover:text-black hover:bg-zinc-50" 
+          : "bg-primary text-white hover:bg-zinc-900 border-none"
       )}
     >
       {loading ? (

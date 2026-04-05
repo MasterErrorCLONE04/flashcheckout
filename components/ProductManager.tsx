@@ -205,9 +205,9 @@ export default function ProductManager({
               <p className="text-xs font-bold text-amber-700 tracking-widest">Límite gratuito alcanzado (10/10)</p>
               <Link 
                 href="/suscripcion"
-                className="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold tracking-widest hover:brightness-110 transition-all shadow-md uppercase"
+                className="bg-zinc-950 text-white px-4 py-2 rounded-lg text-xs font-bold tracking-widest hover:bg-zinc-800 transition-all uppercase border border-zinc-800"
               >
-                Upgrade
+                Upgrade Plan
               </Link>
             </div>
           )}
@@ -244,7 +244,7 @@ export default function ProductManager({
                     <Type className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
                     <input
                       type="text"
-                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-16 pr-8 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all shadow-sm"
+                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-16 pr-8 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all"
                       placeholder="Ej: AirPods Max"
                       value={form.name}
                       onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -321,20 +321,20 @@ export default function ProductManager({
                       accept="image/jpeg, image/png, image/webp" 
                       onChange={handleImageSelect} 
                     />
-                    <div className="w-14 h-14 rounded-lg bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <div className="w-14 h-14 rounded-lg bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
                       <ImageIcon className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors">Seleccionar archivo</span>
                   </label>
 
                   {imagePreview && (
-                    <div className="relative w-56 h-full min-h-[220px] rounded-lg overflow-hidden border border-gray-200 group animate-in shadow-xl">
+                    <div className="relative w-56 h-full min-h-[220px] rounded-lg overflow-hidden border border-gray-200 group animate-in">
                       <img src={imagePreview} alt="Vista" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button 
                           type="button"
                           onClick={() => { setForm(prev => ({...prev, image: null})); setImagePreview(null) }}
-                          className="w-12 h-12 rounded-lg bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                          className="w-12 h-12 rounded-lg bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -398,7 +398,7 @@ export default function ProductManager({
                 {/* Status Float */}
                 <div className="absolute top-6 left-6">
                   <div className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-bold tracking-widest border transition-all duration-300 shadow-sm uppercase",
+                    "px-4 py-1.5 rounded-lg text-xs font-bold tracking-widest border transition-all duration-300 uppercase",
                     product.active ? "bg-white text-black border-gray-200" : "bg-black text-white border-zinc-800"
                   )}>
                     {product.active ? 'Activo' : 'Inactivo'}
@@ -409,19 +409,19 @@ export default function ProductManager({
                 <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 flex items-center justify-center gap-4">
                   <button
                     onClick={() => openEditForm(product)}
-                    className="w-14 h-14 rounded-lg bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
+                    className="w-14 h-14 rounded-lg bg-white text-black hover:bg-black hover:text-white border border-gray-200 transition-all flex items-center justify-center active:scale-90"
                   >
                     <Pencil className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => toggleActive(product.id, product.active)}
-                    className="w-14 h-14 rounded-lg bg-white text-black hover:bg-black hover:text-white transition-all shadow-xl flex items-center justify-center active:scale-90"
+                    className="w-14 h-14 rounded-lg bg-white text-black hover:bg-black hover:text-white border border-gray-200 transition-all flex items-center justify-center active:scale-90"
                   >
                     {product.active ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                   <button
                     onClick={() => deleteProduct(product.id)}
-                    className="w-14 h-14 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all shadow-xl flex items-center justify-center active:scale-90"
+                    className="w-14 h-14 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all flex items-center justify-center active:scale-90"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>

@@ -28,10 +28,10 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white/80 backdrop-blur-2xl border border-gray-200 p-5 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.08)] ring-1 ring-zinc-950/5">
+        <div className="bg-white/80 backdrop-blur-2xl border border-gray-200 p-5 rounded-lg ring-1 ring-zinc-950/5">
           <p className="font-medium text-[13px] tracking-tight text-zinc-400 mb-2">{label}</p>
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <p className="text-zinc-950 font-medium text-2xl tracking-tighter tabular-nums font-display">
               ${payload[0].value.toLocaleString('es-CO')}
             </p>
@@ -47,8 +47,8 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
     <div className="w-full h-full flex flex-col pt-2 transition-all duration-700">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-3 shadow-sm">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+          <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg flex items-center gap-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span className="text-[11px] font-medium text-zinc-500 tracking-tight">Tiempo real</span>
           </div>
           <div className="h-4 w-px bg-zinc-100" />

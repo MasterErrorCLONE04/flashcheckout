@@ -57,7 +57,7 @@ export default function StoreCreationWizard() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/[0.03] rounded-full blur-[100px] -z-10" />
       
       <div className="text-center mb-14">
-        <div className="w-20 h-20 rounded-lg bg-black flex items-center justify-center mx-auto mb-10 shadow-2xl active:scale-95 transition-transform">
+        <div className="w-20 h-20 rounded-lg bg-black flex items-center justify-center mx-auto mb-10 border border-zinc-800 active:scale-95 transition-transform">
           <Store className="w-10 h-10 text-white" />
         </div>
         <h1 className="text-4xl font-medium text-zinc-950 tracking-tight font-display">
@@ -79,7 +79,7 @@ export default function StoreCreationWizard() {
               <input
                 id="store-name"
                 type="text"
-                className="w-full bg-white border border-gray-200 rounded-lg pl-16 pr-6 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all shadow-sm"
+                className="w-full bg-white border border-gray-200 rounded-lg pl-16 pr-6 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all"
                 placeholder="Ej: Tienda de moda"
                 value={form.name}
                 onChange={e => {
@@ -99,7 +99,7 @@ export default function StoreCreationWizard() {
             <label htmlFor="store-slug" className="text-[13px] font-medium tracking-tight text-zinc-500 px-1 group-focus-within:text-emerald-600 transition-colors">
               Enlace de tu tienda
             </label>
-            <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden focus-within:border-primary/30 transition-all shadow-sm">
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden focus-within:border-primary/30 transition-all">
               <span className="pl-6 text-[13px] font-medium text-zinc-300 tracking-tight whitespace-nowrap">
                 flash.checkout /
               </span>
@@ -125,7 +125,7 @@ export default function StoreCreationWizard() {
           <input
             id="store-whatsapp"
             type="tel"
-            className="w-full bg-white border border-gray-200 rounded-lg px-6 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all shadow-sm tabular-nums"
+            className="w-full bg-white border border-gray-200 rounded-lg px-6 py-5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all tabular-nums"
             placeholder="573001234567"
             value={form.whatsapp}
             onChange={e =>
@@ -161,7 +161,7 @@ export default function StoreCreationWizard() {
                 className={cn(
                   "flex items-center gap-3 p-4 rounded-lg border transition-all text-left group",
                   form.category === cat.id
-                    ? "bg-zinc-950 border-zinc-950 text-white shadow-xl scale-[1.02]"
+                    ? "bg-zinc-950 border-zinc-950 text-white scale-[1.02]"
                     : "bg-white border-gray-200 text-zinc-500 hover:border-zinc-200 hover:bg-zinc-50"
                 )}
               >

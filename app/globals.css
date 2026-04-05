@@ -24,8 +24,8 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --radius: 0.5rem;
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-inter);
+  --font-sans: var(--font-geist);
+  --font-display: var(--font-geist);
 }
 
 @theme {
@@ -58,11 +58,32 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight text-zinc-950;
   }
+  
+  /* Reset Styles (No Cursiva / No Mayúscula Sostenida) */
+  * {
+    font-style: normal !important;
+    text-transform: none;
+  }
+  
+  /* Custom Slim Scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
 }
 
 @layer components {
   .premium-card {
-    @apply bg-white border border-gray-200 shadow-sm rounded-lg transition-all duration-300;
+    @apply bg-white border border-gray-200 rounded-lg transition-all duration-300;
   }
 
   .btn-premium {
@@ -74,6 +95,10 @@
 
   .glass {
     @apply bg-white/70 backdrop-blur-2xl border border-white/40;
+  }
+
+  .glass-premium {
+    @apply bg-white/60 backdrop-blur-3xl border border-white/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
   }
 }
 

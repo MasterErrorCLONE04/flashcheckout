@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={cn("antialiased", inter.variable, "font-sans", geist.variable)}>
-      <body className="min-h-screen bg-secondary text-foreground font-sans">
+    <html lang="es" className={cn("antialiased", geist.variable, inter.variable)}>
+      <body className="min-h-screen bg-secondary text-foreground font-geist">
         <ClerkProvider
           appearance={{
             variables: {
@@ -47,7 +49,7 @@ export default function RootLayout({
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
             },
             elements: {
-              card: "border border-black/5 shadow-sm premium-card",
+              card: "border border-black/5 premium-card",
               navbar: "hidden",
               headerTitle: "font-semibold tracking-tight text-2xl text-black",
               formButtonPrimary: "bg-[#0066cc] text-white hover:bg-[#0077ed] transition-all duration-300 font-semibold rounded-full py-4",

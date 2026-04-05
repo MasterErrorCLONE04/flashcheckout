@@ -23,7 +23,7 @@ export default async function TiendaExitoPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-border shadow-sm p-8 text-center space-y-4">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-border p-8 text-center space-y-4">
         <div className="mx-auto w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
           <CheckCircle2 className="w-8 h-8 text-emerald-600" />
         </div>

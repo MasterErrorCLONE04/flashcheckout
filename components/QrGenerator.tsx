@@ -30,7 +30,7 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
       {/* Action Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-3 bg-white border border-black/[0.05] hover:bg-zinc-50 text-black text-[10px] font-bold tracking-widest px-5 py-3 rounded-full transition-all shadow-sm active:scale-95 group"
+        className="flex items-center gap-3 bg-white border border-black/[0.05] hover:bg-zinc-50 text-black text-[10px] font-bold tracking-widest px-5 py-3 rounded-full transition-all active:scale-95 group"
       >
         <QrCode className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
         Generar QR de tienda
@@ -43,7 +43,7 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
             className="absolute inset-0 bg-white/60 backdrop-blur-xl"
             onClick={() => setIsOpen(false)}
           />
-          <div className="bg-white rounded-[3rem] border border-black/[0.05] shadow-2xl p-10 w-full max-w-md relative z-10 animate-in zoom-in-95 duration-500">
+          <div className="bg-white rounded-[3rem] border border-black/[0.05] p-10 w-full max-w-md relative z-10 animate-in zoom-in-95 duration-500">
             <button 
               onClick={() => setIsOpen(false)}
               className="absolute right-8 top-8 text-zinc-300 w-10 h-10 rounded-full hover:bg-zinc-50 hover:text-black flex items-center justify-center transition-all active:scale-90"
@@ -63,10 +63,10 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
 
             {/* QR Container */}
             <div 
-              className="bg-zinc-50 border border-black/[0.02] rounded-[2.5rem] p-10 flex justify-center mb-10 shadow-inner group/qr"
+              className="bg-zinc-50 border border-black/[0.02] rounded-[2.5rem] p-10 flex justify-center mb-10 group/qr"
               ref={qrRef}
             >
-              <div className="relative p-4 bg-white rounded-3xl shadow-xl group-hover/qr:scale-105 transition-transform duration-700">
+              <div className="relative p-4 bg-white rounded-3xl group-hover/qr:scale-105 transition-transform duration-700 border border-gray-100">
                 <QRCodeCanvas 
                   value={url} 
                   size={200}
@@ -75,7 +75,7 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
                   fgColor="#0066CC"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover/qr:opacity-100 transition-opacity">
-                   <div className="bg-white p-2 rounded-xl shadow-lg border border-primary/20">
+                   <div className="bg-white p-2 rounded-xl border border-primary/20">
                      <CornerRightUp className="w-6 h-6 text-primary" />
                    </div>
                 </div>
@@ -84,7 +84,7 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
 
             <button
               onClick={downloadQR}
-              className="w-full h-14 flex justify-center items-center gap-4 bg-primary text-white font-bold tracking-widest rounded-full transition-all hover:bg-primary-hover active:scale-98 text-xs shadow-2xl shadow-primary/10 uppercase"
+              className="w-full h-14 flex justify-center items-center gap-4 bg-primary text-white font-bold tracking-widest rounded-full transition-all hover:bg-primary-hover active:scale-98 text-xs uppercase"
             >
               <Download className="w-5 h-5" />
               Descargar imagen (HD)

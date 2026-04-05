@@ -31,7 +31,7 @@ export default async function PedidosPage() {
         <div>
           <h1 className="text-3xl font-black tracking-tighter glow-text uppercase leading-none">Registros de Comando</h1>
           <div className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-3 flex items-center gap-2 opacity-60">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Monitoreo en Tiempo Real — {orders.length} {orders.length === 1 ? 'OPERACIÓN' : 'OPERACIONES'}
           </div>
         </div>

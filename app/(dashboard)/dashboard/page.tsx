@@ -116,8 +116,8 @@ export default async function DashboardPage() {
             <span className="text-[13px] font-medium text-zinc-400 tracking-tight leading-none">Última actividad</span>
             <span className="text-sm font-medium text-emerald-600 mt-2 tracking-tight">Hace 2 minutos</span>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-white border border-gray-200 flex items-center justify-center relative group cursor-pointer hover:bg-zinc-50 transition-all shadow-sm">
-            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+          <div className="w-11 h-11 rounded-lg bg-white border border-gray-200 flex items-center justify-center relative group cursor-pointer hover:bg-zinc-50 transition-all">
+            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full" />
             <Bell className="w-5 h-5 text-zinc-400 group-hover:text-zinc-950 transition-colors" />
           </div>
         </div>
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
           
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-10">
-              <div className="w-14 h-14 rounded-lg bg-zinc-950 flex items-center justify-center shadow-xl">
+              <div className="w-14 h-14 rounded-lg bg-zinc-950 flex items-center justify-center">
                 <Globe className="w-7 h-7 text-white" />
               </div>
               <div>
@@ -238,15 +238,15 @@ export default async function DashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-12 relative z-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <p className="text-[13px] font-medium tracking-tight text-zinc-500 leading-none">Rendimiento operativo</p>
               </div>
               <h3 className="text-3xl font-medium text-zinc-950 tracking-tight font-display">Actividad comercial</h3>
               <p className="text-[13px] text-zinc-400 font-normal mt-3 tracking-tight">Métrica: Ventas brutas consolidado</p>
             </div>
             
-            <div className="flex items-center gap-3 bg-zinc-50 border border-gray-200 p-1 rounded-lg shadow-inner">
-               <button className="px-6 py-2.5 rounded-md text-xs font-medium tracking-tight bg-white shadow-sm text-zinc-950 transition-all">7 días</button>
+            <div className="flex items-center gap-3 bg-zinc-50 border border-gray-200 p-1 rounded-lg">
+               <button className="px-6 py-2.5 rounded-md text-xs font-medium tracking-tight bg-white text-zinc-950 transition-all">7 días</button>
                <button className="px-6 py-2.5 rounded-md text-xs font-medium tracking-tight text-zinc-400 hover:text-zinc-600 transition-all">30 días</button>
             </div>
           </div>

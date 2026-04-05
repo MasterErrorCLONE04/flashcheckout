@@ -127,7 +127,7 @@ export async function POST(req: Request) {
       'http://localhost:3000'
 
     // Crear la preferencia en Mercado Pago
-    const preference = await mpPreference.create({
+    const preferenceData: any = {
       body: {
         items: normalized.map(line => ({
           id: line.productId,
@@ -142,14 +142,20 @@ export async function POST(req: Request) {
           failure: `${base}/tienda/${store.slug}`,
           pending: `${base}/tienda/${store.slug}`,
         },
-        auto_return: 'approved',
-        notification_url: `${base}/api/webhook/mp`,
         metadata: {
           orderId: order.id,
           storeId: store.id,
         },
       },
-    })
+    }
+
+    // Mercado Pago requiere HTTPS para notification_url y auto_return en producción
+    if (base.startsWith('https')) {
+      preferenceData.body.notification_url = `${base}/api/webhook/mp`
+      preferenceData.body.auto_return = 'approved'
+    }
+
+    const preference = await mpPreference.create(preferenceData)
 
     if (!preference.id) {
       return NextResponse.json(
@@ -169,9 +175,16 @@ export async function POST(req: Request) {
       url: preference.init_point, 
       orderId: order.id 
     })
-  } catch (e: unknown) {
-    console.error('CHECKOUT_STORE_MP', e)
-    const message = e instanceof Error ? e.message : 'Error al iniciar el pago con Mercado Pago'
-    return NextResponse.json({ error: message }, { status: 500 })
+  } catch (e: any) {
+    console.error('CHECKOUT_STORE_MP_ERROR:', {
+      message: e.message,
+      stack: e.stack,
+      cause: e.cause,
+      // El SDK de Mercado Pago a veces pone el error detallado en e.response o e.errors
+      details: e.response?.data || e.errors || e
+    })
+    
+    const errorMessage = e.response?.data?.message || e.message || 'Error al iniciar el pago con Mercado Pago'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

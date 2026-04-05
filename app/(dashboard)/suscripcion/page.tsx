@@ -40,11 +40,11 @@ export default async function SuscripcionPage() {
           
           {/* Main Status & Plan */}
           <div className={cn(
-            "lg:col-span-7 premium-card p-10 md:p-14 overflow-hidden relative group transition-all duration-700 bg-white shadow-elevated",
+            "lg:col-span-7 premium-card p-10 md:p-14 overflow-hidden relative group transition-all duration-700 bg-white",
             isPro && "border-primary/20 ring-1 ring-primary/5"
           )}>
             {isPro && (
-              <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.2em] px-8 py-3 rounded-bl-3xl shadow-lg shadow-primary/10">
+              <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.2em] px-8 py-3 rounded-bl-3xl">
                 CLIENTE PREMIUM
               </div>
             )}
@@ -52,9 +52,9 @@ export default async function SuscripcionPage() {
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-6 mb-12">
                 <div className={cn(
-                  "w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-700 shadow-xl",
+                  "w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-700",
                   isPro 
-                    ? "bg-primary text-white shadow-primary/20" 
+                    ? "bg-primary text-white" 
                     : "bg-zinc-50 text-zinc-400 border border-black/[0.05]"
                 )}>
                   {isPro ? <Sparkles className="w-10 h-10" /> : <LayoutTemplate className="w-10 h-10" />}
@@ -96,7 +96,7 @@ export default async function SuscripcionPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="h-2.5 w-full bg-zinc-200/50 rounded-full overflow-hidden relative z-10 shadow-inner">
+                  <div className="h-2.5 w-full bg-zinc-200/50 rounded-full overflow-hidden relative z-10">
                     <div className={cn(
                       "h-full transition-all duration-[2000ms] cubic-bezier(0.4, 0, 0.2, 1) relative",
                       isPro 
@@ -133,7 +133,7 @@ export default async function SuscripcionPage() {
                   <h4 className="text-2xl font-semibold text-black uppercase tracking-tight">Ecosistema</h4>
                   <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Módulos Inteligentes</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-white border border-black/[0.05] flex items-center justify-center text-primary shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-black/[0.05] flex items-center justify-center text-primary">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default async function SuscripcionPage() {
               </div>
             </div>
 
-            <div className="mt-10 p-6 bg-white rounded-3xl border border-black/[0.05] shadow-sm relative overflow-hidden group/alert">
+            <div className="mt-10 p-6 bg-white rounded-3xl border border-black/[0.05] relative overflow-hidden group/alert">
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/[0.02] blur-2xl transition-transform" />
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed relative z-10">
                 La suscripción garantiza la <span className="text-primary italic">continuidad operativa</span> y el acceso a las últimas optimizaciones de motor de pagos.
@@ -223,8 +223,8 @@ export default async function SuscripcionPage() {
 
 function BenefitCard({ title, desc, icon: Icon }: { title: string, desc: string, icon: any }) {
   return (
-    <div className="premium-card p-8 bg-white border-black/[0.03] group hover:border-primary/10 transition-all shadow-sm">
-      <div className="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:text-primary transition-colors mb-6 shadow-inner">
+    <div className="premium-card p-8 bg-white border-black/[0.03] group hover:border-primary/10 transition-all">
+      <div className="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:text-primary transition-colors mb-6">
         <Icon className="w-6 h-6" />
       </div>
       <h5 className="text-sm font-bold text-black uppercase tracking-widest mb-3">{title}</h5>

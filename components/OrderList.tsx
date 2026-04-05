@@ -37,7 +37,7 @@ const STATUS_OPTIONS = [
   { value: 'pending', label: 'Nuevo', color: 'text-amber-600 bg-amber-50 border-gray-200' },
   { value: 'confirmed', label: 'Confirmado', color: 'text-blue-600 bg-blue-50 border-gray-200' },
   { value: 'shipped', label: 'En camino', color: 'text-emerald-600 bg-emerald-50 border-gray-200' },
-  { value: 'delivered', label: 'Entregado', color: 'text-white bg-emerald-600 border-emerald-600 shadow-sm' },
+  { value: 'delivered', label: 'Entregado', color: 'text-white bg-emerald-600 border-emerald-600' },
   { value: 'cancelled', label: 'Cancelado', color: 'text-rose-500 bg-rose-50 border-gray-200' },
 ]
 
@@ -124,7 +124,7 @@ export default function OrderList({
               key={order.id}
               className={cn(
                 "premium-card rounded-lg overflow-hidden transition-all duration-500",
-                isExpanded ? "ring-2 ring-primary/10 shadow-2xl scale-[1.01] bg-white border-primary/20" : "hover:scale-[1.005] hover:border-gray-200 bg-white/80 border-gray-200"
+                isExpanded ? "ring-2 ring-primary/10 scale-[1.01] bg-white border-primary/20" : "hover:scale-[1.005] hover:border-gray-200 bg-white/80 border-gray-200"
               )}
             >
               {/* Header */}
@@ -135,7 +135,7 @@ export default function OrderList({
                 <div className="flex items-center gap-8 min-w-0">
                   <div className={cn(
                     "w-16 h-16 rounded-lg flex items-center justify-center transition-all duration-700",
-                    isExpanded ? "bg-primary text-white rotate-90 shadow-xl shadow-primary/20" : "bg-zinc-50 text-zinc-300 group-hover:text-primary group-hover:bg-primary/5"
+                    isExpanded ? "bg-primary text-white rotate-90" : "bg-zinc-50 text-zinc-300 group-hover:text-primary group-hover:bg-primary/5"
                   )}>
                     <User className="w-7 h-7" />
                   </div>
@@ -184,7 +184,7 @@ export default function OrderList({
                         {items.map((item, i) => (
                           <div
                             key={i}
-                            className="flex items-center justify-between p-5 bg-white rounded-lg border border-gray-200 hover:border-primary/20 transition-colors shadow-sm"
+                            className="flex items-center justify-between p-5 bg-white rounded-lg border border-gray-200 hover:border-primary/20 transition-colors"
                           >
                             <span className="text-sm font-semibold text-zinc-600">
                               <span className="text-primary font-bold tabular-nums mr-3">{item.qty}×</span>
@@ -205,7 +205,7 @@ export default function OrderList({
                           <MapPin className="w-3.5 h-3.5 text-primary" />
                           <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Entrega</h5>
                         </div>
-                        <div className="p-8 bg-white rounded-lg border border-gray-200 shadow-sm">
+                        <div className="p-8 bg-white rounded-lg border border-gray-200">
                           <p className="text-[15px] font-normal text-zinc-800 leading-relaxed">
                             {order.address}
                           </p>
@@ -241,7 +241,7 @@ export default function OrderList({
                           className={cn(
                             "text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-lg border transition-all active:scale-95",
                             order.status === s.value 
-                              ? s.color + " shadow-md" 
+                              ? s.color 
                               : "bg-white border-gray-200 text-zinc-400 hover:text-black hover:border-black/10"
                           )}
                         >
@@ -269,7 +269,7 @@ function StatusBadge({ status }: { status: string }) {
   const option = STATUS_OPTIONS.find(s => s.value === status) ?? STATUS_OPTIONS[0]
   return (
     <span className={cn(
-      "text-[8px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border tabular-nums shadow-sm",
+      "text-[8px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border tabular-nums",
       option.color
     )}>
       {option.label}
@@ -294,9 +294,9 @@ function FilterTab({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 px-6 py-3.5 rounded-lg text-[10px] font-bold tracking-[0.1em] whitespace-nowrap transition-all border active:scale-95 shadow-sm",
+        "flex items-center gap-3 px-6 py-3.5 rounded-lg text-[10px] font-bold tracking-[0.1em] whitespace-nowrap transition-all border active:scale-95",
         active 
-          ? "bg-primary text-white border-primary shadow-lg shadow-primary/10" 
+          ? "bg-primary text-white border-primary" 
           : "bg-white border-gray-200 text-zinc-400 hover:text-black hover:border-black/10"
       )}
     >

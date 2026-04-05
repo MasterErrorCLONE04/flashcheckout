@@ -117,7 +117,7 @@ export default function StoreSettingsManager({
         <div className="flex flex-col md:flex-row gap-12 items-start">
           <div className="shrink-0 relative group">
             {logoPreview ? (
-              <div className="w-32 h-32 md:w-44 md:h-44 rounded-lg overflow-hidden border border-gray-200 bg-zinc-50 shadow-xl relative group/img transition-all">
+              <div className="w-32 h-32 md:w-44 md:h-44 rounded-lg overflow-hidden border border-gray-200 bg-zinc-50 relative group/img transition-all">
                 <img src={logoPreview} alt="Logo" className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-700" />
                 <button
                   type="button"
@@ -135,7 +135,7 @@ export default function StoreSettingsManager({
               </div>
             )}
             
-            <label className="absolute -bottom-2 -right-2 bg-primary text-white shadow-xl hover:bg-primary-hover font-bold text-[11px] tracking-widest rounded-lg px-5 py-3 cursor-pointer transition-all flex items-center gap-2 active:scale-95 uppercase">
+            <label className="absolute -bottom-2 -right-2 bg-primary text-white border border-primary/20 hover:bg-zinc-900 font-bold text-[11px] tracking-widest rounded-lg px-5 py-3 cursor-pointer transition-all flex items-center gap-2 active:scale-95 uppercase">
               <ImagePlus className="w-4 h-4" />
               Actualizar
               <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleLogoSelect} />
@@ -228,7 +228,7 @@ export default function StoreSettingsManager({
                 className={cn(
                   "flex items-center gap-3 p-4 rounded-lg border transition-all text-left group",
                   form.category === cat.id
-                    ? "bg-zinc-950 border-zinc-950 text-white shadow-xl scale-[1.02]"
+                    ? "bg-zinc-950 border-zinc-950 text-white scale-[1.02]"
                     : "bg-white border-gray-200 text-zinc-500 hover:border-zinc-200 hover:bg-zinc-50"
                 )}
               >
@@ -256,7 +256,7 @@ export default function StoreSettingsManager({
             disabled={loading}
             className={cn(
               "w-full md:w-auto btn-premium h-14 min-w-[300px] flex items-center justify-center gap-4 transition-all active:scale-98",
-              success && "bg-zinc-100 text-zinc-400 border border-gray-200 cursor-default shadow-none hover:bg-zinc-100"
+              success && "bg-zinc-100 text-zinc-400 border border-gray-200 cursor-default hover:bg-zinc-100"
             )}
           >
             {loading ? (

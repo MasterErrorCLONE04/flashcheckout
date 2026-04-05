@@ -153,7 +153,7 @@ export default function StripeConnectSection() {
   }, [initConnectInstance])
 
   return (
-    <div className="bg-white border border-black/[0.03] rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden">
+    <div className="bg-white border border-black/[0.03] rounded-[2.5rem] p-10 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.02] rounded-full blur-[100px] -mr-32 -mt-32" />
       
       <div className="flex items-center justify-between mb-8 relative z-10">
@@ -177,13 +177,12 @@ export default function StripeConnectSection() {
           <Shield className="w-4 h-4 text-primary" />
           Requisitos de verificación (Stripe)
         </p>
- bitumen
         <div className="grid sm:grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3 shadow-sm">
+          <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-primary" />
             Titular e Identificación
           </div>
-          <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3 shadow-sm">
+          <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-primary" />
             Cuenta Bancaria para Depósitos
           </div>
@@ -220,12 +219,12 @@ export default function StripeConnectSection() {
       ) : (
         <div className="space-y-6 relative z-10">
           {chargesEnabled ? (
-            <div className="flex items-center gap-4 rounded-2xl border border-primary/10 bg-primary/[0.02] px-6 py-5 text-sm font-bold tracking-widest text-primary shadow-sm animate-in fade-in uppercase">
+            <div className="flex items-center gap-4 rounded-2xl border border-primary/10 bg-primary/[0.02] px-6 py-5 text-sm font-bold tracking-widest text-primary animate-in fade-in uppercase">
               <CheckCircle2 className="w-5 h-5 shrink-0" />
               <p>Tu terminal está lista para procesar cobros electrónicos.</p>
             </div>
           ) : connected ? (
-            <div className="flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-sm font-bold tracking-widest text-amber-700 shadow-sm animate-in zoom-in-95 uppercase">
+            <div className="flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-sm font-bold tracking-widest text-amber-700 animate-in zoom-in-95 uppercase">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p>Falta validación adicional para activar los cobros.</p>
             </div>
@@ -243,7 +242,7 @@ export default function StripeConnectSection() {
               onClick={openEmbeddedOnboarding}
               disabled={chargesEnabled || bootingConnect}
               className={cn(
-                "h-16 inline-flex items-center justify-center gap-3 rounded-full text-sm font-bold tracking-widest px-8 transition-all active:scale-95 shadow-xl min-w-[240px] uppercase",
+                "h-16 inline-flex items-center justify-center gap-3 rounded-full text-sm font-bold tracking-widest px-8 transition-all active:scale-95 min-w-[240px] uppercase",
                 chargesEnabled ? "bg-zinc-100 text-zinc-400 cursor-default" : "bg-primary text-white hover:bg-primary-hover"
               )}
             >
@@ -281,7 +280,7 @@ export default function StripeConnectSection() {
             className="absolute inset-0 bg-white/60 backdrop-blur-xl"
             aria-hidden
           />
-          <div className="relative w-full max-w-xl max-h-[min(92vh,880px)] flex flex-col rounded-[3rem] border border-black/[0.05] bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+          <div className="relative w-full max-w-xl max-h-[min(92vh,880px)] flex flex-col rounded-[3rem] border border-black/[0.05] bg-white overflow-hidden animate-in zoom-in-95 duration-500">
             <div className="flex items-start justify-between gap-6 px-10 py-10 border-b border-black/[0.02] bg-gradient-to-r from-primary/[0.03] to-transparent">
               <div>
                 <p className="text-xs font-bold tracking-widest text-primary mb-3 uppercase">
@@ -304,7 +303,7 @@ export default function StripeConnectSection() {
             </div>
 
             <div className="px-10 py-4 border-b border-black/[0.02] bg-zinc-50/50 flex flex-wrap items-center gap-4 text-[11px] font-bold text-zinc-400 tracking-widest uppercase">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 border border-black/[0.02] shadow-sm">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 border border-black/[0.02]">
                 <Lock className="w-3 h-3 text-primary" />
                 Estado seguro
                 {stepHint ? `: ${stepHint}` : ': Iniciando'}
@@ -368,7 +367,7 @@ function StepPill({
   return (
     <div
       className={cn(
-        "rounded-2xl border px-4 py-5 flex flex-col items-center gap-3 transition-all flex-1 group shadow-sm",
+        "rounded-2xl border px-4 py-5 flex flex-col items-center gap-3 transition-all flex-1 group",
         done
           ? "border-primary/10 bg-primary/[0.02] text-primary"
           : "border-black/[0.02] bg-zinc-50 text-zinc-300"
