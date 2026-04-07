@@ -56,8 +56,8 @@ const CustomSignIn = () => {
         redirectUrlComplete: '/dashboard',
       })
     } catch (err: any) {
-      console.error('OAuth error:', err)
-      setError(err.message || 'Error al conectar con Google.')
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Error al conectar con Google.'
+      setError(errorMessage)
       setLoading(false)
     }
   }
@@ -68,17 +68,25 @@ const CustomSignIn = () => {
     try {
       setLoading(true)
       setError('')
+      
       const clerk = (window as any).Clerk
       const si = clerk.client.signIn
-      const result = await si.create({ identifier: email, password })
+      const result = await si.create({ 
+        strategy: 'password',
+        identifier: email, 
+        password 
+      })
       
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId })
-        router.push('/dashboard')
+        window.location.href = '/dashboard'
+      } else {
+        console.log('SignIn status no completado. Estado:', result.status);
+        setError(`El inicio de sesión requiere pasos adicionales (${result.status}).`)
       }
     } catch (err: any) {
-      console.error('SignIn error:', err)
-      setError(err.message || 'Email o contraseña incorrectos.')
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Email o contraseña incorrectos.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -153,54 +161,50 @@ const CustomSignIn = () => {
               />
             </div>
 
-            <div className="flex flex-col gap-2 text-left">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="flex select-none items-center gap-2 font-medium text-sm leading-none text-paragraph-3">Password</Label>
-                <Link href="#" className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 underline-offset-4 h-3.5 p-0 text-paragraph-3 underline hover:text-primary">Forgot password?</Link>
+              <div className="flex flex-col gap-2 text-left">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="flex select-none items-center gap-2 font-medium text-sm leading-none text-paragraph-3">Password</Label>
+                  <Link href="#" className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium text-sm outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 underline-offset-4 h-3.5 p-0 text-paragraph-3 underline hover:text-primary">Forgot password?</Link>
+                </div>
+                <div className="relative flex items-center">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••••"
+                    className="-outline-offset-1 flex w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base transition-color selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-primary h-10 md:text-sm pr-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="justify-center gap-2 outline-hidden transition-[color,box-shadow] whitespace-nowrap text-muted-foreground hover:text-foreground px-2 min-w-9 absolute right-1 flex h-[90%] items-center rounded-md bg-background font-medium text-base hover:bg-background"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <Eye className="!h-5 !w-5" aria-hidden="true" />
+                    ) : (
+                      <EyeOff className="!h-5 !w-5" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
               </div>
-              <div className="relative flex items-center">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••••"
-                  className="-outline-offset-1 flex w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base transition-color selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-primary h-10 md:text-sm pr-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="justify-center gap-2 outline-hidden transition-[color,box-shadow] whitespace-nowrap text-muted-foreground hover:text-foreground px-2 min-w-9 absolute right-1 flex h-[90%] items-center rounded-md bg-background font-medium text-base hover:bg-background"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <Eye className="!h-5 !w-5" aria-hidden="true" />
-                  ) : (
-                    <EyeOff className="!h-5 !w-5" aria-hidden="true" />
-                  )}
-                </button>
-              </div>
-            </div>
 
-            <div className="h-6">
-              <div id="clerk-captcha" className="w-full h-auto"></div>
-            </div>
+              {error && (
+                <div className="text-[13px] font-medium text-red-600 bg-red-50/50 p-4 rounded-md border border-red-100/50 flex items-center gap-2">
+                  {error}
+                </div>
+              )}
 
-            {error && (
-              <div className="text-[13px] font-medium text-red-600 bg-red-50/50 p-4 rounded-md border border-red-100/50 flex items-center gap-2">
-                {error}
-              </div>
-            )}
-
-            <Button 
-              type="submit" 
-              disabled={loading} 
-              className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap font-medium text-sm transition-all duration-200 bg-primary text-primary-foreground shadow-inner-sm hover:bg-primary/90 h-10 rounded-md px-4 py-2"
-            >
-              {loading && email ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Continue'}
-            </Button>
-          </form>
+              <Button 
+                type="submit" 
+                disabled={loading} 
+                className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap font-medium text-sm transition-all duration-200 bg-primary text-primary-foreground shadow-inner-sm hover:bg-primary/90 h-10 rounded-md px-4 py-2"
+              >
+                {loading && email ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Continue'}
+              </Button>
+            </form>
 
           <p className="w-[80%] self-center text-pretty text-center text-paragraph-3 text-sm lg:w-full">
             By continuing, you agree to our{' '}
