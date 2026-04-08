@@ -103,7 +103,7 @@ export default async function DashboardPage() {
       {/* Header Premium */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-zinc-950 font-display">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-950">
             Panel de control
           </h1>
           <p className="text-[17px] text-zinc-500 font-normal mt-3 max-w-lg leading-relaxed">
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <p className="text-[13px] font-medium tracking-tight text-zinc-500 leading-none">Rendimiento operativo</p>
               </div>
-              <h3 className="text-3xl font-medium text-zinc-950 tracking-tight font-display">Actividad comercial</h3>
+              <h3 className="text-3xl font-semibold text-zinc-950 tracking-tight">Actividad comercial</h3>
               <p className="text-[13px] text-zinc-400 font-normal mt-3 tracking-tight">Métrica: Ventas brutas consolidado</p>
             </div>
             
@@ -259,7 +259,7 @@ export default async function DashboardPage() {
         {/* Cell 7: Recent Orders (Medium Sidebar Style) */}
         <div className="md:col-span-4 premium-card p-8 overflow-hidden bg-white">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-[15px] font-medium text-zinc-950 tracking-tight font-display">Últimos pedidos</h3>
+            <h3 className="text-[15px] font-semibold text-zinc-950 tracking-tight">Últimos pedidos</h3>
             <Link href="/pedidos" className="p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all border border-gray-200">
               <ArrowUpRight className="w-5 h-5 text-zinc-400" />
             </Link>

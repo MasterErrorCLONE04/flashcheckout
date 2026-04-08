@@ -7,6 +7,7 @@ import { currentUser } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
+import SidebarNav from '@/components/dashboard/SidebarNav'
 
 export default async function DashboardLayout({
   children,
@@ -23,9 +24,9 @@ export default async function DashboardLayout({
   })
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] selection:bg-primary/20 selection:text-primary animate-in">
+    <div className="min-h-screen bg-white selection:bg-primary/20 selection:text-primary animate-in">
       {/* Breadcrumb-Style Modern Header */}
-      <header className="flex w-full shrink-0 items-center justify-between border-b bg-white px-5 py-4 sticky top-0 z-50">
+      <header className="flex w-full shrink-0 items-center justify-between border-b bg-[#FAFAFA] px-6 py-2.5 sticky top-0 z-50">
         <div className="flex items-center gap-2">
           {/* Brand Logo (Chatbase Style Adaptation) */}
           <Link href="/dashboard" className="hidden items-center transition-opacity hover:opacity-80 md:flex">
@@ -110,40 +111,16 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <div className="w-full px-8 md:px-12 py-8 md:py-12 flex flex-col lg:flex-row gap-12">
-        {/* Sidebar: Restored Original Apple Column */}
-        <aside className="hidden lg:block w-64 flex-shrink-0">
-          <div className="sticky top-32 space-y-10">
-            <div>
-              <p className="px-4 mb-4 text-xs font-bold text-zinc-400 tracking-widest uppercase">Gestión</p>
-              <nav className="space-y-1">
-                <SidebarLink href="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-                <SidebarLink href="/productos" icon={Package} label="Mis productos" />
-                <SidebarLink href="/pedidos" icon={ShoppingCart} label="Ventas & pedidos" />
-              </nav>
-            </div>
-            
-            <div>
-              <p className="px-4 mb-4 text-xs font-bold text-zinc-400 tracking-widest uppercase">Sistema</p>
-              <nav className="space-y-1">
-                <SidebarLink href="/configuracion" icon={Settings} label="Configuración" />
-                <SidebarLink href="/suscripcion" icon={CreditCard} label="Suscripción pro" isPro={true} />
-              </nav>
-            </div>
-
-            <div className="p-5 border border-black/[0.02] bg-white mt-12 overflow-hidden relative group rounded-2xl shadow-sm">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl -mr-12 -mt-12" />
-              <p className="text-xs font-bold text-primary tracking-widest mb-2 uppercase">Status</p>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[13px] font-semibold text-zinc-800">Sistema operativo</span>
-              </div>
-            </div>
+      <div className="w-full px-4 md:px-8 pb-8 md:pb-12 flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[calc(100vh-61px)]">
+        {/* Sidebar: Restored Original Image Match */}
+        <aside className="hidden lg:block w-64 flex-shrink-0 border-r border-zinc-200/60 pr-6 relative pt-4 md:pt-3">
+          <div className="sticky top-10 flex flex-col gap-8">
+            <SidebarNav />
           </div>
         </aside>
 
         {/* Main Viewport */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 pt-8 md:pt-12">
           {children}
         </main>
       </div>
@@ -158,43 +135,6 @@ export default async function DashboardLayout({
         </div>
       </nav>
     </div>
-  )
-}
-
-function SidebarLink({
-  href,
-  icon: Icon,
-  label,
-  isPro = false,
-}: {
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  isPro?: boolean
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
-        isPro 
-          ? "text-primary hover:bg-primary/[0.03]" 
-          : "text-zinc-600 hover:text-black hover:bg-black/[0.03]"
-      )}
-    >
-      <div className={cn(
-        "p-2 rounded-lg transition-all duration-300",
-        isPro 
-          ? "bg-primary/5 text-primary group-hover:scale-110" 
-          : "bg-zinc-100 group-hover:bg-zinc-200 group-hover:scale-110 group-hover:text-black"
-      )}>
-        <Icon className="w-3.5 h-3.5" />
-      </div>
-      {label}
-      {isPro && (
-        <span className="ml-auto text-[9px] font-bold bg-primary text-white px-2 py-0.5 rounded-full">Pro</span>
-      )}
-    </Link>
   )
 }
 

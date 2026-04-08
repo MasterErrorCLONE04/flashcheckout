@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-black tracking-tighter glow-text uppercase">Configuración de Comandos</h1>
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-950">Configuración de Comandos</h1>
         <p className="text-sm text-muted-foreground mt-1 font-medium">
           Personaliza la identidad visual y operativa de tu tienda.
         </p>
