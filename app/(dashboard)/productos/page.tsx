@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
 import ProductManager from '@/components/ProductManager'
+import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export default async function ProductosPage() {
   const { userId } = await auth()
@@ -12,7 +13,7 @@ export default async function ProductosPage() {
     where: { userId },
   })
 
-  if (!store) redirect('/dashboard')
+  if (!store) return <StoreCreationWizard />
 
   const products = await prisma.product.findMany({
     where: { storeId: store.id },

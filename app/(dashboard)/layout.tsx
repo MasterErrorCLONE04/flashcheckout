@@ -112,9 +112,9 @@ export default async function DashboardLayout({
       </header>
 
       <div className="w-full px-4 md:px-8 pb-8 md:pb-12 flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[calc(100vh-61px)]">
-        {/* Sidebar: Restored Original Image Match */}
-        <aside className="hidden lg:block w-64 flex-shrink-0 border-r border-zinc-200/60 pr-6 relative pt-4 md:pt-3">
-          <div className="sticky top-10 flex flex-col gap-8">
+        {/* Sidebar: Collapsible hover logic */}
+        <aside className="hidden lg:block w-[60px] hover:w-64 lg:-ml-7 group flex-shrink-0 border-r border-zinc-200/60 relative pt-4 transition-[width] duration-300 ease-in-out bg-transparent z-20">
+          <div className="sticky top-[72px] flex flex-col gap-8 w-full overflow-hidden">
             <SidebarNav />
           </div>
         </aside>
@@ -128,7 +128,6 @@ export default async function DashboardLayout({
       {/* Mobile Nav: Restored Original Floating Rounded Style */}
       <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm bg-white/80 backdrop-blur-md rounded-full border border-black/[0.05] shadow-xl overflow-hidden p-1.5">
         <div className="flex items-center justify-around">
-          <MobileNavLink href="/dashboard" icon={LayoutDashboard} />
           <MobileNavLink href="/productos" icon={Package} />
           <MobileNavLink href="/pedidos" icon={ShoppingCart} />
           <MobileNavLink href="/configuracion" icon={Settings} />

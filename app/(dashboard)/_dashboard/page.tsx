@@ -127,17 +127,17 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
         
         {/* Cell 1: Main Store Link (Large) */}
-        <div className="md:col-span-8 premium-card p-8 md:p-12 flex flex-col justify-between group relative overflow-hidden bg-white">
+        <div className="md:col-span-8 premium-card p-6 md:p-8 flex flex-col justify-between group relative overflow-hidden bg-white">
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/[0.03] blur-[120px] -mr-40 -mt-40" />
           
           <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-14 h-14 rounded-lg bg-zinc-950 flex items-center justify-center">
-                <Globe className="w-7 h-7 text-white" />
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-10 h-10 rounded-lg bg-zinc-950 flex items-center justify-center">
+                <Globe className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-0.5">Link de despacho</p>
-                <p className="text-[19px] font-medium text-zinc-950 tracking-tight">Terminal operativo FlashCheckout</p>
+                <p className="text-[12px] font-medium tracking-tight text-zinc-400 mb-0.5">Link de despacho</p>
+                <p className="text-[17px] font-medium text-zinc-950 tracking-tight">Terminal operativo FlashCheckout</p>
               </div>
             </div>
 
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="relative z-10 pt-10 flex items-center gap-4 text-xs font-semibold text-zinc-400 border-t border-black/[0.03]">
+          <div className="relative z-10 pt-6 flex items-center gap-4 text-xs font-semibold text-zinc-400 border-t border-black/[0.03]">
             <div className="flex -space-x-2">
               {[1,2,3].map(i => (
                 <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-zinc-100" />
@@ -172,8 +172,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 2: QR System (Medium) */}
-        <div className="md:col-span-4 premium-card p-8 flex flex-col items-center justify-center text-center group bg-white">
-          <div className="p-5 bg-zinc-50 rounded-lg mb-6 group-hover:scale-105 transition-transform duration-500 border border-gray-200">
+        <div className="md:col-span-4 premium-card p-6 flex flex-col items-center justify-center text-center group bg-white">
+          <div className="p-4 bg-zinc-50 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-500 border border-gray-200">
             <QrGenerator url={storeUrl} storeName={store.name} />
           </div>
           <p className="text-xs font-bold tracking-widest text-zinc-400 mb-1.5">Código QR</p>
@@ -181,13 +181,13 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 3: Revenue (Medium/Small) */}
-        <div className="md:col-span-4 premium-card p-10 group bg-white">
-          <div className="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center mb-6 group-hover:scale-105 transition-all">
-            <DollarSign className="w-6 h-6 text-emerald-600" />
+        <div className="md:col-span-4 premium-card p-6 group bg-white">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4 group-hover:scale-105 transition-all">
+            <DollarSign className="w-5 h-5 text-emerald-600" />
           </div>
-          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-3">Ingresos totales</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-2">Ingresos totales</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl md:text-4xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
+            <span className="text-2xl md:text-3xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
               ${(totalRevenue._sum.total ?? 0).toLocaleString('es-CO')}
             </span>
             <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">+12.5%</span>
@@ -195,13 +195,13 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 4: Weekly Performance (Medium/Small) */}
-        <div className="md:col-span-4 premium-card p-10 group bg-white">
-          <div className="w-12 h-12 rounded-lg bg-zinc-50 border border-gray-200 flex items-center justify-center mb-6 group-hover:scale-105 transition-all">
-            <ShoppingCart className="w-6 h-6 text-zinc-400" />
+        <div className="md:col-span-4 premium-card p-6 group bg-white">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-gray-200 flex items-center justify-center mb-4 group-hover:scale-105 transition-all">
+            <ShoppingCart className="w-5 h-5 text-zinc-400" />
           </div>
-          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-3">Pedidos / 7 días</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-2">Pedidos / 7 días</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl md:text-4xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
+            <span className="text-2xl md:text-3xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
               {weeklyOrdersCount}
             </span>
             <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md tracking-tight">Activo</span>
@@ -209,17 +209,17 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 5: Stock Alerts (Medium/Small) */}
-        <div className="md:col-span-4 premium-card p-10 group overflow-hidden bg-white">
+        <div className="md:col-span-4 premium-card p-6 group overflow-hidden bg-white">
           <div className={cn(
-            "w-12 h-12 rounded-lg flex items-center justify-center mb-6 transition-all",
+            "w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-all",
             lowStockCount > 0 ? "bg-rose-50 text-rose-500" : "bg-zinc-50 text-zinc-400"
           )}>
-            <AlertTriangle className="w-6 h-6" />
+            <AlertTriangle className="w-5 h-5" />
           </div>
-          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-3">Stock crítico</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-2">Stock crítico</p>
           <div className="flex items-baseline gap-3">
             <span className={cn(
-              "text-3xl md:text-4xl font-semibold tabular-nums tracking-tighter",
+              "text-2xl md:text-3xl font-semibold tabular-nums tracking-tighter",
               lowStockCount > 0 ? "text-rose-500" : "text-zinc-950"
             )}>
               {lowStockCount}
@@ -232,16 +232,16 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 6: Analytics Chart (Large Wide) */}
-        <div className="md:col-span-8 premium-card p-10 md:p-14 bg-white relative overflow-hidden group">
+        <div className="md:col-span-8 premium-card p-6 md:p-8 bg-white relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.02] blur-[120px] -mr-40 -mt-20 pointer-events-none" />
           
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-12 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-8 relative z-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <p className="text-[13px] font-medium tracking-tight text-zinc-500 leading-none">Rendimiento operativo</p>
               </div>
-              <h3 className="text-3xl font-semibold text-zinc-950 tracking-tight">Actividad comercial</h3>
+              <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight">Actividad comercial</h3>
               <p className="text-[13px] text-zinc-400 font-normal mt-3 tracking-tight">Métrica: Ventas brutas consolidado</p>
             </div>
             
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Cell 7: Recent Orders (Medium Sidebar Style) */}
-        <div className="md:col-span-4 premium-card p-8 overflow-hidden bg-white">
+        <div className="md:col-span-4 premium-card p-6 md:p-8 overflow-hidden bg-white">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-[15px] font-semibold text-zinc-950 tracking-tight">Últimos pedidos</h3>
             <Link href="/pedidos" className="p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-all border border-gray-200">
@@ -290,7 +290,7 @@ export default async function DashboardPage() {
             
             {recentOrders.length === 0 && (
               <div className="text-center py-12">
-                <Zap className="w-10 h-10 mx-auto mb-4 text-zinc-200" />
+                <Zap className="w-8 h-8 mx-auto mb-3 text-zinc-200" />
                 <p className="text-[10px] font-bold tracking-widest text-zinc-400">No hay órdenes registradas</p>
               </div>
             )}

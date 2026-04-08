@@ -55,7 +55,7 @@ const CustomSignUp = () => {
       await clerk.client.signUp.authenticateWithRedirect({
         strategy,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/dashboard',
+        redirectUrlComplete: '/productos',
       })
     } catch (err: any) {
       console.error('OAuth error:', err)
@@ -102,7 +102,7 @@ const CustomSignUp = () => {
       
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId })
-        router.push('/dashboard')
+        router.push('/productos')
       }
     } catch (err: any) {
       console.error('Verification error:', err)

@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import StoreCreationWizard from '@/components/StoreCreationWizard'
 import StoreSettingsManager from '@/components/StoreSettingsManager'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +14,7 @@ export default async function SettingsPage() {
     where: { userId }
   })
 
-  if (!store) redirect('/dashboard')
+  if (!store) return <StoreCreationWizard />
 
   return (
     <div className="space-y-8 animate-fade-in">

@@ -53,7 +53,7 @@ const CustomSignIn = () => {
       await clerk.client.signIn.authenticateWithRedirect({
         strategy,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/dashboard',
+        redirectUrlComplete: '/productos',
       })
     } catch (err: any) {
       const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Error al conectar con Google.'
@@ -79,7 +79,7 @@ const CustomSignIn = () => {
       
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId })
-        window.location.href = '/dashboard'
+        window.location.href = '/productos'
       } else {
         console.log('SignIn status no completado. Estado:', result.status);
         setError(`El inicio de sesión requiere pasos adicionales (${result.status}).`)

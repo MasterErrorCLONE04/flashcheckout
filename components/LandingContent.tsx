@@ -384,7 +384,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
               </>
             ) : (
               <Button asChild className="bg-black hover:bg-[#1f1f1f] text-white font-medium rounded-lg px-5 h-10 transition-all text-[14px] shadow-sm">
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/productos">Dashboard</Link>
               </Button>
             )}
           </div>

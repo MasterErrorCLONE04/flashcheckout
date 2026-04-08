@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import OrderList from '@/components/OrderList'
+import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export default async function PedidosPage() {
   const { userId } = await auth()
@@ -11,7 +12,7 @@ export default async function PedidosPage() {
     where: { userId },
   })
 
-  if (!store) redirect('/dashboard')
+  if (!store) return <StoreCreationWizard />
 
   const orders = await prisma.order.findMany({
     where: { storeId: store.id },
