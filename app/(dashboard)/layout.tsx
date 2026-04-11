@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
-import { UserButton } from '@clerk/nextjs'
+import CustomUserMenu from '@/components/dashboard/CustomUserMenu'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { LayoutDashboard, Package, ShoppingCart, ExternalLink, Zap, Settings, CreditCard, ChevronsUpDown, Clock, Gift, BookOpenText, HelpCircle, Menu, Play, History, BarChart3, Database, Users, Rocket, Globe } from 'lucide-react'
@@ -44,9 +44,6 @@ export default async function DashboardLayout({
               className="flex max-w-[150px] items-center justify-start gap-1 rounded-md px-0 font-medium text-foreground text-sm transition-colors hover:bg-transparent md:max-w-[200px]"
             >
               <span className="truncate">{user?.firstName || 'Dashboard'}'s workspace</span>
-              <span className="w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg border bg-[#F3F4F6] font-medium text-[10px] px-1.5 py-px hidden select-none text-zinc-500 md:inline-flex tracking-tight">
-                Free
-              </span>
             </Link>
             <button className="flex items-center justify-center h-5 p-0.5 rounded-md transition-all duration-200 hover:bg-muted/50 text-foreground">
               <ChevronsUpDown className="size-3.5 shrink-0 stroke-3 text-muted-foreground opacity-50" />
@@ -100,20 +97,14 @@ export default async function DashboardLayout({
 
           <div className="hidden h-4 w-px rounded-full bg-zinc-200 md:inline-flex"></div>
 
-          {/* User Button */}
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: 'w-7 h-7 border border-zinc-200 ring-2 ring-zinc-50 hover:ring-zinc-200 transition-all',
-              },
-            }}
-          />
+          {/* User Custom White Label Menu */}
+          <CustomUserMenu />
         </div>
       </header>
 
       <div className="w-full px-4 md:px-8 pb-8 md:pb-12 flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[calc(100vh-61px)]">
         {/* Sidebar: Collapsible hover logic */}
-        <aside className="hidden lg:block w-[60px] hover:w-64 lg:-ml-7 group flex-shrink-0 border-r border-zinc-200/60 relative pt-4 transition-[width] duration-300 ease-in-out bg-transparent z-20">
+        <aside className="hidden lg:block w-[60px] hover:w-64 lg:-ml-7 group flex-shrink-0 border-r border-zinc-200/60 relative pt-4 transition-[width] duration-300 ease-in-out bg-[#FAFAFA] z-20">
           <div className="sticky top-[72px] flex flex-col gap-8 w-full overflow-hidden">
             <SidebarNav />
           </div>

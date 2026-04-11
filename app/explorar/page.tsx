@@ -47,39 +47,40 @@ export default async function ExplorePage({
 
 
   return (
-    <div className="min-h-screen bg-[#F4F4F7] text-[#1d1d1f] font-sans pb-20">
-      {/* Search Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-black/[0.03] px-6 py-5">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#1d1d1f] font-sans pb-20">
+      {/* Brand Header */}
+      <header className="sticky top-0 z-40 bg-white border-b border-zinc-200/60 px-6 py-4">
         <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="w-9 h-9 rounded-xl bg-black flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <Zap className="w-5 h-5 text-white" />
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
+            <div className="flex items-center gap-1.5 transition-opacity hover:opacity-80">
+              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center">
+                <Zap className="w-4.5 h-4.5 text-white" />
+              </div>
+              <span className="font-bold text-xl tracking-tight text-zinc-950">Directorios</span>
             </div>
-            <span className="font-bold text-lg tracking-tight">Directorio de Tiendas</span>
           </Link>
 
           <MarketplaceSearch initialQuery={query} />
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-6 shrink-0">
              {userId ? (
-               <Link href="/dashboard" className="text-xs font-bold text-zinc-400 hover:text-black uppercase tracking-widest transition-colors">
+               <Link href="/productos" className="text-xs font-bold text-zinc-500 hover:text-black uppercase tracking-widest transition-colors">
                  Mi cuenta
                </Link>
              ) : (
-               <Link href="/sign-in" className="text-xs font-bold text-primary hover:text-primary/70 uppercase tracking-widest transition-colors">
-                 Iniciar sesión
+               <Link href="/sign-in" className="text-xs font-bold text-zinc-500 hover:text-black uppercase tracking-widest transition-colors">
+                 Entrar
                </Link>
              )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-[1600px] mx-auto px-6 py-10">
-
-        <div className="flex flex-col lg:flex-row gap-10">
+      <main className="max-w-[1600px] mx-auto px-6 py-12">
+        <div className="flex flex-col lg:flex-row gap-12">
           {/* Sidebar Filters */}
           <MarketplaceSidebarFilters 
-            stores={[]} // We don't need the store list for products anymore
+            stores={[]} 
             initialStoreId="" 
             initialMaxPrice={maxPrice === 10000000 ? 5000000 : maxPrice} 
             isStoreView={true}
@@ -87,23 +88,28 @@ export default async function ExplorePage({
 
           {/* Stores Grid */}
           <div className="flex-1">
-            <div className="flex items-center justify-between mb-8">
-              <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                Resultados: {stores.length} {stores.length === 1 ? 'tienda encontrada' : 'tiendas encontradas'}
-              </p>
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex flex-col gap-1">
+                <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Tiendas Destacadas</h1>
+                <p className="text-sm font-medium text-zinc-500">
+                  {stores.length} marcas disponibles en tu región
+                </p>
+              </div>
             </div>
 
             {stores.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-8 gap-y-12">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                 {stores.map((store: any) => (
                   <MarketStoreCard key={store.id} store={store} />
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-[3rem] border border-black/[0.03] p-24 text-center">
-                <Store className="w-12 h-12 text-zinc-100 mx-auto mb-6" />
-                <h3 className="text-lg font-bold text-black tracking-tight mb-2">No encontramos tiendas</h3>
-                <p className="text-sm text-zinc-400 font-medium">Intenta ajustando el rango de precios o la categoría.</p>
+              <div className="bg-white rounded-2xl border border-zinc-200/60 p-20 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-50 flex items-center justify-center mb-6">
+                  <Store className="w-8 h-8 text-zinc-300" />
+                </div>
+                <h3 className="text-lg font-bold text-zinc-950 tracking-tight mb-2">No encontramos coincidencias</h3>
+                <p className="text-sm text-zinc-500 font-normal max-w-xs mx-auto">Prueba ajustando los filtros o buscando otro término más general.</p>
               </div>
             )}
           </div>
@@ -115,31 +121,28 @@ export default async function ExplorePage({
 
 function MarketStoreCard({ store }: { store: any }) {
   return (
-    <Link href={`/tienda/${store.slug}`} className="group flex flex-col gap-4">
-      {/* Brand Box */}
-      <div className="aspect-square w-full bg-white rounded-[2rem] border border-black/[0.03] shadow-sm flex items-center justify-center group-hover:shadow-2xl group-hover:shadow-black/5 group-hover:-translate-y-1 transition-all duration-500 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/[0.01]" />
-        
+    <Link href={`/tienda/${store.slug}`} className="group block">
+      <div className="relative aspect-square w-full bg-white rounded-2xl border border-zinc-200/60 transition-all duration-300 group-hover:border-zinc-300 group-hover:shadow-sm overflow-hidden flex items-center justify-center p-6">
         {store.logoUrl ? (
           <img 
             src={store.logoUrl} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 relative z-10" 
+            className="max-w-[80%] max-h-[80%] object-contain transition-transform duration-500 group-hover:scale-110" 
             alt={store.name} 
           />
         ) : (
-          <Store className="w-12 h-12 text-zinc-200 relative z-10" />
+          <Store className="w-10 h-10 text-zinc-100 group-hover:text-zinc-200 transition-colors" />
         )}
       </div>
 
-      {/* Brand Info - Below Card */}
-      <div className="px-1">
-        <h3 className="font-bold text-sm text-[#1d1d1f] tracking-tight truncate group-hover:text-primary transition-colors">
+      <div className="mt-4 px-1 space-y-0.5">
+        <h3 className="font-semibold text-sm text-zinc-900 tracking-tight truncate group-hover:text-black transition-colors">
           {store.name}
         </h3>
-        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">
-          {store.category || 'General'}
+        <p className="text-[12px] font-medium text-zinc-500">
+          {store.category || 'Tienda Digital'}
         </p>
       </div>
     </Link>
   )
 }
+

@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { checkSubscription } from '@/lib/subscription'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 import StoreSettingsManager from '@/components/StoreSettingsManager'
 
@@ -16,6 +17,8 @@ export default async function SettingsPage() {
 
   if (!store) return <StoreCreationWizard />
 
+  const isPro = await checkSubscription()
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
@@ -26,9 +29,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="w-full space-y-8">
-        <StoreSettingsManager initialStore={store} />
-        {/* Stripe Connect desactivado por migración a Mercado Pago */}
-        {/* <StripeConnectSection /> */}
+        <StoreSettingsManager initialStore={store} isPro={isPro} />
       </div>
     </div>
   )

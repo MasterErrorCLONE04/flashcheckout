@@ -74,6 +74,15 @@ export default async function DashboardPage() {
 
   const weeklyOrdersCount = weeklyOrders.length
   
+  const whatsappOrdersCount = await prisma.order.count({
+    where: { storeId: store.id, source: 'WHATSAPP' }
+  })
+  
+  const totalWhatsAppRevenue = await prisma.order.aggregate({
+    where: { storeId: store.id, source: 'WHATSAPP', paymentStatus: 'PAID' },
+    _sum: { total: true }
+  })
+  
   // Agrupar ventas diarias en Formato Recharts
   const daysMap = new Map()
   const daysKeys = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -196,15 +205,17 @@ export default async function DashboardPage() {
 
         {/* Cell 4: Weekly Performance (Medium/Small) */}
         <div className="md:col-span-4 premium-card p-6 group bg-white">
-          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-gray-200 flex items-center justify-center mb-4 group-hover:scale-105 transition-all">
-            <ShoppingCart className="w-5 h-5 text-zinc-400" />
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-4 group-hover:scale-105 transition-all">
+            <Zap className="w-5 h-5 text-emerald-600" />
           </div>
-          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-2">Pedidos / 7 días</p>
+          <p className="text-[13px] font-medium tracking-tight text-zinc-400 mb-2">Ventas WhatsApp (Bot)</p>
           <div className="flex items-baseline gap-3">
             <span className="text-2xl md:text-3xl font-semibold text-zinc-950 tabular-nums tracking-tighter">
-              {weeklyOrdersCount}
+              {whatsappOrdersCount}
             </span>
-            <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md tracking-tight">Activo</span>
+            <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md tracking-tight">
+              ${(totalWhatsAppRevenue._sum.total ?? 0).toLocaleString('es-CO')}
+            </span>
           </div>
         </div>
 
@@ -277,6 +288,7 @@ export default async function DashboardPage() {
                   </p>
                   <p className="text-[13px] font-medium text-zinc-500 mt-0.5">
                     {order.city} · {new Date(order.createdAt).toLocaleDateString('es-CO')}
+                    {order.source === 'WHATSAPP' && <span className="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">WHATSAPP</span>}
                   </p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1.5">

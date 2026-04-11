@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { mpPayment } from '@/lib/mercadopago'
+import { waClient } from '@/lib/whatsapp/cloud-api'
 
 export async function POST(req: Request) {
   try {
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
         legacyStatus = 'pending_payment'
       }
 
-      await prisma.order.update({
+      const order = await prisma.order.update({
         where: { id: orderId },
         data: {
           paymentStatus: newStatus,
@@ -48,6 +49,17 @@ export async function POST(req: Request) {
           mpPaymentId: String(id),
         },
       })
+
+      if (order.source === 'WHATSAPP' && order.customerWhatsAppId && newStatus === 'PAID') {
+        try {
+          await waClient.sendText(
+            order.customerWhatsAppId,
+            `¡Pago confirmado! 🎉\n\nTu pedido *#${order.id.slice(-6)}* por un total de $${order.total.toLocaleString()} ha sido procesado exitosamente.\n\n¡Gracias por usar StoreFCheckout! 🚀`
+          )
+        } catch (error) {
+          console.error('[MP Webhook] Failed to send WhatsApp confirmation', error)
+        }
+      }
     }
 
     return NextResponse.json({ received: true }, { status: 200 })
