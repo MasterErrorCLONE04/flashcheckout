@@ -6,12 +6,12 @@ import { mpPreference } from '@/lib/mercadopago';
 
 export async function handleWhatsAppMessage(from: string, text: string) {
   // 1. Obtener o crear sesión
-  let session = await prisma.whatsAppSession.findUnique({
+  let session = await (prisma as any).whatsAppSession.findUnique({
     where: { phoneNumber: from },
   });
 
   if (!session) {
-    session = await prisma.whatsAppSession.create({
+    session = await (prisma as any).whatsAppSession.create({
       data: { phoneNumber: from, step: 'START' },
     });
   }
@@ -22,7 +22,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   switch (session.step) {
     case 'START':
       await waClient.sendText(from, '¡Hola! Bienvenido a *StoreFCheckout*. 🚀\n\n¿Qué necesitas hoy? Puedes pedir algo como "Quiero una pizza de pepperoni" o "Busco un taxi".');
-      await prisma.whatsAppSession.update({
+      await (prisma as any).whatsAppSession.update({
         where: { id: session.id },
         data: { step: 'IDLE' },
       });
@@ -40,7 +40,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
             { id: `confirm_${p.id}`, title: '✅ Sí, confirmar' },
             { id: 'cancel', title: '❌ No, buscar otro' },
           ]);
-          await prisma.whatsAppSession.update({
+          await (prisma as any).whatsAppSession.update({
             where: { id: session.id },
             data: { step: 'AWAITING_CONFIRMATION', cart: { productId: p.id, storeId: p.storeId } },
           });
@@ -62,7 +62,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
               },
             ]
           );
-          await prisma.whatsAppSession.update({
+          await (prisma as any).whatsAppSession.update({
             where: { id: session.id },
             data: { step: 'AWAITING_SELECTION' },
           });
@@ -83,7 +83,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
             { id: `confirm_${p.id}`, title: '✅ Confirmar' },
             { id: 'cancel', title: '❌ Cancelar' },
           ]);
-          await prisma.whatsAppSession.update({
+          await (prisma as any).whatsAppSession.update({
             where: { id: session.id },
             data: { step: 'AWAITING_CONFIRMATION', cart: { productId: p.id, storeId: p.storeId } },
           });
@@ -98,7 +98,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
           const product = await prisma.product.findUnique({ where: { id: cart.productId }, include: { store: true } });
           if (product) {
             // Crear Orden REAL en el sistema
-            const order = await prisma.order.create({
+            const order = await (prisma.order as any).create({
               data: {
                 customerName: 'Cliente WhatsApp',
                 customerPhone: from,
@@ -130,7 +130,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
 
             await waClient.sendText(from, `¡Perfecto! Todo listo. 💳\n\nHaz clic en el siguiente enlace para realizar tu pago de forma segura:\n\n${preference.init_point}`);
             
-            await prisma.whatsAppSession.update({
+            await (prisma as any).whatsAppSession.update({
               where: { id: session.id },
               data: { step: 'IDLE', cart: null },
             });
@@ -138,7 +138,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
         }
       } else if (intent.intent === 'CANCEL' || text === 'cancel') {
         await waClient.sendText(from, 'Pedido cancelado. ¿En qué más puedo ayudarte?');
-        await prisma.whatsAppSession.update({
+        await (prisma as any).whatsAppSession.update({
           where: { id: session.id },
           data: { step: 'IDLE', cart: null },
         });

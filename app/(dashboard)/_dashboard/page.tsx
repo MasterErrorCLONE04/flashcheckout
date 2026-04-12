@@ -74,11 +74,11 @@ export default async function DashboardPage() {
 
   const weeklyOrdersCount = weeklyOrders.length
   
-  const whatsappOrdersCount = await prisma.order.count({
+  const whatsappOrdersCount = await (prisma.order as any).count({
     where: { storeId: store.id, source: 'WHATSAPP' }
   })
   
-  const totalWhatsAppRevenue = await prisma.order.aggregate({
+  const totalWhatsAppRevenue = await (prisma.order as any).aggregate({
     where: { storeId: store.id, source: 'WHATSAPP', paymentStatus: 'PAID' },
     _sum: { total: true }
   })
@@ -214,7 +214,7 @@ export default async function DashboardPage() {
               {whatsappOrdersCount}
             </span>
             <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md tracking-tight">
-              ${(totalWhatsAppRevenue._sum.total ?? 0).toLocaleString('es-CO')}
+              ${(totalWhatsAppRevenue._sum?.total ?? 0).toLocaleString('es-CO')}
             </span>
           </div>
         </div>
@@ -288,7 +288,7 @@ export default async function DashboardPage() {
                   </p>
                   <p className="text-[13px] font-medium text-zinc-500 mt-0.5">
                     {order.city} · {new Date(order.createdAt).toLocaleDateString('es-CO')}
-                    {order.source === 'WHATSAPP' && <span className="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">WHATSAPP</span>}
+                    {(order as any).source === 'WHATSAPP' && <span className="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">WHATSAPP</span>}
                   </p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1.5">
