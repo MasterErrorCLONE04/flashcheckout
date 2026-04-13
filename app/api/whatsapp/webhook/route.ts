@@ -42,6 +42,9 @@ export async function POST(req: Request) {
           text = interactive.button_reply.id;
         } else if (interactive.type === 'list_reply') {
           text = interactive.list_reply.id;
+        } else if (interactive.type === 'nfm_reply') {
+          // Capturar respuesta de WhatsApp Flow
+          text = `flow_response_${interactive.nfm_reply.response_json}`;
         }
       }
 

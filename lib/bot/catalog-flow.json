@@ -1,0 +1,66 @@
+{
+  "version": "3.1",
+  "screens": [
+    {
+      "id": "CATALOG_SCREEN",
+      "title": "Catálogo Visual",
+      "terminal": true,
+      "data": {
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "price": { "type": "string" },
+              "image_url": { "type": "string" }
+            }
+          }
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "catalog_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Selecciona tus productos"
+              },
+              {
+                "type": "List",
+                "label": "Menú disponible",
+                "name": "selected_items",
+                "data": "${data.products}",
+                "template": {
+                  "title": "${item.name}",
+                  "description": "${item.price}",
+                  "image": "${item.image_url}",
+                  "metadata": "${item.id}",
+                  "required": false
+                }
+              },
+              {
+                "type": "TextBody",
+                "text": "Indica la cantidad para los productos seleccionados abajo:"
+              },
+              {
+                "type": "Footer",
+                "label": "Añadir al Carrito",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "selections": "${form.selected_items}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

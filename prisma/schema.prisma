@@ -65,6 +65,8 @@ model WhatsAppSession {
   id              String   @id @default(cuid())
   phoneNumber     String   @unique
   storeId         String?
+  customerName    String?
+  address         String?
   cart            Json?    // Array of {productId, qty}
   step            String   @default("START")
   lastInteraction DateTime @default(now()) @updatedAt

@@ -123,6 +123,34 @@ export class WhatsAppCloudAPI {
     });
   }
 
+  async sendFlow(to: string, flowId: string, flowCta: string, flowToken: string, screen: string, data: any, header?: string, body?: string, footer?: string) {
+    return this.send({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'flow',
+        header: header ? { type: 'text', text: header } : undefined,
+        body: { text: body || 'Selecciona tus productos:' },
+        footer: footer ? { text: footer } : undefined,
+        action: {
+          name: 'flow',
+          parameters: {
+            flow_message_version: '3',
+            flow_token: flowToken,
+            flow_id: flowId,
+            flow_cta: flowCta,
+            flow_action: 'navigate',
+            flow_action_payload: {
+              screen: screen,
+              data: data
+            }
+          }
+        }
+      }
+    });
+  }
+
   private async send(payload: any) {
     const response = await fetch(this.url, {
       method: 'POST',

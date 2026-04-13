@@ -83,38 +83,94 @@ export async function handleWhatsAppMessage(from: string, text: string) {
     return;
   }
 
-  // Manejo de SELECCIÓN DE TIENDA (Cambio de modo a Lista en Chat)
+  // --- MODO JELOU PRO: MANEJO DE RESPUESTAS DE FLOWS ---
+  if (text.startsWith('flow_response_')) {
+    const jsonStr = text.replace('flow_response_', '');
+    try {
+      const response = JSON.parse(jsonStr);
+      // Estructura esperada del Flow de Catálogo: { selections: ["prod_1", "prod_2"] }
+      // Nota: Para cantidades más complejas, el Flow devolvería un array de objetos.
+      if (response.selections && Array.isArray(response.selections)) {
+        let currentCart = (session.cart as any) || { items: {} };
+        if (!currentCart.items) currentCart.items = {};
+
+        for (const prodId of response.selections) {
+          const product = await prisma.product.findUnique({ where: { id: prodId } });
+          if (product) {
+            currentCart.items[product.id] = {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              qty: (currentCart.items[product.id]?.qty || 0) + 1 // Por ahora asumo +1 si no hay stepper
+            };
+          }
+        }
+
+        await (prisma as any).whatsAppSession.update({
+          where: { id: session.id },
+          data: { cart: currentCart, step: 'IDLE' },
+        });
+
+        // Trigger summary
+        await handleWhatsAppMessage(from, 'view_cart_summary');
+      }
+    } catch (e) {
+      console.error('[Flow Response Error]', e);
+    }
+    return;
+  }
+
+  // Manejo de SELECCIÓN DE TIENDA (Nativo 100% estilo Jelou)
   if (text.startsWith('view_list_')) {
     const storeId = text.replace('view_list_', '');
     const store = await prisma.store.findUnique({
       where: { id: storeId },
-      include: { products: { where: { active: true }, take: 8 } }
+      include: { products: { where: { active: true }, take: 20 } }
     });
 
     if (store) {
-      await waClient.sendText(from, `Preparando productos destacados de *${store.name}*... 🛒`);
+      const flowId = process.env.WHATSAPP_CATALOG_FLOW_ID || '789456123'; // Placeholder
       
-      const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+      // Formatear productos para el Flow
+      const flowData = {
+        products: store.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: `$${p.price.toLocaleString('es-CO')}`,
+          image_url: p.imageUrl || 'https://via.placeholder.com/300'
+        }))
+      };
 
-      for (const p of store.products) {
-        try {
-          const bodyText = `*${p.name}*\nPrecio: $${p.price.toLocaleString()}\n${p.category || ''}`;
-          if (p.imageUrl && p.imageUrl.startsWith('http')) {
-             await waClient.sendImage(from, p.imageUrl, bodyText);
-             await delay(500);
-             await waClient.sendButtons(from, '👇 Toca para añadir', [
-               { id: `select_${p.id}`, title: '🛒 Añadir' }
-             ]);
-          } else {
-             await waClient.sendButtons(from, bodyText, [
-               { id: `select_${p.id}`, title: '🛒 Añadir' }
-             ]);
+      try {
+        await waClient.sendFlow(
+          from,
+          flowId,
+          'Abrir Menú Visual 🎨',
+          `flow_catalog_${store.id}`,
+          'CATALOG_SCREEN',
+          flowData,
+          store.name,
+          'Selecciona todos los productos que desees pedir:'
+        );
+      } catch (err) {
+        // Fallback a lista de texto si falla el Flow (ej: ID no configurado)
+        await waClient.sendText(from, 'Estamos activando el catálogo visual. Mientras tanto, aquí tienes el menú:');
+        await waClient.sendList(from, store.name, 'Menú:', 'Ver Productos', [
+          {
+            title: 'Productos',
+            rows: store.products.map(p => ({
+              id: `select_${p.id}`,
+              title: p.name,
+              description: `$${p.price.toLocaleString()}`
+            }))
           }
-          await delay(300);
-        } catch (err: any) {
-          console.error(`[Error] Falló envío de ${p.name}:`, err.message);
-        }
+        ]);
       }
+
+      await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { step: 'IDLE', storeId: store.id },
+      });
     }
     return;
   }
@@ -203,16 +259,15 @@ export async function handleWhatsAppMessage(from: string, text: string) {
         data: { cart: currentCart, step: 'IDLE' },
       });
 
-      await waClient.sendButtons(from, `✅ *${p.name}* (x${qty}) añadido al carrito.\n\n¿Qué deseas hacer ahora?`, [
-        { id: 'view_cart', title: '🛒 Ver Carrito' },
-        { id: 'view_stores', title: '🏬 Seguir comprando' },
-      ]);
+      // MODO JELOU: Trigger Summary centralizado
+      return await handleWhatsAppMessage(from, 'view_cart_summary');
     }
     return;
   }
 
   // Manejo de VER CARRITO
-  if (isViewCart) {
+  // Manejo de RESUMEN DE CARRITO CENTRALIZADO (Modo Jelou Pro)
+  if (text === 'view_cart_summary' || isViewCart) {
     const cart = (session.cart as any) || { items: {} };
     const items = Object.values(cart.items || {}) as any[];
 
@@ -221,20 +276,50 @@ export async function handleWhatsAppMessage(from: string, text: string) {
       return;
     }
 
-    let summary = '*Resumen de tu Pedido* 🛒\n\n';
+    let summary = '*TU CARRITO ACTUAL:* 🛒\n\n';
     let total = 0;
     items.forEach(item => {
       const subtotal = item.price * item.qty;
       summary += `• ${item.name} x${item.qty}: *$${subtotal.toLocaleString()}*\n`;
       total += subtotal;
     });
-    summary += `\n*TOTAL: $${total.toLocaleString()}*`;
+    summary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')}*`;
 
     await waClient.sendButtons(from, summary, [
-      { id: 'confirm_checkout', title: '💳 Pagar ahora' },
-      { id: 'view_stores', title: '➕ Añadir más' },
-      { id: 'clear_cart', title: '🗑️ Vaciar' },
+      { id: 'confirm_checkout', title: '💳 Finalizar Pedido' },
+      { id: 'view_stores', title: '🏬 Añadir más' },
+      { id: 'clear_cart', title: '🗑️ Vaciar Carrito' }
     ]);
+    return;
+  }
+
+  // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL ---
+  if (text === 'confirm_checkout') {
+    if (!session.customerName) {
+      await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { step: 'AWAITING_NAME' },
+      });
+      await waClient.sendText(from, '¡Excelente elección! 🛍️\n\nPara agilizar tu despacho, ¿a nombre de quién anotamos el pedido? 👤');
+      return;
+    }
+    
+    if (!session.address) {
+      await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { step: 'AWAITING_ADDRESS' },
+      });
+      await waClient.sendText(from, `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? (Ej: Calle 10 #20-30, Bogotá)`);
+      return;
+    }
+
+    // Si tiene todo, saltamos a la confirmación final
+    await (prisma as any).whatsAppSession.update({
+      where: { id: session.id },
+      data: { step: 'AWAITING_CONFIRMATION' },
+    });
+    // Forzamos el disparo de la confirmación
+    await handleWhatsAppMessage(from, 'final_summary');
     return;
   }
 
@@ -353,25 +438,50 @@ export async function handleWhatsAppMessage(from: string, text: string) {
       // Ahora manejado globalmente
       break;
 
+    case 'AWAITING_NAME':
+      await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { customerName: text, step: 'IDLE' },
+      });
+      // Re-disparar el flujo de checkout
+      await handleWhatsAppMessage(from, 'confirm_checkout');
+      break;
+
+    case 'AWAITING_ADDRESS':
+      await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { address: text, step: 'IDLE' },
+      });
+      // Re-disparar el flujo de checkout
+      await handleWhatsAppMessage(from, 'confirm_checkout');
+      break;
+
     case 'AWAITING_CONFIRMATION':
-      if (text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
+      if (text === 'final_summary' || text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
         const cart = (session.cart as any) || { items: {} };
         const items = Object.values(cart.items || {}) as any[];
         
         if (items.length > 0) {
-            // Unificamos el storeId (por ahora asumimos una tienda por pedido para simplificar)
-            // En una versión pro, esto se dividiría por tienda
             const storeId = session.storeId || (items[0] as any).storeId;
-
-            // Crear Orden REAL
             const total = items.reduce((s, i) => s + (i.price * i.qty), 0);
+            
+            // MODO JELOU: Resumen de Pedido Nativo
+            let orderSummary = `*REVISIÓN DE TU PEDIDO* 📋\n\n`;
+            orderSummary += `👤 *Cliente:* ${session.customerName}\n`;
+            orderSummary += `📍 *Dirección:* ${session.address}\n\n`;
+            orderSummary += `*Artículos:*\n`;
+            items.forEach(i => {
+              orderSummary += `- ${i.name} x${i.qty} ($${(i.price * i.qty).toLocaleString()})\n`;
+            });
+            orderSummary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')}*`;
+
             const order = await (prisma.order as any).create({
               data: {
-                customerName: 'Cliente WhatsApp',
+                customerName: session.customerName || 'Cliente WhatsApp',
                 customerPhone: from,
                 customerWhatsAppId: from,
-                address: 'Consultar por chat',
-                city: 'WhatsApp',
+                address: session.address || 'WhatsApp',
+                city: 'Colombia',
                 items: items,
                 total: total,
                 storeId: storeId,
@@ -380,7 +490,6 @@ export async function handleWhatsAppMessage(from: string, text: string) {
             });
 
             try {
-              // Generar Link de Mercado Pago
               const preference = await mpPreference.create({
                 body: {
                   items: items.map(i => ({ 
@@ -402,7 +511,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
 
               await waClient.sendUrlButton(
                 from, 
-                `✅ *¡Pedido registrado!* Referencia: ${order.id}\n\nHaz clic abajo para realizar tu pago seguro de *$${total.toLocaleString()}*:`,
+                `${orderSummary}\n\nHaz clic abajo para realizar tu pago seguro:`,
                 '💳 Pagar con Tarjeta',
                 preference.init_point!
               );
