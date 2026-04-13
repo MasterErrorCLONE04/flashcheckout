@@ -49,7 +49,13 @@ type Store = {
   cardPaymentsEnabled: boolean
 }
 
-export default function CheckoutForm({ store }: { store: Store }) {
+export default function CheckoutForm({ 
+  store, 
+  initialPhone 
+}: { 
+  store: Store, 
+  initialPhone?: string 
+}) {
   const [cart, setCart] = useState<Record<string, number>>({})
   const [form, setForm] = useState({
     customerName: '',
@@ -108,7 +114,14 @@ export default function CheckoutForm({ store }: { store: Store }) {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, ...form, items, latitude: form.lat, longitude: form.lng }),
+        body: JSON.stringify({ 
+          storeId: store.id, 
+          customerPhone: initialPhone,
+          ...form, 
+          items, 
+          latitude: form.lat, 
+          longitude: form.lng 
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setPayError(data.error || 'No se pudo crear el pedido'); setLoadingAction(null); return }
@@ -128,7 +141,14 @@ export default function CheckoutForm({ store }: { store: Store }) {
       const res = await fetch('/api/checkout/store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: store.id, customerName: form.customerName.trim(), address: form.address.trim(), city: form.city.trim(), items }),
+        body: JSON.stringify({ 
+          storeId: store.id, 
+          customerPhone: initialPhone,
+          customerName: form.customerName.trim(), 
+          address: form.address.trim(), 
+          city: form.city.trim(), 
+          items 
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setPayError(data.error || 'No se pudo iniciar el pago'); setLoadingAction(null); return }
@@ -216,7 +236,7 @@ interface StoreHeaderProps {
 
 function StoreHeader({ storeName, itemsInCart, logoUrl, onCartOpen }: StoreHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card px-6 md:px-12 py-4 flex items-center justify-center">
+    <header className="sticky top-0 z-40 glass-premium px-6 md:px-12 py-5 flex items-center justify-center shadow-lg">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-primary flex items-center justify-center shrink-0 border border-border/10">
           {logoUrl ? (
@@ -387,19 +407,19 @@ function FloatingCartBar({ itemsInCart, total, onOpen }: FloatingCartBarProps) {
   if (total <= 0) return null
 
   return (
-    <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-48px)] max-w-[560px]">
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-40px)] max-w-[500px] animate-in">
       <button
         onClick={onOpen}
-        className="w-full bg-primary border-none rounded-full h-14 flex items-center justify-between px-5 cursor-pointer"
+        className="w-full bg-zinc-900 border-none rounded-2xl h-16 flex items-center justify-between px-6 cursor-pointer shadow-2xl transition-transform active:scale-95"
       >
-        <div className="flex items-center gap-2 bg-primary-foreground/10 rounded-full px-3.5 py-1.5">
-          <ShoppingBag className="w-[15px] h-[15px] text-primary-foreground" />
-          <span className="text-primary-foreground font-bold text-sm">{itemsInCart}</span>
+        <div className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-1.5">
+          <ShoppingBag className="w-[18px] h-[18px] text-white" />
+          <span className="text-white font-black text-base">{itemsInCart}</span>
         </div>
-        <span className="text-primary-foreground/80 text-[11px] font-bold tracking-[0.05em] flex items-center gap-1">
-          Ver pedido <ChevronRight className="w-3.5 h-3.5" />
+        <span className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1">
+          Finalizar Pedido <ChevronRight className="w-3.5 h-3.5" />
         </span>
-        <span className="text-primary-foreground font-black text-xl tracking-tight tabular-nums">
+        <span className="text-white font-black text-2xl tracking-tighter tabular-nums">
           ${total.toLocaleString('es-CO')}
         </span>
       </button>

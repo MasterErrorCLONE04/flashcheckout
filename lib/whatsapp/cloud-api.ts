@@ -70,6 +70,59 @@ export class WhatsAppCloudAPI {
     });
   }
 
+  async sendImageButtons(to: string, imageUrl: string, body: string, buttons: { id: string; title: string }[]) {
+    return this.send({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        header: {
+          type: 'image',
+          image: { link: imageUrl }
+        },
+        body: { text: body },
+        action: {
+          buttons: buttons.map(b => ({
+            type: 'reply',
+            reply: { id: b.id, title: b.title },
+          })),
+        },
+      },
+    });
+  }
+
+  async sendImage(to: string, imageUrl: string, caption: string) {
+    return this.send({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'image',
+      image: {
+        link: imageUrl,
+        caption: caption
+      }
+    });
+  }
+
+  async sendUrlButton(to: string, body: string, buttonText: string, url: string) {
+    return this.send({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'cta_url',
+        body: { text: body },
+        action: {
+          name: 'cta_url',
+          parameters: {
+            display_text: buttonText,
+            url: url
+          }
+        }
+      }
+    });
+  }
+
   private async send(payload: any) {
     const response = await fetch(this.url, {
       method: 'POST',

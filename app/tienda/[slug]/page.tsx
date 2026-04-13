@@ -1,12 +1,14 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import CheckoutForm from '@/components/CheckoutForm'
+import WhatsAppCatalog from '@/components/WhatsAppCatalog'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 
 type Props = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ wa?: string; layout?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,8 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function StorePage({ params }: Props) {
+export default async function StorePage({ params, searchParams }: Props) {
   const { slug } = await params
+  const { wa, layout } = await searchParams
 
   const store = await prisma.store.findUnique({
     where: { slug, active: true },
@@ -39,18 +42,29 @@ export default async function StorePage({ params }: Props) {
 
   if (!store) notFound()
 
-  const cardPaymentsEnabled = true // Todos usan el Mercado Pago de la plataforma
+  const cardPaymentsEnabled = true 
 
-  return (
-    <CheckoutForm
-      store={{
-        id: store.id,
-        name: store.name,
-        whatsapp: store.whatsapp,
-        products: store.products,
-        logoUrl: store.logoUrl,
-        cardPaymentsEnabled,
-      }}
-    />
-  )
+  const storeData = {
+    id: store.id,
+    name: store.name,
+    whatsapp: store.whatsapp,
+    products: store.products.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      stock: p.stock,
+      imageUrl: p.imageUrl,
+      category: p.category || undefined
+    })),
+    logoUrl: store.logoUrl,
+    cardPaymentsEnabled,
+  }
+
+  // Si viene con layout=native (desde WhatsApp), mostramos el nuevo diseño de lista
+  if (layout === 'native') {
+    return <WhatsAppCatalog initialPhone={wa} store={storeData} />
+  }
+
+  // De lo contrario, mantenemos el diseño Premium Desktop original
+  return <CheckoutForm initialPhone={wa} store={storeData} />
 }

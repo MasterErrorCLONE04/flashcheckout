@@ -1,5 +1,5 @@
 export interface IntentResult {
-  intent: 'QUERY' | 'CONFIRM' | 'CANCEL' | 'UNKNOWN';
+  intent: 'QUERY' | 'CONFIRM' | 'CANCEL' | 'EXIT' | 'UNKNOWN';
   query?: string;
   metadata?: any;
 }
@@ -27,6 +27,10 @@ export async function parseIntent(text: string): Promise<IntentResult> {
 
   if (['no', 'cancelar', 'quitar'].some(k => normalized.includes(k))) {
     return { intent: 'CANCEL' };
+  }
+
+  if (['gracias', 'adios', 'chao', 'terminar', 'bye', 'hasta luego'].some(k => normalized.includes(k))) {
+    return { intent: 'EXIT' };
   }
 
   // 2. IA Placeholder (Aquí se podría integrar callGemini())

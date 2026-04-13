@@ -8,10 +8,11 @@ export interface ProductMatch {
   storeName: string;
 }
 
-export async function searchGlobalProducts(query: string): Promise<ProductMatch[]> {
+export async function searchGlobalProducts(query: string, storeId?: string): Promise<ProductMatch[]> {
   const products = await prisma.product.findMany({
     where: {
       active: true,
+      ...(storeId ? { storeId } : {}),
       OR: [
         { name: { contains: query, mode: 'insensitive' } },
         { category: { contains: query, mode: 'insensitive' } },

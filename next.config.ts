@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: ['critics-humidity-ages-cashiers.trycloudflare.com'],
 };
 
 export default nextConfig;
