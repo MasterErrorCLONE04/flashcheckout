@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
-    const { phoneNumber, cartData, storeId } = await req.json()
+    const { phoneNumber, cartData, storeId, customerName, address } = await req.json()
 
     if (!phoneNumber) {
       return NextResponse.json({ error: 'Falta phoneNumber' }, { status: 400 })
@@ -18,12 +18,16 @@ export async function POST(req: Request) {
         phoneNumber,
         cart: cartData,
         storeId,
+        customerName,
+        address,
         step: 'IDLE'
       },
       update: {
         cart: cartData,
         storeId: storeId || undefined,
-        lastInteraction: new Error().stack?.includes('sync') ? undefined : new Date() // O simplemente actualizar siempre
+        customerName: customerName || undefined,
+        address: address || undefined,
+        lastInteraction: new Date()
       }
     })
 

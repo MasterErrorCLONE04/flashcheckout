@@ -110,3 +110,45 @@
 .animate-in {
   animation: fade-in-up 0.4s ease-out forwards;
 }
+
+/* 📱 WebView Optimization */
+.is-webview {
+  /* No navbar web / Sin navbar web */
+  header, 
+  nav:not(.keep), 
+  aside,
+  .hide-in-webview {
+    display: none !important;
+  }
+
+  /* Full Screen / Pantalla completa */
+  main, 
+  .webview-content,
+  section:first-of-type {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .min-h-screen {
+    min-height: 100vh !important;
+    min-height: 100dvh !important; /* Modern touch devices */
+  }
+
+  /* Sin footer web / No footer web */
+  footer {
+    display: none !important;
+  }
+
+  /* Botones grandes / Large buttons */
+  .btn-premium,
+  button:not(.small),
+  input[type="submit"],
+  .large-touch-target {
+    @apply min-h-[64px] text-[17px] font-black tracking-tight rounded-[1.8rem] !important;
+  }
+
+  /* Inputs más grandes para móvil */
+  input, select, textarea {
+    @apply text-[16px] p-5 rounded-[1.5rem] !important;
+  }
+}

@@ -31,6 +31,9 @@ export const metadata: Metadata = {
   ],
 };
 
+import { Suspense } from "react";
+import WebViewProvider from "@/components/WebViewProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,7 +60,11 @@ export default function RootLayout({
             }
           }}
         >
-          {children}
+          <Suspense fallback={null}>
+            <WebViewProvider>
+              {children}
+            </WebViewProvider>
+          </Suspense>
           <Toaster 
             position="top-right" 
             expand={false} 

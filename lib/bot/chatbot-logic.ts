@@ -129,43 +129,53 @@ export async function handleWhatsAppMessage(from: string, text: string) {
     });
 
     if (store) {
-      const flowId = process.env.WHATSAPP_CATALOG_FLOW_ID || '789456123'; // Placeholder
+      const flowId = process.env.WHATSAPP_CATALOG_FLOW_ID;
       
-      // Formatear productos para el Flow
-      const flowData = {
-        products: store.products.map(p => ({
-          id: p.id,
-          name: p.name,
-          price: `$${p.price.toLocaleString('es-CO')}`,
-          image_url: p.imageUrl || 'https://via.placeholder.com/300'
-        }))
-      };
+      // Intentar enviar Flow solo si el ID está configurado y no es un placeholder obvio
+      if (flowId && flowId !== '789456123') {
+        const flowData = {
+          products: store.products.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: `$${p.price.toLocaleString('es-CO')}`,
+            image_url: p.imageUrl || 'https://via.placeholder.com/300'
+          }))
+        };
 
-      try {
-        await waClient.sendFlow(
-          from,
-          flowId,
-          'Abrir Menú Visual 🎨',
-          `flow_catalog_${store.id}`,
-          'CATALOG_SCREEN',
-          flowData,
-          store.name,
-          'Selecciona todos los productos que desees pedir:'
-        );
-      } catch (err) {
-        // Fallback a lista de texto si falla el Flow (ej: ID no configurado)
-        await waClient.sendText(from, 'Estamos activando el catálogo visual. Mientras tanto, aquí tienes el menú:');
-        await waClient.sendList(from, store.name, 'Menú:', 'Ver Productos', [
-          {
-            title: 'Productos',
-            rows: store.products.map(p => ({
-              id: `select_${p.id}`,
-              title: p.name,
-              description: `$${p.price.toLocaleString()}`
-            }))
-          }
-        ]);
+        try {
+          await waClient.sendFlow(
+            from,
+            flowId,
+            'Abrir Menú Visual 🎨',
+            `flow_catalog_${store.id}`,
+            'CATALOG_SCREEN',
+            flowData,
+            store.name,
+            'Selecciona todos los productos que desees pedir:'
+          );
+          
+          await (prisma as any).whatsAppSession.update({
+            where: { id: session.id },
+            data: { step: 'IDLE', storeId: store.id },
+          });
+          return;
+        } catch (err) {
+          console.warn('[WhatsApp Flow] Failed to send, falling back to List:', err);
+        }
       }
+
+      // Fallback a lista de texto (Chat Menu)
+      await waClient.sendText(from, 'He preparado el menú aquí abajo para ti:');
+      await waClient.sendList(from, store.name, 'Selecciona los productos:', 'Ver Productos', [
+        {
+          title: 'Productos Disponibles',
+          rows: store.products.map(p => ({
+            id: `select_${p.id}`,
+            title: p.name,
+            description: `$${p.price.toLocaleString()}`
+          }))
+        }
+      ]);
 
       await (prisma as any).whatsAppSession.update({
         where: { id: session.id },

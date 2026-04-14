@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import {
   ArrowLeft,
@@ -45,32 +46,41 @@ type Store = {
 
 export default function WhatsAppCatalog({ 
   store, 
-  initialPhone 
+  initialPhone,
+  initialCart = {},
+  initialName = '',
+  initialAddress = ''
 }: { 
   store: Store, 
-  initialPhone?: string 
+  initialPhone?: string,
+  initialCart?: Record<string, number>,
+  initialName?: string,
+  initialAddress?: string
 }) {
-  const [cart, setCart] = useState<Record<string, number>>({})
+  const [cart, setCart] = useState<Record<string, number>>(initialCart)
   const [searchQuery, setSearchQuery] = useState('')
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   
-  // Checkout Form State
+  // Checkout Form State - Load from session
   const [form, setForm] = useState({
-    customerName: '',
-    address: '',
-    city: '',
+    customerName: initialName,
+    address: initialAddress,
+    city: 'Colombia',
     lat: null as number | null,
     lng: null as number | null
   })
+  
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [hasChanged, setHasChanged] = useState(false)
   const [loadingAction, setLoadingAction] = useState<null | 'whatsapp' | 'card'>(null)
   const [payError, setPayError] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Sync effect
+  // Sync effect - Only sync if changes occurred
   useEffect(() => {
-    if (!initialPhone || itemsInCart === 0) return
+    if (!initialPhone || !hasChanged) return
     const timer = setTimeout(async () => {
       try {
         await fetch('/api/whatsapp/sync-cart', {
@@ -79,13 +89,15 @@ export default function WhatsAppCatalog({
           body: JSON.stringify({ 
             phoneNumber: initialPhone, 
             cartData: { items: cart },
-            storeId: store.id
+            storeId: store.id,
+            customerName: form.customerName,
+            address: form.address
           })
         })
       } catch (e) { console.error('Sync failed') }
     }, 2000)
     return () => clearTimeout(timer)
-  }, [cart, initialPhone, store.id])
+  }, [cart, initialPhone, store.id, hasChanged])
 
   const itemsInCart = Object.values(cart).reduce((s, q) => s + q, 0)
   const total = store.products.reduce((s, p) => s + p.price * (cart[p.id] ?? 0), 0)
@@ -101,6 +113,7 @@ export default function WhatsAppCatalog({
 
   function changeQty(id: string, delta: number) {
     const product = store.products.find(p => p.id === id)!
+    setHasChanged(true)
     setCart(prev => {
       const currentQty = prev[id] ?? 0
       const newQty = Math.max(0, Math.min(currentQty + delta, product.stock))
@@ -214,42 +227,48 @@ export default function WhatsAppCatalog({
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-zinc-900 font-sans selection:bg-zinc-100">
-      {/* Native Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-zinc-100 px-4 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-50 glass-premium border-b border-white/20 px-4 h-[70px] flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button className="p-1 -ml-1 text-zinc-600 active:bg-zinc-100 rounded-full transition-colors" onClick={() => window.history.back()}>
+          <button className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-full transition-colors" onClick={() => window.history.back()}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-[17px] font-semibold tracking-tight">Catálogo</h1>
+          <div className="flex flex-col">
+            <h1 className="text-[17px] font-black tracking-tight uppercase">{store.name}</h1>
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Catálogo oficial</span>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <ShoppingCart 
-              className={cn("w-6 h-6 text-zinc-600 cursor-pointer", itemsInCart > 0 && "text-zinc-900")} 
-              onClick={() => setIsCartOpen(true)}
-            />
+        <div className="flex items-center gap-1.5">
+          <button 
+            onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')}
+            className="w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-full text-zinc-600 active:bg-zinc-200 transition-colors"
+          >
+            {viewMode === 'grid' ? <LayoutGrid className="w-5 h-5" /> : <Settings2 className="w-5 h-5 rotate-90" />} 
+          </button>
+          <button 
+            className="w-10 h-10 flex items-center justify-center bg-zinc-950 rounded-full relative active:scale-90 transition-all" 
+            onClick={() => setIsCartOpen(true)}
+          >
+            <ShoppingCart className="w-5 h-5 text-white" />
             {itemsInCart > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border-2 border-white shadow-sm animate-in zoom-in">
                 {itemsInCart}
               </span>
             )}
-          </div>
-          <Settings2 className="w-6 h-6 text-zinc-400" />
-          <LayoutGrid className="w-6 h-6 text-zinc-400" />
+          </button>
         </div>
       </header>
 
       <main className="flex-1 pb-32">
-        {/* Search Bar */}
-        <div className="px-4 py-3">
+        {/* Premium Search Bar */}
+        <div className="px-4 py-4">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-zinc-600" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-zinc-950 transition-colors" />
             <input 
               type="text"
-              placeholder="Buscar"
+              placeholder="¿Qué buscas hoy?"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-100/70 border-none rounded-xl py-2.5 pl-11 pr-4 text-[15px] outline-none focus:bg-zinc-100 transition-all"
+              className="w-full bg-zinc-100/80 border border-zinc-200/50 rounded-[2rem] py-4 pl-14 pr-6 text-[16px] font-medium outline-none focus:bg-white focus:ring-4 focus:ring-zinc-100 transition-all"
             />
           </div>
         </div>
@@ -261,10 +280,10 @@ export default function WhatsAppCatalog({
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                "whitespace-nowrap px-4 py-1.5 rounded-full text-[13px] font-bold transition-all border",
+                "whitespace-nowrap px-6 py-2.5 rounded-full text-[14px] font-black transition-all border uppercase tracking-wider",
                 selectedCategory === cat 
-                  ? "bg-zinc-900 text-white border-zinc-900 shadow-sm"
-                  : "bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300"
+                  ? "bg-zinc-950 text-white border-zinc-950 shadow-xl"
+                  : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300 bg-white/50 backdrop-blur-md"
               )}
             >
               {cat}
@@ -272,101 +291,139 @@ export default function WhatsAppCatalog({
           ))}
         </div>
 
-        {/* Product List */}
-        <div className="mt-2 divide-y divide-zinc-50">
+        {/* Products Grid/List */}
+        <div className={cn(
+          "px-4 pb-32",
+          viewMode === 'grid' ? "grid grid-cols-2 gap-4" : "flex flex-col gap-4"
+        )}>
           {filteredProducts.map(product => (
-            <div key={product.id} className="flex items-center gap-4 px-4 py-4 active:bg-zinc-50 transition-colors">
+            <div 
+              key={product.id} 
+              className={cn(
+                "group relative bg-white border border-black/5 rounded-[2.5rem] overflow-hidden transition-all duration-500",
+                viewMode === 'grid' ? "flex flex-col glass-premium p-2" : "flex gap-4 p-4 border-zinc-100"
+              )}
+            >
               {/* Image Container */}
               <div 
-                className="w-24 h-24 rounded-2xl bg-zinc-50 overflow-hidden shrink-0 border border-zinc-100/50 cursor-pointer"
+                className={cn(
+                  "relative rounded-[2rem] overflow-hidden shrink-0 cursor-pointer",
+                  viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-32 h-32"
+                )}
                 onClick={() => setSelectedProduct(product)}
               >
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  <Image 
+                    src={product.imageUrl} 
+                    alt={product.name} 
+                    width={400} 
+                    height={400} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                  />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-300">
-                    <ShoppingBag className="w-8 h-8" />
+                  <div className="w-full h-full flex items-center justify-center text-zinc-200 bg-zinc-50">
+                    <ShoppingBag className="w-10 h-10" />
+                  </div>
+                )}
+
+                {/* Grid Overlay Controls */}
+                {cart[product.id] && viewMode === 'grid' && (
+                  <div className="absolute inset-0 z-20 bg-black/10 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-300">
+                     <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-full p-1.5 shadow-2xl border border-white">
+                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, -1); }} className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center active:scale-75 transition-transform"><Minus className="w-4 h-4" /></button>
+                        <span className="font-black text-lg w-5 text-center">{cart[product.id]}</span>
+                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, 1); }} className="w-8 h-8 rounded-full bg-zinc-900 text-white flex items-center justify-center active:scale-75 transition-transform"><Plus className="w-4 h-4" /></button>
+                     </div>
                   </div>
                 )}
               </div>
 
               {/* Info Container */}
-              <div 
-                className="flex-1 min-w-0 pr-2 cursor-pointer"
-                onClick={() => setSelectedProduct(product)}
-              >
-                <h3 className="text-[15px] font-bold text-zinc-900 truncate mb-0.5">
-                  {product.name}
-                </h3>
-                <p className="text-[13px] text-zinc-500 line-clamp-2 leading-snug mb-2 font-medium">
-                  {product.category || 'Varios'} • Click para ver detalle
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[16px] font-bold text-zinc-900">
+              <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                <div onClick={() => setSelectedProduct(product)} className="cursor-pointer">
+                  <h3 className={cn(
+                    "font-black text-zinc-900 leading-[1.1] uppercase tracking-tighter",
+                    viewMode === 'grid' ? "text-[15px] line-clamp-2 px-2" : "text-[18px] mb-1"
+                  )}>
+                    {product.name}
+                  </h3>
+                  {viewMode === 'list' && (
+                    <p className="text-[13px] text-zinc-500 line-clamp-2 mb-2 leading-tight font-medium">
+                      Calidad premium garantizada. Disponible ahora en catálogo.
+                    </p>
+                  )}
+                  <p className={cn(
+                    "font-black text-zinc-950",
+                    viewMode === 'grid' ? "text-[17px] px-2 mt-1" : "text-xl"
+                  )}>
                     ${product.price.toLocaleString('es-CO')}
-                  </span>
+                  </p>
                 </div>
-              </div>
 
-              {/* Action Button */}
-              <div className="shrink-0">
-                {cart[product.id] ? (
-                  <div className="flex items-center gap-3 bg-zinc-100 rounded-full px-1 py-1">
-                    <button 
-                      onClick={() => changeQty(product.id, -1)}
-                      className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-zinc-600 active:scale-90 transition-transform"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="font-bold text-sm w-4 text-center">{cart[product.id]}</span>
+                <div className={cn(
+                  "flex items-center justify-between",
+                  viewMode === 'grid' ? "px-2 pb-1" : "mt-3"
+                )}>
+                  {cart[product.id] && viewMode === 'list' ? (
+                    <div className="flex items-center gap-4 bg-zinc-100 rounded-full p-1 border border-zinc-200">
+                      <button onClick={() => changeQty(product.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-full active:bg-zinc-200"><Minus className="w-4 h-4" /></button>
+                      <span className="font-black text-sm">{cart[product.id]}</span>
+                      <button onClick={() => changeQty(product.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-full active:bg-zinc-200"><Plus className="w-4 h-4" /></button>
+                    </div>
+                  ) : !cart[product.id] ? (
                     <button 
                       onClick={() => changeQty(product.id, 1)}
-                      className="w-8 h-8 rounded-full bg-zinc-900 text-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
+                      className={cn(
+                        "rounded-full bg-zinc-900 text-white shadow-lg active:scale-90 transition-all flex items-center justify-center",
+                        viewMode === 'grid' ? "w-10 h-10 mt-2" : "px-6 h-10 text-[13px] font-black uppercase tracking-widest"
+                      )}
                     >
-                      <Plus className="w-4 h-4" />
+                      {viewMode === 'list' && <span className="mr-2">Agregar</span>}
+                      <Plus className="w-5 h-5" />
                     </button>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => changeQty(product.id, 1)}
-                    className="w-10 h-10 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center text-zinc-400 active:bg-zinc-900 active:text-white transition-all"
-                  >
-                    <Plus className="w-6 h-6" />
-                  </button>
-                )}
+                  ) : null}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </main>
 
-      {/* Floating Checkout Bar */}
-      {itemsInCart > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 z-40">
+      {/* Premium Obsidian Footer */}
+      {itemsInCart > 0 && !isCartOpen && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-10 duration-700">
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="w-full h-14 bg-zinc-900 text-white rounded-2xl px-6 flex items-center justify-between shadow-xl active:scale-95 transition-transform"
+            className="w-full bg-zinc-950 text-white rounded-[2.5rem] h-20 flex items-center justify-between px-10 shadow-2xl shadow-black/40 active:scale-95 transition-all group border border-white/10"
           >
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/10 w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-black border border-white/5">
                 {itemsInCart}
               </div>
-              <span className="text-sm font-bold tracking-tight uppercase">Ver Carrito</span>
+              <div className="flex flex-col items-start">
+                <span className="font-black text-[16px] uppercase tracking-tighter leading-none group-hover:translate-x-1 transition-transform">Revisar orden</span>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Listo para finalizar</span>
+              </div>
             </div>
-            <span className="text-lg font-bold">${total.toLocaleString('es-CO')}</span>
+            <span className="font-black text-2xl tracking-tighter text-white/90">${total.toLocaleString('es-CO')}</span>
           </button>
         </div>
+ 
+
       )}
 
       {/* Simplified Cart Modal */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-[2rem] sm:rounded-[2rem] max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
-            <div className="p-6 flex justify-between items-center border-b border-zinc-100">
-              <h2 className="text-xl font-bold">Tu Pedido</h2>
-              <button onClick={() => setIsCartOpen(false)} className="p-2 bg-zinc-100 rounded-full">
-                <X className="w-5 h-5 text-zinc-500" />
+          <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
+          <div className="relative w-full max-w-lg bg-white rounded-t-[3rem] sm:rounded-[3rem] max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-500">
+            <div className="p-8 pb-4 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-black uppercase tracking-tight">Tu Pedido</h2>
+                <p className="text-sm font-bold text-zinc-400">Total: {itemsInCart} items</p>
+              </div>
+              <button onClick={() => setIsCartOpen(false)} className="w-12 h-12 small bg-zinc-100 rounded-full flex items-center justify-center">
+                <X className="w-6 h-6 text-zinc-900" />
               </button>
             </div>
 
@@ -396,7 +453,10 @@ export default function WhatsAppCatalog({
                       placeholder="¿A nombre de quién?" 
                       className="w-full bg-zinc-100/50 border-none rounded-xl p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
                       value={form.customerName}
-                      onChange={e => setForm(f => ({ ...f, customerName: e.target.value }))}
+                      onChange={e => {
+                        setForm(f => ({ ...f, customerName: e.target.value }))
+                        setHasChanged(true)
+                      }}
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <input 
@@ -409,7 +469,10 @@ export default function WhatsAppCatalog({
                         placeholder="Dirección" 
                         className="w-full bg-zinc-100/50 border-none rounded-xl p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
                         value={form.address}
-                        onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                        onChange={e => {
+                          setForm(f => ({ ...f, address: e.target.value }))
+                          setHasChanged(true)
+                        }}
                       />
                     </div>
                     <p className="text-[11px] text-zinc-400 px-1 italic">* También puedes seleccionar en el mapa debajo.</p>
