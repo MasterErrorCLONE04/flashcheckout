@@ -120,29 +120,41 @@ export default async function ExplorePage({
 }
 
 function MarketStoreCard({ store }: { store: any }) {
+  const productCount = store._count?.products || 0;
+
   return (
     <Link href={`/tienda/${store.slug}`} className="group block">
-      <div className="relative aspect-square w-full bg-white rounded-2xl border border-zinc-200/60 transition-all duration-300 group-hover:border-zinc-300 group-hover:shadow-sm overflow-hidden flex items-center justify-center p-6">
+      <div className="relative aspect-square w-full bg-[#FAFAFA] rounded-2xl border border-zinc-200/60 transition-all duration-300 group-hover:border-zinc-300 overflow-hidden flex items-center justify-center p-6">
         {store.logoUrl ? (
           <img 
             src={store.logoUrl} 
-            className="max-w-[80%] max-h-[80%] object-contain transition-transform duration-500 group-hover:scale-110" 
+            className="max-w-[80%] max-h-[80%] object-contain transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2 mix-blend-multiply" 
             alt={store.name} 
           />
         ) : (
-          <Store className="w-10 h-10 text-zinc-100 group-hover:text-zinc-200 transition-colors" />
+          <Store className="w-10 h-10 text-zinc-200 group-hover:text-zinc-300 transition-colors duration-300" />
         )}
+        
+        {/* Indicador de productos en hover */}
+        <div className="absolute top-3 right-3 bg-white border border-zinc-200/80 rounded-full px-2.5 py-1 flex items-center gap-1.5 opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+          <ShoppingBag className="w-3 h-3 text-zinc-400" />
+          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{productCount} prod.</span>
+        </div>
       </div>
 
-      <div className="mt-4 px-1 space-y-0.5">
-        <h3 className="font-semibold text-sm text-zinc-900 tracking-tight truncate group-hover:text-black transition-colors">
-          {store.name}
-        </h3>
-        <p className="text-[12px] font-medium text-zinc-500">
-          {store.category || 'Tienda Digital'}
-        </p>
+      <div className="mt-4 px-1 flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <h3 className="font-semibold text-sm text-zinc-900 tracking-tight truncate group-hover:text-black transition-colors duration-300">
+            {store.name}
+          </h3>
+          <p className="text-[12px] font-medium text-zinc-500 truncate">
+            {store.category || 'Tienda Digital'}
+          </p>
+        </div>
+        <div className="w-6 h-6 rounded-full border border-zinc-200/60 flex items-center justify-center bg-white text-zinc-400 group-hover:border-black group-hover:text-white group-hover:bg-black transition-all duration-300 shrink-0 mt-0.5">
+          <ChevronRight className="w-3.5 h-3.5 translate-x-[0.5px]" />
+        </div>
       </div>
     </Link>
   )
 }
-
