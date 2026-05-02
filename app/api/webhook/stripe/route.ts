@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { sendInvoiceToWhatsApp } from '@/lib/whatsapp/send-invoice'
+
 
 type OrderItemJson = {
   productId: string
@@ -84,6 +86,13 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
       },
     })
   })
+
+  // Enviar factura electrónica por WhatsApp
+  try {
+    await sendInvoiceToWhatsApp(orderId)
+  } catch (error) {
+    console.error('[Stripe Webhook] Failed to send WhatsApp confirmation / invoice', error)
+  }
 }
 
 export async function POST(req: Request) {

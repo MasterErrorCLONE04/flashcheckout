@@ -104,7 +104,20 @@ export class WhatsAppCloudAPI {
     });
   }
 
+  async sendDocument(to: string, documentUrl: string, filename: string) {
+    return this.send({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'document',
+      document: {
+        link: documentUrl,
+        filename: filename
+      }
+    });
+  }
+
   async sendUrlButton(to: string, body: string, buttonText: string, url: string) {
+
     return this.send({
       messaging_product: 'whatsapp',
       to,

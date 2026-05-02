@@ -1,0 +1,238 @@
+9.	Baqueanos
+En este módulo el usuario podrá administrar el despliegue y la administración del personal de apoyo especializado (baqueanos) para las labores de campo. El ciclo operativo cubre desde la solicitud inicial de acompañamiento, el flujo de aprobaciones técnicas y jerárquicas, hasta la gestión de sus cuentas de cobro y el monitoreo operativo mediante tableros de control. El módulo centraliza la información del personal de campo, incluyendo sus datos de identidad, información financiera y el plan de trabajo asociado a cada intervención territorial. Encontrará un apartado con las diferentes acciones del sistema: Solicitar Baqueanos, Seguimiento de Solicitudes, las bandejas de validación secuencial (Líder de Reconocimiento, Profesional Social, Jefe de Operaciones, Gerencia), el Tablero de Control, y el submódulo de Cuentas Baqueanos con sus vistas de Pagos y Aprobaciones, Seguimiento de Radicaciones y Detalles de Cuentas Pagadas.
+9.1	Acceso al Módulo
+ El acceso al Módulo de Baqueanos está regulado por el sistema de permisos basado en roles de la plataforma. Los roles con visibilidad sobre el módulo completo son: Administrador, Director de Catastro, Líder de Reconocimiento, Profesional Social, Gerencia, Pagos y Soporte. Cada rol tendrá acceso únicamente a las secciones del módulo que correspondan a su función dentro del flujo de aprobación.
+9.2	Acciones del Módulo
+
+El sistema cuenta con un menú de acciones para la gestión de baqueanos ubicado en la barra lateral, dentro de dos submenús principales. El primero, denominado Solicitudes, agrupa las opciones: Solicitar Baqueanos, Seguimiento de Solicitudes, Líder de Reconocimiento, Profesional Social, Jefe de Operaciones, Gerencia y Tablero de Control. El segundo, denominado Cuentas Baqueanos, agrupa las opciones: Pagos y Aprobaciones, Seguimiento de Radicaciones y Detalles Cuentas Pagadas.
+
+
+
+
+
+9.3	Solicitar Baqueanos – Radicar una Solicitud
+Para radicar una nueva solicitud de baqueano en el sistema, el usuario deberá dirigirse al módulo de Baqueanos y seleccionar la opción "Solicitar Baqueanos". El usuario será dirigido a un formulario organizado en dos (2) secciones secuenciales. El sistema presenta en la parte superior un navegador tipo Stepper que indica visualmente el avance del diligenciamiento, cambiando de estilo según el estado de cada sección: gris para pendiente, blanco con borde azul para la sección activa, y azul sólido para las secciones completadas.
+Por políticas operativas del sistema, las solicitudes de baqueanos solo pueden realizarse los días lunes y martes de cada semana. Si el usuario intenta acceder al formulario en cualquier otro día, el sistema presentará una pantalla de bloqueo institucional con un ícono de candado y el mensaje "Disponible únicamente los lunes y martes", impidiendo el acceso al formulario hasta el próximo lunes.
+
+9.3.1	Sección 1: Datos Generales
+ 
+El usuario deberá diligenciar en esta sección la información de identidad, contacto e información financiera del colaborador de campo (baqueano).
+9.3.2	Tipo de Documento
+El usuario deberá seleccionar en el menú desplegable el tipo de documento del baqueano: Cédula de Ciudadanía, Cédula de Extranjería, N.I.T. o Pasaporte (Campo obligatorio en el sistema).
+  
+
+9.3.3	Número de Documento de Identidad
+El usuario deberá ingresar el número del documento de identidad del baqueano. Este campo no admite caracteres adicionales y tiene un límite de 10 dígitos (Campo obligatorio en el sistema). 
+9.3.4	Nombres
+El usuario deberá ingresar los nombres completos del baqueano (Campo obligatorio en el sistema).
+
+9.3.5	Apellidos
+El usuario deberá ingresar los apellidos completos del baqueano (Campo obligatorio en el sistema).
+
+9.3.6	Número Telefónico 
+El usuario deberá registrar el número de contacto telefónico del baqueano (Campo obligatorio en el sistema). 
+9.3.7	Correo Electrónico
+El usuario deberá registrar la dirección de correo electrónico del baqueano (Campo obligatorio en el sistema).
+9.3.8	Dirección 
+El usuario deberá ingresar la dirección de residencia del baqueano (Campo obligatorio en el sistema).
+
+A continuación, el usuario deberá diligenciar la subsección de Información Financiera del baqueano:
+9.3.9	Cuenta Bancaria
+El usuario deberá seleccionar en el menú desplegable el banco del baqueano: Bancolombia, Daviplata, Davivienda, Nequi u Otro. En caso de seleccionar "Otro", el sistema habilitará automáticamente un campo adicional para ingresar el nombre de la entidad bancaria de forma manual.
+ 
+
+9.3.10	Tipo de Cuenta
+El usuario deberá seleccionar en el menú desplegable el tipo de cuenta del baqueano: Ahorros o Corriente.
+
+9.3.11	N° Cuenta Bancaria
+El usuario deberá ingresar el número de cuenta bancaria del baqueano.
+9.3.12	Titular de la Cuenta
+El usuario deberá registrar el nombre del titular de la cuenta bancaria. 
+Una vez diligenciados todos los campos de la primera sección, el usuario deberá dar clic en el botón "Siguiente" para avanzar a la sección 2 del formulario.
+
+9.3.13	Sección 2: Plan de Trabajo
+
+El usuario deberá diligenciar en esta sección la información operativa y logística de la actividad a desarrollar por el baqueano en campo. Esta información es de suma importancia ya que define la ubicación geográfica, los responsables y los valores presupuestales de la intervención.
+
+9.3.14	Profesional Social
+El usuario deberá ingresar el nombre del profesional social encargado de la actividad en campo (Campo obligatorio en el sistema). 
+9.3.15	Coordinador
+El usuario deberá ingresar el nombre del coordinador responsable de la intervención (Campo obligatorio en el sistema). 
+9.3.16	Año
+El sistema presenta un selector de año deshabilitado para edición manual; el año activo se asigna automáticamente con base en la fecha de la solicitud.
+9.3.17	Fecha Inicio
+El usuario deberá seleccionar mediante el calendario habilitado la fecha en que iniciará la labor del baqueano en campo (Campo obligatorio en el sistema). 
+9.3.18	Fecha Fin
+El usuario deberá seleccionar la fecha en que finalizará la labor del baqueano en campo (Campo obligatorio en el sistema). 
+9.3.19	Total de Días
+Este campo es de lectura automática; el sistema calculará el número exacto de días de trabajo del baqueano con base en las fechas de inicio y fin ingresadas. 
+9.3.20	Valor a Cobrar por Día
+El usuario deberá ingresar el valor pactado por cada día de servicio prestado por el baqueano. El campo aplica automáticamente la máscara de formato de moneda colombiana. 
+9.3.21	Total a Cobrar
+Este campo es de lectura automática; el sistema multiplicará el valor diario por el total de días calculados para proyectar el monto total de la prestación del servicio. 
+9.3.22	Unidad de Intervención
+El usuario deberá ingresar la identificación de la unidad donde se realizará la intervención.
+
+9.3.23	Tipo de Unidad
+ El usuario deberá seleccionar en el menú desplegable si la unidad de intervención es de tipo Urbana o Rural (Campo obligatorio en el sistema). 
+
+9.3.24	Unidad Operativa
+El usuario deberá seleccionar si la unidad operativa corresponde a un Barrio o a una Vereda (Campo obligatorio en el sistema).
+
+
+9.3.25	Municipio
+El usuario deberá seleccionar en el menú desplegable el municipio donde se ejecutará la actividad: Arboletes, San Juan, Necoclí, San Pedro, Valle del Guamuez o Leiva (Campo obligatorio en el sistema).
+
+
+9.3.26	Vereda/Barrio
+El usuario deberá ingresar el nombre específico de la vereda o barrio donde se desarrollará la labor del baqueano (Campo obligatorio en el sistema). 
+9.3.27	Tipo de Actividad 
+El usuario deberá seleccionar en el menú desplegable la naturaleza de la intervención: Atención a Saldos, Atención PQRS, Observación Interventoría, Reconocimiento, Acompañamiento Social, Control de Calidad o Interlocución (Campo obligatorio en el sistema). Dependiendo de la actividad seleccionada, el sistema habilitará condicionalmente dos campos adicionales: Líder de Cuadrilla (para actividades que requieren coordinación de personal) y Reconocedor (para actividades de tipo reconocimiento catastral).
+9.3.28	Transporte
+El usuario deberá indicar si la labor del baqueano requiere transporte (Sí o No). En caso de seleccionar "Sí", el sistema habilitará automáticamente dos campos adicionales: un área de texto para justificar el motivo del transporte y un campo de moneda para registrar el valor estimado del mismo (Campo obligatorio en el sistema).
+9.3.29	Hospedaje 
+El usuario deberá indicar si la labor del baqueano requiere hospedaje (Sí o No). En caso de seleccionar "Sí", el sistema habilitará automáticamente dos campos adicionales: un área de texto para justificar el motivo del hospedaje y un campo de moneda para registrar el valor estimado del mismo (Campo obligatorio en el sistema). 
+
+Una vez que el usuario haya diligenciado todas las secciones del formulario, deberá dar clic en el botón "Solicitar". El sistema procesará la información y notificará al solicitante confirmando el registro con el número de radicado asignado. Acto seguido, el usuario será redirigido a la vista de Seguimiento de Solicitudes.
+9.4	Seguimiento de Solicitudes – Consulta y Monitoreo
+Al ingresar a la sección de Seguimiento de Solicitudes, el usuario encontrará una tabla dinámica con diseño tipo tarjetas que organiza todas las solicitudes de baqueanos radicadas. Las filas presentan un borde lateral azul profundo como elemento de identidad visual del módulo. El usuario podrá interactuar con esta información mediante las siguientes acciones:
+ 
+9.4.1	Barra de Búsqueda Integrada
+El usuario podrá filtrar el listado de solicitudes por nombre del baqueano, número de radicado o tipo de actividad. 
+9.4.2	Número de Radicado (Enlace Directo)
+El identificador de radicado (ej: ARB_145) actúa como un enlace directo que lleva al usuario a la vista de Información Detallada de la solicitud, donde podrá consultar todos los datos ingresados sin posibilidad de modificarlos.
+
+9.4.3	Editar Solicitud (Ícono Lápiz)
+Disponible únicamente para solicitudes que aún no han completado todas sus fases de aprobación. Permite al usuario corregir datos de la solicitud previamente radicada. 
+
+9.4.4	Editar Devolución (Ícono Rojo)
+Este botón con ícono de usuario y lápiz en color rojo aparece específicamente cuando alguna etapa del flujo ha marcado la solicitud como "DEVUELTO", permitiendo al usuario realizar las correcciones solicitadas por la instancia revisora.
+9.4.5	Chip de Aprobación Final
+Una vez que las cuatro etapas del flujo de aprobación (Líder de Reconocimiento, Profesional Social, Jefe de Operaciones y Gerencia) han sido completadas exitosamente, el sistema reemplaza los botones de edición por una insignia que indica "Ya aprobado".
+La tabla presenta el estado de aprobación mediante indicadores visuales para cada instancia del flujo. Un ícono de check verde indica que la etapa fue aprobada; un spinner azul en movimiento indica que la etapa está pendiente de revisión; y una X roja indica que la etapa fue devuelta con observaciones.
+   
+
+9.5	Flujo de Aprobación Jerárquica
+El sistema garantiza que ninguna solicitud de baqueano se formalice sin pasar por los niveles de validación jerárquicos correspondientes. El flujo de aprobación se compone de cuatro niveles secuenciales que deben ser completados en orden.
+
+
+9.5.1	Nivel 1: Líder de Reconocimiento – Corrección Técnica de Tiempos
+
+El usuario con rol de Líder de Reconocimiento encontrará en esta bandeja el listado de solicitudes que han sido devueltas por inconsistencias en los tiempos o cronogramas registrados. El sistema filtra automáticamente únicamente aquellos radicados que tienen el estado DEVUELTO y cuyo motivo de devolución está clasificado como TIEMPOS. La vista muestra la cantidad de días originalmente calculados, el valor diario y el total a cobrar para que el líder sea consciente del impacto presupuestal de los ajustes que realice. Al hacer clic en el número de radicado, el líder es dirigido a una interfaz optimizada para el re-cargue del plan de trabajo corregido. En caso de que no existan solicitudes pendientes de corrección, el sistema muestra un mensaje informativo en el centro de la pantalla.
+
+ 
+
+9.5.2	Nivel 2: Profesional Social – Supervisión de Devoluciones
+El usuario con rol de Profesional Social encontrará en esta bandeja el listado de solicitudes que han sido devueltas por las instancias de Gerencia o Jefe de Operaciones. El sistema filtra dinámicamente los registros donde el estado de gerencia u operaciones es igual a DEVUELTO y existe un motivo documentado. El profesional social podrá acceder directamente a la información de la devolución para coordinar con el baqueano o el líder de reconocimiento los ajustes necesarios antes de volver a circular la solicitud. La vista también integra un sistema de notificaciones en tiempo real que indica al profesional la carga de trabajo pendiente mediante contadores dinámicos en el menú superior.
+ 
+
+9.5.3	Nivel 3: Jefe de Operaciones – Validación Técnica y Logística
+El usuario con rol de Jefe de Operaciones encontrará en esta bandeja las solicitudes que han superado las etapas de corrección previas y requieren su validación técnica y logística. La vista organiza la información en dos pestañas de navegación para una revisión estructurada: la pestaña Datos Generales presenta la información de identidad y los datos bancarios del baqueano; la pestaña Plan de Trabajo presenta el desglose de actividades, fechas y responsables. La instancia podrá verificar la ubicación geográfica exacta de la intervención (municipio y vereda), así como los montos y justificaciones técnicas de los gastos adicionales de transporte y hospedaje. Todos los campos se presentan en modo de solo lectura para evitar modificaciones durante la revisión. Al finalizar la revisión, el usuario deberá dar clic al botón "Aprobar" para que el trámite avance a Gerencia, o registrar un motivo de devolución en el campo correspondiente y dar clic en "Devolver" para retornar el trámite con las observaciones al equipo social. 
+ 
+9.5.4	Nivel 4: Gerencia – Aprobación Final y Autorización de Gasto
+El usuario con rol de Gerencia encontrará en esta bandeja las solicitudes que han recibido el aval técnico del Jefe de Operaciones y requieren la autorización definitiva para el pago. La vista presenta en la parte superior una tarjeta de resumen ejecutivo con los datos de identidad del baqueano para una identificación rápida del beneficiario. La información detallada se organiza en dos pestañas: la primera con los datos demográficos y financieros, y la segunda con el plan de trabajo, fechas de ejecución y ubicación geográfica. En caso de que la solicitud haya sido extendida en tiempo o valor mediante un Otrosí, el sistema resaltará los campos de días agregados y valor adicional, y Gerencia aprobará sobre el valor nuevo total que incluye dicha adición. Al finalizar la revisión, el usuario deberá dar clic al botón "Aprobar" para registrar el aval gerencial y notificar al sistema de pagos, o dar clic en "Devolver" para abrir un modal que le permita registrar la razón técnica del rechazo y retornar la solicitud a etapas anteriores. 
+ 
+9.6	Tablero de Control – Inteligencia Operativa
+Al ingresar al Tablero de Control, el usuario encontrará un panel de analítica estratégica con visualizaciones en tiempo real sobre el estado financiero y operativo del módulo de Baqueanos. En la parte superior se presentan tarjetas dinámicas (KPIs) con los indicadores más relevantes:
+
+
+
+
+
+
+El tablero se divide en tres columnas o secciones principales de visualización de datos:
+9.6.1	Panel Financiero y Operativo (Izquierda)
+9.6.2	Solicitudes Baqueanos
+Una tarjeta principal azul destacada que muestra el indicador clave de "Valor pendiente" monetario, junto con una barra de progreso que ilustra porcentualmente el "Progreso pagado" global de todos los registros que coinciden con los filtros. Incluye dos botones de acción rápida para redirigir al usuario hacia la bandeja general ("Ver solicitudes") y a los reportes contables ("Pagadas").
+
+9.6.3	Información financiera
+Una segunda tarjeta enfocada al monitoreo financiero detallado. Compara de forma apilada el "Valor pagado" y el "Valor pendiente", empleando barras de progreso esbeltas (estilo slim) independientes para la fácil comprensión volumétrica del gasto. Finaliza con dos contadores dinámicos tipo chip denominados "Pendientes" y "Devueltas".
+
+
+
+9.6.4	Indicadores Clave y Gráficas Estadísticas (Centro)
+
+9.6.5	KPIs (Key Performance Indicators)
+Tres tarjetas dinámicas de métricas en la parte superior que presentan el "Total solicitudes" (En vivo), el conteo de registros "Pendientes" (En revisión) y la cantidad histórica de solicitudes "Pagadas" (Cerradas). 
+9.6.6	Tablero de Estadísticas Interactivo
+El tablero centraliza múltiples reportes en un contenedor único interactivo de pestañas, permitiendo permutar entre cuatro dimensiones analíticas
+
+
+9.6.7	Municipios
+Gráfico jerárquico que desglosa el volumen geográfico de intervenciones bajo la etiqueta "Top municipios".
+
+
+
+9.6.8	Barras
+Exposición temporal de desempeño. Un gráfico que compara mensualmente los rubros aprobados versus pendientes.
+
+
+
+9.6.9	Análisis
+Visualización porcentual e inteligente que deduce y exhibe en formato tendencia (alza o decremento) la fluctuación financiera del periodo actual contra su mes anterior, complementado con una línea temporal en formato Chart.js.
+
+9.6.10	Tipo 
+Agrupación temática sobre la cantidad de solicitudes demandadas por cada concepto operativo bajo el título "Top módulos".
+
+
+
+9.6.11	Transacciones recientes 
+Una tabla de vista rápida ubicada bajo las gráficas que enlista las últimas seis solicitudes formalizadas. Contempla las columnas de Radicado (funcionando como hipervínculo directo al registro interno), Nombre del baqueano, Fecha, valor Total y un botón tipo óvalo con el Estado.
+  
+
+9.6.12	Distribución de Estados y Trazabilidad (Derecha)
+
+9.6.13	Distribución de estados
+
+Presenta un resumen general de volumen mediante un gráfico tipo Donut (Dona). Analiza el pastel global según el embudo de estados principales: Pendiente, Aprobado, Devuelto y Pagado. Bajo el gráfico, se lista el detalle nominal extraído de la partición de la dona ilustrada.
+
+
+
+9.6.14	Actividad reciente
+Funciona como un componente de línea de tiempo simplificada. Expone de manera secuencial vertical los movimientos y creaciones más contemporáneas asociando enlaces que dirigen al auditor directamente hasta la información de las solicitudes alteradas por el proceso de baqueanos.
+
+
+
+9.7	Cuentas Baqueanos – Aprobar Radicaciones de Solicitudes Gerencia
+
+Una vez el baqueano ha formalizado el proceso de pago y radicado su cuenta de cobro, el equipo de gerencia o personal autorizado deberá revisar y validar dicha radicación a través de la interfaz de auditoría documental, antes de proceder a la dispersión financiera. Esta vista se estructura netamente en formato de visualización, protegiendo con integridad los datos calculados.
+
+
+ 
+9.7.1	Datos de identidad
+Presenta el tipo y número de documento, nombres del baqueano, y su información principal de contacto (teléfono y correo). 
+
+9.7.2	Fechas y Valores Módulo Operaciones
+Expone las fechas estipuladas del cronograma, el cálculo aritmético del "Total de días", y aplica directamente una pre-liquidación mostrando el valor diario frente al "Total a cobrar" en formato estricto de moneda colombiana. 
+
+9.7.3	Ubicación de la Labor
+Extrae la ubicación geográfica técnica con datos como la Unidad de Intervención, el Municipio, la Vereda o Barrio, y documenta quién es el profesional directamente vinculado con dicha cuenta junto a cualquier observación que exista. 
+
+El núcleo de validación para gerencia reside en la sección de "Documentos PDF Radicados". El sistema provee acceso directo a los cuatro soportes obligatorios extraídos del servidor físico:
+9.7.4	Cédula Baqueano
+ 
+
+9.7.5	Registro Único Tributario (RUT)
+ 
+
+9.7.6	Certificado Bancario
+ 
+
+9.7.7	Cuenta de Cobro
+ 
+
+9.8	Seguimiento de Radicaciones – Monitoreo del Flujo de Pago
+
+Al ingresar a la vista de Seguimiento de Radicaciones, el usuario encontrará una tabla dinámica con diseño tipo tarjetas que permite realizar un monitoreo del estado de cada cuenta radicada a través de las dos instancias de revisión: Jefe de Operaciones y Gerencia. La simbología de los estados es la misma que en el seguimiento de solicitudes: 
+La vista realiza un cálculo dinámico en tiempo real que suma automáticamente los días y valores de las extensiones aprobadas (otrosí) al radicado original, garantizando que los montos mostrados en la tabla reflejen con exactitud el valor real que será pagado al baqueano. Al hacer clic en el número de radicado, el usuario es dirigido a una vista de información detallada donde puede previsualizar los documentos PDF cargados (Cédula, RUT, Certificado Bancario) y consultar las observaciones de cada revisor. Cuando una cuenta es aprobada por Gerencia y está lista para el cargue del comprobante de transferencia, un indicador dinámico en la parte superior de la vista actualiza la cantidad de cuentas listas para ese paso final.
+ 
+9.9	Detalles Cuentas Pagadas 
+Al ingresar a la vista de Detalles Cuentas Pagadas, el usuario encontrará una interfaz de auditoría para la revisión documental de las cuentas radicadas que están en proceso de cierre financiero. La vista consolida en un solo lugar todos los datos pertinentes de la cuenta: la identificación completa del baqueano (documento, nombres, teléfono y correo), el consolidado de tiempos y valores que integra automáticamente cualquier adición por extensiones aprobadas, y la trazabilidad de ubicación con el detalle de la unidad de intervención, municipio y vereda donde se ejecutó la labor técnica.
+ 
+La vista actúa como un repositorio documental interactivo donde el usuario podrá visualizar los documentos PDF cargados en el proceso de radicación (Cédula, RUT y Certificado Bancario) mediante vistas previas integradas directamente en la pantalla o en ventanas independientes. Las rutas de los archivos son construidas dinámicamente por el sistema con base en el año y el período de facturación de la cuenta, garantizando que siempre se consulte el documento correcto asociado el radicado.
+
+ 
+
+ 
+
+En la barra de acciones fija en la parte inferior de la pantalla, el usuario encontrará dos opciones para el cierre del proceso: el botón de Aprobación de Cuenta, que valida que los soportes documentales son correctos y permite el paso final al estado de pagado; y el botón de Devolución Técnica, que permite retornar la cuenta al profesional social si los documentos presentan inconsistencias o son ilegibles, exigiendo una observación técnica para la corrección.

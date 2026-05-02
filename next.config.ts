@@ -8,9 +8,13 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
-  allowedDevOrigins: ['critics-humidity-ages-cashiers.trycloudflare.com'],
+  allowedDevOrigins: ['*.trycloudflare.com', 'localhost:3000'],
 };
 
 export default nextConfig;

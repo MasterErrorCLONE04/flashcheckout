@@ -144,11 +144,11 @@
   button:not(.small),
   input[type="submit"],
   .large-touch-target {
-    @apply min-h-[64px] text-[17px] font-black tracking-tight rounded-[1.8rem] !important;
+    @apply !min-h-[64px] !text-[17px] !font-black !tracking-tight !rounded-[1.8rem];
   }
 
   /* Inputs más grandes para móvil */
   input, select, textarea {
-    @apply text-[16px] p-5 rounded-[1.5rem] !important;
+    @apply !text-[16px] !p-5 !rounded-[1.5rem];
   }
 }

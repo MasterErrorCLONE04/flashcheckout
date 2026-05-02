@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { mpPayment } from '@/lib/mercadopago'
 import { waClient } from '@/lib/whatsapp/cloud-api'
+import { sendInvoiceToWhatsApp } from '@/lib/whatsapp/send-invoice'
+
 
 export async function POST(req: Request) {
   try {
@@ -56,6 +58,8 @@ export async function POST(req: Request) {
             order.customerWhatsAppId,
             `¡Pago confirmado! 🎉\n\nTu pedido *#${order.id.slice(-6)}* por un total de $${order.total.toLocaleString()} ha sido procesado exitosamente.\n\n¡Gracias por usar StoreFCheckout! 🚀`
           )
+          // Enviar factura electrónica por WhatsApp
+          await sendInvoiceToWhatsApp(orderId)
         } catch (error) {
           console.error('[MP Webhook] Failed to send WhatsApp confirmation', error)
         }

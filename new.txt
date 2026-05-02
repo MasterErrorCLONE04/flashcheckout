@@ -1,0 +1,2066 @@
+# agents/01_discovery.py
+import httpx, uuid
+from datetime import datetime, timezone
+from core.cache import get_cached, set_cached
+
+async def run(query: str, location: str = "Neiva, Huila") -> list[dict]:
+    cache_key = f"discovery:{query}:{location}"
+    cached = await get_cached(cache_key)
+    if cached:
+        return cached
+
+    results = []
+    results += await _search_google_maps(query, location)
+    results += await _search_facebook(query, location)
+
+    seen = set()
+    unique = []
+    for r in results:
+        key = r["name"].lower().strip()
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
+
+    await set_cached(cache_key, unique, ttl_hours=24)
+    return unique
+
+async def _search_google_maps(query: str, location: str) -> list[dict]:
+    url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    params = {
+        "query": f"{query} en {location}",
+        "key": "TU_API_KEY",
+        "language": "es",
+        "region": "co"
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.get(url, params=params)
+        places = r.json().get("results", [])
+    return [{
+        "raw_id": str(uuid.uuid4()),
+        "name": p.get("name"),
+        "sources": ["google_maps"],
+        "google_place_id": p.get("place_id"),
+        "address": p.get("formatted_address"),
+        "rating": p.get("rating", 0),
+        "review_count": p.get("user_ratings_total", 0),
+        "category_raw": (p.get("types") or [""])[0],
+        "lat": p.get("geometry", {}).get("location", {}).get("lat"),
+        "lng": p.get("geometry", {}).get("location", {}).get("lng"),
+        "source_type": "google_maps",
+        "discovered_at": datetime.now(timezone.utc).isoformat()
+    } for p in places]
+
+async def _search_facebook(query: str, location: str) -> list[dict]:
+    # TODO: implementar en fase 2
+    return []
+
+# agents/02_reconciliation.py
+import uuid, re, math
+
+def normalize(text: str) -> str:
+    if not text:
+        return ""
+    text = text.lower().strip()
+    for a, b in [('á','a'),('é','e'),('í','i'),('ó','o'),('ú','u'),('ñ','n')]:
+        text = text.replace(a, b)
+    stopwords = ['clinica','consultorio','centro','servicios','empresa','ltda','sas','&','y']
+    for w in stopwords:
+        text = text.replace(w, '').strip()
+    return re.sub(r'\s+', ' ', text)
+
+def jaccard(a: str, b: str) -> float:
+    sa, sb = set(normalize(a).split()), set(normalize(b).split())
+    if not sa or not sb:
+        return 0.0
+    return len(sa & sb) / len(sa | sb)
+
+def geo_distance_km(lat1, lng1, lat2, lng2) -> float:
+    if not all([lat1, lng1, lat2, lng2]):
+        return 999
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng/2)**2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+def reconciliation_score(raw: dict, entity: dict) -> float:
+    name_score   = jaccard(raw.get("name",""), entity.get("canonical_name",""))
+    phone_score  = 1.0 if (raw.get("phone") and raw.get("phone") == entity.get("phone")) else 0.0
+    dist         = geo_distance_km(raw.get("lat"), raw.get("lng"), entity.get("lat"), entity.get("lng"))
+    geo_score    = 1.0 if dist < 0.1 else (0.5 if dist < 0.5 else 0.0)
+    domain_score = 0.0
+    if raw.get("website") and entity.get("website"):
+        d1 = raw["website"].replace("www.","").split("/")[0]
+        d2 = entity["website"].replace("www.","").split("/")[0]
+        domain_score = 1.0 if d1 == d2 else 0.0
+    return (name_score * 0.4) + (phone_score * 0.3) + (geo_score * 0.2) + (domain_score * 0.1)
+
+async def run(raw: dict, existing_entities: list[dict] = None) -> dict:
+    if existing_entities:
+        for entity in existing_entities:
+            score = reconciliation_score(raw, entity)
+            if score >= 0.75:
+                return {**entity, "is_new": False, "reconciliation_score": round(score, 3)}
+    return {
+        "entity_id":      str(uuid.uuid4()),
+        "canonical_name": raw["name"],
+        "aliases":        [raw["name"]],
+        "phone":          raw.get("phone"),
+        "address":        raw.get("address"),
+        "website":        raw.get("website"),
+        "lat":            raw.get("lat"),
+        "lng":            raw.get("lng"),
+        "social":         {},
+        "raw_sources":    raw,
+        "confidence_score": 1.0,
+        "is_new":         True
+    }
+
+
+# agents/02b_data_quality.py
+
+REQUIRED_FIELDS = ["canonical_name", "address", "phone", "website", "rating", "review_count"]
+MIN_REVIEWS_FOR_CONFIDENCE = 10
+
+def run(profile: dict) -> dict:
+    present  = [f for f in REQUIRED_FIELDS if profile.get(f)]
+    missing  = [f for f in REQUIRED_FIELDS if not profile.get(f)]
+    completeness = len(present) / len(REQUIRED_FIELDS)
+
+    sources          = profile.get("raw_sources", {}).get("sources", [])
+    source_reliability = "ALTA" if len(sources) >= 2 else ("MEDIA" if len(sources) == 1 else "BAJA")
+
+    reviews      = profile.get("review_count", 0)
+    review_signal = "SUFICIENTE" if reviews >= MIN_REVIEWS_FOR_CONFIDENCE else "INSUFICIENTE"
+
+    confidence = (
+        completeness * 0.5
+        + (0.3 if source_reliability == "ALTA" else 0.15)
+        + (0.2 if reviews >= MIN_REVIEWS_FOR_CONFIDENCE else 0.05)
+    )
+
+    tier           = "ALTA" if confidence >= 0.75 else ("MEDIA" if confidence >= 0.5 else "BAJA")
+    is_processable = completeness >= 0.3 and bool(profile.get("canonical_name"))
+
+    return {
+        "entity_id":        profile["entity_id"],
+        "completeness_score": round(completeness, 2),
+        "confidence_score":   round(confidence, 2),
+        "missing_fields":     missing,
+        "data_quality_tier":  tier,
+        "review_signal":      review_signal,
+        "source_reliability": source_reliability,
+        "is_processable":     is_processable
+    }
+
+# agents/03_classifier.py
+import json
+from core.groq_client import ask
+
+SYSTEM = """
+Clasifica esta empresa colombiana. Devuelve SOLO JSON:
+{
+  "sector": "SALUD|LEGAL|EDUCACION|RESTAURANTES|COMERCIO|INMOBILIARIA|SERVICIOS|LOGISTICA|OTRO",
+  "subsector": "descripción específica",
+  "business_type": "CONSULTORIO|BUFETE|RESTAURANTE|TIENDA|EMPRESA_SERVICIOS|OTRO",
+  "employee_estimate": "1-5|5-15|15-50|50+",
+  "years_operating_estimate": "0-2|3-7|8-15|15+",
+  "playbook_id": "SALUD|LEGAL|RESTAURANTES|COMERCIO|SERVICIOS_B2B|GENERICO",
+  "classifier_confidence": 0.0
+}
+"""
+
+async def run(profile: dict, quality: dict) -> dict:
+    prompt = f"""
+    Nombre: {profile['canonical_name']}
+    Dirección: {profile.get('address', 'Neiva, Huila')}
+    Categoría: {profile.get('category_raw', 'desconocida')}
+    Rating: {profile.get('rating', 0)} | Reseñas: {profile.get('review_count', 0)}
+    Calidad de datos: {quality.get('data_quality_tier')} (completeness: {quality.get('completeness_score')})
+    """
+    result = json.loads(ask(SYSTEM, prompt))
+    result["entity_id"] = profile["entity_id"]
+    return result
+
+
+# agents/04_digital_maturity.py
+import json
+from core.groq_client import ask
+
+SYSTEM = """
+Evalúa la madurez digital de esta empresa colombiana. Devuelve SOLO JSON:
+{
+  "digital_level": 0,
+  "digital_level_label": "INVISIBLE|BASICO|OPERATIVO|ESTRUCTURADO|MADURO",
+  "digital_gap_score": 0.0,
+  "signals": {
+    "has_website": false,
+    "website_quality": "ninguna|basica|media|profesional",
+    "uses_whatsapp_manual": true,
+    "has_crm": false,
+    "social_active": false,
+    "last_post_days_ago": 999,
+    "has_booking_system": false,
+    "google_ads_detected": false,
+    "has_ecommerce": false
+  },
+  "gap_description": "Una frase con la brecha digital principal"
+}
+"""
+
+async def run(profile: dict) -> dict:
+    prompt = f"""
+    Empresa: {profile['canonical_name']} ({profile.get('sector','?')})
+    Web: {profile.get('website','no tiene')}
+    Redes: {json.dumps(profile.get('social',{}))}
+    Reseñas: {profile.get('review_count',0)}
+    """
+    result = json.loads(ask(SYSTEM, prompt))
+    result["entity_id"] = profile["entity_id"]
+    return result
+
+# agents/05_economic_scorer.py
+import json
+from core.groq_client import ask
+
+SYSTEM = """
+Eres un analista económico que describe la escala operativa de empresas colombianas
+usando señales indirectas y públicas. NO decides si es buen cliente.
+NO hagas recomendaciones comerciales. SOLO describe la escala del negocio.
+
+Devuelve SOLO JSON:
+{
+  "economic_power_score": 0.0,
+  "tier": "BAJO|MEDIO|MEDIO_ALTO|ALTO",
+  "estimated_revenue_range_cop": "rango mensual estimado en COP",
+  "confidence": 0.0,
+  "business_scale_signals": {
+    "foot_traffic_proxy": "BAJO|MEDIO|ALTO",
+    "brand_strength": "BAJA|MEDIA|ALTA",
+    "operational_complexity": "BAJA|MEDIA|ALTA",
+    "digital_investment": "BAJA|MEDIA|ALTA"
+  },
+  "data_quality": {
+    "completeness": 0.0,
+    "source_reliability": "BAJA|MEDIA|ALTA"
+  },
+  "reasoning": "Máximo 2 líneas explicando las señales usadas."
+}
+
+Guía de tiers para Neiva, Colombia:
+BAJO: menos de 20M COP/mes
+MEDIO: 20M - 80M COP/mes
+MEDIO_ALTO: 80M - 300M COP/mes
+ALTO: más de 300M COP/mes
+"""
+
+async def run(profile: dict, maturity: dict, quality: dict) -> dict:
+    prompt = f"""
+    Empresa: {profile['canonical_name']}
+    Sector: {profile.get('sector')} - {profile.get('subsector')}
+    Dirección: {profile.get('address')}
+    Reseñas: {profile.get('review_count', 0)} | Rating: {profile.get('rating', 0)}
+    Empleados estimados: {profile.get('employee_estimate','?')}
+    Años operando: {profile.get('years_operating_estimate','?')}
+    Nivel digital: {maturity.get('digital_level_label')} (nivel {maturity.get('digital_level')})
+    Tiene web: {maturity.get('signals', {}).get('has_website')}
+    Calidad web: {maturity.get('signals', {}).get('website_quality')}
+    Ads detectados: {maturity.get('signals', {}).get('google_ads_detected')}
+    Calidad de datos: {quality.get('data_quality_tier')} ({quality.get('completeness_score')})
+    """
+    result = json.loads(ask(SYSTEM, prompt, max_tokens=500))
+    result["entity_id"] = profile["entity_id"]
+    return result
+
+# agents/05b_opportunity.py
+
+def calculate_activity_signal(profile: dict) -> float:
+    reviews = profile.get("review_count", 0)
+    if reviews >= 100: return 1.0
+    if reviews >= 50:  return 0.7
+    if reviews >= 20:  return 0.5
+    if reviews >= 5:   return 0.3
+    return 0.1
+
+def calculate_digital_gap(maturity: dict) -> float:
+    level = maturity.get("digital_level", 0)
+    return round(1.0 - (level / 4.0), 2)
+
+def run(profile: dict, maturity: dict, scoring: dict) -> dict:
+    """
+    Opportunity Score: ranking inicial heurístico.
+    NO se usa para calcular win_probability.
+    """
+    economic    = scoring.get("economic_power_score", 0.5)
+    digital_gap = calculate_digital_gap(maturity)
+    activity    = calculate_activity_signal(profile)
+
+    opportunity = round((economic * 0.4) + (digital_gap * 0.4) + (activity * 0.2), 3)
+    level = "ALTA" if opportunity >= 0.6 else ("MEDIA" if opportunity >= 0.4 else "BAJA")
+
+    return {
+        "entity_id":        profile["entity_id"],
+        "opportunity_score": opportunity,
+        "priority_level":   level,
+        "components": {
+            "economic_component": round(economic * 0.4, 3),
+            "digital_component":  round(digital_gap * 0.4, 3),
+            "activity_component": round(activity * 0.2, 3),
+        },
+        "reasoning":    "Ranking inicial heurístico",
+        "is_predictive": False
+    }
+
+# agents/06_problem_detector.py
+import json
+from core.groq_client import ask
+
+TICKET_PROMEDIO = {
+    "SALUD": 120_000, "LEGAL": 350_000, "EDUCACION": 200_000,
+    "RESTAURANTES": 35_000, "COMERCIO": 80_000, "SERVICIOS": 150_000,
+    "INMOBILIARIA": 500_000, "OTRO": 100_000
+}
+
+SYSTEM = """
+Analiza las señales digitales de esta empresa colombiana y detecta sus problemas operativos.
+Para cada problema, estima el impacto económico mensual.
+Devuelve SOLO JSON:
+{
+  "problems": [
+    {
+      "id": "P001",
+      "type": "CAPTACION_MANUAL|ATENCION_WHATSAPP|SIN_CRM|REDES_ABANDONADAS|SIN_WEB|SIN_AGENDAMIENTO|BAJA_CONVERSION",
+      "severity": "BAJA|MEDIA|ALTA|CRITICA",
+      "evidence": "Evidencia concreta",
+      "revenue_impact": "BAJO|MEDIO|ALTO",
+      "estimated_monthly_loss_cop": 0
+    }
+  ]
+}
+Detecta máximo 3 problemas ordenados por severidad.
+"""
+
+async def run(profile: dict, maturity: dict, scoring: dict) -> dict:
+    sector = profile.get("sector", "OTRO")
+    ticket = TICKET_PROMEDIO.get(sector, 100_000)
+    prompt = f"""
+    Empresa: {profile['canonical_name']} ({sector})
+    Reseñas: {profile.get('review_count', 0)} | Rating: {profile.get('rating', 0)}
+    Nivel digital: {maturity.get('digital_level_label')} (nivel {maturity.get('digital_level')})
+    Señales: {json.dumps(maturity.get('signals', {}))}
+    Brecha: {maturity.get('gap_description', '')}
+    Tier económico: {scoring.get('tier')}
+    Ticket promedio sector {sector}: {ticket:,} COP
+    """
+    result = json.loads(ask(SYSTEM, prompt))
+    result["entity_id"] = profile["entity_id"]
+    return result
+
+# agents/06b_funnel_model.py
+
+TRAFFIC_MULTIPLIERS = {
+    "SALUD": 25, "LEGAL": 15, "RESTAURANTES": 40,
+    "COMERCIO": 30, "SERVICIOS": 20, "EDUCACION": 18, "OTRO": 22
+}
+
+CONVERSION_BY_MATURITY = {0: 0.05, 1: 0.08, 2: 0.12, 3: 0.18, 4: 0.25}
+
+TICKET_PROMEDIO = {
+    "SALUD": 120_000, "LEGAL": 350_000, "EDUCACION": 200_000,
+    "RESTAURANTES": 35_000, "COMERCIO": 80_000, "SERVICIOS": 150_000,
+    "INMOBILIARIA": 500_000, "OTRO": 100_000
+}
+
+def run(profile: dict, maturity: dict, problems: list) -> dict:
+    sector         = profile.get("sector", "OTRO")
+    reviews        = profile.get("review_count", 0)
+    multiplier     = TRAFFIC_MULTIPLIERS.get(sector, 22)
+    monthly_visits = reviews * multiplier
+
+    has_web    = maturity["signals"].get("has_website", False)
+    has_social = maturity["signals"].get("social_active", False)
+    lead_rate  = 0.15 if (has_web and has_social) else (0.08 if has_web else 0.03)
+
+    current_level      = maturity.get("digital_level", 0)
+    current_conversion = CONVERSION_BY_MATURITY.get(current_level, 0.05)
+    potential_conversion = 0.20
+
+    ticket           = TICKET_PROMEDIO.get(sector, 100_000)
+    monthly_leads    = int(monthly_visits * lead_rate)
+    current_sales    = int(monthly_leads * current_conversion)
+    potential_sales  = int(monthly_leads * potential_conversion)
+    current_revenue  = current_sales * ticket
+    potential_revenue = potential_sales * ticket
+    revenue_gap      = potential_revenue - current_revenue
+
+    problem_multiplier = 1.0
+    for p in problems:
+        if p.get("severity") == "CRITICA": problem_multiplier += 0.3
+        elif p.get("severity") == "ALTA":  problem_multiplier += 0.15
+
+    adjusted_gap = int(revenue_gap * problem_multiplier)
+
+    confidence = 0.6
+    if reviews >= 20: confidence += 0.2
+    if has_web:       confidence += 0.1
+    if profile.get("rating"): confidence += 0.1
+
+    return {
+        "entity_id":               profile["entity_id"],
+        "estimated_monthly_visits": monthly_visits,
+        "lead_capture_rate":        lead_rate,
+        "current_conversion_rate":  current_conversion,
+        "potential_conversion_rate": potential_conversion,
+        "avg_ticket_cop":           ticket,
+        "estimated_leads_monthly":  monthly_leads,
+        "estimated_sales_monthly":  current_sales,
+        "estimated_revenue_monthly": current_revenue,
+        "revenue_gap_monthly_cop":  adjusted_gap,
+        "model_confidence":         round(confidence, 2),
+        "assumptions_json": {
+            "traffic_multiplier":  multiplier,
+            "problem_multiplier":  problem_multiplier,
+            "sector":              sector,
+            "reviews_used":        reviews
+        }
+    }
+
+# agents/07_solution_mapper.py
+
+SOLUTION_CATALOG = {
+    "ATENCION_WHATSAPP":  {"product": "Bot WhatsApp 24/7",           "type": "AUTOMATIZACION"},
+    "SIN_AGENDAMIENTO":   {"product": "Agenda Digital Online",        "type": "HERRAMIENTA"},
+    "SIN_CRM":            {"product": "CRM de Seguimiento",           "type": "GESTION"},
+    "REDES_ABANDONADAS":  {"product": "Gestión de Redes Sociales",    "type": "MARKETING"},
+    "SIN_WEB":            {"product": "Sitio Web Profesional",        "type": "PRESENCIA"},
+    "BAJA_CONVERSION":    {"product": "Landing Page + Conversión",    "type": "MARKETING"},
+    "CAPTACION_MANUAL":   {"product": "Sistema de Leads Automático",  "type": "AUTOMATIZACION"},
+}
+
+SECTOR_PLAYBOOKS = {
+    "SALUD": {
+        "SIN_AGENDAMIENTO": "Mostrar caso de clínica que redujo llamadas en 60%",
+        "ATENCION_WHATSAPP": "Resaltar atención 24/7 para urgencias",
+        "SIN_CRM": "Enfatizar seguimiento post-consulta",
+    },
+    "LEGAL": {
+        "SIN_CRM": "Resaltar gestión de casos y fechas límite",
+        "ATENCION_WHATSAPP": "Filtrar consultas y capturar leads calificados",
+        "SIN_WEB": "Credibilidad y posicionamiento profesional",
+    },
+    "RESTAURANTES": {
+        "SIN_AGENDAMIENTO": "Reservas online = más mesas ocupadas",
+        "REDES_ABANDONADAS": "Contenido de platos = tráfico orgánico",
+        "ATENCION_WHATSAPP": "Pedidos por WhatsApp automatizados",
+    },
+    "GENERICO": {
+        "SIN_WEB": "Presencia digital básica para búsquedas locales",
+        "ATENCION_WHATSAPP": "Automatización de respuestas frecuentes",
+    }
+}
+
+async def run(problems: dict, profile: dict) -> dict:
+    playbook_id  = profile.get("playbook_id", "GENERICO")
+    sector_plays = SECTOR_PLAYBOOKS.get(playbook_id, SECTOR_PLAYBOOKS["GENERICO"])
+    solutions    = []
+    priority     = 1
+
+    for problem in problems.get("problems", []):
+        ptype = problem.get("type", "")
+        item  = SOLUTION_CATALOG.get(ptype)
+        if item:
+            playbook = sector_plays.get(ptype, f"Solución estándar para {ptype}")
+            solutions.append({
+                "problem_id":              problem["id"],
+                "problem_type":            ptype,
+                "solution_type":           item["type"],
+                "product_name":            item["product"],
+                "severity":                problem.get("severity"),
+                "estimated_monthly_loss_cop": problem.get("estimated_monthly_loss_cop", 0),
+                "playbook":                playbook,
+                "priority":                priority
+            })
+            priority += 1
+
+    total_loss = sum(s["estimated_monthly_loss_cop"] for s in solutions)
+
+    return {
+        "entity_id":               problems["entity_id"],
+        "solutions":               solutions,
+        "total_solutions":         len(solutions),
+        "total_estimated_loss_cop": total_loss
+    }
+
+# agents/08_offer_generator.py
+import json, uuid
+from datetime import datetime, timezone
+from core.groq_client import ask
+
+SYSTEM = """
+Eres un redactor comercial B2B para empresas colombianas.
+Escribes propuestas DIRECTAS, con datos reales, sin frases genéricas.
+Devuelve SOLO JSON:
+{
+  "headline": "Frase directa que nombra el problema + la pérdida. Máximo 12 palabras.",
+  "body": "2-3 oraciones. Menciona datos reales: reseñas, sector, pérdida estimada en COP.",
+  "call_to_action": "Pregunta de cierre natural. Máximo 15 palabras."
+}
+"""
+
+async def run(profile: dict, problems: dict, solutions: dict) -> dict:
+    total_loss   = solutions.get("total_estimated_loss_cop", 0)
+    loss_text    = f"{total_loss/1_000_000:.1f}M COP/mes" if total_loss > 500_000 else "ingresos no capturados"
+    solutions_text = ", ".join([s["product_name"] for s in solutions.get("solutions", [])])
+
+    prompt = f"""
+    Negocio: {profile['canonical_name']} ({profile.get('sector')})
+    Reseñas: {profile.get('review_count', 0)} con rating {profile.get('rating', 0)}/5
+    Pérdida mensual estimada: {loss_text}
+    Soluciones: {solutions_text}
+    """
+
+    offer_content = json.loads(ask(SYSTEM, prompt, max_tokens=600))
+    return {
+        "offer_id":         str(uuid.uuid4()),
+        "entity_id":        profile["entity_id"],
+        "business_name":    profile["canonical_name"],
+        "offer":            offer_content,
+        "solutions_offered": solutions.get("solutions", []),
+        "total_estimated_loss_cop": total_loss,
+        "contact": {
+            "phone":          profile.get("phone"),
+            "whatsapp_url":   f"https://wa.me/57{profile.get('phone','').replace('+57','').replace(' ','')}",
+            "preferred_channel": "WHATSAPP"
+        },
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
+
+# agents/09_outreach.py
+from datetime import datetime, timezone
+from db.supabase_client import supabase
+
+def calculate_channel_scores(profile: dict, maturity: dict) -> dict:
+    scores = {"EMAIL": 0.0, "WHATSAPP": 0.0, "INSTAGRAM_DM": 0.0, "PHONE": 0.0}
+    if profile.get("website"):
+        scores["EMAIL"] += 0.3
+    if profile.get("phone"):
+        scores["WHATSAPP"] += 0.3
+    if profile.get("social", {}).get("whatsapp_visible"):
+        scores["WHATSAPP"] += 0.5
+    if profile.get("social", {}).get("instagram_active"):
+        scores["INSTAGRAM_DM"] += 0.4
+    if profile.get("phone"):
+        scores["PHONE"] += 0.5
+    return scores
+
+def select_best_channel(scores: dict) -> str:
+    best = max(scores, key=scores.get)
+    return best if scores[best] > 0.2 else "WHATSAPP"
+
+async def run(offer: dict, opportunity: dict, profile: dict, maturity: dict) -> dict:
+    channel_scores = calculate_channel_scores(profile, maturity)
+    best_channel   = select_best_channel(channel_scores)
+    best_window    = opportunity.get("best_contact_window", "LUN-VIE 10:00-12:00")
+
+    log_entry = {
+        "entity_id":     offer["entity_id"],
+        "offer_id":      offer["offer_id"],
+        "channel":       best_channel,
+        "contact_timing": best_window,
+        "status":        "PREPARED",
+        "notes":         f"Prioridad: {opportunity.get('priority_level')} | EV: ${opportunity.get('expected_value_cop', 0):,} COP",
+        "created_at":    datetime.now(timezone.utc).isoformat()
+    }
+
+    supabase.table("businesses").update({
+        "channel_signals":  channel_scores,
+        "preferred_channel": best_channel
+    }).eq("entity_id", offer["entity_id"]).execute()
+
+    result = supabase.table("outreach_log").insert(log_entry).execute()
+
+    return {
+        "entity_id":          offer["entity_id"],
+        "offer_id":           offer["offer_id"],
+        "outreach_id":        result.data[0]["id"] if result.data else None,
+        "status":             "PREPARED",
+        "selected_channel":   best_channel,
+        "best_contact_window": best_window,
+        "channel_scores":     channel_scores
+    }
+
+# agents/09b_contact_timing.py
+from datetime import datetime, timezone
+from db.supabase_client import supabase
+
+class TimingEngine:
+
+    def get_optimal_window(self, sector: str, channel: str = "WHATSAPP", entity_id: str = None) -> dict:
+        recency_days = self._get_recency_days(entity_id) if entity_id else 999
+
+        learned = (
+            supabase.table("timing_patterns")
+            .select("*")
+            .eq("sector", sector)
+            .eq("channel", channel)
+            .gt("total_contacts", 15)
+            .order("response_rate", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        if learned.data:
+            p            = learned.data[0]
+            base_rate    = p["response_rate"]
+            recency_mult = self._recency_multiplier(recency_days)
+            adjusted     = base_rate * recency_mult
+            return {
+                "source":              "learned_recency_adjusted",
+                "weekday":             p["weekday"],
+                "hour_start":          p["hour_start"],
+                "hour_end":            p["hour_end"],
+                "channel":             channel,
+                "base_rate":           round(base_rate, 4),
+                "recency_days":        recency_days,
+                "recency_multiplier":  round(recency_mult, 3),
+                "adjusted_rate":       round(adjusted, 4),
+                "probability_score":   round(adjusted, 4),
+                "sample_size":         p["total_contacts"],
+                "confidence":          min(1.0, p["total_contacts"] / 50)
+            }
+
+        return self._bayesian_prior(sector, channel, recency_days)
+
+    def _recency_multiplier(self, days: int) -> float:
+        if days < 1:   return 0.1
+        elif days < 3: return 0.5
+        elif days < 7: return 0.8
+        elif days < 30: return 1.0
+        else:           return 1.2
+
+    def _get_recency_days(self, entity_id: str) -> int:
+        r = (
+            supabase.table("outreach_log")
+            .select("sent_at")
+            .eq("entity_id", entity_id)
+            .order("sent_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if r.data:
+            last = datetime.fromisoformat(r.data[0]["sent_at"])
+            return (datetime.now(timezone.utc) - last).days
+        return 999
+
+    def record_outcome(self, outreach_id: str, responded: bool):
+        record = (
+            supabase.table("outreach_log")
+            .select("*, businesses!inner(sector, entity_id)")
+            .eq("id", outreach_id)
+            .single()
+            .execute()
+        )
+        if not record.data:
+            return
+
+        sector    = record.data["businesses"]["sector"]
+        entity_id = record.data["businesses"]["entity_id"]
+        channel   = record.data.get("channel", "WHATSAPP")
+        sent_at   = datetime.fromisoformat(record.data["sent_at"])
+        weekday   = ["LUN","MAR","MIE","JUE","VIE","SAB","DOM"][sent_at.weekday()]
+        hour      = sent_at.hour
+
+        previous = (
+            supabase.table("outreach_log")
+            .select("sent_at")
+            .eq("entity_id", entity_id)
+            .lt("sent_at", sent_at.isoformat())
+            .order("sent_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        recency = 999
+        if previous.data:
+            recency = (sent_at - datetime.fromisoformat(previous.data[0]["sent_at"])).days
+
+        existing = (
+            supabase.table("timing_patterns")
+            .select("*")
+            .eq("sector", sector)
+            .eq("channel", channel)
+            .eq("weekday", weekday)
+            .eq("hour_start", hour)
+            .execute()
+        )
+
+        if existing.data:
+            old           = existing.data[0]
+            new_total     = old["total_contacts"] + 1
+            new_responses = old["responses"] + (1 if responded else 0)
+            new_rate      = new_responses / new_total
+            avg_recency   = (
+                (old.get("avg_recency_days", 0) * old["total_contacts"]) + recency
+            ) / new_total
+
+            supabase.table("timing_patterns").update({
+                "total_contacts":   new_total,
+                "responses":        new_responses,
+                "response_rate":    round(new_rate, 4),
+                "probability_score": round(new_rate, 4),
+                "avg_recency_days": round(avg_recency, 1),
+                "last_updated":     datetime.now(timezone.utc).isoformat()
+            }).eq("id", old["id"]).execute()
+        else:
+            supabase.table("timing_patterns").insert({
+                "sector":           sector,
+                "channel":          channel,
+                "weekday":          weekday,
+                "hour_start":       hour,
+                "hour_end":         hour + 1,
+                "total_contacts":   1,
+                "responses":        1 if responded else 0,
+                "response_rate":    1.0 if responded else 0.0,
+                "probability_score": 1.0 if responded else 0.0,
+                "avg_recency_days": recency
+            }).execute()
+
+    def _bayesian_prior(self, sector: str, channel: str, recency_days: int = 999) -> dict:
+        multipliers   = {"WHATSAPP": 1.3, "PHONE": 1.2, "INSTAGRAM_DM": 1.0, "EMAIL": 0.7}
+        sector_priors = {
+            "RESTAURANTES": {"weekday": "MAR-MIE", "hour_start": 15, "hour_end": 17, "base_rate": 0.15},
+            "SALUD":        {"weekday": "LUN-MIE", "hour_start": 11, "hour_end": 13, "base_rate": 0.20},
+            "LEGAL":        {"weekday": "LUN-MAR", "hour_start": 8,  "hour_end": 10, "base_rate": 0.18},
+            "COMERCIO":     {"weekday": "MAR-JUE", "hour_start": 10, "hour_end": 12, "base_rate": 0.12}
+        }
+        prior        = sector_priors.get(sector, {"weekday": "LUN-VIE", "hour_start": 10, "hour_end": 12, "base_rate": 0.10})
+        multiplier   = multipliers.get(channel, 1.0)
+        recency_mult = self._recency_multiplier(recency_days)
+        adjusted     = prior["base_rate"] * multiplier * recency_mult
+
+        return {
+            "source":             "bayesian_prior_recency",
+            **prior,
+            "channel":            channel,
+            "recency_days":       recency_days,
+            "recency_multiplier": round(recency_mult, 3),
+            "response_rate":      round(adjusted, 4),
+            "probability_score":  round(adjusted, 4),
+            "sample_size":        0,
+            "confidence":         0.3
+        }
+
+timing_engine = TimingEngine()
+
+
+# agents/10_win_probability.py
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, mutual_info_classif
+from sklearn.model_selection import train_test_split
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import f1_score, precision_recall_curve, roc_auc_score, brier_score_loss
+import joblib, os, json, warnings
+from datetime import datetime, timezone
+from db.supabase_client import supabase
+
+warnings.filterwarnings("ignore")
+MODEL_DIR = "/tmp/models"
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+class WinProbabilityModel:
+    ALL_FEATURES = [
+        "intent_score", "digital_level", "economic_tier_encoded",
+        "activity_signal", "channel_encoded", "timing_score",
+        "sector_encoded", "review_count", "days_since_last_contact",
+        "has_website", "social_active", "hiring_signals_detected",
+        "negative_reviews_recent", "ads_detected"
+    ]
+
+    def __init__(self, version: str = "v6"):
+        self.version           = version
+        self.model             = None
+        self.scaler            = StandardScaler()
+        self.selector          = None
+        self.selected_features = None
+        self.threshold         = 0.5
+        self.metrics           = {}
+        self._load_or_init()
+
+    # ── persistence ─────────────────────────────────────────────────────────
+    def _paths(self):
+        return {
+            "model":    f"{MODEL_DIR}/win_model_{self.version}.pkl",
+            "scaler":   f"{MODEL_DIR}/scaler_{self.version}.pkl",
+            "selector": f"{MODEL_DIR}/selector_{self.version}.pkl",
+            "meta":     f"{MODEL_DIR}/meta_{self.version}.json",
+        }
+
+    def _load_or_init(self):
+        paths = self._paths()
+        if os.path.exists(paths["model"]):
+            self.model    = joblib.load(paths["model"])
+            self.scaler   = joblib.load(paths["scaler"])
+            self.selector = joblib.load(paths["selector"])
+            with open(paths["meta"]) as f:
+                meta = json.load(f)
+                self.selected_features = meta.get("selected_features")
+                self.threshold         = meta.get("optimal_threshold", 0.5)
+                self.metrics           = meta.get("metrics", {})
+        else:
+            self._init_empty()
+
+    def _init_empty(self):
+        self.model = LogisticRegression(
+            class_weight="balanced", max_iter=2000, C=0.1, penalty="l2", random_state=42
+        )
+        self.selected_features = self.ALL_FEATURES.copy()
+
+    # ── training ─────────────────────────────────────────────────────────────
+    def train(self, min_samples: int = 60) -> dict:
+        data = supabase.table("model_features").select("*").not_.is_("outcome", "null").execute()
+        if len(data.data) < min_samples:
+            return {"trained": False, "reason": f"insufficient_samples: {len(data.data)}/{min_samples}"}
+
+        X = np.array([[row.get(f, 0) for f in self.ALL_FEATURES] for row in data.data])
+        y = np.array([row["outcome"] for row in data.data])
+
+        X_temp, X_test, y_temp, y_test = train_test_split(
+            X, y, test_size=0.15, stratify=y, random_state=42
+        )
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_temp, y_temp, test_size=0.176, stratify=y_temp, random_state=42
+        )
+
+        X_train_s = self.scaler.fit_transform(X_train)
+        X_val_s   = self.scaler.transform(X_val)
+        X_test_s  = self.scaler.transform(X_test)
+
+        k = max(3, min(8, X_train.shape[1] // 2, len(y_train) // 10))
+        self.selector = SelectKBest(score_func=mutual_info_classif, k=k)
+        X_train_sel   = self.selector.fit_transform(X_train_s, y_train)
+        X_val_sel     = self.selector.transform(X_val_s)
+        X_test_sel    = self.selector.transform(X_test_s)
+
+        mask = self.selector.get_support()
+        self.selected_features = [f for f, sel in zip(self.ALL_FEATURES, mask) if sel]
+
+        base = LogisticRegression(
+            class_weight="balanced", max_iter=2000, C=0.1, penalty="l2", random_state=42
+        )
+        cal = CalibratedClassifierCV(base, method="isotonic", cv=3)
+        cal.fit(X_train_sel, y_train)
+        self.model = cal
+
+        val_probs      = self.model.predict_proba(X_val_sel)[:, 1]
+        self.threshold = self._optimize_threshold(y_val, val_probs, metric="f1")
+
+        test_probs = self.model.predict_proba(X_test_sel)[:, 1]
+        test_preds = (test_probs >= self.threshold).astype(int)
+
+        test_auc   = roc_auc_score(y_test, test_probs)
+        test_f1    = f1_score(y_test, test_preds)
+        test_brier = brier_score_loss(y_test, test_probs)
+
+        self._save_model()
+        self._save_performance({
+            "train_samples":     len(y_train),
+            "val_samples":       len(y_val),
+            "test_samples":      len(y_test),
+            "selected_features": self.selected_features,
+            "val_auc":           roc_auc_score(y_val, val_probs),
+            "val_f1":            f1_score(y_val, (val_probs >= self.threshold).astype(int)),
+            "test_auc":          test_auc,
+            "test_f1":           test_f1,
+            "test_brier":        test_brier,
+            "threshold":         self.threshold,
+            "class_balance":     float(np.mean(y))
+        })
+
+        return {
+            "trained":     True,
+            "test_auc":    round(test_auc, 3),
+            "test_f1":     round(test_f1, 3),
+            "test_brier":  round(test_brier, 3),
+            "threshold":   round(self.threshold, 3)
+        }
+
+    def _optimize_threshold(self, y_true, y_probs, metric: str = "f1") -> float:
+        if metric == "f1":
+            precisions, recalls, thresholds = precision_recall_curve(y_true, y_probs)
+            f1s     = 2 * (precisions * recalls) / (precisions + recalls + 1e-10)
+            best_idx = np.argmax(f1s[:-1])
+            return float(thresholds[best_idx])
+        return 0.5
+
+    # ── inference ────────────────────────────────────────────────────────────
+    def predict(self, entity_id: str, outreach_context: dict = None) -> dict:
+        features = self.extract_features(entity_id, outreach_context)
+        self._save_features(entity_id, features, outreach_context)
+
+        if not self._is_trained():
+            return self._prior_prediction(features, entity_id)
+
+        X      = np.array([[features.get(f, 0) for f in self.selected_features]])
+        X_s    = self.scaler.transform(X)
+        X_sel  = self.selector.transform(X_s) if self.selector else X_s
+        prob   = self.model.predict_proba(X_sel)[0][1]
+
+        return {
+            "entity_id":        entity_id,
+            "win_probability":  round(prob, 4),
+            "prediction_class": 1 if prob >= self.threshold else 0,
+            "threshold_used":   round(self.threshold, 3),
+            "confidence":       self._calculate_confidence(features),
+            "top_drivers":      self._top_drivers(features),
+            "model_version":    self.version,
+            "prediction_type":  "model_based"
+        }
+
+    def _is_trained(self) -> bool:
+        try:
+            return hasattr(self.model, "calibrated_classifiers_")
+        except Exception:
+            return False
+
+    def extract_features(self, entity_id: str, context: dict) -> dict:
+        business = (
+            supabase.table("businesses").select("*")
+            .eq("entity_id", entity_id).single().execute().data or {}
+        )
+        intent   = supabase.table("intent_signals").select("*").eq("entity_id", entity_id).limit(1).execute().data
+        maturity = supabase.table("digital_maturity").select("*").eq("entity_id", entity_id).limit(1).execute().data
+        economic = supabase.table("economic_scores").select("*").eq("entity_id", entity_id).limit(1).execute().data
+
+        return {
+            "intent_score":            intent[0].get("raw_intent_score", 0.5) if intent else 0.5,
+            "digital_level":           maturity[0].get("digital_level", 0) if maturity else 0,
+            "economic_tier_encoded":   {"BAJO": 0, "MEDIO": 1, "MEDIO_ALTO": 2, "ALTO": 3}.get(
+                                           economic[0].get("tier", "MEDIO") if economic else "MEDIO", 1),
+            "activity_signal":         self._calc_activity(business),
+            "channel_encoded":         {"EMAIL": 0, "WHATSAPP": 1, "INSTAGRAM_DM": 2, "PHONE": 3}.get(
+                                           context.get("channel", "WHATSAPP") if context else "WHATSAPP", 1),
+            "timing_score":            0.5,
+            "sector_encoded":          self._encode_sector(business.get("sector", "OTRO")),
+            "review_count":            business.get("review_count", 0),
+            "days_since_last_contact": self._days_since_contact(entity_id),
+            "has_website":             bool(business.get("website")),
+            "social_active":           maturity[0].get("signals", {}).get("social_active", False) if maturity else False,
+            "hiring_signals_detected": intent[0].get("hiring_signals", {}).get("detected", False) if intent else False,
+            "negative_reviews_recent": (intent[0].get("negative_reviews_30d", 0) > 0) if intent else False,
+            "ads_detected":            intent[0].get("ads_detected_active", False) if intent else False,
+        }
+
+    def _calc_activity(self, business: dict) -> float:
+        reviews = business.get("review_count", 0)
+        if reviews >= 100: return 1.0
+        if reviews >= 50:  return 0.7
+        if reviews >= 20:  return 0.5
+        return 0.2
+
+    def _encode_sector(self, sector: str) -> int:
+        sectors = ["SALUD","LEGAL","RESTAURANTES","COMERCIO","SERVICIOS","EDUCACION","OTRO"]
+        return sectors.index(sector) if sector in sectors else len(sectors) - 1
+
+    def _days_since_contact(self, entity_id: str) -> int:
+        r = (
+            supabase.table("outreach_log").select("sent_at")
+            .eq("entity_id", entity_id).order("sent_at", desc=True).limit(1).execute()
+        )
+        if r.data:
+            return (datetime.now(timezone.utc) - datetime.fromisoformat(r.data[0]["sent_at"])).days
+        return 999
+
+    def _save_features(self, entity_id: str, features: dict, context: dict):
+        supabase.table("model_features").insert({
+            "entity_id":    entity_id,
+            "outreach_id":  context.get("outreach_id") if context else None,
+            **features,
+            "outcome":      None,
+            "model_version": self.version,
+            "created_at":   datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+    def _prior_prediction(self, features: dict, entity_id: str) -> dict:
+        base = 0.05
+        if features.get("intent_score", 0.5) > 0.7:
+            base += 0.15
+        return {
+            "entity_id":       entity_id,
+            "win_probability": round(min(base, 0.5), 3),
+            "prediction_type": "prior_based",
+            "confidence":      0.3
+        }
+
+    def _calculate_confidence(self, features: dict) -> float:
+        feats   = self.selected_features or self.ALL_FEATURES
+        present = sum(1 for f in feats if features.get(f) is not None)
+        return round(present / len(feats), 2)
+
+    def _top_drivers(self, features: dict) -> list:
+        return []
+
+    def _save_model(self):
+        paths = self._paths()
+        joblib.dump(self.model,    paths["model"])
+        joblib.dump(self.scaler,   paths["scaler"])
+        joblib.dump(self.selector, paths["selector"])
+        with open(paths["meta"], "w") as f:
+            json.dump({
+                "version":           self.version,
+                "selected_features": self.selected_features,
+                "optimal_threshold": self.threshold,
+                "metrics":           self.metrics
+            }, f)
+
+    def _save_performance(self, metrics: dict):
+        self.metrics = metrics
+        supabase.table("model_performance").insert({
+            "model_version":    self.version,
+            "training_date":    datetime.now(timezone.utc).isoformat(),
+            "train_samples":    metrics["train_samples"],
+            "val_samples":      metrics["val_samples"],
+            "test_samples":     metrics["test_samples"],
+            "selector_method":  "mutual_info_classif",
+            "k_features":       len(self.selected_features),
+            "selected_features": self.selected_features,
+            "val_auc_roc":      metrics.get("val_auc"),
+            "val_f1":           metrics.get("val_f1"),
+            "optimal_threshold": metrics["threshold"],
+            "threshold_metric": "f1",
+            "test_auc_roc":     metrics["test_auc"],
+            "test_f1":          metrics["test_f1"],
+            "test_brier_score": metrics["test_brier"],
+            "brier_score":      metrics["test_brier"]
+        }).execute()
+
+win_model = WinProbabilityModel(version="v6")
+
+
+# agents/10b_expected_value.py
+import numpy as np
+from datetime import datetime, timezone
+from agents.10_win_probability import win_model
+from db.supabase_client import supabase
+
+class PrescriptiveEVEngine:
+    CHANNELS      = ["WHATSAPP", "EMAIL", "PHONE", "INSTAGRAM_DM"]
+    TIMING_SLOTS  = [
+        ("LUN", 9), ("LUN", 11), ("LUN", 15),
+        ("MAR", 9), ("MAR", 11), ("MAR", 15),
+        ("MIE", 9), ("MIE", 11), ("MIE", 15),
+    ]
+
+    # ── public API ───────────────────────────────────────────────────────────
+    def evaluate_actions(self, entity_id: str) -> list:
+        actions = []
+        for channel in self.CHANNELS:
+            for weekday, hour in self.TIMING_SLOTS:
+                action = self._evaluate_action(entity_id, channel, weekday, hour)
+                actions.append(action)
+
+        actions.sort(key=lambda x: x["expected_value_cop"], reverse=True)
+        for i, action in enumerate(actions, 1):
+            action["action_rank"]    = i
+            action["is_recommended"] = (i == 1)
+
+        self._save_actions(entity_id, actions)
+        return actions
+
+    def get_optimal_action(self, entity_id: str) -> dict | None:
+        actions = self.evaluate_actions(entity_id)
+        return actions[0] if actions else None
+
+    def get_daily_agenda(self, max_leads: int = 20) -> list:
+        active = (
+            supabase.table("lead_lifecycle")
+            .select("entity_id")
+            .in_("status", ["NEW", "CONTACTED", "INTERESTED", "REENGAGED"])
+            .execute()
+        )
+        agenda = []
+        for lead in active.data:
+            if self._days_since_last_contact(lead["entity_id"]) < 1:
+                continue
+            best = self.get_optimal_action(lead["entity_id"])
+            if best and best["expected_value_cop"] > 5_000_000:
+                agenda.append(best)
+
+        agenda.sort(key=lambda x: x["expected_value_cop"], reverse=True)
+        return agenda[:max_leads]
+
+    # ── internal ─────────────────────────────────────────────────────────────
+    def _evaluate_action(self, entity_id: str, channel: str, weekday: str, hour: int) -> dict:
+        context   = {"channel": channel, "weekday": weekday, "hour": hour}
+        pred      = win_model.predict(entity_id, context)
+        win_prob  = pred["win_probability"]
+        deal_size = self._get_deal_size(entity_id)
+
+        ev_now    = int(win_prob * deal_size)
+        hazard    = self._calculate_action_hazard(entity_id, channel, weekday, hour)
+        ev_1d     = int(ev_now * np.exp(-hazard * 1))
+        ev_3d     = int(ev_now * np.exp(-hazard * 3))
+        ev_loss   = ev_now - ev_3d
+
+        return {
+            "entity_id":         entity_id,
+            "action_channel":    channel,
+            "action_timing":     f"{weekday}-{hour:02d}",
+            "win_probability":   win_prob,
+            "deal_size_cop":     deal_size,
+            "expected_value_cop": ev_now,
+            "hazard_rate":       round(hazard, 4),
+            "half_life_days":    round(np.log(2) / hazard, 1) if hazard > 0 else 999,
+            "ev_if_wait_1d":     ev_1d,
+            "ev_if_wait_3d":     ev_3d,
+            "ev_loss_by_waiting": ev_loss,
+            "confidence":        pred["confidence"],
+            "action_rank":       None,
+            "is_recommended":    False,
+        }
+
+    def _calculate_action_hazard(
+        self, entity_id: str, channel: str, weekday: str, hour: int
+    ) -> float:
+        sector         = self._get_sector(entity_id)
+        base           = self._get_base_hazard(sector)
+        intent         = self._get_intent_intensity(entity_id)
+        competition    = self._get_competition_density(entity_id)
+        channel_effect = {"PHONE": -0.02, "WHATSAPP": -0.01, "EMAIL": 0.01, "INSTAGRAM_DM": 0.02}.get(channel, 0.0)
+        recency        = self._get_recency_factor(entity_id)
+        return min(base + 0.05 * intent + 0.03 * competition + channel_effect + recency, 0.5)
+
+    def _get_recency_factor(self, entity_id: str) -> float:
+        days = self._days_since_last_contact(entity_id)
+        if days < 1:    return 0.10
+        elif days < 3:  return 0.05
+        elif days < 7:  return 0.02
+        elif days < 30: return 0.0
+        else:            return -0.01
+
+    def _save_actions(self, entity_id: str, actions: list):
+        supabase.table("ev_prescriptive").delete().eq("entity_id", entity_id).execute()
+        for action in actions:
+            record = {k: v for k, v in action.items()}
+            record["created_at"] = datetime.now(timezone.utc).isoformat()
+            supabase.table("ev_prescriptive").insert(record).execute()
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def _get_sector(self, entity_id: str) -> str:
+        r = supabase.table("businesses").select("sector").eq("entity_id", entity_id).single().execute()
+        return r.data.get("sector", "OTRO") if r.data else "OTRO"
+
+    def _get_base_hazard(self, sector: str) -> float:
+        cal = (
+            supabase.table("funnel_calibration")
+            .select("hazard_rate_base")
+            .eq("sector", sector)
+            .limit(1)
+            .execute()
+        )
+        return cal.data[0].get("hazard_rate_base", 0.02) if cal.data else 0.02
+
+    def _get_intent_intensity(self, entity_id: str) -> float:
+        r = (
+            supabase.table("intent_signals")
+            .select("intent_level, review_growth_rate")
+            .eq("entity_id", entity_id)
+            .limit(1)
+            .execute()
+        )
+        if not r.data:
+            return 0.5
+        level     = r.data[0].get("intent_level", "MEDIA")
+        growth    = r.data[0].get("review_growth_rate", 0)
+        intensity = {"ALTA": 1.0, "MEDIA": 0.5, "BAJA": 0.2, "NULA": 0.0}.get(level, 0.5)
+        return min(intensity + (0.2 if growth > 0.5 else 0) + (0.3 if growth > 1.0 else 0), 1.0)
+
+    def _get_competition_density(self, entity_id: str) -> float:
+        biz = supabase.table("businesses").select("sector").eq("entity_id", entity_id).single().execute()
+        if not biz.data:
+            return 0.5
+        competitors = (
+            supabase.table("businesses")
+            .select("count", count="exact")
+            .eq("sector", biz.data["sector"])
+            .execute()
+        )
+        count = competitors.count if hasattr(competitors, "count") else 50
+        return min(1.0, max(0.0, (count - 10) / 190))
+
+    def _get_deal_size(self, entity_id: str) -> int:
+        funnel = (
+            supabase.table("funnel_models")
+            .select("revenue_gap_monthly_cop")
+            .eq("entity_id", entity_id)
+            .limit(1)
+            .execute()
+        )
+        if funnel.data:
+            return funnel.data[0].get("revenue_gap_monthly_cop", 0)
+        defaults = {
+            "SALUD": 50_000_000, "LEGAL": 80_000_000, "RESTAURANTES": 15_000_000,
+            "COMERCIO": 30_000_000, "SERVICIOS": 40_000_000
+        }
+        return defaults.get(self._get_sector(entity_id), 25_000_000)
+
+    def _days_since_last_contact(self, entity_id: str) -> int:
+        r = (
+            supabase.table("outreach_log")
+            .select("sent_at")
+            .eq("entity_id", entity_id)
+            .order("sent_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if r.data:
+            return (datetime.now(timezone.utc) - datetime.fromisoformat(r.data[0]["sent_at"])).days
+        return 999
+
+ev_engine = PrescriptiveEVEngine()
+
+# agents/11_state_engine.py
+import hashlib, json
+from datetime import datetime, timezone, timedelta
+from db.supabase_client import supabase
+
+class StateEngine:
+
+    def get_state(self, entity_id: str) -> dict:
+        profile      = self._get_profile_features(entity_id)
+        history      = self._get_history_embedding(entity_id)
+        intent_state = self._get_intent_state(entity_id)
+        mdp_state    = self._determine_mdp_state(history, intent_state)
+
+        return {
+            "entity_id":    entity_id,
+            "profile":      profile,
+            "history":      history,
+            "intent_state": intent_state,
+            "mdp_state":    mdp_state,
+            "state_vector": self._flatten_state(profile, history, intent_state),
+            "sequence_hash": history["sequence_hash"]
+        }
+
+    # ── profile features ─────────────────────────────────────────────────────
+    def _get_profile_features(self, entity_id: str) -> dict:
+        business = (
+            supabase.table("businesses").select("*")
+            .eq("entity_id", entity_id).single().execute().data or {}
+        )
+        opp = (
+            supabase.table("opportunity_scores").select("*")
+            .eq("entity_id", entity_id).limit(1).execute().data
+        )
+        return {
+            "sector_encoded":  self._encode_sector(business.get("sector", "OTRO")),
+            "economic_tier":   business.get("economic_tier", 1),
+            "digital_level":   business.get("digital_level", 0),
+            "review_count":    business.get("review_count", 0),
+            "opportunity_score": opp[0].get("opportunity_score", 0.5) if opp else 0.5,
+        }
+
+    # ── history embedding ────────────────────────────────────────────────────
+    def _get_history_embedding(self, entity_id: str) -> dict:
+        rows    = (
+            supabase.table("outreach_log").select("*")
+            .eq("entity_id", entity_id)
+            .order("created_at", desc=True)
+            .limit(10)
+            .execute()
+        )
+        actions = rows.data or []
+
+        last_3  = [a.get("channel", "UNKNOWN") for a in actions[:3]]
+        while len(last_3) < 3:
+            last_3.append("NONE")
+
+        now       = datetime.now(timezone.utc)
+        week_ago  = now - timedelta(days=7)
+        month_ago = now - timedelta(days=30)
+
+        contacts_7d  = sum(1 for a in actions if datetime.fromisoformat(a["created_at"]) > week_ago)
+        contacts_30d = sum(1 for a in actions if datetime.fromisoformat(a["created_at"]) > month_ago)
+
+        responses     = [a for a in actions if a.get("outcome") in ("RESPONDED","MEETING","WON")]
+        response_rate = len(responses) / len(actions) if actions else 0
+
+        seq_str        = json.dumps([
+            {"c": a.get("channel"), "o": a.get("outcome"), "d": a.get("created_at","")[:10]}
+            for a in actions[:5]
+        ])
+        sequence_hash  = hashlib.md5(seq_str.encode()).hexdigest()[:12]
+
+        return {
+            "last_3_channels":       last_3,
+            "contacts_7d":           contacts_7d,
+            "contacts_30d":          contacts_30d,
+            "total_contacts":        len(actions),
+            "response_rate":         round(response_rate, 3),
+            "response_pattern_score": self._calc_pattern(actions),
+            "sequence_hash":         sequence_hash,
+            "last_contact_days_ago": self._days_since(actions)
+        }
+
+    # ── intent state ─────────────────────────────────────────────────────────
+    def _get_intent_state(self, entity_id: str) -> dict:
+        intent = (
+            supabase.table("intent_signals").select("*")
+            .eq("entity_id", entity_id).limit(1).execute()
+        )
+        if not intent.data:
+            return {
+                "intent_score": 0.5, "intent_spike_detected": False,
+                "intent_recency_hours": 999, "intent_trend": "STABLE"
+            }
+        row    = intent.data[0]
+        growth = row.get("review_growth_rate", 0)
+        spike  = growth > 0.5
+        return {
+            "intent_score":            row.get("raw_intent_score", 0.5),
+            "intent_spike_detected":   spike,
+            "intent_recency_hours":    0,
+            "intent_trend":            "SPIKING" if spike else "STABLE",
+            "review_growth_rate":      growth
+        }
+
+    # ── MDP state ────────────────────────────────────────────────────────────
+    def _determine_mdp_state(self, history: dict, intent: dict) -> str:
+        contacts      = history.get("total_contacts", 0)
+        response_rate = history.get("response_rate", 0)
+        recency       = history.get("last_contact_days_ago", 999)
+
+        if contacts == 0:
+            return "NEW"
+        if intent.get("intent_spike_detected") and recency < 3:
+            return "HOT"
+        if response_rate > 0.3 and recency < 7:
+            return "WARM"
+        if contacts >= 3 and response_rate == 0:
+            return "COLD"
+        if contacts >= 2 and response_rate == 0 and recency > 7:
+            return "COOLING"
+        if contacts >= 5:
+            return "LOST"
+        return "WARM"
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def _calc_pattern(self, actions: list) -> float:
+        if len(actions) < 2:
+            return 0.5
+        outcomes = [a.get("outcome", "NO_RESPONSE") for a in actions]
+        for i in range(len(outcomes) - 2):
+            if (outcomes[i] == "NO_RESPONSE"
+                    and outcomes[i+1] == "NO_RESPONSE"
+                    and outcomes[i+2] in ("RESPONDED","MEETING")):
+                return 0.8
+        if outcomes[0] in ("RESPONDED","MEETING"):
+            return 1.0
+        return 0.3
+
+    def _flatten_state(self, profile: dict, history: dict, intent: dict) -> list:
+        return [
+            profile.get("opportunity_score", 0),
+            profile.get("digital_level", 0) / 4.0,
+            profile.get("economic_tier", 1) / 3.0,
+            history.get("response_rate", 0),
+            history.get("contacts_7d", 0) / 10.0,
+            intent.get("intent_score", 0.5),
+            1.0 if intent.get("intent_spike_detected") else 0.0,
+            min(intent.get("intent_recency_hours", 999) / 168.0, 1.0),
+        ]
+
+    def _encode_sector(self, sector: str) -> int:
+        sectors = ["SALUD","LEGAL","RESTAURANTES","COMERCIO","SERVICIOS","EDUCACION","OTRO"]
+        return sectors.index(sector) if sector in sectors else len(sectors) - 1
+
+    def _days_since(self, actions: list) -> int:
+        if not actions:
+            return 999
+        return (datetime.now(timezone.utc) - datetime.fromisoformat(actions[0]["created_at"])).days
+
+state_engine = StateEngine()
+
+# agents/12_policy_engine.py
+#
+# CORRECCIONES v6.1:
+#   FIX-1  _expected_value(): softmax-ponderado en lugar de max(), con clip de overflow para COP
+#   FIX-2  _simulate_next_state(): off-by-one corregido en cálculo de response_rate
+#   FIX-3  _sample_timings(): reemplaza self.timing_slots[:3] con sampling dinámico
+#          que prioriza horarios aprendidos del sector + exploración aleatoria del resto
+
+import random
+import numpy as np
+from datetime import datetime, timezone
+from agents.11_state_engine import state_engine
+from agents.10_win_probability import win_model
+from db.supabase_client import supabase
+
+class PolicyEngine:
+    HORIZON  = 5
+    GAMMA    = 0.9
+    CHANNELS = ["PHONE", "WHATSAPP", "EMAIL", "INSTAGRAM_DM"]
+    TIMING_SLOTS = [
+        ("LUN", 9), ("LUN", 11), ("LUN", 15),
+        ("MAR", 9), ("MAR", 11), ("MAR", 15),
+        ("MIE", 9), ("MIE", 11), ("MIE", 15),
+        ("JUE", 9), ("JUE", 11), ("JUE", 15),
+        ("VIE", 9), ("VIE", 11), ("VIE", 15),
+    ]
+
+    # ── public API ───────────────────────────────────────────────────────────
+    def generate_policy(self, entity_id: str) -> dict:
+        state       = state_engine.get_state(entity_id)
+        policy_tree = self._build_policy_tree(state, depth=0)
+        best_policy = self._select_best_policy(policy_tree, entity_id)
+        self._save_policy(entity_id, best_policy)
+        return best_policy
+
+    # ── FIX-1: valor esperado softmax-ponderado ──────────────────────────────
+    def _expected_value(self, policies: list) -> float:
+        """
+        Calcula E[EV] ponderado por softmax sobre la distribución completa de políticas.
+        Evita overflow normalizando antes de exp() (temperatura 1e7 = escala COP).
+        """
+        if not policies:
+            return 0.0
+        evs      = np.array([p["policy_ev"] for p in policies], dtype=float)
+        evs_norm = evs - evs.max()                    # clip: max → 0, resto ≤ 0
+        weights  = np.exp(evs_norm / 1e7)             # temperatura calibrada a escala COP
+        probs    = weights / weights.sum()
+        return float(np.dot(evs, probs))
+
+    # ── FIX-3: sampling dinámico de ventanas de tiempo ───────────────────────
+    def _sample_timings(self, entity_id: str, k: int = 5) -> list:
+        """
+        Combina ventanas aprendidas (mejor response_rate del sector) con
+        exploración aleatoria del resto. Reemplaza el slice fijo [:3].
+        """
+        sector = self._get_sector(entity_id)
+        learned_rows = (
+            supabase.table("timing_patterns")
+            .select("weekday, hour_start, response_rate")
+            .eq("sector", sector)
+            .gt("total_contacts", 5)
+            .order("response_rate", desc=True)
+            .limit(3)
+            .execute()
+        )
+        top   = [(r["weekday"], r["hour_start"]) for r in (learned_rows.data or [])]
+        top   = [t for t in top if t in self.TIMING_SLOTS]          # validar contra catálogo
+        rest  = [t for t in self.TIMING_SLOTS if t not in top]
+        n_rand = max(0, min(k - len(top), len(rest)))
+        return top + random.sample(rest, n_rand)
+
+    # ── tree builder ─────────────────────────────────────────────────────────
+    def _build_policy_tree(self, state: dict, depth: int = 0, max_depth: int = 3) -> list:
+        if depth >= max_depth:
+            return []
+
+        policies  = []
+        entity_id = state["entity_id"]
+
+        for channel in self.CHANNELS:
+            # FIX-3: usar timings dinámicos en lugar de [:3]
+            for timing in self._sample_timings(entity_id, k=5):
+                action_type = "FOLLOWUP" if depth > 0 else "INITIAL"
+                cost        = self._get_action_cost(channel, action_type)
+                win_prob    = self._estimate_win_prob(state, channel, timing)
+                deal_size   = self._get_deal_size(entity_id)
+                ev_action   = win_prob * deal_size - cost
+
+                next_resp = self._simulate_next_state(state, channel, "RESPONDED")
+                next_no   = self._simulate_next_state(state, channel, "NO_RESPONSE")
+
+                future_resp = self._build_policy_tree(next_resp, depth + 1, max_depth)
+                future_no   = self._build_policy_tree(next_no,   depth + 1, max_depth)
+
+                # FIX-1: E[EV] ponderado, no max()
+                ev_future_resp = self._expected_value(future_resp)
+                ev_future_no   = self._expected_value(future_no)
+
+                ev_total = ev_action + self.GAMMA * (
+                    win_prob * ev_future_resp + (1 - win_prob) * ev_future_no
+                )
+
+                policies.append({
+                    "step":            depth + 1,
+                    "action":          {"channel": channel, "timing": timing, "cost_cop": cost},
+                    "win_probability": round(win_prob, 3),
+                    "ev_action":       int(ev_action),
+                    "policy_ev":       int(ev_total),
+                    "if_response":     future_resp[0] if future_resp else None,
+                    "if_no_response":  future_no[0]   if future_no   else None,
+                })
+
+        return sorted(policies, key=lambda x: x["policy_ev"], reverse=True)
+
+    # ── select & flatten ─────────────────────────────────────────────────────
+    def _select_best_policy(self, policies: list, entity_id: str) -> dict:
+        if not policies:
+            return self._default_policy(entity_id)
+        best = policies[0]
+        return {
+            "policy_steps":           self._flatten_policy(best),
+            "policy_ev":              best["policy_ev"],
+            "policy_ev_net":          best["policy_ev"],
+            "expected_steps_to_close": self._count_steps(best),
+            "probability_of_close":   best["win_probability"],
+            "first_action": {
+                "channel": best["action"]["channel"],
+                "timing":  best["action"]["timing"],
+                "ev":      best["ev_action"]
+            }
+        }
+
+    def _flatten_policy(self, node: dict, steps: list = None) -> list:
+        if steps is None:
+            steps = []
+        steps.append({
+            "step":     node["step"],
+            "channel":  node["action"]["channel"],
+            "timing":   node["action"]["timing"],
+            "win_prob": node["win_probability"],
+            "ev":       node["ev_action"]
+        })
+        if node.get("if_no_response"):
+            steps.extend(self._flatten_policy(node["if_no_response"], []))
+        return steps
+
+    # ── FIX-2: simulación de siguiente estado con off-by-one corregido ───────
+    def _simulate_next_state(self, current: dict, channel: str, outcome: str) -> dict:
+        """
+        Actualiza response_rate correctamente:
+          - captura prev_n ANTES de incrementar total_contacts
+          - calcula nueva tasa como media incremental sobre prev_n
+        """
+        next_state = {**current}
+        history    = {**current["history"]}
+
+        prev_n = history["total_contacts"]          # snapshot antes de incrementar
+
+        # media incremental correcta
+        if outcome == "RESPONDED":
+            new_rate = (history["response_rate"] * prev_n + 1) / (prev_n + 1)
+        else:
+            new_rate = (history["response_rate"] * prev_n)     / (prev_n + 1)
+
+        history["total_contacts"]  = prev_n + 1
+        history["response_rate"]   = round(new_rate, 4)
+        history["last_3_channels"] = [channel] + history["last_3_channels"][:2]
+
+        next_state["history"]   = history
+        next_state["mdp_state"] = state_engine._determine_mdp_state(history, current["intent_state"])
+        return next_state
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def _estimate_win_prob(self, state: dict, channel: str, timing: tuple) -> float:
+        base = win_model.predict(state["entity_id"], {"channel": channel})["win_probability"]
+        adj  = {"NEW": 1.0, "WARM": 1.2, "HOT": 1.5, "COOLING": 0.7, "COLD": 0.4, "LOST": 0.1}
+        return min(base * adj.get(state["mdp_state"], 1.0), 0.95)
+
+    def _get_action_cost(self, channel: str, action_type: str) -> int:
+        cost = (
+            supabase.table("action_costs")
+            .select("cost_cop")
+            .eq("channel", channel)
+            .eq("action_type", action_type)
+            .limit(1)
+            .execute()
+        )
+        return cost.data[0].get("cost_cop", 100) if cost.data else 100
+
+    def _get_deal_size(self, entity_id: str) -> int:
+        funnel = (
+            supabase.table("funnel_models")
+            .select("revenue_gap_monthly_cop")
+            .eq("entity_id", entity_id)
+            .limit(1)
+            .execute()
+        )
+        return funnel.data[0].get("revenue_gap_monthly_cop", 50_000_000) if funnel.data else 50_000_000
+
+    def _get_sector(self, entity_id: str) -> str:
+        r = supabase.table("businesses").select("sector").eq("entity_id", entity_id).single().execute()
+        return r.data.get("sector", "OTRO") if r.data else "OTRO"
+
+    def _count_steps(self, node: dict) -> int:
+        count = 1
+        if node.get("if_no_response"):
+            count += self._count_steps(node["if_no_response"])
+        return count
+
+    def _default_policy(self, entity_id: str = None) -> dict:
+        return {
+            "policy_steps": [{"step": 1, "channel": "WHATSAPP", "timing": ("LUN", 10), "win_prob": 0.1, "ev": 0}],
+            "policy_ev":    0,
+            "policy_ev_net": 0,
+            "expected_steps_to_close": 1,
+            "probability_of_close": 0.1,
+            "first_action": {"channel": "WHATSAPP", "timing": ("LUN", 10), "ev": 0}
+        }
+
+    def _save_policy(self, entity_id: str, policy: dict):
+        supabase.table("policy_trees").upsert({
+            "entity_id":               entity_id,
+            "policy_json":             policy,
+            "policy_ev":               policy["policy_ev"],
+            "policy_ev_net":           policy["policy_ev_net"],
+            "expected_steps_to_close": policy["expected_steps_to_close"],
+            "probability_of_close":    policy["probability_of_close"],
+            "is_active":               True,
+            "updated_at":              datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+policy_engine = PolicyEngine()
+
+# agents/13_exploration_engine.py
+#
+# CORRECCIÓN v6.1:
+#   FIX-4  _thompson_sampling(): modela reward = P(win) * deal_size - cost
+#          en lugar de mezclar theta (probabilidad [0,1]) con EV (millones COP)
+#          directamente. El bandit aprende sobre revenue esperado real.
+
+import random
+import numpy as np
+from datetime import datetime, timezone
+from db.supabase_client import supabase
+
+class ExplorationEngine:
+    EPSILON     = 0.10
+    MIN_SAMPLES = 5
+
+    def __init__(self):
+        self.strategy = "thompson"
+
+    # ── public API ───────────────────────────────────────────────────────────
+    def select_action(self, entity_id: str, candidate_actions: list) -> dict:
+        interaction_count = self._get_interaction_count(entity_id)
+        if interaction_count < self.MIN_SAMPLES:
+            return self._explore(candidate_actions, "new_lead")
+
+        if self.strategy == "epsilon_greedy":
+            return self._epsilon_greedy(entity_id, candidate_actions)
+        elif self.strategy == "thompson":
+            return self._thompson_sampling(entity_id, candidate_actions)
+        return self._ucb(entity_id, candidate_actions)
+
+    def update_bandit(self, entity_id: str, channel: str, outcome: str):
+        alpha, beta_p = self._get_bandit_params(entity_id, channel)
+        if outcome in ("WON", "CLOSED", "MEETING"):
+            alpha += 1
+        elif outcome in ("LOST", "NO_RESPONSE"):
+            beta_p += 1
+        supabase.table("bandit_params").upsert({
+            "entity_id":  entity_id,
+            "channel":    channel,
+            "alpha":      alpha,
+            "beta":       beta_p,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+    # ── strategies ───────────────────────────────────────────────────────────
+    def _epsilon_greedy(self, entity_id: str, actions: list) -> dict:
+        if random.random() < self.EPSILON:
+            return self._explore(actions, "epsilon_greedy")
+        best = max(actions, key=lambda a: a.get("expected_value_cop", 0))
+        return {
+            "action":           best,
+            "was_exploration":  False,
+            "reason":           "exploitation",
+            "exploration_type": "epsilon_greedy"
+        }
+
+    # FIX-4: Thompson Sampling sobre reward esperado real ─────────────────────
+    def _thompson_sampling(self, entity_id: str, actions: list) -> dict:
+        """
+        Para cada acción muestrea P(win) ~ Beta(α, β) aprendida por canal,
+        luego calcula reward_sample = P(win_sample) * deal_size - cost.
+        Esto garantiza que el bandit optimiza revenue, no probabilidad pura.
+        """
+        sampled_rewards = []
+        for action in actions:
+            channel   = action.get("action_channel", "WHATSAPP")
+            alpha, beta_p = self._get_bandit_params(entity_id, channel)
+
+            # P(win) muestreada del posterior Beta
+            p_win_sample = np.random.beta(alpha, beta_p)
+
+            # deal_size disponible en la acción (calculado en 10b_expected_value)
+            deal_size = action.get("deal_size_cop", 50_000_000)
+            cost      = action.get("cost_cop", 100)
+
+            # reward esperado = P(win) * valor - costo
+            reward_sample = p_win_sample * deal_size - cost
+            sampled_rewards.append(reward_sample)
+
+        best_idx = int(np.argmax(sampled_rewards))
+        return {
+            "action":           actions[best_idx],
+            "was_exploration":  False,
+            "reason":           "thompson_reward",
+            "exploration_type": "thompson"
+        }
+
+    def _ucb(self, entity_id: str, actions: list) -> dict:
+        total = self._get_interaction_count(entity_id)
+        ucb_values = []
+        for action in actions:
+            channel             = action.get("action_channel", "WHATSAPP")
+            successes, pulls    = self._get_channel_stats(entity_id, channel)
+            mean                = successes / pulls if pulls > 0 else 0.5
+            uncertainty         = np.sqrt(2 * np.log(total + 1) / (pulls + 1))
+            ucb_values.append(mean + uncertainty)
+
+        best_idx = int(np.argmax(ucb_values))
+        return {
+            "action":           actions[best_idx],
+            "was_exploration":  False,
+            "reason":           "ucb",
+            "exploration_type": "ucb"
+        }
+
+    def _explore(self, actions: list, reason: str) -> dict:
+        return {
+            "action":           random.choice(actions),
+            "was_exploration":  True,
+            "reason":           reason,
+            "exploration_type": self.strategy
+        }
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+    def _get_bandit_params(self, entity_id: str, channel: str) -> tuple[int, int]:
+        params = (
+            supabase.table("bandit_params")
+            .select("alpha, beta")
+            .eq("entity_id", entity_id)
+            .eq("channel", channel)
+            .limit(1)
+            .execute()
+        )
+        if params.data:
+            return params.data[0].get("alpha", 1), params.data[0].get("beta", 1)
+        return 1, 1
+
+    def _get_interaction_count(self, entity_id: str) -> int:
+        r = (
+            supabase.table("outreach_log")
+            .select("count", count="exact")
+            .eq("entity_id", entity_id)
+            .execute()
+        )
+        return r.count if hasattr(r, "count") else 0
+
+    def _get_channel_stats(self, entity_id: str, channel: str) -> tuple[int, int]:
+        outcomes = (
+            supabase.table("outreach_log")
+            .select("outcome")
+            .eq("entity_id", entity_id)
+            .eq("channel", channel)
+            .execute()
+        )
+        successes = sum(
+            1 for o in (outcomes.data or [])
+            if o.get("outcome") in ("WON", "CLOSED", "MEETING", "RESPONDED")
+        )
+        pulls = len(outcomes.data) if outcomes.data else 0
+        return successes, pulls
+
+exploration_engine = ExplorationEngine()
+
+# agents/14_business_metrics.py
+from datetime import datetime, timezone, timedelta
+from db.supabase_client import supabase
+
+class BusinessMetricsEngine:
+
+    # ── public API ───────────────────────────────────────────────────────────
+    def calculate_period_metrics(
+        self, start_date: str, end_date: str, strategy_type: str = "AI_POLICY"
+    ) -> dict:
+        outreach = (
+            supabase.table("outreach_log")
+            .select("*, businesses!inner(sector)")
+            .gte("created_at", start_date)
+            .lte("created_at", end_date)
+            .execute()
+        )
+        if not outreach.data:
+            return {"error": "No data for period"}
+
+        records  = outreach.data
+        total    = len(records)
+        meetings = sum(1 for o in records if o.get("outcome") == "MEETING")
+        closed   = sum(1 for o in records if o.get("outcome") in ("WON", "CLOSED"))
+        revenue  = sum(o.get("revenue_captured") or 0 for o in records)
+        costs    = sum(self._get_channel_cost(o.get("channel", "WHATSAPP")) for o in records)
+        cac      = costs / closed if closed > 0 else 0
+
+        baseline = self._get_baseline(start_date, end_date)
+        lift     = ((revenue - baseline["revenue"]) / max(baseline["revenue"], 1)) * 100 if baseline else 0
+        roi      = ((revenue - costs) / max(costs, 1)) * 100 if costs > 0 else 0
+
+        metrics = {
+            "period":               {"start": start_date, "end": end_date},
+            "strategy_type":        strategy_type,
+            "leads_contacted":      total,
+            "meetings_booked":      meetings,
+            "deals_closed":         closed,
+            "revenue_captured":     revenue,
+            "total_action_cost_cop": costs,
+            "cac_per_deal_cop":     int(cac),
+            "revenue_lift_pct":     round(lift, 2),
+            "roi_pct":              round(roi, 2)
+        }
+        self._save_metrics(metrics)
+        return metrics
+
+    def get_dashboard_summary(self) -> dict:
+        end   = datetime.now(timezone.utc)
+        start = (end - timedelta(days=30)).isoformat()
+        metrics = self.calculate_period_metrics(start, end.isoformat(), "AI_POLICY")
+        return {
+            "current_period":  metrics,
+            "recommendation":  self._recommend(metrics)
+        }
+
+    # ── internal ─────────────────────────────────────────────────────────────
+    def _get_channel_cost(self, channel: str) -> int:
+        return {"PHONE": 500, "WHATSAPP": 100, "EMAIL": 50, "INSTAGRAM_DM": 100}.get(channel, 100)
+
+    def _get_baseline(self, start_date: str, end_date: str) -> dict:
+        start    = datetime.fromisoformat(start_date)
+        duration = (datetime.fromisoformat(end_date) - start).days
+        prev_start = (start - timedelta(days=duration)).isoformat()
+        prev = (
+            supabase.table("business_metrics")
+            .select("*")
+            .eq("period_start", prev_start)
+            .eq("strategy_type", "MANUAL_BASELINE")
+            .limit(1)
+            .execute()
+        )
+        if prev.data:
+            return {
+                "revenue":      prev.data[0].get("revenue_captured", 0),
+                "deals_closed": prev.data[0].get("deals_closed", 0)
+            }
+        return {"revenue": 100_000_000, "deals_closed": 5}
+
+    def _save_metrics(self, metrics: dict):
+        supabase.table("business_metrics").insert({
+            "period_start":          metrics["period"]["start"],
+            "period_end":            metrics["period"]["end"],
+            "strategy_type":         metrics["strategy_type"],
+            "leads_contacted":       metrics["leads_contacted"],
+            "meetings_booked":       metrics["meetings_booked"],
+            "deals_closed":          metrics["deals_closed"],
+            "revenue_captured":      metrics["revenue_captured"],
+            "total_action_cost_cop": metrics["total_action_cost_cop"],
+            "cac_per_deal_cop":      metrics["cac_per_deal_cop"],
+            "revenue_lift_pct":      metrics["revenue_lift_pct"],
+            "roi_pct":               metrics["roi_pct"]
+        }).execute()
+
+    def _recommend(self, metrics: dict) -> str:
+        lift = metrics.get("revenue_lift_pct", 0)
+        if lift > 20:
+            return "🚀 Escalar inversión"
+        elif lift > 0:
+            return "📈 Optimizar canales"
+        return "⚠️ Revisar políticas"
+
+metrics_engine = BusinessMetricsEngine()
+
+# orchestrator/pipeline.py
+import asyncio, time
+from datetime import datetime, timezone
+from db.supabase_client import supabase
+
+# agents
+import agents.01_discovery        as a1
+import agents.02_reconciliation    as a2
+import agents.02b_data_quality     as a2b
+import agents.03_classifier        as a3
+import agents.04_digital_maturity  as a4
+import agents.05_economic_scorer   as a5
+import agents.05b_opportunity      as a5b
+import agents.06_problem_detector  as a6
+import agents.06b_funnel_model     as a6b
+import agents.07_solution_mapper   as a7
+import agents.08_offer_generator   as a8
+import agents.09_outreach          as a9
+from agents.11_state_engine        import state_engine
+from agents.12_policy_engine       import policy_engine
+
+# ── logging helper ────────────────────────────────────────────────────────────
+async def log_agent(entity_id: str, agent: str, status: str, error: str = None, duration_ms: int = 0):
+    supabase.table("pipeline_logs").insert({
+        "entity_id":   entity_id,
+        "agent":       agent,
+        "status":      status,
+        "error":       error,
+        "duration_ms": duration_ms,
+        "created_at":  datetime.now(timezone.utc).isoformat()
+    }).execute()
+
+# ── single business ───────────────────────────────────────────────────────────
+async def process_business(raw: dict, existing_entities: list) -> dict | None:
+    name      = raw.get("name", "?")
+    entity_id = None
+
+    try:
+        # ── 2. reconciliation ─────────────────────────────────────────────────
+        t       = time.time()
+        profile = await a2.run(raw, existing_entities)
+        await log_agent(profile["entity_id"], "reconciliation", "SUCCESS",
+                        duration_ms=int((time.time() - t) * 1000))
+
+        if not profile.get("is_new"):
+            return None          # already in DB, skip
+
+        entity_id = profile["entity_id"]
+        supabase.table("businesses").insert({
+            "entity_id":      entity_id,
+            "canonical_name": profile["canonical_name"],
+            "phone":          profile.get("phone"),
+            "address":        profile.get("address"),
+            "raw_sources":    profile.get("raw_sources")
+        }).execute()
+
+        # ── 2b. data quality ──────────────────────────────────────────────────
+        t       = time.time()
+        quality = a2b.run(profile)
+        await log_agent(entity_id, "data_quality", "SUCCESS",
+                        duration_ms=int((time.time() - t) * 1000))
+        supabase.table("data_quality").insert(quality).execute()
+
+        if not quality["is_processable"]:
+            await log_agent(entity_id, "pipeline", "SKIPPED", error="Datos insuficientes")
+            return None
+
+        # ── 3 + 4 + 5: classify / maturity / scoring in parallel ─────────────
+        t = time.time()
+        classification, maturity, scoring = await asyncio.gather(
+            a3.run(profile, quality),
+            a4.run(profile),
+            a5.run(profile, {}, quality)
+        )
+        await log_agent(entity_id, "classifier+maturity+scoring", "SUCCESS",
+                        duration_ms=int((time.time() - t) * 1000))
+
+        profile.update(classification)
+        profile.update(maturity)
+        profile.update(scoring)
+
+        supabase.table("classifications").insert(classification).execute()
+        supabase.table("digital_maturity").insert(maturity).execute()
+        supabase.table("economic_scores").insert(scoring).execute()
+
+        # ── 5b. opportunity score (heurístico) ────────────────────────────────
+        t           = time.time()
+        opportunity = a5b.run(profile, maturity, scoring)
+        await log_agent(entity_id, "opportunity", "SUCCESS",
+                        duration_ms=int((time.time() - t) * 1000))
+        supabase.table("opportunity_scores").insert(opportunity).execute()
+        profile.update(opportunity)
+
+        # ── 6. problem detector ───────────────────────────────────────────────
+        t        = time.time()
+        problems = await a6.run(profile, maturity, scoring)
+        await log_agent(entity_id, "problem_detector", "SUCCESS",
+                        duration_ms=int((time.time() - t) * 1000))
+        for p in problems.get("problems", []):
+            supabase.table("problems").insert({**p, "entity_id": entity_id}).execute()
+
+        # ── 6b. funnel model ──────────────────────────────────────────────────
+        funnel = a6b.run(profile, maturity, problems.get("problems", []))
+        supabase.table("funnel_models").insert(funnel).execute()
+
+        # ── 7. solution mapper ────────────────────────────────────────────────
+        solutions = await a7.run(problems, profile)
+
+        # ── 8. offer generator ────────────────────────────────────────────────
+        t     = time.time()
+        offer = await a8.run(profile, problems, solutions)
+        await log_agent(entity_id, "offer_generator", "SUCCESS",
+                        duration_ms=int((time.time() - t) * 1000))
+        supabase.table("offers").insert({
+            "id":              offer["offer_id"],
+            "entity_id":       entity_id,
+            "headline":        offer["offer"]["headline"],
+            "body":            offer["offer"]["body"],
+            "call_to_action":  offer["offer"]["call_to_action"],
+            "solutions_json":  solutions,
+            "contact":         offer["contact"]
+        }).execute()
+
+        # ── 9. outreach ───────────────────────────────────────────────────────
+        outreach = await a9.run(offer, opportunity, profile, maturity)
+
+        # ── 11 + 12: state engine + policy engine (v6 core) ──────────────────
+        state = state_engine.get_state(entity_id)
+        supabase.table("action_history").insert({
+            "entity_id":      entity_id,
+            "mdp_state":      state["mdp_state"],
+            "sequence_hash":  state["sequence_hash"],
+            "created_at":     datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+        policy = policy_engine.generate_policy(entity_id)
+
+        # ── business history snapshot ─────────────────────────────────────────
+        supabase.table("business_history").insert({
+            "entity_id":        entity_id,
+            "tier":             scoring.get("tier"),
+            "opportunity_score": opportunity.get("opportunity_score"),
+            "digital_level":    maturity.get("digital_level"),
+            "review_count":     profile.get("review_count", 0),
+            "contacted":        False
+        }).execute()
+
+        print(
+            f"  ✓ {name} | {opportunity.get('priority_level')} "
+            f"| score {opportunity.get('opportunity_score')} "
+            f"| policy_ev ${policy.get('policy_ev', 0):,}"
+        )
+        return {**offer, "opportunity": opportunity, "policy": policy}
+
+    except Exception as e:
+        if entity_id:
+            await log_agent(entity_id, "pipeline", "ERROR", error=str(e))
+        print(f"  ✗ Error en {name}: {e}")
+        return None
+
+# ── main entry point ──────────────────────────────────────────────────────────
+async def run_pipeline(query: str, location: str = "Neiva, Huila") -> dict:
+    print(f"\n🔍 Pipeline v6.1: '{query}' en {location}")
+
+    raw_businesses = await a1.run(query, location)
+    print(f"→ {len(raw_businesses)} empresas encontradas")
+
+    existing = supabase.table("businesses").select("*").execute().data or []
+    tasks    = [process_business(raw, existing) for raw in raw_businesses]
+    results  = await asyncio.gather(*tasks)
+
+    offers = [r for r in results if r is not None]
+    offers.sort(key=lambda x: x.get("opportunity", {}).get("opportunity_score", 0), reverse=True)
+
+    n_with_policy = sum(1 for o in offers if o.get("policy"))
+    total_ev      = sum(o.get("policy", {}).get("policy_ev", 0) for o in offers)
+
+    print(
+        f"\n✅ Listo: {len(offers)} ofertas | "
+        f"{n_with_policy} políticas generadas | "
+        f"EV total ${total_ev:,} COP"
+    )
+    return {
+        "total":      len(offers),
+        "offers":     offers,
+        "total_ev":   total_ev,
+        "pipeline":   "v6.1"
+    }
+
+    

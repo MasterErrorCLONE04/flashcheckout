@@ -45,19 +45,19 @@ model Order {
   id                      String        @id @default(cuid())
   customerName            String
   customerPhone           String?
-  customerWhatsAppId      String?
   address                 String
   city                    String
   items                   Json
   total                   Int
   status                  String        @default("pending")
-  source                  String        @default("WEB") // WEB or WHATSAPP
   storeId                 String
   createdAt               DateTime      @default(now())
   stripeCheckoutSessionId String?
   mpPaymentId             String?
   mpPreferenceId          String?
   paymentStatus           PaymentStatus @default(PENDING)
+  customerWhatsAppId      String?
+  source                  String        @default("WEB")
   store                   Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
@@ -65,11 +65,11 @@ model WhatsAppSession {
   id              String   @id @default(cuid())
   phoneNumber     String   @unique
   storeId         String?
-  customerName    String?
-  address         String?
-  cart            Json?    // Array of {productId, qty}
+  cart            Json?
   step            String   @default("START")
   lastInteraction DateTime @default(now()) @updatedAt
+  address         String?
+  customerName    String?
 }
 
 enum PaymentStatus {
