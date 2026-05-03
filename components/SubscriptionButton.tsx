@@ -38,18 +38,18 @@ export default function SubscriptionButton({ isPro }: { isPro: boolean }) {
       onClick={onClick}
       disabled={loading}
       className={cn(
-        "w-full sm:w-auto h-16 px-10 rounded-full font-bold text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-3 transition-all active:scale-95 border border-primary/20",
+        "w-full sm:w-auto h-10 px-5 rounded-lg font-medium text-sm flex items-center justify-center gap-2.5 transition-all active:scale-95 border",
         isPro 
-          ? "bg-white border-zinc-200 text-zinc-400 hover:text-black hover:bg-zinc-50" 
-          : "bg-primary text-white hover:bg-zinc-900 border-none"
+          ? "bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50" 
+          : "bg-zinc-950 text-white hover:bg-zinc-800 border-zinc-950 hover:border-zinc-800"
       )}
     >
       {loading ? (
-        <Loader2 className="w-5 h-5 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin" />
       ) : isPro ? (
-        <Settings2 className="w-4 h-4 text-primary" />
+        <Settings2 className="w-4 h-4" />
       ) : (
-        <Sparkles className="w-4 h-4 text-primary" />
+        <Sparkles className="w-4 h-4 text-amber-400" />
       )}
       {isPro ? 'Gestionar Facturación' : 'Desbloquear Pro'}
     </button>

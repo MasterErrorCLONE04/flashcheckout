@@ -107,14 +107,16 @@ export default function WhatsAppCatalog({
         setIsCartOpen(false)
         window.history.pushState({ page: 'catalog' }, '')
       } else {
-        const cleanPhone = store.whatsapp.replace(/\D/g, '')
-        window.location.href = `https://wa.me/${cleanPhone}`
+        window.location.href = "whatsapp://"
+        setTimeout(() => {
+          window.close()
+        }, 100)
       }
     }
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [isCartOpen, store.whatsapp])
+  }, [isCartOpen])
 
   const itemsInCart = Object.values(cart).reduce((s, q) => s + q, 0)
   const total = store.products.reduce((s, p) => s + p.price * (cart[p.id] ?? 0), 0)
@@ -191,8 +193,8 @@ export default function WhatsAppCatalog({
   if (isSuccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white p-8 text-center animate-in fade-in duration-700">
-        <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-8">
-          <div className="w-16 h-16 bg-[#25D366] rounded-full flex items-center justify-center animate-bounce">
+        <div className="w-24 h-24 bg-green-50 rounded-lg flex items-center justify-center mb-8">
+          <div className="w-16 h-16 bg-[#25D366] rounded-lg flex items-center justify-center animate-bounce">
             <MessageCircle className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -203,13 +205,12 @@ export default function WhatsAppCatalog({
         </p>
         <button 
           onClick={() => {
-            const cleanPhone = store.whatsapp.replace(/\D/g, '')
-            window.location.href = `https://wa.me/${cleanPhone}`
+            window.location.href = "whatsapp://"
             setTimeout(() => {
               window.close()
             }, 300)
           }}
-          className="w-full h-15 bg-zinc-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-zinc-200 active:scale-95 transition-all"
+          className="w-full h-15 bg-zinc-900 text-white rounded-lg font-bold text-lg shadow-xl shadow-zinc-200 active:scale-95 transition-all"
         >
           Regresar a WhatsApp
         </button>
@@ -253,13 +254,15 @@ export default function WhatsAppCatalog({
       <header className="sticky top-0 z-50 glass-premium border-b border-white/20 px-4 h-[70px] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button 
-            className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-full transition-colors" 
+            className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-lg transition-colors" 
             onClick={() => {
               if (isCartOpen) {
                 setIsCartOpen(false)
               } else {
-                const cleanPhone = store.whatsapp.replace(/\D/g, '')
-                window.location.href = `https://wa.me/${cleanPhone}`
+                window.location.href = "whatsapp://"
+                setTimeout(() => {
+                  window.close()
+                }, 100)
               }
             }}
           >
@@ -273,17 +276,17 @@ export default function WhatsAppCatalog({
         <div className="flex items-center gap-1.5">
           <button 
             onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')}
-            className="w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-full text-zinc-600 active:bg-zinc-200 transition-colors"
+            className="w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-lg text-zinc-600 active:bg-zinc-200 transition-colors"
           >
             {viewMode === 'grid' ? <LayoutGrid className="w-5 h-5" /> : <Settings2 className="w-5 h-5 rotate-90" />} 
           </button>
           <button 
-            className="w-10 h-10 flex items-center justify-center bg-zinc-950 rounded-full relative active:scale-90 transition-all" 
+            className="w-10 h-10 flex items-center justify-center bg-zinc-950 rounded-lg relative active:scale-90 transition-all" 
             onClick={() => setIsCartOpen(true)}
           >
             <ShoppingCart className="w-5 h-5 text-white" />
             {itemsInCart > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border-2 border-white shadow-sm animate-in zoom-in">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-lg border-2 border-white shadow-sm animate-in zoom-in">
                 {itemsInCart}
               </span>
             )}
@@ -301,7 +304,7 @@ export default function WhatsAppCatalog({
               placeholder="¿Qué buscas hoy?"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-100/80 border border-zinc-200/50 rounded-[2rem] py-4 pl-14 pr-6 text-[16px] font-medium outline-none focus:bg-white focus:ring-4 focus:ring-zinc-100 transition-all"
+              className="w-full bg-zinc-100/80 border border-zinc-200/50 rounded-lg py-4 pl-14 pr-6 text-[16px] font-medium outline-none focus:bg-white focus:ring-4 focus:ring-zinc-100 transition-all"
             />
           </div>
         </div>
@@ -313,7 +316,7 @@ export default function WhatsAppCatalog({
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                "whitespace-nowrap px-6 py-2.5 rounded-full text-[14px] font-black transition-all border uppercase tracking-wider",
+                "whitespace-nowrap px-6 py-2.5 rounded-lg text-[14px] font-black transition-all border uppercase tracking-wider",
                 selectedCategory === cat 
                   ? "bg-zinc-950 text-white border-zinc-950 shadow-xl"
                   : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300 bg-white/50 backdrop-blur-md"
@@ -333,14 +336,14 @@ export default function WhatsAppCatalog({
             <div 
               key={product.id} 
               className={cn(
-                "group relative bg-white border border-black/5 rounded-[2.5rem] overflow-hidden transition-all duration-500",
+                "group relative bg-white border border-black/5 rounded-lg overflow-hidden transition-all duration-500",
                 viewMode === 'grid' ? "flex flex-col glass-premium p-2" : "flex gap-4 p-4 border-zinc-100"
               )}
             >
               {/* Image Container */}
               <div 
                 className={cn(
-                  "relative rounded-[2rem] overflow-hidden shrink-0 cursor-pointer",
+                  "relative rounded-lg overflow-hidden shrink-0 cursor-pointer",
                   viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-32 h-32"
                 )}
                 onClick={() => setSelectedProduct(product)}
@@ -362,10 +365,10 @@ export default function WhatsAppCatalog({
                 {/* Grid Overlay Controls */}
                 {cart[product.id] && viewMode === 'grid' && (
                   <div className="absolute inset-0 z-20 bg-black/10 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-300">
-                     <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-full p-1.5 shadow-2xl border border-white">
-                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, -1); }} className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center active:scale-75 transition-transform"><Minus className="w-4 h-4" /></button>
+                     <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-lg p-1.5 shadow-2xl border border-white">
+                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, -1); }} className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center active:scale-75 transition-transform"><Minus className="w-4 h-4" /></button>
                         <span className="font-black text-lg w-5 text-center">{cart[product.id]}</span>
-                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, 1); }} className="w-8 h-8 rounded-full bg-zinc-900 text-white flex items-center justify-center active:scale-75 transition-transform"><Plus className="w-4 h-4" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, 1); }} className="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center active:scale-75 transition-transform"><Plus className="w-4 h-4" /></button>
                      </div>
                   </div>
                 )}
@@ -398,16 +401,16 @@ export default function WhatsAppCatalog({
                   viewMode === 'grid' ? "px-2 pb-1" : "mt-3"
                 )}>
                   {cart[product.id] && viewMode === 'list' ? (
-                    <div className="flex items-center gap-4 bg-zinc-100 rounded-full p-1 border border-zinc-200">
-                      <button onClick={() => changeQty(product.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-full active:bg-zinc-200"><Minus className="w-4 h-4" /></button>
+                    <div className="flex items-center gap-4 bg-zinc-100 rounded-lg p-1 border border-zinc-200">
+                      <button onClick={() => changeQty(product.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-lg active:bg-zinc-200"><Minus className="w-4 h-4" /></button>
                       <span className="font-black text-sm">{cart[product.id]}</span>
-                      <button onClick={() => changeQty(product.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-full active:bg-zinc-200"><Plus className="w-4 h-4" /></button>
+                      <button onClick={() => changeQty(product.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-lg active:bg-zinc-200"><Plus className="w-4 h-4" /></button>
                     </div>
                   ) : !cart[product.id] ? (
                     <button 
                       onClick={() => changeQty(product.id, 1)}
                       className={cn(
-                        "rounded-full bg-zinc-900 text-white shadow-lg active:scale-90 transition-all flex items-center justify-center",
+                        "rounded-lg bg-zinc-900 text-white shadow-lg active:scale-90 transition-all flex items-center justify-center",
                         viewMode === 'grid' ? "w-10 h-10 mt-2" : "px-6 h-10 text-[13px] font-black uppercase tracking-widest"
                       )}
                     >
@@ -427,10 +430,10 @@ export default function WhatsAppCatalog({
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-10 duration-700">
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="w-full bg-zinc-950 text-white rounded-[2.5rem] h-20 flex items-center justify-between px-10 shadow-2xl shadow-black/40 active:scale-95 transition-all group border border-white/10"
+            className="w-full bg-zinc-950 text-white rounded-lg h-20 flex items-center justify-between px-10 shadow-2xl shadow-black/40 active:scale-95 transition-all group border border-white/10"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-white/10 w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-black border border-white/5">
+              <div className="bg-white/10 w-10 h-10 rounded-lg flex items-center justify-center text-[14px] font-black border border-white/5">
                 {itemsInCart}
               </div>
               <div className="flex flex-col items-start">
@@ -441,21 +444,19 @@ export default function WhatsAppCatalog({
             <span className="font-black text-2xl tracking-tighter text-white/90">${total.toLocaleString('es-CO')}</span>
           </button>
         </div>
- 
-
       )}
 
       {/* Simplified Cart Modal */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-[3rem] sm:rounded-[3rem] max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-500">
+          <div className="relative w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-500">
             <div className="p-8 pb-4 flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-black uppercase tracking-tight">Tu Pedido</h2>
                 <p className="text-sm font-bold text-zinc-400">Total: {itemsInCart} items</p>
               </div>
-              <button onClick={() => setIsCartOpen(false)} className="w-12 h-12 small bg-zinc-100 rounded-full flex items-center justify-center">
+              <button onClick={() => setIsCartOpen(false)} className="w-12 h-12 small bg-zinc-100 rounded-lg flex items-center justify-center">
                 <X className="w-6 h-6 text-zinc-900" />
               </button>
             </div>
@@ -484,7 +485,7 @@ export default function WhatsAppCatalog({
                     <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">Datos de entrega</label>
                     <input 
                       placeholder="¿A nombre de quién?" 
-                      className="w-full bg-zinc-100/50 border-none rounded-xl p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
+                      className="w-full bg-zinc-100/50 border-none rounded-lg p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
                       value={form.customerName}
                       onChange={e => {
                         setForm(f => ({ ...f, customerName: e.target.value }))
@@ -494,13 +495,13 @@ export default function WhatsAppCatalog({
                     <div className="grid grid-cols-2 gap-3">
                       <input 
                         placeholder="Ciudad" 
-                        className="w-full bg-zinc-100/50 border-none rounded-xl p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
+                        className="w-full bg-zinc-100/50 border-none rounded-lg p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
                         value={form.city}
                         onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
                       />
                       <input 
                         placeholder="Dirección" 
-                        className="w-full bg-zinc-100/50 border-none rounded-xl p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
+                        className="w-full bg-zinc-100/50 border-none rounded-lg p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
                         value={form.address}
                         onChange={e => {
                           setForm(f => ({ ...f, address: e.target.value }))
@@ -511,10 +512,9 @@ export default function WhatsAppCatalog({
                     <p className="text-[11px] text-zinc-400 px-1 italic">* También puedes seleccionar en el mapa debajo.</p>
                  </div>
                  
-                 <div className="rounded-2xl overflow-hidden border border-zinc-100 h-44 shadow-sm">
+                 <div className="rounded-lg overflow-hidden border border-zinc-100 h-44 shadow-sm">
                    <MapPicker 
                       onLocationSelectAction={(lat, lng, addr) => {
-                        // Intentamos extraer ciudad si el MapPicker lo ofrece, sino mantenemos lo que haya
                         setForm(f => ({ ...f, lat, lng, address: addr || f.address, city: f.city || 'Bogotá' }))
                       }}
                    />
@@ -532,7 +532,7 @@ export default function WhatsAppCatalog({
                 onClick={handleWhatsAppOrder}
                 disabled={loadingAction !== null}
                 className={cn(
-                  "w-full h-15 bg-[#25D366] text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-green-200 active:scale-95 transition-all",
+                  "w-full h-15 bg-[#25D366] text-white rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-green-200 active:scale-95 transition-all",
                   loadingAction === 'whatsapp' && "opacity-70 animate-pulse"
                 )}
               >
@@ -545,7 +545,7 @@ export default function WhatsAppCatalog({
                   onClick={handleCardPayment}
                   disabled={loadingAction !== null}
                   className={cn(
-                    "w-full h-15 bg-zinc-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all",
+                    "w-full h-15 bg-zinc-900 text-white rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all",
                     loadingAction === 'card' && "opacity-70 animate-pulse"
                   )}
                 >

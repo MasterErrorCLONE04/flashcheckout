@@ -20,10 +20,10 @@ export default async function SettingsPage() {
   const isPro = await checkSubscription()
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-950">Configuración de Comandos</h1>
-        <p className="text-sm text-muted-foreground mt-1 font-medium">
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Configuración</h1>
+        <p className="text-sm text-zinc-500 mt-1 font-medium">
           Personaliza la identidad visual y operativa de tu tienda.
         </p>
       </div>
