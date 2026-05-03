@@ -107,10 +107,9 @@ export default function WhatsAppCatalog({
         setIsCartOpen(false)
         window.history.pushState({ page: 'catalog' }, '')
       } else {
-        window.location.href = "whatsapp://"
-        setTimeout(() => {
-          window.close()
-        }, 100)
+        const link = document.createElement('a')
+        link.href = 'whatsapp://'
+        link.click()
       }
     }
 
@@ -203,17 +202,12 @@ export default function WhatsAppCatalog({
           Hemos enviado un mensaje de confirmation a tu WhatsApp. <br/>
           <span className="font-bold text-zinc-800">Cierra esta ventana y vuelve al chat</span> para continuar.
         </p>
-        <button 
-          onClick={() => {
-            window.location.href = "whatsapp://"
-            setTimeout(() => {
-              window.close()
-            }, 300)
-          }}
-          className="w-full h-15 bg-zinc-900 text-white rounded-lg font-bold text-lg shadow-xl shadow-zinc-200 active:scale-95 transition-all"
+        <a 
+          href="whatsapp://"
+          className="w-full h-15 bg-zinc-900 text-white rounded-lg font-bold text-lg shadow-xl shadow-zinc-200 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
         >
           Regresar a WhatsApp
-        </button>
+        </a>
       </div>
     )
   }
@@ -253,21 +247,18 @@ export default function WhatsAppCatalog({
     <div className="flex flex-col min-h-screen bg-white text-zinc-900 font-sans selection:bg-zinc-100">
       <header className="sticky top-0 z-50 glass-premium border-b border-white/20 px-4 h-[70px] flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button 
-            className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-lg transition-colors" 
-            onClick={() => {
+          <a 
+            href="whatsapp://"
+            onClick={(e) => {
               if (isCartOpen) {
+                e.preventDefault()
                 setIsCartOpen(false)
-              } else {
-                window.location.href = "whatsapp://"
-                setTimeout(() => {
-                  window.close()
-                }, 100)
               }
             }}
+            className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-lg transition-colors cursor-pointer" 
           >
             <ArrowLeft className="w-6 h-6" />
-          </button>
+          </a>
           <div className="flex flex-col">
             <h1 className="text-[17px] font-black tracking-tight uppercase">{store.name}</h1>
             <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Catálogo oficial</span>
