@@ -136,8 +136,8 @@ export async function handleWhatsAppMessage(from: string, text: string) {
         const flowData = {
           products: store.products.map(p => ({
             id: p.id,
-            name: p.name,
-            price: `$${p.price.toLocaleString('es-CO')}`,
+            title: p.name,
+            description: `$${p.price.toLocaleString('es-CO')}`,
             image_url: p.imageUrl || 'https://via.placeholder.com/300'
           }))
         };
