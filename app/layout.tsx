@@ -19,6 +19,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://flashcheckout.vercel.app"),
   title: "FlashCheckout — Cierra ventas en 30 segundos",
+  icons: {
+    icon: "/Flashcheckout logo.svg",
+    apple: "/Flashcheckout logo.svg",
+  },
   description:
     "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
   keywords: [
@@ -85,6 +89,8 @@ export default function RootLayout({
   return (
     <html lang="es" className={cn("antialiased", geist.variable, inter.variable)}>
       <head>
+        <link rel="icon" href="/Flashcheckout logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/Flashcheckout logo.svg" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
