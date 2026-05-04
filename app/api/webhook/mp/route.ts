@@ -64,6 +64,32 @@ export async function POST(req: Request) {
           console.error('[MP Webhook] Failed to send WhatsApp confirmation', error)
         }
       }
+
+      // Notificar al dueño de la tienda por WhatsApp sobre la nueva venta y sugerir domicilio
+      if (newStatus === 'PAID') {
+        try {
+          const store = await prisma.store.findUnique({
+            where: { id: order.storeId },
+          })
+          if (store && store.whatsapp) {
+            await waClient.sendText(
+              store.whatsapp,
+              `📦 *¡Nuevo pedido recibido!* 🎉\n\nHola, tienes una nueva venta en tu tienda *${store.name}*:\n\n*Detalles del pedido:*\n• *ID:* #${order.id.slice(-6)}\n• *Cliente:* ${order.customerName}\n• *Teléfono:* ${order.customerPhone || 'N/A'}\n• *Dirección de Entrega:* ${order.address}, ${order.city}\n• *Total:* $${order.total.toLocaleString('es-CO')}`
+            )
+
+            await waClient.sendButtons(
+              store.whatsapp,
+              `🚚 *¿Te gustaría solicitar nuestro Servicio de Domicilio?*\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequeña cuota de *$5.000 COP* (se descontará del pago final de la orden).`,
+              [
+                { id: `delivery_yes_${order.id}`, title: 'SÍ' },
+                { id: `delivery_no_${order.id}`, title: 'NO' }
+              ]
+            )
+          }
+        } catch (error) {
+          console.error('[MP Webhook] Failed to notify store owner via WhatsApp', error)
+        }
+      }
     }
 
     return NextResponse.json({ received: true }, { status: 200 })

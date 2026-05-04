@@ -58,6 +58,8 @@ model Order {
   paymentStatus           PaymentStatus @default(PENDING)
   customerWhatsAppId      String?
   source                  String        @default("WEB")
+  deliveryRequested       Boolean       @default(false)
+  escrowReleased          Boolean       @default(false)
   store                   Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 

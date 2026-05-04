@@ -212,6 +212,36 @@ export async function handleWhatsAppMessage(from: string, text: string) {
     return;
   }
 
+  // Manejo de SOLICITUD DE DOMICILIO POR PARTE DEL VENDEDOR
+  if (text.startsWith('delivery_yes_')) {
+    const orderId = text.replace('delivery_yes_', '');
+    try {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryRequested: true }
+      });
+      await waClient.sendText(from, `¡Excelente! Has solicitado nuestro servicio de domicilio para el pedido *#${orderId.slice(-6).toUpperCase()}*. 🚚\n\nUn repartidor oficial recogerá el producto en tu establecimiento.`);
+    } catch (err) {
+      console.error('[Delivery Yes Error]', err);
+    }
+    return;
+  }
+
+  if (text.startsWith('delivery_no_')) {
+    const orderId = text.replace('delivery_no_', '');
+    try {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryRequested: false }
+      });
+      await waClient.sendText(from, `Entendido. Te encargarás del envío por tu cuenta para el pedido *#${orderId.slice(-6).toUpperCase()}*. No se te descontará nada de la orden.`);
+    } catch (err) {
+      console.error('[Delivery No Error]', err);
+    }
+    return;
+  }
+
+
   // Manejo de SELECCIÓN de producto (Global)
   if (text.startsWith('select_')) {
     const productId = text.replace('select_', '');

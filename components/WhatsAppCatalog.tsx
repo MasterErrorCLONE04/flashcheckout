@@ -245,49 +245,63 @@ export default function WhatsAppCatalog({
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-zinc-900 font-sans selection:bg-zinc-100">
-      <header className="sticky top-0 z-50 glass-premium border-b border-white/20 px-4 h-[70px] flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <a 
-            href="whatsapp://"
-            onClick={(e) => {
-              if (isCartOpen) {
-                e.preventDefault()
-                setIsCartOpen(false)
-              }
-            }}
-            className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-lg transition-colors cursor-pointer" 
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </a>
-          <div className="flex flex-col">
-            <h1 className="text-[17px] font-black tracking-tight uppercase">{store.name}</h1>
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Catálogo oficial</span>
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100 h-[70px]">
+        <div className="max-w-5xl mx-auto h-full px-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <a 
+              href="whatsapp://"
+              onClick={(e) => {
+                if (isCartOpen) {
+                  e.preventDefault()
+                  setIsCartOpen(false)
+                }
+              }}
+              className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-lg transition-colors cursor-pointer" 
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </a>
+            <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 flex items-center justify-center shrink-0 select-none text-zinc-400">
+              {store.logoUrl ? (
+                <Image 
+                  src={store.logoUrl} 
+                  alt={store.name} 
+                  fill 
+                  className="object-cover"
+                />
+              ) : (
+                <ShoppingBag className="w-5 h-5 text-zinc-400" />
+              )}
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-[17px] font-black tracking-tight uppercase">{store.name}</h1>
+              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Catálogo oficial</span>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <button 
-            onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')}
-            className="w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-lg text-zinc-600 active:bg-zinc-200 transition-colors"
-          >
-            {viewMode === 'grid' ? <LayoutGrid className="w-5 h-5" /> : <Settings2 className="w-5 h-5 rotate-90" />} 
-          </button>
-          <button 
-            className="w-10 h-10 flex items-center justify-center bg-zinc-950 rounded-lg relative active:scale-90 transition-all" 
-            onClick={() => setIsCartOpen(true)}
-          >
-            <ShoppingCart className="w-5 h-5 text-white" />
-            {itemsInCart > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-lg border-2 border-white shadow-sm animate-in zoom-in">
-                {itemsInCart}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button 
+              onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')}
+              className="w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-lg text-zinc-600 active:bg-zinc-200 transition-colors"
+            >
+              {viewMode === 'grid' ? <LayoutGrid className="w-5 h-5" /> : <Settings2 className="w-5 h-5 rotate-90" />} 
+            </button>
+            <button 
+              className="w-10 h-10 flex items-center justify-center bg-zinc-950 rounded-lg relative active:scale-90 transition-all" 
+              onClick={() => setIsCartOpen(true)}
+            >
+              <ShoppingCart className="w-5 h-5 text-white" />
+              {itemsInCart > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-lg border-2 border-white shadow-sm animate-in zoom-in">
+                  {itemsInCart}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 pb-32">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 pb-32">
         {/* Premium Search Bar */}
-        <div className="px-4 py-4">
+        <div className="py-4">
           <div className="relative group">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-zinc-950 transition-colors" />
             <input 
@@ -301,7 +315,7 @@ export default function WhatsAppCatalog({
         </div>
 
         {/* Categories Tabs */}
-        <div className="px-4 pb-2 -mt-1 overflow-x-auto no-scrollbar flex items-center gap-2">
+        <div className="pb-4 -mt-1 overflow-x-auto no-scrollbar flex items-center gap-2">
           {categories.map(cat => (
             <button
               key={cat}
@@ -320,8 +334,8 @@ export default function WhatsAppCatalog({
 
         {/* Products Grid/List */}
         <div className={cn(
-          "px-4 pb-32",
-          viewMode === 'grid' ? "grid grid-cols-2 gap-4" : "flex flex-col gap-4"
+          "pb-32",
+          viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" : "grid grid-cols-1 md:grid-cols-2 gap-4"
         )}>
           {filteredProducts.map(product => (
             <div 
