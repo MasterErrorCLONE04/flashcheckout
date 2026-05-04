@@ -17,6 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://flashcheckout.vercel.app"),
   title: "FlashCheckout — Cierra ventas en 30 segundos",
   description:
     "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
@@ -28,7 +29,46 @@ export const metadata: Metadata = {
     "tiktok",
     "ecommerce",
     "colombia",
+    "automatización de ventas",
+    "enlaces de pago",
   ],
+  alternates: {
+    canonical: "https://flashcheckout.vercel.app",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: "https://flashcheckout.vercel.app",
+    title: "FlashCheckout — Cierra ventas en 30 segundos",
+    description: "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
+    siteName: "FlashCheckout",
+    images: [
+      {
+        url: "https://flashcheckout.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "FlashCheckout - Cierra ventas en 30 segundos",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FlashCheckout — Cierra ventas en 30 segundos",
+    description: "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
+    images: ["https://flashcheckout.vercel.app/og-image.png"],
+  },
 };
 
 import { Suspense } from "react";
@@ -41,6 +81,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={cn("antialiased", geist.variable, inter.variable)}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "FlashCheckout",
+              "url": "https://flashcheckout.vercel.app",
+              "applicationCategory": "BusinessApplication",
+              "browserRequirements": "Requires JavaScript and HTML5",
+              "description": "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
+              "operatingSystem": "All",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              }
+            })
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-secondary text-foreground font-geist">
         <ClerkProvider
           appearance={{
