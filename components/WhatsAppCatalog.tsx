@@ -266,7 +266,9 @@ export default function WhatsAppCatalog({
                   src={store.logoUrl} 
                   alt={store.name} 
                   fill 
+                  sizes="44px"
                   className="object-cover"
+                  priority
                 />
               ) : (
                 <ShoppingBag className="w-5 h-5 text-zinc-400" />
@@ -337,7 +339,7 @@ export default function WhatsAppCatalog({
           "pb-32",
           viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" : "grid grid-cols-1 md:grid-cols-2 gap-4"
         )}>
-          {filteredProducts.map(product => (
+          {filteredProducts.map((product, index) => (
             <div 
               key={product.id} 
               className={cn(
@@ -360,6 +362,7 @@ export default function WhatsAppCatalog({
                     width={400} 
                     height={400} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    priority={index < 4}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-200 bg-zinc-50">

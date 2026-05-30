@@ -2,12 +2,13 @@ import { auth } from '@clerk/nextjs/server'
 import CustomUserMenu from '@/components/dashboard/CustomUserMenu'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Package, ShoppingCart, ExternalLink, Zap, Settings, CreditCard, ChevronsUpDown, Clock, Gift, BookOpenText, HelpCircle, Menu, Play, History, BarChart3, Database, Users, Rocket, Globe } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, ExternalLink, Zap, Settings, CreditCard, ChevronsUpDown, Clock, Gift, BookOpenText, HelpCircle, Menu, Play, History, BarChart3, Database, Users, Rocket, Globe, ArrowUp, CheckCircle2 } from 'lucide-react'
 import { currentUser } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import SidebarNav from '@/components/dashboard/SidebarNav'
+import { checkSubscription } from '@/lib/subscription'
 
 export default async function DashboardLayout({
   children,
@@ -20,8 +21,16 @@ export default async function DashboardLayout({
 
   const store = await prisma.store.findFirst({
     where: { userId },
-    select: { slug: true, name: true },
+    select: { id: true, slug: true, name: true },
   })
+
+  const isPro = await checkSubscription()
+  let productCount = 0
+  if (store) {
+    productCount = await prisma.product.count({
+      where: { storeId: store.id },
+    })
+  }
 
   return (
     <div className="min-h-screen bg-white selection:bg-primary/20 selection:text-primary animate-in">
@@ -81,13 +90,13 @@ export default async function DashboardLayout({
 
           {/* Utility Icons (Desktop Only) */}
           <div className="hidden items-center gap-4 md:flex">
-            <Link href="#" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Changelog">
+            <Link href="/changelog" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Changelog">
               <Clock className="h-5 w-5" />
             </Link>
-            <Link href="#" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Affiliate">
+            <Link href="/affiliate" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Affiliate">
               <Gift className="h-5 w-5" />
             </Link>
-            <Link href="#" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Documentation">
+            <Link href="/work/doc" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Documentation">
               <BookOpenText className="h-5 w-5" />
             </Link>
             <Link href="/help" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Help">
@@ -102,16 +111,104 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <div className="w-full px-4 md:px-8 pb-8 md:pb-12 flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[calc(100vh-61px)]">
+      <div className="w-full flex flex-col lg:flex-row items-stretch min-h-[calc(100vh-61px)]">
         {/* Sidebar: Collapsible hover logic */}
-        <aside className="hidden lg:block w-[60px] hover:w-64 lg:-ml-7 group flex-shrink-0 border-r border-zinc-200/60 relative pt-4 transition-[width] duration-300 ease-in-out bg-[#FAFAFA] z-20">
-          <div className="sticky top-[72px] flex flex-col gap-8 w-full overflow-hidden">
+        <aside className="hidden lg:flex flex-col justify-between w-[72px] hover:w-64 group flex-shrink-0 border-r border-zinc-200/60 sticky top-[53px] h-[calc(100vh-53px)] pt-2 pb-6 transition-[width] duration-300 ease-in-out bg-[#FAFAFA] z-20">
+          <div className="flex flex-col gap-8 w-full overflow-hidden">
             <SidebarNav />
+          </div>
+
+          {/* Upgrade / Product capacity card */}
+          <div className="px-3 w-full mt-auto">
+            {!isPro ? (
+              <>
+                {/* Collapsed state (simplified small badge) */}
+                <div className="flex flex-col items-center justify-center gap-1 py-4 group-hover:hidden transition-all duration-200">
+                  <Link href="/pricing" className="contents">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl border flex flex-col items-center justify-center text-[10px] font-extrabold shadow-sm transition-all cursor-pointer",
+                      productCount >= 10 
+                        ? "bg-red-50 border-red-200 text-red-600 animate-pulse hover:bg-red-100" 
+                        : productCount >= 8 
+                        ? "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100" 
+                        : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-200"
+                    )} title={`Productos: ${productCount}/10`}>
+                      <span>{productCount}</span>
+                      <span className="text-[8px] opacity-40">/10</span>
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Expanded state (full detailed card) */}
+                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-zinc-200/80 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-in fade-in duration-300">
+                  <div className="flex justify-between items-center text-xs font-bold text-zinc-800">
+                    <span>Productos</span>
+                    <span className="tabular-nums">{productCount} / 10</span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                    <div 
+                      className={cn(
+                        "h-full rounded-full transition-all duration-500",
+                        productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-zinc-955"
+                      )} 
+                      style={{ width: `${Math.min((productCount / 10) * 100, 100)}%` }}
+                    />
+                  </div>
+
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block text-left">
+                    {productCount >= 10 ? 'Límite alcanzado' : 'Límite del plan Gratuito'}
+                  </span>
+
+                  {/* Upgrade Button */}
+                  <Link href="/pricing" className="contents">
+                    <button className="flex items-center justify-center gap-2 h-9 w-full rounded-lg text-xs font-bold bg-zinc-950 text-white hover:bg-zinc-900 transition-all border border-zinc-800 active:scale-[0.98] shadow-sm mt-1">
+                      <ArrowUp className="w-3.5 h-3.5 text-white" />
+                      Actualizar Plan
+                    </button>
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Collapsed state (simplified small badge) */}
+                <div className="flex flex-col items-center justify-center gap-1 py-4 group-hover:hidden transition-all duration-200">
+                  <Link href="/dashboard/suscripcion" className="contents">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm cursor-pointer hover:bg-emerald-100 transition-colors" title={`Premium: Activo (${productCount} productos)`}>
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Expanded state (full detailed card) */}
+                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-in fade-in duration-300">
+                  <div className="flex justify-between items-center text-xs font-bold text-zinc-850">
+                    <span className="flex items-center gap-1 text-emerald-700 font-extrabold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      Premium
+                    </span>
+                    <span className="text-zinc-500 font-bold tabular-nums">{productCount} productos</span>
+                  </div>
+                  
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block text-left">
+                    Soberanía e inventario ilimitado
+                  </span>
+
+                  {/* Manage Link Button */}
+                  <Link href="/dashboard/suscripcion" className="contents">
+                    <button className="flex items-center justify-center gap-2 h-9 w-full rounded-lg text-xs font-bold bg-white text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition-all border border-zinc-200 active:scale-[0.98] mt-1">
+                      Gestionar Membresía
+                    </button>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </aside>
 
         {/* Main Viewport */}
-        <main className="flex-1 min-w-0 pt-8 md:pt-12">
+        <main className="flex-1 min-w-0 px-4 md:px-8 pb-8 md:pb-12 pt-8 md:pt-12 lg:pl-12">
           {children}
         </main>
       </div>

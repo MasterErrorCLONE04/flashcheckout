@@ -216,11 +216,45 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   if (text.startsWith('delivery_yes_')) {
     const orderId = text.replace('delivery_yes_', '');
     try {
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { store: true }
+      });
+
+      if (!order) {
+        await waClient.sendText(from, 'Lo siento, no encontramos este pedido. 😕');
+        return;
+      }
+
       await prisma.order.update({
         where: { id: orderId },
         data: { deliveryRequested: true }
       });
-      await waClient.sendText(from, `¡Excelente! Has solicitado nuestro servicio de domicilio para el pedido *#${orderId.slice(-6).toUpperCase()}*. 🚚\n\nUn repartidor oficial recogerá el producto en tu establecimiento.`);
+
+      // 1. Buscar repartidores activos y disponibles
+      const drivers = await (prisma as any).driver.findMany({
+        where: { active: true, available: true }
+      });
+
+      if (drivers.length > 0) {
+        // 2. Notificar a cada repartidor vía WhatsApp
+        for (const driver of drivers) {
+          try {
+            await waClient.sendButtons(
+              driver.phoneNumber,
+              `🚚 *NUEVO DOMICILIO DISPONIBLE* 📦\n\n• *Tienda:* ${order.store.name}\n• *Dirección entrega:* ${order.address}, ${order.city}\n• *Valor envío:* $5.000 COP\n• *Valor pedido:* $${order.total.toLocaleString('es-CO')}\n• *Contacto Tienda:* wa.me/${order.store.whatsapp}\n\n¿Deseas tomar este domicilio?`,
+              [
+                { id: `accept_delivery_${order.id}`, title: '🏍️ Aceptar Domicilio' }
+              ]
+            );
+          } catch (driverErr) {
+            console.error(`Error al notificar al repartidor ${driver.phoneNumber}:`, driverErr);
+          }
+        }
+        await waClient.sendText(from, `¡Excelente! Has solicitado nuestro servicio de domicilio para el pedido *#${orderId.slice(-6).toUpperCase()}*. 🚚\n\nHemos notificado a los repartidores disponibles. Te avisaremos inmediatamente cuando uno de ellos lo acepte.`);
+      } else {
+        await waClient.sendText(from, `¡Excelente! Has solicitado nuestro servicio de domicilio para el pedido *#${orderId.slice(-6).toUpperCase()}*. 🚚\n\nEn este momento no tenemos repartidores disponibles en la zona. Intentaremos buscar uno en los próximos minutos o te sugerimos gestionar el despacho por tu cuenta.`);
+      }
     } catch (err) {
       console.error('[Delivery Yes Error]', err);
     }
@@ -237,6 +271,76 @@ export async function handleWhatsAppMessage(from: string, text: string) {
       await waClient.sendText(from, `Entendido. Te encargarás del envío por tu cuenta para el pedido *#${orderId.slice(-6).toUpperCase()}*. No se te descontará nada de la orden.`);
     } catch (err) {
       console.error('[Delivery No Error]', err);
+    }
+    return;
+  }
+
+  // Manejo de ACEPTAR DOMICILIO POR PARTE DEL REPARTIDOR
+  if (text.startsWith('accept_delivery_')) {
+    const orderId = text.replace('accept_delivery_', '');
+    
+    try {
+      // 1. Verificar si es un repartidor activo
+      const driver = await (prisma as any).driver.findUnique({
+        where: { phoneNumber: from, active: true }
+      });
+
+      if (!driver) {
+        await waClient.sendText(from, 'Lo siento, no estás registrado como un repartidor oficial activo. 🚫');
+        return;
+      }
+
+      // 2. Transacción para asegurar la asignación libre de condiciones de carrera
+      const result = await prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+          include: { store: true }
+        });
+
+        if (!order) {
+          throw new Error('ORDER_NOT_FOUND');
+        }
+
+        if (order.driverId) {
+          return { success: false, reason: 'TAKEN', driverId: order.driverId };
+        }
+
+        // Asignar repartidor y cambiar estado de la orden
+        const updatedOrder = await tx.order.update({
+          where: { id: orderId },
+          data: {
+            driverId: driver.id,
+            status: 'shipped' // Estado "En camino"
+          },
+          include: { store: true }
+        });
+
+        return { success: true, order: updatedOrder };
+      });
+
+      if (result.success) {
+        const order = result.order!;
+        // Confirmar al repartidor
+        await waClient.sendText(
+          from,
+          `¡Confirmado! 🏍️ Se te ha asignado el domicilio del pedido *#${orderId.slice(-6).toUpperCase()}*.\n\n• *Tienda:* ${order.store.name} (wa.me/${order.store.whatsapp})\n• *Cliente:* ${order.customerName}\n• *Dirección:* ${order.address}, ${order.city}\n• *Total pedido:* $${order.total.toLocaleString('es-CO')}\n\nPor favor, dirígete a la tienda a recoger el producto.`
+        );
+
+        // Notificar al dueño de la tienda
+        if (order.store.whatsapp) {
+          await waClient.sendText(
+            order.store.whatsapp,
+            `🏍️ *Domicilio Asignado:* El repartidor *${driver.name}* (${driver.phoneNumber}) ha aceptado tu solicitud de entrega para el pedido *#${orderId.slice(-6).toUpperCase()}* y va en camino a tu local.`
+          );
+        }
+      } else {
+        if (result.reason === 'TAKEN') {
+          await waClient.sendText(from, 'Lo siento, este domicilio ya fue tomado por otro repartidor. 🏁');
+        }
+      }
+    } catch (err) {
+      console.error('[Accept Delivery Error]', err);
+      await waClient.sendText(from, 'Hubo un error al procesar la aceptación. Inténtalo de nuevo.');
     }
     return;
   }

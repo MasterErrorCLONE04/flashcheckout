@@ -76,7 +76,7 @@ const Footer = () => {
   const footerLinks = {
     PRODUCT: [
       { label: 'Servicio al Cliente', href: '#' },
-      { label: 'Precios', href: '#pricing' },
+      { label: 'Precios', href: '/pricing' },
       { label: 'Seguridad', href: '#' },
       { label: 'Expertos Flash', href: '#' },
       { label: 'Contrata un Experto', href: '#' },
