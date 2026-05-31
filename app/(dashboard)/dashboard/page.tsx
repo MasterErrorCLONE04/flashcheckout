@@ -50,13 +50,41 @@ export default async function DashboardPage(props: {
   }
 
   const recentOrders = await prisma.order.findMany({
-    where: { storeId: store.id },
+    where: {
+      storeId: store.id,
+      OR: [
+        {
+          mpPreferenceId: null,
+          stripeCheckoutSessionId: null,
+        },
+        {
+          paymentStatus: 'PAID',
+        },
+        {
+          status: 'paid',
+        },
+      ],
+    },
     orderBy: { createdAt: 'desc' },
     take: 4,
   })
 
   const totalRevenue = await prisma.order.aggregate({
-    where: { storeId: store.id },
+    where: {
+      storeId: store.id,
+      OR: [
+        {
+          mpPreferenceId: null,
+          stripeCheckoutSessionId: null,
+        },
+        {
+          paymentStatus: 'PAID',
+        },
+        {
+          status: 'paid',
+        },
+      ],
+    },
     _sum: { total: true },
   })
 
@@ -69,7 +97,22 @@ export default async function DashboardPage(props: {
   startDate.setHours(0, 0, 0, 0)
 
   const todayOrders = await prisma.order.count({
-    where: { storeId: store.id, createdAt: { gte: todayStart } },
+    where: {
+      storeId: store.id,
+      createdAt: { gte: todayStart },
+      OR: [
+        {
+          mpPreferenceId: null,
+          stripeCheckoutSessionId: null,
+        },
+        {
+          paymentStatus: 'PAID',
+        },
+        {
+          status: 'paid',
+        },
+      ],
+    },
   })
 
   const lowStockCount = await prisma.product.count({
@@ -77,14 +120,44 @@ export default async function DashboardPage(props: {
   })
 
   const weeklyOrders = await prisma.order.findMany({
-    where: { storeId: store.id, createdAt: { gte: startDate } },
+    where: {
+      storeId: store.id,
+      createdAt: { gte: startDate },
+      OR: [
+        {
+          mpPreferenceId: null,
+          stripeCheckoutSessionId: null,
+        },
+        {
+          paymentStatus: 'PAID',
+        },
+        {
+          status: 'paid',
+        },
+      ],
+    },
     select: { total: true, createdAt: true },
   })
 
   const weeklyOrdersCount = weeklyOrders.length
   
   const whatsappOrdersCount = await (prisma.order as any).count({
-    where: { storeId: store.id, source: 'WHATSAPP' }
+    where: {
+      storeId: store.id,
+      source: 'WHATSAPP',
+      OR: [
+        {
+          mpPreferenceId: null,
+          stripeCheckoutSessionId: null,
+        },
+        {
+          paymentStatus: 'PAID',
+        },
+        {
+          status: 'paid',
+        },
+      ],
+    }
   })
   
   const totalWhatsAppRevenue = await (prisma.order as any).aggregate({
@@ -121,13 +194,13 @@ export default async function DashboardPage(props: {
   const storeUrl = `${appUrl}/tienda/${store.slug}`
 
   return (
-    <div className="space-y-8 animate-in pb-12">
+    <div className="space-y-4 animate-in pb-12">
       {/* 1. Header Premium */}
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-955 font-display">Panel de control</h1>
-            <div className="text-[15px] font-medium text-zinc-500 mt-4 flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-955 font-display">Panel de control</h1>
+            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               Monitoreo Operativo — Gestionando <span className="text-zinc-950 font-bold uppercase">{store.name}</span>
             </div>

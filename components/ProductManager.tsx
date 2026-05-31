@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
   ArrowUpRight,
   ChevronRight,
+  ChevronLeft,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,13 @@ type Product = {
   imageUrl: string | null
   category?: string | null
   active: boolean
+}
+
+type ProductImageItem = {
+  id: string
+  file?: File
+  url?: string
+  preview: string
 }
 
 export default function ProductManager({
@@ -54,9 +62,8 @@ export default function ProductManager({
     price: '',
     stock: '',
     category: 'General',
-    image: null as File | null,
   })
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [productImages, setProductImages] = useState<ProductImageItem[]>([])
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -82,9 +89,16 @@ export default function ProductManager({
       price: String(product.price),
       stock: String(product.stock),
       category: product.category || 'General',
-      image: null,
     })
-    setImagePreview(product.imageUrl)
+    
+    // Parse existing image URLs
+    const urls = product.imageUrl ? product.imageUrl.split(',').filter(Boolean) : []
+    const items: ProductImageItem[] = urls.map((url, index) => ({
+      id: `url-${index}-${Date.now()}`,
+      url,
+      preview: url
+    }))
+    setProductImages(items)
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -92,8 +106,13 @@ export default function ProductManager({
   function closeForm() {
     setShowForm(false)
     setEditingId(null)
-    setForm({ name: '', price: '', stock: '', category: 'General', image: null })
-    setImagePreview(null)
+    setForm({ name: '', price: '', stock: '', category: 'General' })
+    productImages.forEach(img => {
+      if (img.file && img.preview.startsWith('blob:')) {
+        URL.revokeObjectURL(img.preview)
+      }
+    })
+    setProductImages([])
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -101,23 +120,27 @@ export default function ProductManager({
     setLoading(true)
 
     try {
-      let imageUrl: string | null | undefined = undefined
+      const uploadedUrls: string[] = []
 
-      if (form.image) {
-        const formData = new FormData()
-        formData.append('file', form.image)
-        
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        })
-        
-        if (!uploadRes.ok) throw new Error('Falló al subir la imagen')
-        const uploadData = await uploadRes.json()
-        imageUrl = uploadData.url
-      } else if (imagePreview === null) {
-        imageUrl = null
+      for (const item of productImages) {
+        if (item.url) {
+          uploadedUrls.push(item.url)
+        } else if (item.file) {
+          const formData = new FormData()
+          formData.append('file', item.file)
+          
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          })
+          
+          if (!uploadRes.ok) throw new Error('Falló al subir una de las imágenes')
+          const uploadData = await uploadRes.json()
+          uploadedUrls.push(uploadData.url)
+        }
       }
+
+      const imageUrl = uploadedUrls.length > 0 ? uploadedUrls.join(',') : null
 
       const method = editingId ? 'PUT' : 'POST'
       const payload: any = {
@@ -126,9 +149,8 @@ export default function ProductManager({
         price: parseInt(form.price),
         stock: Math.min(parseInt(form.stock) || 0, 99),
         category: form.category,
+        imageUrl,
       }
-      
-      if (imageUrl !== undefined) payload.imageUrl = imageUrl
 
       const res = await fetch('/api/products', {
         method,
@@ -163,11 +185,60 @@ export default function ProductManager({
   }
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setForm(prev => ({ ...prev, image: file }))
-      setImagePreview(URL.createObjectURL(file))
+    if (e.target.files) {
+      const files = Array.from(e.target.files)
+      const spaceLeft = 5 - productImages.length
+      const filesToAdd = files.slice(0, spaceLeft)
+      
+      if (filesToAdd.length === 0) {
+        if (productImages.length >= 5) {
+          toast.error("Límite de imágenes alcanzado", {
+            description: "Puedes subir un máximo de 5 imágenes."
+          })
+        }
+        return
+      }
+
+      const newItems: ProductImageItem[] = filesToAdd.map((file, index) => {
+        const preview = URL.createObjectURL(file)
+        return {
+          id: `file-${index}-${Date.now()}-${Math.random()}`,
+          file,
+          preview
+        }
+      })
+
+      setProductImages(prev => [...prev, ...newItems].slice(0, 5))
+      
+      if (files.length > spaceLeft) {
+        toast.warning("Límite excedido", {
+          description: `Solo se agregaron las primeras ${spaceLeft} imágenes.`
+        })
+      }
     }
+  }
+
+  function removeImage(index: number) {
+    setProductImages(prev => {
+      const target = prev[index]
+      if (target.file && target.preview.startsWith('blob:')) {
+        URL.revokeObjectURL(target.preview)
+      }
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  function moveImage(index: number, direction: 'left' | 'right') {
+    setProductImages(prev => {
+      const newImages = [...prev]
+      const targetIndex = direction === 'left' ? index - 1 : index + 1
+      if (targetIndex >= 0 && targetIndex < newImages.length) {
+        const temp = newImages[index]
+        newImages[index] = newImages[targetIndex]
+        newImages[targetIndex] = temp
+      }
+      return newImages
+    })
   }
 
   async function toggleActive(id: string, active: boolean) {
@@ -217,14 +288,14 @@ export default function ProductManager({
   const canAddProduct = isPro || products.length < 10
 
   return (
-    <div className="space-y-10 pb-20 animate-in">
+    <div className="space-y-4 pb-20 animate-in">
       {/* Unified Reactive Header */}
       {!showForm && (
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-950 font-display">Suministros y Activos</h1>
-              <div className="text-[15px] font-medium text-zinc-500 mt-4 flex items-center gap-2">
+              <h1 className="text-3xl font-bold tracking-tight text-zinc-950 font-display">Suministros y Activos</h1>
+              <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 Inventario Operativo — <span className="text-zinc-950 font-bold">{products.length} MÓDULOS ACTIVOS</span>
               </div>
@@ -232,7 +303,7 @@ export default function ProductManager({
 
             <div className="flex flex-col sm:items-end gap-3">
               {!isPro && (
-                <div className="bg-primary/10 border border-primary/20 text-primary px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] flex items-center gap-2 whitespace-nowrap">
+                <div className="bg-primary/10 border border-primary/20 text-primary px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] flex items-center gap-2 whitespace-nowrap">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                   {products.length} / 10 Espacios Usados
                 </div>
@@ -242,11 +313,11 @@ export default function ProductManager({
                 <button
                   onClick={() => {
                     setEditingId(null)
-                    setForm({ name: '', price: '', stock: '', category: 'General', image: null })
-                    setImagePreview(null)
+                    setForm({ name: '', price: '', stock: '', category: 'General' })
+                    setProductImages([])
                     setShowForm(true)
                   }}
-                  className="btn-premium h-14 flex items-center gap-3 w-full sm:w-auto px-8"
+                  className="btn-premium h-12 flex items-center gap-3 w-full sm:w-auto px-8"
                 >
                   <Plus className="w-5 h-5 truncate" />
                   Añadir Producto
@@ -385,34 +456,102 @@ export default function ProductManager({
 
                 {/* Visual System */}
                 <div className="space-y-4">
-                  <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Imagen del producto</label>
-                  <div className="flex h-full gap-4 max-h-[160px]">
-                    <label className="flex-1 border-2 border-dashed border-gray-200 hover:border-primary/30 hover:bg-primary/[0.02] rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden relative">
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/jpeg, image/png, image/webp" 
-                        onChange={handleImageSelect} 
-                      />
-                      <div className="w-10 h-10 rounded-lg bg-zinc-50 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
-                        <ImageIcon className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors uppercase">Subir Imagen</span>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">
+                      Imágenes del producto ({productImages.length}/5)
                     </label>
+                    <span className="text-[11px] text-zinc-400">La primera imagen será la principal</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {productImages.map((img, idx) => (
+                      <div 
+                        key={img.id}
+                        className={cn(
+                          "relative aspect-square rounded-xl overflow-hidden border border-zinc-200 group bg-zinc-50 shadow-sm transition-all duration-300",
+                          idx === 0 && "ring-2 ring-emerald-500 ring-offset-2"
+                        )}
+                      >
+                        <img 
+                          src={img.preview} 
+                          alt={`Imagen ${idx + 1}`} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        />
+                        
+                        {/* Principal Badge */}
+                        {idx === 0 && (
+                          <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-sm tracking-wider z-20">
+                            Principal
+                          </div>
+                        )}
 
-                    {imagePreview && (
-                      <div className="relative w-40 h-full rounded-lg overflow-hidden border border-gray-200 group animate-in">
-                        <img src={imagePreview} alt="Vista" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button 
-                            type="button"
-                            onClick={() => { setForm(prev => ({...prev, image: null})); setImagePreview(null) }}
-                            className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                        {/* Hover Actions Panel */}
+                        <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-10">
+                          {/* Top Row: Delete */}
+                          <div className="flex justify-end">
+                            <button 
+                              type="button"
+                              onClick={() => removeImage(idx)}
+                              className="w-8 h-8 rounded-lg bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-sm"
+                              title="Eliminar imagen"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Bottom Row: Reordering controls */}
+                          <div className="flex justify-between items-center gap-1.5 w-full mt-auto">
+                            {idx > 0 ? (
+                              <button 
+                                type="button"
+                                onClick={() => moveImage(idx, 'left')}
+                                className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-90"
+                                title="Mover a la izquierda"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <div className="w-8 h-8" />
+                            )}
+                            
+                            <span className="text-[10px] text-white/80 font-bold bg-black/35 px-2 py-1 rounded">
+                              {idx + 1}
+                            </span>
+
+                            {idx < productImages.length - 1 ? (
+                              <button 
+                                type="button"
+                                onClick={() => moveImage(idx, 'right')}
+                                className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-90"
+                                title="Mover a la derecha"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <div className="w-8 h-8" />
+                            )}
+                          </div>
                         </div>
                       </div>
+                    ))}
+
+                    {/* Upload Trigger card if images < 5 */}
+                    {productImages.length < 5 && (
+                      <label className="border-2 border-dashed border-zinc-200 hover:border-emerald-500/50 hover:bg-zinc-50/50 aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group relative">
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/jpeg, image/png, image/webp" 
+                          multiple
+                          onChange={handleImageSelect} 
+                        />
+                        <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm">
+                          <Plus className="w-5 h-5 text-zinc-400 group-hover:text-emerald-600" />
+                        </div>
+                        <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors uppercase text-center px-2">
+                          Añadir imagen
+                        </span>
+                      </label>
                     )}
                   </div>
                 </div>
@@ -462,7 +601,7 @@ export default function ProductManager({
               <div className="relative h-40 w-full overflow-hidden bg-zinc-50 border-b border-black/[0.03]">
                 {product.imageUrl ? (
                   <img
-                    src={product.imageUrl}
+                    src={product.imageUrl.split(',')[0]}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                   />

@@ -24,6 +24,9 @@ model Store {
   stripeConnectAccountId      String?   @unique
   stripeConnectChargesEnabled Boolean   @default(false)
   category                    String?   @default("General")
+  systemPrompt                String?
+  welcomeMessage              String?
+  aiActive                    Boolean   @default(true)
   orders                      Order[]
   products                    Product[]
 }

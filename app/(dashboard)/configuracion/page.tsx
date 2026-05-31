@@ -20,12 +20,12 @@ export default async function SettingsPage() {
   const isPro = await checkSubscription()
 
   return (
-    <div className="space-y-6 pb-12 animate-in">
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+    <div className="space-y-4 pb-12 animate-in">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-950 font-display">Configuración</h1>
-            <div className="text-[15px] font-medium text-zinc-500 mt-4 flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-950 font-display">Configuración</h1>
+            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               Gestión de Tienda — <span className="text-zinc-950 font-bold">AJUSTES Y PREFERENCIAS</span>
             </div>

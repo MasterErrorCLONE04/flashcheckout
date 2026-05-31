@@ -138,7 +138,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
             id: p.id,
             title: p.name,
             description: `$${p.price.toLocaleString('es-CO')}`,
-            image_url: p.imageUrl || 'https://via.placeholder.com/300'
+            image_url: p.imageUrl ? p.imageUrl.split(',')[0] : 'https://via.placeholder.com/300'
           }))
         };
 
@@ -151,7 +151,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
             'CATALOG_SCREEN',
             flowData,
             store.name,
-            'Selecciona todos los productos que desees pedir:'
+            store.systemPrompt || 'Selecciona todos los productos que desees pedir:'
           );
           
           await (prisma as any).whatsAppSession.update({
@@ -166,7 +166,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
 
       // Fallback a lista de texto (Chat Menu)
       await waClient.sendText(from, 'He preparado el menú aquí abajo para ti:');
-      await waClient.sendList(from, store.name, 'Selecciona los productos:', 'Ver Productos', [
+      await waClient.sendList(from, store.name, store.systemPrompt || 'Selecciona los productos:', 'Ver Productos', [
         {
           title: 'Productos Disponibles',
           rows: store.products.map(p => ({
@@ -551,9 +551,12 @@ export async function handleWhatsAppMessage(from: string, text: string) {
           } else {
             const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
 
+            const defaultMsg = `¡Genial! Estás en *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
+            const welcomeText = store.welcomeMessage || defaultMsg;
+
             await waClient.sendUrlButton(
               from, 
-              `¡Genial! Estás en *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`,
+              welcomeText,
               '📱 Abrir Catálogo Pro',
               storeUrl
             );

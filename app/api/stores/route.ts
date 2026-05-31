@@ -98,7 +98,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, whatsapp, logoUrl, bio, category } = body
+    const { name, whatsapp, logoUrl, bio, category, systemPrompt, welcomeMessage, aiActive } = body
 
     const store = await prisma.store.findFirst({
       where: { userId },
@@ -119,14 +119,17 @@ export async function PUT(req: Request) {
         ...(logoUrl !== undefined && { logoUrl }),
         ...(bio !== undefined && { bio }),
         ...(category !== undefined && { category }),
+        ...(systemPrompt !== undefined && { systemPrompt }),
+        ...(welcomeMessage !== undefined && { welcomeMessage }),
+        ...(aiActive !== undefined && { aiActive }),
       },
     })
 
     return NextResponse.json({ store: updated })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating store:', error)
     return NextResponse.json(
-      { error: 'Error al actualizar' },
+      { error: `Error al actualizar: ${error?.message || String(error)}` },
       { status: 500 }
     )
   }

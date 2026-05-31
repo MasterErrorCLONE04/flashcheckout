@@ -3,12 +3,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Package, ShoppingCart, Settings } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Settings, Bot, Truck, Users, BarChart3, History } from 'lucide-react'
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel de Control" },
   { href: "/productos", icon: Package, label: "Enlaces de Pago" },
   { href: "/pedidos", icon: ShoppingCart, label: "Ventas Registradas" },
+  { href: "/agente", icon: Bot, label: "Agente de WhatsApp" },
+  { href: "/envios", icon: Truck, label: "Envíos y Logística" },
+  { href: "/clientes", icon: Users, label: "Directorio de Clientes" },
+  { href: "/analitica", icon: BarChart3, label: "Métricas y Analítica" },
+  { href: "/historial-chats", icon: History, label: "Historial de Chats" },
   { href: "/configuracion", icon: Settings, label: "Ajustes de Tienda" },
 ]
 

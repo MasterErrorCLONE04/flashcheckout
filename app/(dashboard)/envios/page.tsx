@@ -1,10 +1,12 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import OrderList from '@/components/OrderList'
+import LogisticsManager from '@/components/LogisticsManager'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 
-export default async function PedidosPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function EnviosPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
@@ -14,31 +16,28 @@ export default async function PedidosPage() {
 
   if (!store) return <StoreCreationWizard />
 
+  const drivers = await (prisma as any).driver.findMany({
+    orderBy: { name: 'asc' },
+  })
+
   const orders = await prisma.order.findMany({
     where: {
       storeId: store.id,
-      OR: [
-        {
-          mpPreferenceId: null,
-          stripeCheckoutSessionId: null,
-        },
-        {
-          paymentStatus: 'PAID',
-        },
-        {
-          status: 'paid',
-        },
-      ],
+      deliveryRequested: true,
     },
     include: { driver: true },
     orderBy: { createdAt: 'desc' },
   })
 
-  // Serialize to plain objects for client component (Json → OrderItem[])
-  const serializedOrders = orders.map((o: any) => ({
-    ...o,
-    items: o.items as { name: string; qty: number; price: number }[],
-    createdAt: o.createdAt.toISOString(),
+  // Format dispatches list
+  const formattedDispatches = orders.map((o: any) => ({
+    id: o.id,
+    customerName: o.customerName,
+    address: o.address,
+    city: o.city,
+    total: o.total,
+    status: o.status,
+    driver: o.driver?.name || undefined,
   }))
 
   return (
@@ -46,16 +45,17 @@ export default async function PedidosPage() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-950 font-display">Pedidos</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-955 font-display">Envíos y Logística</h1>
             <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Monitoreo en Tiempo Real — <span className="text-zinc-950 font-bold">{serializedOrders.length} {serializedOrders.length === 1 ? 'MÓDULO ACTIVO' : 'MÓDULOS ACTIVOS'}</span>
+              Gestión de Entregas — <span className="text-zinc-950 font-bold">DESPACHOS Y MENSAJEROS</span>
             </div>
           </div>
         </div>
         <div className="h-px w-full bg-zinc-100" />
       </div>
-      <OrderList initialOrders={serializedOrders} storeName={store.name} />
+      
+      <LogisticsManager initialDrivers={drivers} initialDispatches={formattedDispatches} />
     </div>
   )
 }

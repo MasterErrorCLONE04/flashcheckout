@@ -315,7 +315,7 @@ function StoreProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
         
         {p.imageUrl ? (
           <img
-            src={p.imageUrl}
+            src={p.imageUrl.split(',')[0]}
             alt={p.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
@@ -509,7 +509,7 @@ function CartModal({
                     {/* Product Image Capsule */}
                     <div className="w-16 h-16 rounded-2xl bg-white border border-zinc-100 overflow-hidden shrink-0 shadow-sm transition-transform group-hover:scale-105 duration-500">
                       {p.imageUrl
-                        ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                        ? <img src={p.imageUrl.split(',')[0]} alt={p.name} className="w-full h-full object-cover" />
                         : <ShoppingBag className="w-6 h-6 m-5 text-zinc-200" />
                       }
                     </div>

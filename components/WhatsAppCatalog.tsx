@@ -17,6 +17,7 @@ import {
   Globe,
   Trash2,
   ChevronRight,
+  ChevronLeft,
   MessageCircle,
   CreditCard,
   ShoppingBag
@@ -62,6 +63,11 @@ export default function WhatsAppCatalog({
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [activeImageIdx, setActiveImageIdx] = useState(0)
+
+  useEffect(() => {
+    setActiveImageIdx(0)
+  }, [selectedProduct])
   
   // Checkout Form State - Load from session
   const [form, setForm] = useState({
@@ -357,7 +363,7 @@ export default function WhatsAppCatalog({
               >
                 {product.imageUrl ? (
                   <Image 
-                    src={product.imageUrl} 
+                    src={product.imageUrl.split(',')[0]} 
                     alt={product.name} 
                     width={400} 
                     height={400} 
@@ -565,6 +571,168 @@ export default function WhatsAppCatalog({
           </div>
         </div>
       )}
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (() => {
+        const images = selectedProduct.imageUrl ? selectedProduct.imageUrl.split(',').filter(Boolean) : []
+        const currentImage = images[activeImageIdx] || null
+        const qtyInCart = cart[selectedProduct.id] ?? 0
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+            <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setSelectedProduct(null)} />
+            
+            <div className="relative w-full max-w-xl bg-white rounded-t-2xl sm:rounded-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+              
+              {/* Header */}
+              <div className="p-6 pb-4 flex justify-between items-start border-b border-zinc-100">
+                <div>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
+                    {selectedProduct.category || 'General'}
+                  </span>
+                  <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 mt-1">
+                    {selectedProduct.name}
+                  </h2>
+                </div>
+                <button 
+                  onClick={() => setSelectedProduct(null)} 
+                  className="w-10 h-10 bg-zinc-100 rounded-lg flex items-center justify-center active:scale-90 transition-transform"
+                >
+                  <X className="w-5 h-5 text-zinc-900" />
+                </button>
+              </div>
+
+              {/* Scrollable detail content */}
+              <div className="flex-1 overflow-y-auto">
+                {/* Image Gallery */}
+                <div className="relative w-full aspect-square bg-zinc-50 border-b border-zinc-100 flex items-center justify-center group overflow-hidden">
+                  {currentImage ? (
+                    <img 
+                      src={currentImage} 
+                      alt={selectedProduct.name} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-200">
+                      <ShoppingBag className="w-16 h-16" />
+                    </div>
+                  )}
+
+                  {/* Left & Right Chevrons */}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImageIdx(prev => (prev === 0 ? images.length - 1 : prev - 1))}
+                        className="absolute left-4 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-zinc-950 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-20"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImageIdx(prev => (prev === images.length - 1 ? 0 : prev + 1))}
+                        className="absolute right-4 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-zinc-950 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-20"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Image Counter Badge */}
+                  {images.length > 1 && (
+                    <div className="absolute bottom-4 right-4 bg-black/60 text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-20">
+                      {activeImageIdx + 1} / {images.length}
+                    </div>
+                  )}
+                </div>
+
+                {/* Thumbnails Row */}
+                {images.length > 1 && (
+                  <div className="flex gap-2.5 justify-center p-4 bg-zinc-50/50 border-b border-zinc-100 overflow-x-auto no-scrollbar">
+                    {images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveImageIdx(idx)}
+                        className={cn(
+                          "relative w-14 h-14 rounded-lg overflow-hidden border-2 bg-white transition-all shrink-0",
+                          activeImageIdx === idx ? "border-zinc-950 scale-105 shadow-sm" : "border-transparent opacity-70 hover:opacity-100"
+                        )}
+                      >
+                        <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Product Information */}
+                <div className="p-6 space-y-4">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-3xl font-black text-zinc-950">
+                      ${selectedProduct.price.toLocaleString('es-CO')}
+                    </span>
+                    <span className={cn(
+                      "text-[12px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wider",
+                      selectedProduct.stock > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-700 border-red-100"
+                    )}>
+                      {selectedProduct.stock > 0 ? `Stock: ${selectedProduct.stock} un.` : 'Agotado'}
+                    </span>
+                  </div>
+
+                  <div className="h-px bg-zinc-100" />
+
+                  <div className="space-y-1">
+                    <h4 className="text-[11px] font-black uppercase text-zinc-400 tracking-wider">Descripción del producto</h4>
+                    <p className="text-zinc-600 text-sm leading-relaxed font-medium">
+                      Calidad premium garantizada. Este producto cumple con los más altos estándares de fabricación y está disponible para despacho inmediato a nivel nacional.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Bar (Footer) */}
+              <div className="p-6 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between gap-4">
+                {qtyInCart > 0 ? (
+                  <div className="flex-1 flex flex-col sm:flex-row items-center gap-3">
+                    <div className="flex items-center gap-4 bg-white rounded-lg p-2 border border-zinc-200 shadow-sm shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                      <button 
+                        onClick={() => changeQty(selectedProduct.id, -1)} 
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-50 hover:bg-zinc-100 active:scale-90 transition-transform"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="font-black text-lg w-6 text-center tabular-nums">{qtyInCart}</span>
+                      <button 
+                        onClick={() => changeQty(selectedProduct.id, 1)} 
+                        disabled={qtyInCart >= selectedProduct.stock}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-50 hover:bg-zinc-100 active:scale-90 transition-transform disabled:opacity-30"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex-1 w-full text-center sm:text-right">
+                      <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest block">Subtotal en carrito</span>
+                      <span className="text-lg font-black text-zinc-950 tabular-nums">
+                        ${(selectedProduct.price * qtyInCart).toLocaleString('es-CO')}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => changeQty(selectedProduct.id, 1)}
+                    disabled={selectedProduct.stock <= 0}
+                    className="w-full h-14 bg-zinc-950 hover:bg-zinc-800 text-white rounded-lg font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-zinc-950/10 disabled:opacity-40 disabled:cursor-not-allowed uppercase text-[13px] tracking-wider"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Añadir al carrito
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
