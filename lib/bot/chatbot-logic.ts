@@ -414,7 +414,10 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   // Manejo de RESUMEN DE CARRITO CENTRALIZADO (Modo Jelou Pro)
   if (text === 'view_cart_summary' || isViewCart) {
     const cart = (session.cart as any) || { items: {} };
-    const items = Object.values(cart.items || {}) as any[];
+    // Filter out items that are not objects or lack required fields to avoid NaN/undefined issues
+    const items = Object.values(cart.items || {}).filter(
+      (item: any) => item && typeof item === 'object' && 'price' in item && 'qty' in item
+    ) as any[];
 
     if (items.length === 0) {
       await waClient.sendText(from, 'Tu carrito está vacío. 🛒\n\nPuedes buscar productos o "Ver tiendas" para empezar.');
@@ -607,7 +610,10 @@ export async function handleWhatsAppMessage(from: string, text: string) {
     case 'AWAITING_CONFIRMATION':
       if (text === 'final_summary' || text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
         const cart = (session.cart as any) || { items: {} };
-        const items = Object.values(cart.items || {}) as any[];
+        // Filter out items that are not objects or lack required fields to avoid NaN/undefined issues
+        const items = Object.values(cart.items || {}).filter(
+          (item: any) => item && typeof item === 'object' && 'price' in item && 'qty' in item
+        ) as any[];
         
         if (items.length > 0) {
             const storeId = session.storeId || (items[0] as any).storeId;

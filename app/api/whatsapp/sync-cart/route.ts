@@ -11,19 +11,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Falta phoneNumber' }, { status: 400 })
     }
 
+    // Enriquecer el carrito con la información de productos de la base de datos
+    let enrichedCart: any = null
+    if (cartData && cartData.items) {
+      const productIds = Object.keys(cartData.items)
+      if (productIds.length > 0) {
+        const products = await prisma.product.findMany({
+          where: { id: { in: productIds } }
+        })
+        
+        const enrichedItems: Record<string, any> = {}
+        for (const product of products) {
+          const qty = cartData.items[product.id]
+          if (qty > 0) {
+            enrichedItems[product.id] = {
+              id: product.id,
+              name: product.name,
+              price: Number(product.price),
+              qty: qty
+            }
+          }
+        }
+        enrichedCart = { items: enrichedItems }
+      } else {
+        enrichedCart = { items: {} }
+      }
+    }
+
     // Buscamos o creamos la sesión
     const session = await prisma.whatsAppSession.upsert({
       where: { phoneNumber },
       create: {
         phoneNumber,
-        cart: cartData,
+        cart: enrichedCart,
         storeId,
         customerName,
         address,
         step: 'IDLE'
       },
       update: {
-        cart: cartData,
+        cart: enrichedCart,
         storeId: storeId || undefined,
         customerName: customerName || undefined,
         address: address || undefined,
