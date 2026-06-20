@@ -72,7 +72,7 @@ export default async function StorePage({ params, searchParams }: Props) {
       const items = (session.cart as any)?.items || {}
       initialCart = Object.fromEntries(
         Object.entries(items)
-          .map(([id, item]: [string, any]) => {
+          .map(([id, item]: [string, any]): [string, number] => {
             const qty = item && typeof item === 'object' && 'qty' in item ? Number(item.qty) : Number(item)
             return [id, qty]
           })
