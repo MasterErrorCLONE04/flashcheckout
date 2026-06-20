@@ -3,6 +3,7 @@ import { waClient } from '@/lib/whatsapp/cloud-api';
 import { parseIntent } from './intent-engine';
 import { searchGlobalProducts } from './search-service';
 import { mpPreference } from '@/lib/mercadopago';
+import { uploadProofImage } from '@/lib/supabase';
 
 export async function handleWhatsAppMessage(from: string, text: string) {
   // 1. Obtener o crear sesión
@@ -637,38 +638,20 @@ export async function handleWhatsAppMessage(from: string, text: string) {
             });
 
             try {
-              const preference = await mpPreference.create({
-                body: {
-                  items: items.map(i => ({ 
-                    id: i.id,
-                    title: i.name, 
-                    unit_price: i.price, 
-                    quantity: i.qty, 
-                    currency_id: 'COP'
-                  })),
-                  external_reference: order.id,
-                  auto_return: 'approved',
-                  back_urls: { 
-                    success: `${process.env.NEXT_PUBLIC_APP_URL}/exito`,
-                    failure: `${process.env.NEXT_PUBLIC_APP_URL}/error`,
-                    pending: `${process.env.NEXT_PUBLIC_APP_URL}/error`,
-                  },
-                },
-              });
-
-              await waClient.sendUrlButton(
-                from, 
-                `${orderSummary}\n\nHaz clic abajo para realizar tu pago seguro:`,
-                '💳 Pagar con Tarjeta',
-                preference.init_point!
+              const store = await prisma.store.findUnique({ where: { id: storeId } });
+              const bankDetails = store?.whatsapp ? `Nequi o Daviplata al celular ${store.whatsapp}` : '[Datos Cuenta]';
+              
+              await waClient.sendText(
+                from,
+                `${orderSummary}\n\nPor favor, realiza la transferencia a los datos de la tienda:\n• *${bankDetails}*\n\nUna vez realizada la transferencia, envía la foto o captura del comprobante por este chat.`
               );
               
               await (prisma as any).whatsAppSession.update({
                 where: { id: session.id },
-                data: { step: 'IDLE', cart: null },
+                data: { step: 'AWAITING_CONFIRMATION', cart: null },
               });
             } catch (err) {
-               await waClient.sendText(from, 'Hubo un error al procesar tu pago. Inténtalo de nuevo.');
+               await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
             }
         }
       } else if (intent.intent === 'CANCEL' || text === 'cancel') {
@@ -681,3 +664,71 @@ export async function handleWhatsAppMessage(from: string, text: string) {
       break;
   }
 }
+
+export async function handleWhatsAppImage(from: string, mediaId: string, mimeType: string) {
+  // 1. Obtener sesión del bot
+  const session = await (prisma as any).whatsAppSession.findUnique({
+    where: { phoneNumber: from },
+  });
+
+  if (!session || session.step !== 'AWAITING_CONFIRMATION') {
+    await waClient.sendText(from, 'Lo siento, no estoy esperando un comprobante de pago en este momento. Si deseas realizar un pedido, escribe "Ver tiendas".');
+    return;
+  }
+
+  // 2. Buscar la orden PENDING más reciente para este cliente
+  const order = await prisma.order.findFirst({
+    where: {
+      customerPhone: from,
+      paymentStatus: 'PENDING',
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  if (!order) {
+    await waClient.sendText(from, 'No encontré ningún pedido pendiente de pago para tu número.');
+    return;
+  }
+
+  try {
+    await waClient.sendText(from, 'Procesando tu comprobante de pago... ⏳');
+
+    // 3. Descargar comprobante de WhatsApp
+    const { buffer } = await waClient.downloadMedia(mediaId);
+
+    // 4. Subir a Supabase Storage
+    const ext = mimeType.split('/')[1] || 'png';
+    const filename = `proof_${order.id}.${ext}`;
+    const proofImageUrl = await uploadProofImage(buffer, filename);
+
+    // 5. Actualizar la orden
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        paymentStatus: 'UPLOADED',
+        proofImageUrl,
+      },
+    });
+
+    // 6. Cambiar estado de la sesión a IDLE
+    await (prisma as any).whatsAppSession.update({
+      where: { id: session.id },
+      data: { step: 'IDLE' },
+    });
+
+    await waClient.sendText(
+      from,
+      `¡Comprobante recibido correctamente! 📄\n\nEl vendedor validará tu transferencia en breve. Te notificaremos por este medio una vez sea confirmada. ¡Muchas gracias!`
+    );
+
+  } catch (error) {
+    console.error('[handleWhatsAppImage error]', error);
+    await waClient.sendText(
+      from,
+      'Hubo un problema al procesar tu comprobante de pago. Por favor, asegúrate de que sea una imagen válida e intenta nuevamente.'
+    );
+  }
+}
+

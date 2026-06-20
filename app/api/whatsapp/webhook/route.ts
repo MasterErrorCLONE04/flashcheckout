@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { handleWhatsAppMessage } from '@/lib/bot/chatbot-logic';
+import { handleWhatsAppMessage, handleWhatsAppImage } from '@/lib/bot/chatbot-logic';
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'flashcheckout_secret';
 
@@ -29,30 +29,38 @@ export async function POST(req: Request) {
 
     if (message) {
       const from = message.from; // Número de teléfono que envió el mensaje
-      let text = '';
+      
+      if (message.type === 'image') {
+        const mediaId = message.image.id;
+        const mimeType = message.image.mime_type;
+        console.log(`[WhatsApp Webhook] Incoming image from ${from}: mediaId=${mediaId}, mimeType=${mimeType}`);
+        await handleWhatsAppImage(from, mediaId, mimeType);
+      } else {
+        let text = '';
 
-      // Podría ser un mensaje de texto simple
-      if (message.type === 'text') {
-        text = message.text.body;
-      } 
-      // O una respuesta interactiva (Botón/Lista)
-      else if (message.type === 'interactive') {
-        const interactive = message.interactive;
-        if (interactive.type === 'button_reply') {
-          text = interactive.button_reply.id;
-        } else if (interactive.type === 'list_reply') {
-          text = interactive.list_reply.id;
-        } else if (interactive.type === 'nfm_reply') {
-          // Capturar respuesta de WhatsApp Flow
-          text = `flow_response_${interactive.nfm_reply.response_json}`;
+        // Podría ser un mensaje de texto simple
+        if (message.type === 'text') {
+          text = message.text.body;
+        } 
+        // O una respuesta interactiva (Botón/Lista)
+        else if (message.type === 'interactive') {
+          const interactive = message.interactive;
+          if (interactive.type === 'button_reply') {
+            text = interactive.button_reply.id;
+          } else if (interactive.type === 'list_reply') {
+            text = interactive.list_reply.id;
+          } else if (interactive.type === 'nfm_reply') {
+            // Capturar respuesta de WhatsApp Flow
+            text = `flow_response_${interactive.nfm_reply.response_json}`;
+          }
         }
-      }
 
-      console.log(`[WhatsApp Webhook] Incoming from ${from}: ${text}`);
+        console.log(`[WhatsApp Webhook] Incoming from ${from}: ${text}`);
 
-      if (text) {
-        // Ejecutar lógica del bot
-        await handleWhatsAppMessage(from, text);
+        if (text) {
+          // Ejecutar lógica del bot
+          await handleWhatsAppMessage(from, text);
+        }
       }
     }
 

@@ -1,0 +1,34 @@
+# Ignore local node_modules and compilation outputs
+node_modules
+.next
+out
+build
+
+# Ignore git metadata
+.git
+.gitignore
+
+# Ignore docker files
+Dockerfile
+docker-compose*
+.dockerignore
+
+# Ignore environment variables and local secrets
+.env*
+
+# Ignore logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore other non-essential repo files
+.agents
+skills-lock.json
+mcp.json
+context.md
+AGENTS.md
+CLAUDE.md
+walkthrough.md
+task.md
+implementation_plan.md

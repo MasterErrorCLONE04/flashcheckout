@@ -1,0 +1,63 @@
+
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: flashcheckout-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flashcheckout
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flashcheckout"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flashcheckout-web
+    # Run prisma db push to ensure database schema is created/synced on start, then start Next.js dev server
+    command: sh -c "npx prisma db push && npm run dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/flashcheckout?schema=public
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flashcheckout-prisma-studio
+    # Runs Prisma Studio visually in the browser without local tools installation
+    command: npx prisma studio --browser none --port 5555 --address 0.0.0.0
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/flashcheckout?schema=public
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

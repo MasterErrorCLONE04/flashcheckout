@@ -182,6 +182,40 @@ export class WhatsAppCloudAPI {
 
     return response.json();
   }
+
+  async downloadMedia(mediaId: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    const url = `https://graph.facebook.com/v21.0/${mediaId}`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      console.error('[WhatsApp Media Info Error]', err);
+      throw new Error('Failed to retrieve media info from WhatsApp');
+    }
+
+    const mediaInfo = await response.json();
+    const downloadUrl = mediaInfo.url;
+    const mimeType = mediaInfo.mime_type;
+
+    const downloadResponse = await fetch(downloadUrl, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
+    if (!downloadResponse.ok) {
+      throw new Error('Failed to download media file from WhatsApp');
+    }
+
+    const arrayBuffer = await downloadResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    return { buffer, mimeType };
+  }
 }
 
 // Singleton helper for the app
@@ -189,3 +223,21 @@ export const waClient = new WhatsAppCloudAPI({
   accessToken: process.env.WHATSAPP_ACCESS_TOKEN || '',
   phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
 });
+
+export async function notifyOrderConfirmed(orderId: string, phone: string) {
+  const message = `Tu pago ha sido validado correctamente. Tu pedido *#${orderId.slice(-6).toUpperCase()}* ha sido procesado. ✅`;
+  await waClient.sendText(phone, message);
+  
+  try {
+    const { sendInvoiceToWhatsApp } = await import('./send-invoice');
+    await sendInvoiceToWhatsApp(orderId);
+  } catch (err) {
+    console.error('[notifyOrderConfirmed] Error sending invoice:', err);
+  }
+}
+
+export async function notifyOrderRejected(orderId: string, phone: string, reason: string) {
+  const message = `Lo sentimos, tu pago para el pedido *#${orderId.slice(-6).toUpperCase()}* no pudo ser validado. ❌\n\n*Motivo:* ${reason}\n\nPor favor, realiza el pago correspondiente e intenta subir el comprobante de nuevo.`;
+  await waClient.sendText(phone, message);
+}
+

@@ -24,3 +24,27 @@ export async function uploadProductImage(
 
   return publicUrl
 }
+
+export async function uploadProofImage(
+  buffer: Buffer,
+  filename: string
+): Promise<string> {
+  const ext = filename.split('.').pop() || 'png'
+  const path = `proofs/${filename.replace(`.${ext}`, '')}-${Date.now()}.${ext}`
+
+  const { error } = await supabase.storage
+    .from('products-images')
+    .upload(path, buffer, {
+      upsert: true,
+      contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+    })
+
+  if (error) throw error
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('products-images').getPublicUrl(path)
+
+  return publicUrl
+}
+

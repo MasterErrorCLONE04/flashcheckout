@@ -58,7 +58,9 @@ model Order {
   stripeCheckoutSessionId String?
   mpPaymentId             String?
   mpPreferenceId          String?
-  paymentStatus           PaymentStatus @default(PENDING)
+  paymentStatus           String        @default("PENDING")
+  proofImageUrl           String?
+  adminComment            String?
   customerWhatsAppId      String?
   source                  String        @default("WEB")
   deliveryRequested       Boolean       @default(false)
@@ -92,8 +94,3 @@ model WhatsAppSession {
   customerName    String?
 }
 
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-}
