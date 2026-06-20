@@ -454,7 +454,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
         where: { id: session.id },
         data: { step: 'AWAITING_ADDRESS' },
       });
-      await waClient.sendText(from, `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? (Ej: Calle 10 #20-30, Bogotá)`);
+      await waClient.sendText(from, `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? Puedes escribir tu dirección (Ej: Calle 10 #20-30, Bogotá) o compartir tu ubicación actual de WhatsApp directamente en este chat. 🗺️`);
       return;
     }
 
