@@ -27,6 +27,18 @@ model Store {
   systemPrompt                String?
   welcomeMessage              String?
   aiActive                    Boolean   @default(true)
+  verificationLevel           Int       @default(0)
+  whatsappVerified            Boolean   @default(false)
+  otpCode                     String?
+  otpExpiresAt                DateTime?
+  idProofUrl                  String?
+  strikes                     Int       @default(0)
+  pausedReason                String?
+  notifiedLimit80             Boolean   @default(false)
+  mpAccessToken               String?
+  mpPublicKey                 String?
+  mpUserId                    String?
+  mpConnected                 Boolean   @default(false)
   orders                      Order[]
   products                    Product[]
 }
@@ -65,6 +77,7 @@ model Order {
   source                  String        @default("WEB")
   deliveryRequested       Boolean       @default(false)
   escrowReleased          Boolean       @default(false)
+  reported                Boolean       @default(false)
   store                   Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
   driverId                String?
   driver                  Driver?       @relation(fields: [driverId], references: [id])

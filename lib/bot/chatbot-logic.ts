@@ -19,6 +19,21 @@ export async function handleWhatsAppMessage(from: string, text: string) {
 
   const intent = await parseIntent(text);
 
+  // Verificar si la tienda de la sesión está activa
+  if (session.storeId) {
+    const activeStore = await prisma.store.findUnique({
+      where: { id: session.storeId }
+    });
+    if (activeStore && !activeStore.active) {
+      session = await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { storeId: null, cart: null }
+      });
+      await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕');
+      return;
+    }
+  }
+
   // --- COMANDOS GLOBALES (Funcionan en cualquier estado) ---
   const isViewStores = text === 'view_stores' || 
                        text.toLowerCase().includes('ver tiendas') || 
@@ -125,7 +140,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   if (text.startsWith('view_list_')) {
     const storeId = text.replace('view_list_', '');
     const store = await prisma.store.findUnique({
-      where: { id: storeId },
+      where: { id: storeId, active: true },
       include: { products: { where: { active: true }, take: 20 } }
     });
 
@@ -543,7 +558,7 @@ export async function handleWhatsAppMessage(from: string, text: string) {
       if (text.startsWith('store_')) {
         const storeId = text.replace('store_', '');
         const store = await prisma.store.findUnique({ 
-          where: { id: storeId },
+          where: { id: storeId, active: true },
           include: { products: { where: { active: true }, take: 5 } }
         });
   

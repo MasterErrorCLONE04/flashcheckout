@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { waClient } from '@/lib/whatsapp/cloud-api'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,15 +71,31 @@ export async function POST(req: Request) {
       )
     }
 
+    const cleanWhatsapp = whatsapp.replace(/\D/g, '')
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
+
     const store = await prisma.store.create({
       data: {
         name,
         slug: cleanSlug,
-        whatsapp: whatsapp.replace(/\D/g, ''),
+        whatsapp: cleanWhatsapp,
         userId,
         category: category || 'Otros',
+        otpCode,
+        otpExpiresAt,
+        whatsappVerified: false,
       },
     })
+
+    try {
+      await waClient.sendText(
+        cleanWhatsapp,
+        `¡Hola! Tu código de verificación para FlashCheckout es: *${otpCode}*. Ingrésalo en tu panel para verificar tu cuenta.`
+      )
+    } catch (err) {
+      console.error('Error sending store OTP:', err)
+    }
 
     return NextResponse.json({ store }, { status: 201 })
   } catch (error) {

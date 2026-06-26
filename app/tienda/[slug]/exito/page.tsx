@@ -2,15 +2,18 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import { CheckCircle2 } from 'lucide-react'
+import ReportButton from '@/components/ReportButton'
 
 export const dynamic = 'force-dynamic'
 
 type Props = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ orderId?: string }>
 }
 
-export default async function TiendaExitoPage({ params }: Props) {
+export default async function TiendaExitoPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const { orderId } = await searchParams
 
   const store = await prisma.store.findUnique({
     where: { slug, active: true },
@@ -18,6 +21,15 @@ export default async function TiendaExitoPage({ params }: Props) {
   })
 
   if (!store) notFound()
+
+  let initialReported = false
+  if (orderId) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { reported: true }
+    })
+    initialReported = !!order?.reported
+  }
 
   const wa = `https://wa.me/${store.whatsapp}`
 
@@ -30,7 +42,7 @@ export default async function TiendaExitoPage({ params }: Props) {
         <h1 className="text-xl font-bold">¡Pago recibido!</h1>
         <p className="text-sm text-muted-foreground">
           Gracias por tu compra en <span className="font-semibold text-foreground">{store.name}</span>.
-          El vendedor fue notificado por Stripe y preparará tu pedido.
+          El vendedor fue notificado y preparará tu pedido.
         </p>
         <p className="text-sm text-muted-foreground">
           Si quieres coordinar envío por WhatsApp, puedes escribirle aquí:
@@ -45,10 +57,16 @@ export default async function TiendaExitoPage({ params }: Props) {
         </Link>
         <Link
           href={`/tienda/${slug}`}
-          className="inline-flex w-full justify-center text-sm text-emerald-700 font-medium hover:underline"
+          className="inline-flex w-full justify-center text-sm text-emerald-700 font-medium hover:underline mb-2"
         >
           Volver a la tienda
         </Link>
+        
+        {orderId && (
+          <div className="pt-4 border-t border-zinc-150">
+            <ReportButton orderId={orderId} initialReported={initialReported} />
+          </div>
+        )}
       </div>
     </div>
   )

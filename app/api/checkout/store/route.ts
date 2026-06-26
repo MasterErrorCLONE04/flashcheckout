@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { mpPreference } from '@/lib/mercadopago'
+import { MercadoPagoConfig, Preference } from 'mercadopago'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +42,8 @@ export async function POST(req: Request) {
         id: true,
         slug: true,
         name: true,
+        mpAccessToken: true,
+        mpPublicKey: true,
       },
     })
 
@@ -155,7 +157,22 @@ export async function POST(req: Request) {
       preferenceData.body.auto_return = 'approved'
     }
 
-    const preference = await mpPreference.create(preferenceData)
+    const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
+
+    if (!tokenToUse) {
+      return NextResponse.json(
+        { error: 'Esta tienda no tiene configurado Mercado Pago para procesar transacciones.' },
+        { status: 400 }
+      )
+    }
+
+    const dynamicMpClient = new MercadoPagoConfig({
+      accessToken: tokenToUse,
+      options: { timeout: 10000 },
+    })
+    const dynamicMpPreference = new Preference(dynamicMpClient)
+
+    const preference = await dynamicMpPreference.create(preferenceData)
 
     if (!preference.id) {
       return NextResponse.json(

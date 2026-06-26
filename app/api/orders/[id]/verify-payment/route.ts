@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
-import { notifyOrderConfirmed, notifyOrderRejected } from '@/lib/whatsapp/cloud-api'
+import { notifyOrderConfirmed, notifyOrderRejected, waClient } from '@/lib/whatsapp/cloud-api'
 
 export async function PATCH(
   req: Request,
@@ -32,7 +32,69 @@ export async function PATCH(
       return NextResponse.json({ error: 'No autorizado para esta tienda' }, { status: 403 })
     }
 
+    const store = order.store
+
     if (action === 'APPROVE') {
+      // Si la tienda es Nivel 0 (sin verificar), controlar límites
+      if (store.verificationLevel === 0) {
+        const now = new Date()
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+        // Obtener pedidos confirmados este mes
+        const confirmedOrdersThisMonth = await prisma.order.findMany({
+          where: {
+            storeId: store.id,
+            paymentStatus: 'CONFIRMED',
+            createdAt: { gte: monthStart }
+          }
+        })
+
+        const currentVolume = confirmedOrdersThisMonth.reduce((sum, o) => sum + o.total, 0)
+        const currentCount = confirmedOrdersThisMonth.length
+
+        const maxVolume = 500000 // $500,000 COP
+        const maxCount = 10
+
+        // Verificar límite del 100%
+        if (currentVolume + order.total > maxVolume) {
+          return NextResponse.json({
+            error: `Límite mensual excedido. Aprobar este pedido ($${order.total.toLocaleString()}) superará el límite de ventas mensuales de $${maxVolume.toLocaleString()} COP para tiendas Nivel 0. Por favor, verifica tu identidad en el panel para continuar sin límites.`
+          }, { status: 400 })
+        }
+
+        if (currentCount + 1 > maxCount) {
+          return NextResponse.json({
+            error: `Límite mensual de transacciones excedido. Aprobar este pedido superará el límite de ${maxCount} transacciones mensuales para tiendas Nivel 0. Por favor, verifica tu identidad en el panel para continuar sin límites.`
+          }, { status: 400 })
+        }
+
+        // Verificar alerta preventiva del 80%
+        const alertVolume = 400000 // $400,000 COP (80%)
+        const alertCount = 8 // 8 transacciones (80%)
+
+        if (
+          (currentVolume + order.total >= alertVolume || currentCount + 1 >= alertCount) &&
+          !store.notifiedLimit80
+        ) {
+          // Enviar alerta proactiva por WhatsApp
+          try {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+            await waClient.sendText(
+              store.whatsapp,
+              `📈 *¡Tus ventas están volando!* 🚀\n\nTu tienda *${store.name}* ha alcanzado el 80% de su límite mensual de ventas de Nivel 0 ($${(currentVolume + order.total).toLocaleString()} / $${maxVolume.toLocaleString()} COP o ${currentCount + 1} / ${maxCount} transacciones).\n\nPara seguir recibiendo pagos por transferencia manual sin límites y evitar interrupciones en tu servicio, necesitamos verificar tu identidad. Sube tu documento aquí: ${appUrl}/verificaciones`
+            )
+            // Marcar como notificado
+            await prisma.store.update({
+              where: { id: store.id },
+              data: { notifiedLimit80: true }
+            })
+          } catch (waErr) {
+            console.error('Error sending 80% limit warning:', waErr)
+          }
+        }
+      }
+
+      // Proceder con la aprobación
       const updatedOrder = await prisma.order.update({
         where: { id: orderId },
         data: {

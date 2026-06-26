@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Loader2, 
   Store, 
@@ -42,6 +42,10 @@ interface StoreSettingsData {
   category?: string | null;
   stripeConnectAccountId?: string | null;
   stripeConnectChargesEnabled?: boolean;
+  mpAccessToken?: string | null;
+  mpPublicKey?: string | null;
+  mpConnected?: boolean;
+  mpUserId?: string | null;
 }
 
 export default function StoreSettingsManager({
@@ -60,15 +64,70 @@ export default function StoreSettingsManager({
     logoFile: null as File | null,
   })
 
-  // Inputs para MercadoPago (Simulado/Persistencia local o para expansión)
-  const [mpKeys, setMpKeys] = useState({
-    publicKey: '',
-    accessToken: '',
-  })
+  const [mpConnected, setMpConnected] = useState(!!initialStore.mpConnected)
+  const [mpPublicKey, setMpPublicKey] = useState(initialStore.mpPublicKey || '')
+  const [disconnectingMp, setDisconnectingMp] = useState(false)
   
   const [logoPreview, setLogoPreview] = useState<string | null>(initialStore.logoUrl)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const mpConnectedParam = params.get('mp_connected')
+      if (mpConnectedParam === 'success') {
+        setMpConnected(true)
+        toast.success("¡Mercado Pago conectado!", {
+          description: "Tu pasarela de Mercado Pago está lista para procesar transacciones."
+        })
+        window.history.replaceState({}, '', window.location.pathname)
+      } else if (mpConnectedParam === 'error') {
+        const reason = params.get('error_reason')
+        toast.error("Error al conectar Mercado Pago", {
+          description: `Ocurrió un problema: ${reason || 'error_desconocido'}. Inténtalo de nuevo.`
+        })
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+    }
+  }, [])
+
+  function handleConnectMercadoPago() {
+    const appId = process.env.NEXT_PUBLIC_MERCADOPAGO_APP_ID || ''
+    if (!appId) {
+      toast.error("Configuración incompleta", {
+        description: "NEXT_PUBLIC_MERCADOPAGO_APP_ID no está configurado en las variables de entorno."
+      })
+      return
+    }
+    const base = window.location.origin
+    const redirectUri = encodeURIComponent(`${base}/api/mercadopago/callback`)
+    const authUrl = `https://auth.mercadopago.com/authorization?client_id=${appId}&response_type=code&platform_id=mp&redirect_uri=${redirectUri}&state=${initialStore.id}`
+    
+    window.location.href = authUrl
+  }
+
+  async function handleDisconnectMercadoPago() {
+    setDisconnectingMp(true)
+    try {
+      const res = await fetch('/api/stores/disconnect-mercadopago', {
+        method: 'POST',
+      })
+      if (!res.ok) throw new Error('Error al desconectar')
+      
+      setMpConnected(false)
+      setMpPublicKey('')
+      toast.success("Mercado Pago desconectado", {
+        description: "Se han removido las credenciales del comercio."
+      })
+    } catch (error) {
+      toast.error("Error al desconectar", {
+        description: "No se pudo desconectar tu cuenta de Mercado Pago. Inténtalo de nuevo."
+      })
+    } finally {
+      setDisconnectingMp(false)
+    }
+  }
 
   function handleLogoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
@@ -473,54 +532,53 @@ export default function StoreSettingsManager({
                     </div>
                     <div>
                       <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">Pasarela Local</p>
-                      <h4 className="text-sm font-bold text-zinc-950">MercadoPago (Cuentas Locales)</h4>
+                      <h4 className="text-sm font-bold text-zinc-955">Mercado Pago Connect</h4>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
-                    Listo para sincronizar
-                  </span>
+                  {mpConnected ? (
+                    <span className="px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
+                      Conectado
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded bg-zinc-100 border border-gray-200 text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                      Desconectado
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-xs font-medium text-zinc-500 leading-relaxed">
-                  Recibe cobros locales de forma ágil y segura. Inserta tus credenciales de integración de MercadoPago para habilitar transacciones en tu pasarela.
+                  Recibe cobros locales de forma ágil y segura. Conecta tu cuenta de Mercado Pago con un solo clic. Tus clientes podrán pagar con PSE, tarjetas de crédito y efectivo local (Efecty, etc.).
                 </p>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2 group">
-                    <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Public Key</label>
-                    <div className="relative">
-                      <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
-                      <input
-                        type="text"
-                        placeholder="APP_USR-..."
-                        value={mpKeys.publicKey}
-                        onChange={(e) => setMpKeys(prev => ({ ...prev, publicKey: e.target.value }))}
-                        className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-xs font-semibold text-zinc-950 focus:outline-none focus:border-zinc-950/20 transition-all font-mono"
-                      />
+                {mpConnected ? (
+                  <div className="space-y-4">
+                    <div className="p-3.5 bg-white rounded-lg border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between text-xs font-semibold text-zinc-700 gap-2">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span>ID de Cuenta MP conectada: <code className="font-mono text-zinc-950 font-bold">{initialStore.mpUserId || 'Asociada'}</code></span>
+                      </div>
+                      {mpPublicKey && (
+                        <span className="text-[10px] text-zinc-400 font-mono">Clave Pública: {mpPublicKey.slice(0, 15)}...</span>
+                      )}
                     </div>
+                    <button
+                      onClick={handleDisconnectMercadoPago}
+                      disabled={disconnectingMp}
+                      className="w-full sm:w-auto h-10 px-5 border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      {disconnectingMp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                      Desconectar Mercado Pago
+                    </button>
                   </div>
-                  <div className="space-y-2 group">
-                    <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Access Token</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
-                      <input
-                        type="password"
-                        placeholder="TEST-..."
-                        value={mpKeys.accessToken}
-                        onChange={(e) => setMpKeys(prev => ({ ...prev, accessToken: e.target.value }))}
-                        className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-xs font-semibold text-zinc-950 focus:outline-none focus:border-zinc-950/20 transition-all font-mono"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={saveMercadoPago}
-                  className="w-full sm:w-auto h-10 px-5 bg-zinc-955 text-white hover:bg-zinc-900 border border-transparent rounded-lg text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  Sincronizar MercadoPago
-                </button>
+                ) : (
+                  <button
+                    onClick={handleConnectMercadoPago}
+                    className="w-full sm:w-auto h-11 px-6 bg-[#00B1EA] hover:bg-[#009ed2] text-white border border-transparent rounded-lg text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Conectar con Mercado Pago
+                  </button>
+                )}
               </div>
             </div>
           </div>
