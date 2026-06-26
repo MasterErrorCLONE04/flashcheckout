@@ -55,7 +55,7 @@ export async function GET(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer ${clientSecret}`
+        'Accept': 'application/json'
       },
       body: params.toString()
     })
