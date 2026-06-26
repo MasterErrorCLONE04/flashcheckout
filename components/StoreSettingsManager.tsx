@@ -100,9 +100,10 @@ export default function StoreSettingsManager({
       })
       return
     }
-    const base = window.location.origin
-    const redirectUri = encodeURIComponent(`${base}/api/mercadopago/callback`)
-    const authUrl = `https://auth.mercadopago.com/authorization?client_id=${appId}&response_type=code&platform_id=mp&redirect_uri=${redirectUri}&state=${initialStore.id}`
+    // Usar la URL pública configurada para que coincida con la Redirect URI registrada en Mercado Pago
+    const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+    const redirectUri = encodeURIComponent(`${base.replace(/\/$/, '')}/api/mercadopago/callback`)
+    const authUrl = `https://auth.mercadopago.com/authorization?client_id=${appId}&response_type=code&redirect_uri=${redirectUri}&state=${initialStore.id}`
     
     window.location.href = authUrl
   }
