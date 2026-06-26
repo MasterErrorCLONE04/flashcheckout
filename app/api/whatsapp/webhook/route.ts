@@ -19,6 +19,32 @@ export async function GET(req: Request) {
   return new Response('Forbidden', { status: 403 });
 }
 
+async function logIncoming(from: string, text: string) {
+  try {
+    let session = await (prisma as any).whatsAppSession.findUnique({
+      where: { phoneNumber: from }
+    });
+    if (!session) {
+      session = await (prisma as any).whatsAppSession.create({
+        data: { phoneNumber: from, step: 'START' }
+      });
+    }
+    const messages = Array.isArray(session.messages) ? (session.messages as any[]) : [];
+    messages.push({
+      sender: 'user',
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now()
+    });
+    await (prisma as any).whatsAppSession.update({
+      where: { id: session.id },
+      data: { messages }
+    });
+  } catch (err) {
+    console.error('[logIncoming Error]', err);
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -36,6 +62,7 @@ export async function POST(req: Request) {
         const mediaId = message.image.id;
         const mimeType = message.image.mime_type;
         console.log(`[WhatsApp Webhook] Incoming image from ${from}: mediaId=${mediaId}, mimeType=${mimeType}`);
+        await logIncoming(from, '[Imagen comprobante de pago]');
         await handleWhatsAppImage(from, mediaId, mimeType);
       } else if (message.type === 'location') {
         const session = await (prisma as any).whatsAppSession.findUnique({
@@ -54,6 +81,7 @@ export async function POST(req: Request) {
           }
 
           console.log(`[WhatsApp Webhook] Incoming location from ${from}: ${addressText}`);
+          await logIncoming(from, `[Ubicación] ${addressText}`);
           await handleWhatsAppMessage(from, addressText);
         } else {
           await waClient.sendText(from, 'Lo siento, no estoy esperando una ubicación en este momento. Si quieres hacer un pedido, escribe "Hola".');
@@ -81,6 +109,7 @@ export async function POST(req: Request) {
         console.log(`[WhatsApp Webhook] Incoming from ${from}: ${text}`);
 
         if (text) {
+          await logIncoming(from, text);
           // Ejecutar lógica del bot
           await handleWhatsAppMessage(from, text);
         }

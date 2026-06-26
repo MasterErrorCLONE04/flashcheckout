@@ -105,5 +105,6 @@ model WhatsAppSession {
   lastInteraction DateTime @default(now()) @updatedAt
   address         String?
   customerName    String?
+  messages        Json?
 }
 

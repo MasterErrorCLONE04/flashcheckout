@@ -180,6 +180,61 @@ export class WhatsAppCloudAPI {
       throw new Error(error.error?.message || 'Failed to send WhatsApp message');
     }
 
+    // Log the message in the database session chat history asynchronously
+    const to = payload.to;
+    let text = '';
+    const type = payload.type;
+    
+    if (type === 'text') {
+      text = payload.text?.body || '';
+    } else if (type === 'interactive') {
+      const interactive = payload.interactive;
+      if (interactive) {
+        text = interactive.body?.text || '';
+        if (interactive.type === 'button') {
+          const buttons = interactive.action?.buttons || [];
+          const buttonLabels = buttons.map((b: any) => `[${b.reply?.title || ''}]`).join(' ');
+          text = `${text}\n${buttonLabels}`;
+        } else if (interactive.type === 'list') {
+          text = `${interactive.header?.text || ''}\n${text}\n[Lista de opciones]`;
+        } else if (interactive.type === 'cta_url') {
+          const action = interactive.action;
+          const param = action?.parameters;
+          text = `${text}\n[Enlace: ${param?.display_text || ''} - ${param?.url || ''}]`;
+        } else if (interactive.type === 'flow') {
+          text = `${text}\n[Formulario/Flow: ${interactive.action?.parameters?.flow_cta || ''}]`;
+        }
+      }
+    } else if (type === 'image') {
+      text = `[Imagen] ${payload.image?.caption || ''}`;
+    } else if (type === 'document') {
+      text = `[Documento] ${payload.document?.filename || 'archivo'}`;
+    }
+
+    if (to && text) {
+      try {
+        const { prisma } = await import('@/lib/prisma');
+        const session = await (prisma as any).whatsAppSession.findUnique({
+          where: { phoneNumber: to }
+        });
+        if (session) {
+          const messages = Array.isArray(session.messages) ? (session.messages as any[]) : [];
+          messages.push({
+            sender: 'bot',
+            text,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Date.now()
+          });
+          await (prisma as any).whatsAppSession.update({
+            where: { id: session.id },
+            data: { messages }
+          });
+        }
+      } catch (err) {
+        console.error('[WhatsApp Outgoing Log Error]', err);
+      }
+    }
+
     return response.json();
   }
 

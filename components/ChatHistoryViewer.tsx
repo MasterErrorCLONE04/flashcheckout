@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { History, User, Bot, Send, MessageCircle, ShieldAlert, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 type ChatSession = {
   id: string
@@ -27,34 +28,61 @@ export default function ChatHistoryViewer({
     initialSessions.length > 0 ? initialSessions[0].id : null
   )
   const [takeoverText, setTakeoverText] = useState('')
+  const [sending, setSending] = useState(false)
 
   const activeSession = sessions.find(s => s.id === activeSessionId)
 
-  function handleTakeover(e: React.FormEvent) {
+  async function handleTakeover(e: React.FormEvent) {
     e.preventDefault()
-    if (!takeoverText.trim() || !activeSessionId) return
+    if (!takeoverText.trim() || !activeSessionId || sending) return
 
     const newMsg = takeoverText.trim()
     setTakeoverText('')
+    setSending(true)
 
-    setSessions(prev =>
-      prev.map(s => {
-        if (s.id === activeSessionId) {
-          return {
-            ...s,
-            messages: [
-              ...s.messages,
-              {
-                sender: 'bot', // Sending from merchant/system side
-                text: `[Asesor Humano]: ${newMsg}`,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              }
-            ]
-          }
-        }
-        return s
+    try {
+      const res = await fetch('/api/whatsapp/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          text: newMsg,
+        }),
       })
-    )
+
+      if (!res.ok) {
+        throw new Error('Error al enviar el mensaje')
+      }
+
+      const data = await res.json()
+      if (data.success && data.message) {
+        setSessions(prev =>
+          prev.map(s => {
+            if (s.id === activeSessionId) {
+              return {
+                ...s,
+                messages: [
+                  ...s.messages,
+                  data.message
+                ]
+              }
+            }
+            return s
+          })
+        )
+      } else {
+        throw new Error(data.error || 'No se pudo enviar')
+      }
+    } catch (error: any) {
+      toast.error('No se pudo enviar el mensaje', {
+        description: error.message || 'Ocurrió un error en el servidor. Inténtalo de nuevo.'
+      })
+      setTakeoverText(newMsg)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -194,11 +222,11 @@ export default function ChatHistoryViewer({
                 />
                 <button
                   type="submit"
-                  disabled={!takeoverText.trim()}
+                  disabled={!takeoverText.trim() || sending}
                   className="px-5 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:scale-100 hover:scale-105 active:scale-95 text-xs shadow-md"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Enviar</span>
+                  <span>{sending ? 'Enviando...' : 'Enviar'}</span>
                 </button>
               </form>
             </div>
