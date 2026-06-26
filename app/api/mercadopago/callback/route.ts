@@ -36,7 +36,14 @@ export async function GET(req: Request) {
     }
 
     const appId = process.env.NEXT_PUBLIC_MERCADOPAGO_APP_ID || ''
-    const clientSecret = process.env.MERCADOPAGO_ACCESS_TOKEN || '' // Mercado Pago usa el ACCESS_TOKEN de la app plataforma como client_secret
+    const clientSecret = process.env.MERCADOPAGO_CLIENT_SECRET || process.env.MERCADOPAGO_ACCESS_TOKEN || ''
+
+    console.log('[Mercado Pago OAuth Debug]', {
+      appId: appId,
+      appIdLength: appId.length,
+      clientSecretLength: clientSecret.length,
+      clientSecretPrefix: clientSecret ? `${clientSecret.substring(0, 10)}...` : 'undefined'
+    })
 
     if (!appId || !clientSecret) {
       console.error('[Mercado Pago OAuth Error] Missing app credentials in Env Variables')
