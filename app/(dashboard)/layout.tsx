@@ -33,7 +33,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-white selection:bg-primary/20 selection:text-primary animate-in">
+    <div className="min-h-screen bg-white selection:bg-primary/20 selection:text-primary animate-in font-sans">
       {/* Breadcrumb-Style Modern Header */}
       <header className="flex w-full shrink-0 items-center justify-between border-b bg-[#FAFAFA] px-6 py-2.5 sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export default async function DashboardLayout({
                 </div>
 
                 {/* Expanded state (full detailed card) */}
-                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-zinc-200/80 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-in fade-in duration-300">
+                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-zinc-200/80 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300">
                   <div className="flex justify-between items-center text-xs font-bold text-zinc-800">
                     <span>Productos</span>
                     <span className="tabular-nums">{productCount} / 10</span>
@@ -151,13 +151,13 @@ export default async function DashboardLayout({
                     <div 
                       className={cn(
                         "h-full rounded-full transition-all duration-500",
-                        productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-zinc-955"
+                        productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-emerald-500"
                       )} 
                       style={{ width: `${Math.min((productCount / 10) * 100, 100)}%` }}
                     />
                   </div>
 
-                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block text-left">
+                  <span className="text-[9px] font-bold text-zinc-400 tracking-wider block text-left">
                     {productCount >= 10 ? 'Límite alcanzado' : 'Límite del plan Gratuito'}
                   </span>
 
@@ -182,7 +182,7 @@ export default async function DashboardLayout({
                 </div>
 
                 {/* Expanded state (full detailed card) */}
-                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-in fade-in duration-300">
+                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-emerald-100 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300">
                   <div className="flex justify-between items-center text-xs font-bold text-zinc-850">
                     <span className="flex items-center gap-1 text-emerald-700 font-extrabold">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -191,7 +191,7 @@ export default async function DashboardLayout({
                     <span className="text-zinc-500 font-bold tabular-nums">{productCount} productos</span>
                   </div>
                   
-                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block text-left">
+                  <span className="text-[9px] font-bold text-zinc-400 tracking-wider block text-left">
                     Soberanía e inventario ilimitado
                   </span>
 
@@ -208,7 +208,7 @@ export default async function DashboardLayout({
         </aside>
 
         {/* Main Viewport */}
-        <main className="flex-1 min-w-0 px-4 md:px-8 pb-8 md:pb-12 pt-8 md:pt-12 lg:pl-12">
+        <main className="flex-1 min-w-0 px-4 md:px-8 pb-8 md:pb-12 pt-4 md:pt-6 lg:pl-12">
           {children}
         </main>
       </div>

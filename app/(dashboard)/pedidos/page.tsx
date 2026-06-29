@@ -42,20 +42,6 @@ export default async function PedidosPage() {
   }))
 
   return (
-    <div className="space-y-4 pb-2 animate-in">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-950 font-display">Pedidos</h1>
-            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Monitoreo en Tiempo Real — <span className="text-zinc-950 font-bold">{serializedOrders.length} {serializedOrders.length === 1 ? 'MÓDULO ACTIVO' : 'MÓDULOS ACTIVOS'}</span>
-            </div>
-          </div>
-        </div>
-        <div className="h-px w-full bg-zinc-100" />
-      </div>
-      <OrderList initialOrders={serializedOrders} storeName={store.name} />
-    </div>
+    <OrderList initialOrders={serializedOrders} storeName={store.name} />
   )
 }

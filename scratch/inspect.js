@@ -1,20 +1,22 @@
-
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  const count = await prisma.product.count();
-  console.log(`Total productos en DB: ${count}`);
-  
-  const activeProducts = await prisma.product.findMany({
-    where: { active: true },
-    include: { store: true },
-    take: 5
+  const sessions = await prisma.whatsAppSession.findMany({
+    orderBy: { lastInteraction: 'desc' }
   });
-
-  console.log('Productos activos encontrados:');
-  activeProducts.forEach(p => {
-    console.log(`- ID: ${p.id}, Tienda: ${p.store.name}, Name: ${p.name}, Image: ${p.imageUrl}`);
+  console.log(`Total sessions in DB: ${sessions.length}`);
+  
+  sessions.forEach(s => {
+    console.log(`\n--- Session ID: ${s.id} | Phone: ${s.phoneNumber} | Name: ${s.customerName} ---`);
+    console.log('Messages:');
+    if (Array.isArray(s.messages)) {
+      s.messages.forEach((m, idx) => {
+        console.log(`  [${idx}] Sender: ${m.sender} | Text: ${m.text} | Time: ${m.time}`);
+      });
+    } else {
+      console.log('  No messages array.');
+    }
   });
 }
 

@@ -82,16 +82,15 @@ export default async function AnaliticaPage() {
   return (
     <div className="space-y-4 pb-2 animate-in">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-955 font-display">Métricas y Analítica</h1>
-            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Métricas de Negocio — <span className="text-zinc-950 font-bold">CONVERSIÓN Y ESTADÍSTICAS DE VENTA</span>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Métricas y Analítica</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Métricas de negocio — <span className="text-zinc-900 font-bold">Conversión y estadísticas de venta</span>
             </div>
           </div>
         </div>
-        <div className="h-px w-full bg-zinc-100" />
       </div>
       
       <AnalyticsDashboard stats={stats} />

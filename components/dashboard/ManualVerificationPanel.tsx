@@ -110,12 +110,12 @@ export default function ManualVerificationPanel({
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-24 premium-card rounded-xl border-dashed border-zinc-200 bg-white/50 max-w-5xl mx-auto flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6 shadow-sm">
+      <div className="text-center py-24 premium-card rounded-lg border-dashed border-zinc-200 bg-white/50 max-w-5xl mx-auto flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
           <ShieldCheck className="w-8 h-8" />
         </div>
         <h3 className="text-xl font-bold text-zinc-950 tracking-tight font-display">Todo verificado</h3>
-        <p className="text-zinc-500 text-xs font-semibold tracking-wider mt-2 max-w-sm uppercase leading-relaxed">
+        <p className="text-zinc-500 text-xs font-semibold tracking-wider mt-2 max-w-sm leading-relaxed">
           No hay comprobantes pendientes de pago por validar en este momento.
         </p>
       </div>
@@ -128,8 +128,8 @@ export default function ManualVerificationPanel({
       <div className="lg:col-span-5 xl:col-span-4 space-y-4">
         <div className="premium-card p-5 bg-white border-zinc-200 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-extrabold text-zinc-950 uppercase tracking-widest">Pagos por Verificar</h4>
-            <span className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-[10px] font-extrabold text-amber-700 tracking-wider uppercase">
+            <h4 className="text-xs font-extrabold text-zinc-950 tracking-wider">Pagos por verificar</h4>
+            <span className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-[10px] font-extrabold text-amber-700 tracking-wider">
               {orders.length} pendientes
             </span>
           </div>
@@ -150,9 +150,9 @@ export default function ManualVerificationPanel({
                   setRejectReason('')
                 }}
                 className={cn(
-                  "w-full text-left p-4 rounded-xl border transition-all flex flex-col gap-3 group relative overflow-hidden",
+                  "w-full text-left p-4 rounded-lg border transition-all flex flex-col gap-3 group relative overflow-hidden",
                   isSelected 
-                    ? "bg-zinc-950 border-zinc-950 text-white shadow-md shadow-black/5"
+                    ? "bg-zinc-955 border-zinc-955 text-white"
                     : "bg-white border-zinc-200 text-zinc-955 hover:border-zinc-300 hover:bg-zinc-50/30"
                 )}
               >
@@ -178,11 +178,11 @@ export default function ManualVerificationPanel({
                     })}
                   </span>
                   <span className={cn(
-                    "text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-md border leading-none flex items-center gap-1",
+                    "text-[9px] font-extrabold tracking-widest px-2 py-0.5 rounded-md border leading-none flex items-center gap-1",
                     isSelected ? "text-white bg-white/10 border-white/20" : "text-amber-700 bg-amber-50 border-amber-200"
                   )}>
                     <Clock className="w-2.5 h-2.5" />
-                    UPLOADED
+                    Subido
                   </span>
                 </div>
               </button>
@@ -215,11 +215,11 @@ export default function ManualVerificationPanel({
               {/* Client and Items info (5 cols) */}
               <div className="md:col-span-5 space-y-5">
                 <div>
-                  <h5 className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5 mb-2">
+                  <h5 className="text-[10px] font-extrabold tracking-widest text-zinc-400 flex items-center gap-1.5 mb-2">
                     <User className="w-3.5 h-3.5" />
-                    Datos Cliente
+                    Datos del cliente
                   </h5>
-                  <div className="p-3 bg-zinc-50 border border-zinc-200/60 rounded-xl space-y-1">
+                  <div className="p-3 bg-zinc-50 border border-zinc-200/60 rounded-lg space-y-1">
                     <p className="text-xs font-bold text-zinc-950">{activeOrder.customerName}</p>
                     {activeOrder.customerPhone && (
                       <p className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1">
@@ -234,9 +234,9 @@ export default function ManualVerificationPanel({
                 </div>
 
                 <div>
-                  <h5 className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5 mb-2">
+                  <h5 className="text-[10px] font-extrabold tracking-widest text-zinc-400 flex items-center gap-1.5 mb-2">
                     <FileText className="w-3.5 h-3.5" />
-                    Resumen Pedido
+                    Resumen del pedido
                   </h5>
                   <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
                     {activeOrder.items.map((item, idx) => (
@@ -251,7 +251,7 @@ export default function ManualVerificationPanel({
                     ))}
                   </div>
                   <div className="mt-3 pt-3 flex justify-between border-t border-zinc-100">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
+                    <span className="text-[10px] font-bold text-zinc-400 tracking-widest">Total</span>
                     <span className="text-base font-extrabold text-zinc-955 tabular-nums">
                       ${activeOrder.total.toLocaleString('es-CO')}
                     </span>
@@ -261,13 +261,13 @@ export default function ManualVerificationPanel({
 
               {/* Receipt Image (7 cols) */}
               <div className="md:col-span-7 space-y-3">
-                <h5 className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+                <h5 className="text-[10px] font-extrabold tracking-widest text-zinc-400 flex items-center gap-1.5">
                   <DollarSign className="w-3.5 h-3.5" />
-                  Comprobante Recibido
+                  Comprobante recibido
                 </h5>
 
                 {activeOrder.proofImageUrl ? (
-                  <div className="relative group rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 max-h-[300px] flex items-center justify-center shadow-inner cursor-zoom-in">
+                  <div className="relative group rounded-lg border border-zinc-200 overflow-hidden bg-zinc-50 max-h-[300px] flex items-center justify-center shadow-inner cursor-zoom-in">
                     <img
                       src={activeOrder.proofImageUrl}
                       alt="Comprobante"
@@ -283,9 +283,9 @@ export default function ManualVerificationPanel({
                     </div>
                   </div>
                 ) : (
-                  <div className="p-8 border border-dashed border-zinc-200 bg-zinc-50/50 rounded-xl flex flex-col items-center justify-center text-center">
+                  <div className="p-8 border border-dashed border-zinc-200 bg-zinc-50/50 rounded-lg flex flex-col items-center justify-center text-center">
                     <AlertCircle className="w-8 h-8 text-zinc-300 mb-2" />
-                    <p className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">No se cargó imagen</p>
+                    <p className="text-xs text-zinc-400 font-semibold tracking-wider">No se cargó imagen</p>
                   </div>
                 )}
               </div>
@@ -296,15 +296,15 @@ export default function ManualVerificationPanel({
               {isRejecting ? (
                 <div className="space-y-4 animate-in fade-in duration-200">
                   <div>
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">
-                      Motivo del Rechazo (Se enviará al cliente por WhatsApp)
+                    <label className="text-[10px] font-bold text-zinc-400 tracking-widest block mb-1">
+                      Motivo del rechazo (Se enviará al cliente por WhatsApp)
                     </label>
                     <textarea
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
                       placeholder="Ej. El valor transferido no coincide con el total / Comprobante de pago borroso."
                       rows={3}
-                      className="w-full text-xs bg-white border border-zinc-200 rounded-xl p-3 focus:outline-none focus:border-zinc-950 placeholder:text-zinc-450 text-zinc-950 transition-colors resize-none font-medium"
+                      className="w-full text-xs bg-white border border-zinc-200 rounded-lg p-3 focus:outline-none focus:border-zinc-950 placeholder:text-zinc-450 text-zinc-950 transition-colors resize-none font-medium"
                     />
                   </div>
                   <div className="flex justify-end gap-3">
@@ -313,17 +313,17 @@ export default function ManualVerificationPanel({
                         setIsRejecting(false)
                         setRejectReason('')
                       }}
-                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-white border border-zinc-200 hover:bg-zinc-50 rounded-xl text-zinc-600 transition-all cursor-pointer"
+                      className="px-4 py-2 text-[10px] font-bold tracking-wider bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg text-zinc-600 transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={() => handleAction(activeOrder.id, 'REJECT')}
                       disabled={loading === activeOrder.id}
-                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-rose-600 hover:bg-rose-700 text-white rounded-xl flex items-center gap-1.5 shadow-sm shadow-rose-200 transition-all cursor-pointer disabled:opacity-50"
+                      className="px-4 py-2 text-[10px] font-bold tracking-wider bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-1.5 shadow-sm shadow-rose-200 transition-all cursor-pointer disabled:opacity-50"
                     >
                       <X className="w-3.5 h-3.5" />
-                      Confirmar Rechazo
+                      Confirmar rechazo
                     </button>
                   </div>
                 </div>
@@ -337,18 +337,18 @@ export default function ManualVerificationPanel({
                     <button
                       onClick={() => setIsRejecting(true)}
                       disabled={loading === activeOrder.id}
-                      className="w-full sm:w-auto px-5 py-2.5 text-[10px] font-bold uppercase tracking-wider bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      className="w-full sm:w-auto px-5 py-2.5 text-[10px] font-bold tracking-wider bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                     >
                       <X className="w-3.5 h-3.5 text-rose-500" />
-                      Rechazar Pago
+                      Rechazar pago
                     </button>
                     <button
                       onClick={() => handleAction(activeOrder.id, 'APPROVE')}
                       disabled={loading === activeOrder.id}
-                      className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-bold uppercase tracking-wider bg-zinc-950 hover:bg-zinc-900 text-white rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+                      className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-bold tracking-wider bg-zinc-955 hover:bg-zinc-900 text-white rounded-lg flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
                     >
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      Aprobar Pago
+                      Aprobar pago
                     </button>
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export default function ManualVerificationPanel({
 
           </div>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center py-24 bg-white rounded-xl border border-zinc-200 bg-white/50 text-center min-h-[400px]">
+          <div className="w-full h-full flex flex-col items-center justify-center py-24 bg-white rounded-lg border border-zinc-200 bg-white/50 text-center min-h-[400px]">
             <div className="w-16 h-16 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-5 text-zinc-300">
               <ShoppingBag className="w-6 h-6" />
             </div>
@@ -375,7 +375,7 @@ export default function ManualVerificationPanel({
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4 animate-in fade-in duration-200 cursor-zoom-out"
           onClick={() => setIsFullscreenImage(false)}
         >
-          <div className="relative max-w-3xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2 flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="relative max-w-3xl max-h-[90vh] bg-white rounded-lg overflow-hidden shadow-2xl p-2 flex flex-col" onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setIsFullscreenImage(false)}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors cursor-pointer"
@@ -385,7 +385,7 @@ export default function ManualVerificationPanel({
             <img
               src={activeOrder.proofImageUrl}
               alt="Comprobante en pantalla completa"
-              className="max-h-[85vh] object-contain rounded-xl w-full"
+              className="max-h-[85vh] object-contain rounded-lg w-full"
             />
           </div>
         </div>

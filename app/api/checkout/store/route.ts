@@ -4,7 +4,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago'
 
 export const dynamic = 'force-dynamic'
 
-type LineInput = { productId: string; qty: number }
+type LineInput = { productId: string; qty: number; nameSuffix?: string }
 
 export async function POST(req: Request) {
   try {
@@ -51,14 +51,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 })
     }
 
-    const mergedQty = new Map<string, number>()
-    for (const line of items) {
-      const q = Math.max(0, Math.floor(Number(line.qty)))
-      if (q <= 0) continue
-      mergedQty.set(line.productId, (mergedQty.get(line.productId) ?? 0) + q)
-    }
-
-    const productIds = [...mergedQty.keys()]
+    const productIds = Array.from(new Set(items.map(line => line.productId)))
     const products = await prisma.product.findMany({
       where: {
         id: { in: productIds },
@@ -75,29 +68,35 @@ export async function POST(req: Request) {
     }
 
     const byId = new Map(products.map(p => [p.id, p]))
-    const normalized: { productId: string; name: string; qty: number; price: number }[] =
-      []
+    const normalized: { productId: string; name: string; qty: number; price: number }[] = []
     let total = 0
 
-    for (const [productId, q] of mergedQty) {
-      const p = byId.get(productId)
-      if (!p) {
-        return NextResponse.json(
-          { error: 'Producto no encontrado' },
-          { status: 400 }
-        )
-      }
+    // Sum overall quantities per product to check stock limit
+    const productTotalQty = new Map<string, number>()
+    for (const line of items) {
+      const q = Math.max(0, Math.floor(Number(line.qty)))
+      if (q <= 0) continue
+      productTotalQty.set(line.productId, (productTotalQty.get(line.productId) ?? 0) + q)
+    }
+
+    for (const [prodId, q] of productTotalQty) {
+      const p = byId.get(prodId)
+      if (!p) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 400 })
       if (q > p.stock) {
         return NextResponse.json(
-          {
-            error: `Stock insuficiente para «${p.name}». Disponible: ${p.stock}.`,
-          },
+          { error: `Stock insuficiente para «${p.name}». Disponible: ${p.stock}.` },
           { status: 400 }
         )
       }
+    }
+
+    for (const line of items) {
+      const q = Math.max(0, Math.floor(Number(line.qty)))
+      if (q <= 0) continue
+      const p = byId.get(line.productId)!
       normalized.push({
         productId: p.id,
-        name: p.name,
+        name: line.nameSuffix ? `${p.name}${line.nameSuffix}` : p.name,
         qty: q,
         price: p.price,
       })

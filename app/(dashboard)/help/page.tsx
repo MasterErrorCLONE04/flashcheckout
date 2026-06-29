@@ -32,13 +32,16 @@ export default function HelpPage() {
 
   return (
     <div className="max-w-5xl mx-auto pb-20 animate-in">
-      <div className="mb-12">
-        <h1 className="text-4xl font-semibold tracking-tight text-zinc-950">
-          Centro de Ayuda y Soporte
-        </h1>
-        <p className="text-sm font-medium text-zinc-500 mt-2">
-          Encuentra respuestas rápidas o contacta directamente a nuestro equipo operativo.
-        </p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Centro de Ayuda y Soporte</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Encuentra respuestas rápidas o contacta directamente a nuestro equipo operativo.</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

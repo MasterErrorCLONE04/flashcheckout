@@ -107,6 +107,27 @@ export async function PATCH(
         await notifyOrderConfirmed(order.id, order.customerWhatsAppId)
       }
 
+      // Notificar al dueño de la tienda por WhatsApp sobre la confirmación y sugerir domicilio
+      try {
+        if (store.whatsapp) {
+          await waClient.sendText(
+            store.whatsapp,
+            `📦 *¡Pago por transferencia verificado!* ✅\n\nEl pago para el pedido *#${updatedOrder.id.slice(-6)}* ha sido confirmado manualmente:\n\n*Detalles del pedido:*\n• *Cliente:* ${updatedOrder.customerName}\n• *Teléfono:* ${updatedOrder.customerPhone || 'N/A'}\n• *Dirección de Entrega:* ${updatedOrder.address}, ${updatedOrder.city}\n• *Total:* $${updatedOrder.total.toLocaleString('es-CO')}`
+          )
+
+          await waClient.sendButtons(
+            store.whatsapp,
+            `🚚 *¿Te gustaría solicitar nuestro Servicio de Domicilio para este pedido?*\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequeña cuota de *$5.000 COP*.`,
+            [
+              { id: `delivery_yes_${updatedOrder.id}`, title: 'SÍ' },
+              { id: `delivery_no_${updatedOrder.id}`, title: 'NO' }
+            ]
+          )
+        }
+      } catch (waErr) {
+        console.error('Error sending WhatsApp delivery prompt to merchant:', waErr)
+      }
+
       return NextResponse.json({ success: true, order: updatedOrder })
     } else if (action === 'REJECT') {
       const updatedOrder = await prisma.order.update({
@@ -120,7 +141,10 @@ export async function PATCH(
       // Regresar la sesión de WhatsApp del cliente al estado de espera
       if (order.customerWhatsAppId) {
         await (prisma as any).whatsAppSession.updateMany({
-          where: { phoneNumber: order.customerWhatsAppId },
+          where: { 
+            phoneNumber: order.customerWhatsAppId,
+            storeId: order.storeId
+          },
           data: { step: 'AWAITING_CONFIRMATION' }
         })
 

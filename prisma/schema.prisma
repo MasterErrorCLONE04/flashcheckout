@@ -27,6 +27,7 @@ model Store {
   systemPrompt                String?
   welcomeMessage              String?
   aiActive                    Boolean   @default(true)
+  aiSettings                  Json?     @default("{}")
   verificationLevel           Int       @default(0)
   whatsappVerified            Boolean   @default(false)
   otpCode                     String?
@@ -39,8 +40,11 @@ model Store {
   mpPublicKey                 String?
   mpUserId                    String?
   mpConnected                 Boolean   @default(false)
+  whatsappInstanceName        String?   @unique
+  whatsappConnected           Boolean   @default(false)
   orders                      Order[]
   products                    Product[]
+  faqs                        Faq[]
 }
 
 model Product {
@@ -50,10 +54,23 @@ model Product {
   stock     Int      @default(0)
   imageUrl  String?
   active    Boolean  @default(true)
+  aiRecommendation Boolean  @default(true)
+  aiDescription    String?
   storeId   String
   createdAt DateTime @default(now())
   category  String?  @default("General")
+  description String?
+  options   Json?
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Order {
@@ -98,13 +115,21 @@ model Driver {
 
 model WhatsAppSession {
   id              String   @id @default(cuid())
-  phoneNumber     String   @unique
-  storeId         String?
+  phoneNumber     String
+  storeId         String   @default("global")
+  receivingPhoneId String   @default("global")
   cart            Json?
   step            String   @default("START")
   lastInteraction DateTime @default(now()) @updatedAt
   address         String?
   customerName    String?
   messages        Json?
+  tags            String[] @default([])
+  notes           Json?    @default("[]")
+  assignedTo      String   @default("Tú")
+  isFavorite      Boolean  @default(false)
+  status          String   @default("active")
+
+  @@unique([phoneNumber, storeId])
 }
 

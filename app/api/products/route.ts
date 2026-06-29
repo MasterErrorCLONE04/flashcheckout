@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, price, stock, imageUrl, category } = body
+    const { name, price, stock, imageUrl, category, description, options } = body
 
     if (!name || price == null) {
       return NextResponse.json(
@@ -70,6 +70,8 @@ export async function POST(req: Request) {
         stock: stock ?? 0,
         imageUrl: imageUrl ?? null,
         category: category ?? "General",
+        description: description ?? null,
+        options: options ?? null,
         storeId: store.id,
       },
     })
@@ -92,7 +94,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
-    const { id, name, price, stock, imageUrl, category, active } = body
+    const { id, name, price, stock, imageUrl, category, active, description, options } = body
 
     if (!id) {
       return NextResponse.json(
@@ -123,6 +125,8 @@ export async function PUT(req: Request) {
         ...(imageUrl !== undefined && { imageUrl }),
         ...(category !== undefined && { category }),
         ...(active !== undefined && { active }),
+        ...(description !== undefined && { description }),
+        ...(options !== undefined && { options }),
       },
     })
 

@@ -195,14 +195,16 @@ export default function OrderList({
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-32 premium-card rounded-lg border-dashed border-gray-200 bg-white/50 max-w-5xl mx-auto">
-        <div className="w-20 h-20 rounded-lg bg-zinc-50 flex items-center justify-center mx-auto mb-8 border border-gray-200">
-          <ShoppingBag className="w-10 h-10 text-zinc-200" />
+      <div className="flex items-center justify-center min-h-[55vh] w-full animate-in fade-in duration-300">
+        <div className="text-center py-20 px-8 premium-card rounded-lg border-dashed border-zinc-200 bg-white/50 max-w-md w-full shadow-none">
+          <div className="w-16 h-16 rounded-lg bg-zinc-50 border border-zinc-200/60 flex items-center justify-center mx-auto mb-6">
+            <ShoppingBag className="w-8 h-8 text-zinc-350" />
+          </div>
+          <h3 className="text-base font-bold text-zinc-950 tracking-tight font-display">Sin pedidos</h3>
+          <p className="text-zinc-400 text-[10px] font-bold tracking-wider mt-2.5 leading-relaxed uppercase">
+            Tus pedidos aparecerán aquí automáticamente en tiempo real
+          </p>
         </div>
-        <h3 className="text-xl font-bold text-black tracking-tight font-display">Sin pedidos</h3>
-        <p className="text-zinc-400 text-xs font-bold tracking-widest mt-2 leading-relaxed uppercase">
-          Tus pedidos aparecerán aquí automáticamente en tiempo real
-        </p>
       </div>
     )
   }
@@ -217,7 +219,7 @@ export default function OrderList({
             <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Ventas Netas</p>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight tabular-nums">${totalRevenue.toLocaleString('es-CO')}</h3>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200/85 text-zinc-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <DollarSign className="w-5 h-5" />
           </div>
         </div>
@@ -228,7 +230,7 @@ export default function OrderList({
             <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Pedidos Nuevos</p>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight tabular-nums">{pendingCount}</h3>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200/85 text-zinc-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <Clock className="w-5 h-5" />
           </div>
         </div>
@@ -239,7 +241,7 @@ export default function OrderList({
             <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">En Reparto</p>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight tabular-nums">{shippedCount}</h3>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200/85 text-zinc-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <Truck className="w-5 h-5" />
           </div>
         </div>
@@ -250,7 +252,7 @@ export default function OrderList({
             <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Entregados</p>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight tabular-nums">{deliveredCount}</h3>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-emerald-50/50 text-emerald-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200/85 text-zinc-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <CheckCircle className="w-5 h-5" />
           </div>
         </div>

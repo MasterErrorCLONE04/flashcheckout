@@ -25,13 +25,13 @@ export default async function SuscripcionPage() {
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/2 -left-40 w-96 h-96 bg-primary/[0.03] rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="mb-14">
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-zinc-950">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
           Tu nivel de operación
         </h1>
-        <div className="flex items-center gap-3 mt-4">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <p className="text-[15px] font-medium text-zinc-500">Gestión de escala e infraestructura comercial</p>
+        <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Gestión de escala e infraestructura comercial</span>
         </div>
       </div>
 

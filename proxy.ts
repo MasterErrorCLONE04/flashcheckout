@@ -13,11 +13,16 @@ const isPublicRoute = createRouteMatcher([
   '/robots.txt'
 ]);
 
-export default clerkMiddleware(async (auth, request) => {
+const clerkHandler = clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
 });
+
+export async function proxy(request: any, event: any) {
+  console.log("=== NEXT.JS PROXY CALLED FOR ===", request.nextUrl.pathname);
+  return clerkHandler(request, event);
+}
 
 export const config = {
   matcher: [

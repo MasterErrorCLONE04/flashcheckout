@@ -41,10 +41,29 @@ export async function POST(req: Request) {
     // Formatear mensaje como intervención humana
     const formattedText = `[Asesor Humano]: ${text}`
 
-    // 4. Enviar vía WhatsApp Cloud API
-    await waClient.sendText(session.phoneNumber, formattedText)
+    // 4. Enviar vía WhatsApp (Evolution API si está conectado, de lo contrario Meta API)
+    if (store.whatsappInstanceName && store.whatsappConnected) {
+      const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+      await evolutionClient.sendText(store.whatsappInstanceName, session.phoneNumber, formattedText)
+    } else {
+      await waClient.sendText(session.phoneNumber, formattedText)
+    }
 
     const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    // Log the outgoing human advisor message in the database immediately
+    const messages = Array.isArray(session.messages) ? (session.messages as any[]) : []
+    messages.push({
+      sender: 'bot',
+      text: formattedText,
+      time: timeString,
+      timestamp: Date.now()
+    })
+
+    await (prisma as any).whatsAppSession.update({
+      where: { id: session.id },
+      data: { messages }
+    })
 
     return NextResponse.json({
       success: true,

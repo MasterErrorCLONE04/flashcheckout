@@ -93,8 +93,12 @@ export async function POST(req: Request) {
         cleanWhatsapp,
         `¡Hola! Tu código de verificación para FlashCheckout es: *${otpCode}*. Ingrésalo en tu panel para verificar tu cuenta.`
       )
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error sending store OTP:', err)
+      const errMsg = err?.message || ''
+      if (errMsg.includes('131030') || errMsg.includes('allowed list')) {
+        console.warn(`[WhatsApp Sandbox Mode Alert] Recipient phone number (+${cleanWhatsapp}) not in allowed list. OTP code generated is: ${otpCode}`)
+      }
     }
 
     return NextResponse.json({ store }, { status: 201 })
@@ -115,7 +119,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, whatsapp, logoUrl, bio, category, systemPrompt, welcomeMessage, aiActive } = body
+    const { name, whatsapp, logoUrl, bio, category, systemPrompt, welcomeMessage, aiActive, aiSettings } = body
 
     const store = await prisma.store.findFirst({
       where: { userId },
@@ -139,6 +143,7 @@ export async function PUT(req: Request) {
         ...(systemPrompt !== undefined && { systemPrompt }),
         ...(welcomeMessage !== undefined && { welcomeMessage }),
         ...(aiActive !== undefined && { aiActive }),
+        ...(aiSettings !== undefined && { aiSettings }),
       },
     })
 

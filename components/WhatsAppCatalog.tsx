@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import {
   ArrowLeft,
   ShoppingCart,
-  Settings2,
   LayoutGrid,
+  List,
   Search,
   Plus,
   Minus,
@@ -20,7 +20,22 @@ import {
   ChevronLeft,
   MessageCircle,
   CreditCard,
-  ShoppingBag
+  ShoppingBag,
+  Heart,
+  Truck,
+  ShieldCheck,
+  Phone,
+  Star,
+  Check,
+  Sprout,
+  Tag,
+  Sparkles,
+  Smartphone,
+  Home,
+  Shirt,
+  Dumbbell,
+  Sliders,
+  Menu
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -34,6 +49,8 @@ type Product = {
   stock: number
   imageUrl: string | null
   category?: string
+  description?: string
+  options?: any
 }
 
 type Store = {
@@ -43,6 +60,29 @@ type Store = {
   products: Product[]
   logoUrl: string | null
   cardPaymentsEnabled: boolean
+  bio?: string | null
+}
+
+function getCartKey(productId: string, selectedOpts: Record<string, string>) {
+  const sortedKeys = Object.keys(selectedOpts).sort()
+  if (sortedKeys.length === 0) return productId
+  const parts = sortedKeys.map(k => `${k}-${selectedOpts[k]}`)
+  return `${productId}:${parts.join('|')}`
+}
+
+function parseCartKey(cartKey: string) {
+  if (!cartKey.includes(':')) {
+    return { productId: cartKey, variations: {} as Record<string, string> }
+  }
+  const [productId, variationsStr] = cartKey.split(':')
+  const variations: Record<string, string> = {}
+  variationsStr.split('|').forEach(p => {
+    if (p.includes('-')) {
+      const [k, v] = p.split('-')
+      variations[k] = v
+    }
+  })
+  return { productId, variations }
 }
 
 export default function WhatsAppCatalog({ 
@@ -64,10 +104,49 @@ export default function WhatsAppCatalog({
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [activeImageIdx, setActiveImageIdx] = useState(0)
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
+  
+  // Mobile Tab state: 'inicio', 'categorias', 'buscar', 'carrito'
+  const [activeMobileTab, setActiveMobileTab] = useState('inicio')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'name-asc'>('default')
+  const [onlyInStock, setOnlyInStock] = useState(false)
+
+  
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  const formattedStoreName = store.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
   useEffect(() => {
     setActiveImageIdx(0)
+    if (selectedProduct) {
+      const parsedOpts = selectedProduct.options
+        ? (typeof selectedProduct.options === 'string' ? JSON.parse(selectedProduct.options) : selectedProduct.options)
+        : []
+      const defaults: Record<string, string> = {}
+      if (Array.isArray(parsedOpts)) {
+        parsedOpts.forEach((opt: any) => {
+          if (opt.name && Array.isArray(opt.values) && opt.values.length > 0) {
+            defaults[opt.name] = opt.values[0]
+          }
+        })
+      }
+      setSelectedOptions(defaults)
+    } else {
+      setSelectedOptions({})
+    }
   }, [selectedProduct])
+
+  // Synchronize cart modal status with active navigation tab in mobile
+  useEffect(() => {
+    if (isCartOpen) {
+      setActiveMobileTab('carrito')
+    } else if (activeMobileTab === 'carrito') {
+      setActiveMobileTab('inicio')
+    }
+  }, [isCartOpen])
+
   
   // Checkout Form State - Load from session
   const [form, setForm] = useState({
@@ -84,6 +163,7 @@ export default function WhatsAppCatalog({
   const [payError, setPayError] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
+  // Sincronizar carrito con la base de datos automáticamente
   useEffect(() => {
     if (!initialPhone || !hasChanged) return
     const timer = setTimeout(async () => {
@@ -104,7 +184,7 @@ export default function WhatsAppCatalog({
     return () => clearTimeout(timer)
   }, [cart, initialPhone, store.id, hasChanged])
 
-  // Handle native back buttons / WebView back events
+  // Manejar el botón de regresar del navegador
   useEffect(() => {
     window.history.pushState({ page: 'catalog' }, '')
 
@@ -124,25 +204,58 @@ export default function WhatsAppCatalog({
   }, [isCartOpen])
 
   const itemsInCart = Object.values(cart).reduce((s, q) => s + q, 0)
-  const total = store.products.reduce((s, p) => s + p.price * (cart[p.id] ?? 0), 0)
-  const cartProducts = store.products.filter(p => (cart[p.id] ?? 0) > 0)
+  const total = Object.entries(cart).reduce((sum, [key, qty]) => {
+    const { productId } = parseCartKey(key)
+    const product = store.products.find(p => p.id === productId)
+    return sum + (product ? product.price * qty : 0)
+  }, 0)
+  const cartProducts = Object.entries(cart).map(([key, qty]) => {
+    const { productId, variations } = parseCartKey(key)
+    const product = store.products.find(p => p.id === productId)
+    if (!product) return null
+    return {
+      ...product,
+      cartKey: key,
+      qty,
+      variations,
+    }
+  }).filter(Boolean) as (Product & { cartKey: string, qty: number, variations: Record<string, string> })[]
 
+  // Categorías
   const categories = ['Todos', ...Array.from(new Set(store.products.map(p => p.category || 'Varios')))]
 
-  const filteredProducts = store.products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'Todos' || (p.category || 'Varios') === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+  // Conteo dinámico de productos por categoría
+  const categoryCounts = store.products.reduce((acc, p) => {
+    const cat = p.category || 'Varios'
+    acc[cat] = (acc[cat] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
-  function changeQty(id: string, delta: number) {
-    const product = store.products.find(p => p.id === id)!
+  // Filtro de productos
+  const filteredProducts = store.products
+    .filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesCategory = selectedCategory === 'Todos' || (p.category || 'Varios') === selectedCategory
+      const matchesStock = !onlyInStock || p.stock > 0
+      return matchesSearch && matchesCategory && matchesStock
+    })
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price
+      if (sortBy === 'price-desc') return b.price - a.price
+      if (sortBy === 'name-asc') return a.name.localeCompare(b.name)
+      return 0
+    })
+
+
+  function changeQtyByKey(cartKey: string, delta: number) {
+    const { productId } = parseCartKey(cartKey)
+    const product = store.products.find(p => p.id === productId)!
     setHasChanged(true)
     setCart(prev => {
-      const currentQty = prev[id] ?? 0
+      const currentQty = prev[cartKey] ?? 0
       const newQty = Math.max(0, Math.min(currentQty + delta, product.stock))
-      const next = { ...prev, [id]: newQty }
-      if (newQty === 0) delete next[id]
+      const next = { ...prev, [cartKey]: newQty }
+      if (newQty === 0) delete next[cartKey]
       return next
     })
   }
@@ -166,7 +279,17 @@ export default function WhatsAppCatalog({
   async function handleWhatsAppOrder() {
     if (!validateForm()) return
     setLoadingAction('whatsapp')
-    const items = cartProducts.map(p => ({ productId: p.id, name: p.name, qty: cart[p.id], price: p.price }))
+    const items = cartProducts.map(p => {
+      const variationDetails = Object.keys(p.variations).length > 0
+        ? ` (${Object.entries(p.variations).map(([k, v]) => `${k}: ${v}`).join(', ')})`
+        : ''
+      return {
+        productId: p.id,
+        name: `${p.name}${variationDetails}`,
+        qty: p.qty,
+        price: p.price
+      }
+    })
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
@@ -182,8 +305,7 @@ export default function WhatsAppCatalog({
       if (res.ok) {
         setIsSuccess(true)
         toast.success("¡Pedido enviado!")
-      }
-      else {
+      } else {
         toast.error(data.error || 'Error al crear pedido')
         setPayError(data.error)
       }
@@ -195,33 +317,19 @@ export default function WhatsAppCatalog({
     }
   }
 
-  if (isSuccess) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white p-8 text-center animate-in fade-in duration-700">
-        <div className="w-24 h-24 bg-green-50 rounded-lg flex items-center justify-center mb-8">
-          <div className="w-16 h-16 bg-[#25D366] rounded-lg flex items-center justify-center animate-bounce">
-            <MessageCircle className="w-8 h-8 text-white" />
-          </div>
-        </div>
-        <h1 className="text-3xl font-black text-zinc-900 mb-4 tracking-tight">¡Pedido Recibido!</h1>
-        <p className="text-zinc-500 mb-10 leading-relaxed text-lg">
-          Hemos enviado un mensaje de confirmation a tu WhatsApp. <br/>
-          <span className="font-bold text-zinc-800">Cierra esta ventana y vuelve al chat</span> para continuar.
-        </p>
-        <a 
-          href="whatsapp://"
-          className="w-full h-15 bg-zinc-900 text-white rounded-lg font-bold text-lg shadow-xl shadow-zinc-200 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-        >
-          Regresar a WhatsApp
-        </a>
-      </div>
-    )
-  }
-
   async function handleCardPayment() {
     if (!validateForm()) return
     setLoadingAction('card')
-    const items = cartProducts.map(p => ({ productId: p.id, qty: cart[p.id]! }))
+    const items = cartProducts.map(p => {
+      const variationDetails = Object.keys(p.variations).length > 0
+        ? ` (${Object.entries(p.variations).map(([k, v]) => `${k}: ${v}`).join(', ')})`
+        : ''
+      return {
+        productId: p.id,
+        qty: p.qty,
+        nameSuffix: variationDetails
+      }
+    })
     try {
       const res = await fetch('/api/checkout/store', {
         method: 'POST',
@@ -249,273 +357,761 @@ export default function WhatsAppCatalog({
     }
   }
 
+  const getCategoryIcon = (cat: string) => {
+    switch (cat.toLowerCase()) {
+      case 'todos': return Sprout
+      case 'moda': return Shirt
+      case 'tecnología':
+      case 'tecnologia': return Smartphone
+      case 'hogar': return Home
+      case 'belleza': return Sparkles
+      case 'comida': return Tag
+      case 'deportes':
+      case 'deporte': return Dumbbell
+      default: return Tag
+    }
+  }
+
+  const handleMobileTabClick = (tab: string) => {
+    setActiveMobileTab(tab)
+    if (tab === 'carrito') {
+      setIsCartOpen(true)
+    } else if (tab === 'buscar') {
+      searchInputRef.current?.focus()
+    } else if (tab === 'categorias') {
+      document.getElementById('mobile-categories-row')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white p-8 text-center animate-in fade-in duration-700">
+        <div className="w-24 h-24 bg-green-50 rounded-lg flex items-center justify-center mb-8">
+          <div className="w-16 h-16 bg-[#25D366] rounded-lg flex items-center justify-center animate-bounce">
+            <MessageCircle className="w-8 h-8 text-white animate-pulse" />
+          </div>
+        </div>
+        <h1 className="text-3xl font-black text-zinc-900 mb-4 tracking-tight">¡Pedido Recibido!</h1>
+        <p className="text-zinc-500 mb-10 leading-relaxed text-lg">
+          Hemos enviado un mensaje de confirmación a tu WhatsApp. <br/>
+          <span className="font-bold text-zinc-800">Cierra esta ventana y vuelve al chat</span> para continuar.
+        </p>
+        <a 
+          href="whatsapp://"
+          className="w-full h-15 bg-zinc-900 text-white rounded-lg font-bold text-lg shadow-xl shadow-zinc-200 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+        >
+          Regresar a WhatsApp
+        </a>
+      </div>
+    )
+  }
+
+  // Cargar mock SKU y variables para detalle de producto
+  const productSku = selectedProduct ? `MOD-${selectedProduct.id.slice(-3).toUpperCase()}` : ''
+  const productImages = selectedProduct ? (selectedProduct.imageUrl ? selectedProduct.imageUrl.split(',').filter(Boolean) : []) : []
+  const currentDetailImg = selectedProduct && productImages.length > 0 ? productImages[activeImageIdx] : null
+  const selectedCartKey = selectedProduct ? getCartKey(selectedProduct.id, selectedOptions) : ''
+  const qtyInCart = selectedCartKey ? (cart[selectedCartKey] ?? 0) : 0
+
   return (
-    <div className="flex flex-col min-h-screen bg-white text-zinc-900 font-sans selection:bg-zinc-100">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100 h-[70px]">
-        <div className="max-w-5xl mx-auto h-full px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <a 
-              href="whatsapp://"
-              onClick={(e) => {
-                if (isCartOpen) {
-                  e.preventDefault()
-                  setIsCartOpen(false)
-                }
-              }}
-              className="w-10 h-10 small flex items-center justify-center text-zinc-900 active:bg-zinc-100 rounded-lg transition-colors cursor-pointer" 
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </a>
-            <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 flex items-center justify-center shrink-0 select-none text-zinc-400">
-              {store.logoUrl ? (
-                <Image 
-                  src={store.logoUrl} 
-                  alt={store.name} 
-                  fill 
-                  sizes="44px"
-                  className="object-cover"
-                  priority
-                />
-              ) : (
-                <ShoppingBag className="w-5 h-5 text-zinc-400" />
-              )}
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-[17px] font-black tracking-tight uppercase">{store.name}</h1>
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Catálogo oficial</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button 
-              onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')}
-              className="w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-lg text-zinc-600 active:bg-zinc-200 transition-colors"
-            >
-              {viewMode === 'grid' ? <LayoutGrid className="w-5 h-5" /> : <Settings2 className="w-5 h-5 rotate-90" />} 
-            </button>
-            <button 
-              className="w-10 h-10 flex items-center justify-center bg-zinc-950 rounded-lg relative active:scale-90 transition-all" 
-              onClick={() => setIsCartOpen(true)}
-            >
-              <ShoppingCart className="w-5 h-5 text-white" />
-              {itemsInCart > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-lg border-2 border-white shadow-sm animate-in zoom-in">
-                  {itemsInCart}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 pb-32">
-        {/* Premium Search Bar */}
-        <div className="py-4">
-          <div className="relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-zinc-950 transition-colors" />
-            <input 
-              type="text"
-              placeholder="¿Qué buscas hoy?"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-100/80 border border-zinc-200/50 rounded-lg py-4 pl-14 pr-6 text-[16px] font-medium outline-none focus:bg-white focus:ring-4 focus:ring-zinc-100 transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Categories Tabs */}
-        <div className="pb-4 -mt-1 overflow-x-auto no-scrollbar flex items-center gap-2">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={cn(
-                "whitespace-nowrap px-6 py-2.5 rounded-lg text-[14px] font-black transition-all border uppercase tracking-wider",
-                selectedCategory === cat 
-                  ? "bg-zinc-950 text-white border-zinc-950 shadow-xl"
-                  : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300 bg-white/50 backdrop-blur-md"
-              )}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Products Grid/List */}
-        <div className={cn(
-          "pb-32",
-          viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" : "grid grid-cols-1 md:grid-cols-2 gap-4"
-        )}>
-          {filteredProducts.map((product, index) => (
-            <div 
-              key={product.id} 
-              className={cn(
-                "group relative bg-white border border-black/5 rounded-lg overflow-hidden transition-all duration-500",
-                viewMode === 'grid' ? "flex flex-col glass-premium p-2" : "flex gap-4 p-4 border-zinc-100"
-              )}
-            >
-              {/* Image Container */}
-              <div 
-                className={cn(
-                  "relative rounded-lg overflow-hidden shrink-0 cursor-pointer",
-                  viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-32 h-32"
-                )}
-                onClick={() => setSelectedProduct(product)}
-              >
-                {product.imageUrl ? (
-                  <Image 
-                    src={product.imageUrl.split(',')[0]} 
-                    alt={product.name} 
-                    width={400} 
-                    height={400} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                    priority={index < 4}
-                  />
+    <div className="flex flex-col min-h-screen bg-[#FCFCFD] text-zinc-900 font-sans selection:bg-zinc-100">
+      
+      {/* ========================================================================= */}
+      {/* 🖥️ VISTA DESKTOP (PANTALLAS GRANDES - lg:flex) */}
+      {/* ========================================================================= */}
+      <div className="hidden lg:flex flex-col min-h-screen">
+        
+        {/* Cabecera Premium */}
+        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-[76px] shadow-none">
+          <div className="w-full h-full px-6 flex items-center justify-between gap-4">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 overflow-hidden">
+                {store.logoUrl ? (
+                  <img src={store.logoUrl} alt={formattedStoreName} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-200 bg-zinc-50">
-                    <ShoppingBag className="w-10 h-10" />
-                  </div>
-                )}
-
-                {/* Grid Overlay Controls */}
-                {cart[product.id] && viewMode === 'grid' && (
-                  <div className="absolute inset-0 z-20 bg-black/10 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-300">
-                     <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-lg p-1.5 shadow-2xl border border-white">
-                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, -1); }} className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center active:scale-75 transition-transform"><Minus className="w-4 h-4" /></button>
-                        <span className="font-black text-lg w-5 text-center">{cart[product.id]}</span>
-                        <button onClick={(e) => { e.stopPropagation(); changeQty(product.id, 1); }} className="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center active:scale-75 transition-transform"><Plus className="w-4 h-4" /></button>
-                     </div>
-                  </div>
+                  <Sprout className="w-5 h-5" />
                 )}
               </div>
+              <div className="flex flex-col">
+                <span className="font-bold text-sm text-zinc-900 tracking-tight leading-none">{formattedStoreName}</span>
+                <span className="text-[10px] text-zinc-400 font-medium mt-1 leading-none">{store.bio || "Productos que te hacen bien"}</span>
+              </div>
+            </div>
 
-              {/* Info Container */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                <div onClick={() => setSelectedProduct(product)} className="cursor-pointer">
-                  <h3 className={cn(
-                    "font-black text-zinc-900 leading-[1.1] uppercase tracking-tighter",
-                    viewMode === 'grid' ? "text-[15px] line-clamp-2 px-2" : "text-[18px] mb-1"
-                  )}>
-                    {product.name}
-                  </h3>
-                  {viewMode === 'list' && (
-                    <p className="text-[13px] text-zinc-500 line-clamp-2 mb-2 leading-tight font-medium">
-                      Calidad premium garantizada. Disponible ahora en catálogo.
-                    </p>
+            {/* Buscador */}
+            <div className="relative flex-1 max-w-lg mx-8">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input 
+                type="text"
+                placeholder="Buscar productos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2.5 pl-10 pr-4 text-xs font-semibold text-zinc-900 outline-none focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+              />
+            </div>
+
+            {/* Acciones */}
+            <div className="flex items-center gap-3.5">
+              <a 
+                href={`https://wa.me/${store.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 h-9 px-3.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-emerald-600 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-500 fill-current" />
+                <span>Comprar por WhatsApp</span>
+              </a>
+
+              <button 
+                onClick={() => setIsCartOpen(true)}
+                className="flex items-center gap-2.5 h-9 px-3 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg transition-all active:scale-95 shrink-0 relative"
+              >
+                <div className="relative">
+                  <ShoppingCart className="w-4 h-4 text-zinc-700" />
+                  {itemsInCart > 0 && (
+                    <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
+                      {itemsInCart}
+                    </span>
                   )}
-                  <p className={cn(
-                    "font-black text-zinc-950",
-                    viewMode === 'grid' ? "text-[17px] px-2 mt-1" : "text-xl"
-                  )}>
-                    ${product.price.toLocaleString('es-CO')}
+                </div>
+                <div className="flex flex-col items-start leading-none text-left">
+                  <span className="text-[10px] font-bold text-zinc-800">Carrito</span>
+                  <span className="text-[9px] text-zinc-500 font-bold mt-0.5">${total.toLocaleString('es-CO')}</span>
+                </div>
+              </button>
+
+
+            </div>
+          </div>
+        </header>
+
+        {/* Contenido Principal */}
+        <main className="w-full px-6 py-8 flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Sidebar Categorías & Perks */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-zinc-400 tracking-wider">Categorías</h3>
+                <div className="space-y-1">
+                  {categories.map(cat => {
+                    const Icon = getCategoryIcon(cat)
+                    const isActive = selectedCategory === cat
+                    const count = cat === 'Todos' ? store.products.length : categoryCounts[cat] || 0
+
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={cn(
+                          "w-full flex items-center justify-between py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-left cursor-pointer",
+                          isActive
+                            ? "text-emerald-700 bg-emerald-50/50 font-bold border-l-2 border-emerald-500 rounded-l-none"
+                            : "text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent hover:bg-zinc-50/50"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          <span>{cat === 'Todos' ? 'Todos los productos' : cat}</span>
+                        </div>
+                        <span className={cn(
+                          "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
+                          isActive ? "bg-emerald-100 text-emerald-800" : "text-zinc-400 bg-zinc-100"
+                        )}>{count}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Grid/Feed Central */}
+            <div className={cn(
+              "space-y-6 transition-all duration-300",
+              selectedProduct ? "lg:col-span-7" : "lg:col-span-10"
+            )}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+                <div>
+                  <h2 className="text-lg font-bold text-zinc-900">
+                    {selectedCategory === 'Todos' ? 'Todos los productos' : selectedCategory}
+                  </h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    {filteredProducts.length} {filteredProducts.length === 1 ? 'producto disponible' : 'productos disponibles'}
                   </p>
                 </div>
 
-                <div className={cn(
-                  "flex items-center justify-between",
-                  viewMode === 'grid' ? "px-2 pb-1" : "mt-3"
-                )}>
-                  {cart[product.id] && viewMode === 'list' ? (
-                    <div className="flex items-center gap-4 bg-zinc-100 rounded-lg p-1 border border-zinc-200">
-                      <button onClick={() => changeQty(product.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-lg active:bg-zinc-200"><Minus className="w-4 h-4" /></button>
-                      <span className="font-black text-sm">{cart[product.id]}</span>
-                      <button onClick={() => changeQty(product.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-lg active:bg-zinc-200"><Plus className="w-4 h-4" /></button>
-                    </div>
-                  ) : !cart[product.id] ? (
-                    <button 
-                      onClick={() => changeQty(product.id, 1)}
-                      className={cn(
-                        "rounded-lg bg-zinc-900 text-white shadow-lg active:scale-90 transition-all flex items-center justify-center",
-                        viewMode === 'grid' ? "w-10 h-10 mt-2" : "px-6 h-10 text-[13px] font-black uppercase tracking-widest"
-                      )}
-                    >
-                      {viewMode === 'list' && <span className="mr-2">Agregar</span>}
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  ) : null}
+                {/* Switchers Grid/List */}
+                <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-lg border border-zinc-200 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('grid')}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer",
+                      viewMode === 'grid' ? "bg-white text-zinc-900 shadow-sm border border-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"
+                    )}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>Cuadrícula</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer",
+                      viewMode === 'list' ? "bg-white text-zinc-900 shadow-sm border border-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"
+                    )}
+                  >
+                    <List className="w-3.5 h-3.5" />
+                    <span>Lista</span>
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </main>
 
-      {/* Premium Obsidian Footer */}
-      {itemsInCart > 0 && !isCartOpen && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-10 duration-700">
-          <button 
-            onClick={() => setIsCartOpen(true)}
-            className="w-full bg-zinc-950 text-white rounded-lg h-20 flex items-center justify-between px-10 shadow-2xl shadow-black/40 active:scale-95 transition-all group border border-white/10"
-          >
-            <div className="flex items-center gap-4">
-              <div className="bg-white/10 w-10 h-10 rounded-lg flex items-center justify-center text-[14px] font-black border border-white/5">
-                {itemsInCart}
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="font-black text-[16px] uppercase tracking-tighter leading-none group-hover:translate-x-1 transition-transform">Revisar orden</span>
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Listo para finalizar</span>
-              </div>
-            </div>
-            <span className="font-black text-2xl tracking-tighter text-white/90">${total.toLocaleString('es-CO')}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Simplified Cart Modal */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
-          <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onClick={() => setIsCartOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-500">
-            <div className="p-8 pb-4 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-black uppercase tracking-tight">Tu Pedido</h2>
-                <p className="text-sm font-bold text-zinc-400">Total: {itemsInCart} items</p>
-              </div>
-              <button onClick={() => setIsCartOpen(false)} className="w-12 h-12 small bg-zinc-100 rounded-lg flex items-center justify-center">
-                <X className="w-6 h-6 text-zinc-900" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Items */}
-              <div className="space-y-4">
-                {cartProducts.map(p => (
-                  <div key={p.id} className="flex justify-between items-center">
-                    <div className="min-w-0">
-                      <p className="font-bold text-[15px] truncate">{p.name}</p>
-                      <p className="text-xs text-zinc-500">${p.price.toLocaleString('es-CO')} x {cart[p.id]}</p>
-                    </div>
-                    <div className="flex items-center gap-3 bg-zinc-50 rounded-lg p-1">
-                      <button onClick={() => changeQty(p.id, -1)} className="p-1"><Minus className="w-3.5 h-3.5" /></button>
-                      <span className="text-sm font-bold w-4 text-center">{cart[p.id]}</span>
-                      <button onClick={() => changeQty(p.id, 1)} className="p-1"><Plus className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </div>
+              {/* Tag Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={cn(
+                      "whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer",
+                      selectedCategory === cat ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50"
+                    )}
+                  >
+                    {cat === 'Todos' ? 'Todos' : cat}
+                  </button>
                 ))}
               </div>
 
-              {/* Simple Form */}
-              <div className="space-y-4 pt-4 border-t border-zinc-100">
-                 <div className="space-y-3">
-                    <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">Datos de entrega</label>
+              {/* Productos */}
+              <div className={cn(
+                "gap-4 pb-20",
+                viewMode === 'grid' 
+                  ? (selectedProduct ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4") 
+                  : "grid grid-cols-1"
+              )}>
+                {filteredProducts.map(product => {
+                  const productCartQty = Object.entries(cart).reduce((sum, [k, q]) => {
+                    const { productId } = parseCartKey(k)
+                    return sum + (productId === product.id ? q : 0)
+                  }, 0)
+                  const isItemInCart = productCartQty > 0
+                  return (
+                    <div 
+                      key={product.id}
+                      className={cn(
+                        "group relative bg-white border border-zinc-200 rounded-xl overflow-hidden p-3 transition-all hover:border-zinc-300 flex flex-col justify-between h-full shadow-none",
+                        viewMode === 'list' && "flex-row gap-4 items-center"
+                      )}
+                    >
+                      <div className={cn(viewMode === 'list' && "flex gap-4 items-center flex-1")}>
+                        <div 
+                          className={cn("relative rounded-lg overflow-hidden bg-zinc-50 shrink-0 cursor-pointer", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-20 h-20")}
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          {product.imageUrl ? (
+                            <img src={product.imageUrl.split(',')[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-300"><ShoppingBag className="w-8 h-8" /></div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 space-y-1 text-left cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                          <h4 className="font-bold text-xs text-zinc-900 leading-snug line-clamp-2">{product.name}</h4>
+                          <p className="font-black text-xs text-zinc-950">${product.price.toLocaleString('es-CO')}</p>
+                        </div>
+                      </div>
+
+                      <div className={cn("flex items-center justify-between pt-2 border-t border-zinc-50 mt-2", viewMode === 'list' && "flex-col items-end border-t-0 mt-0 gap-2.5 shrink-0")}>
+                        <span className="text-[10px] font-bold text-emerald-600">{product.stock > 0 ? `En stock: ${product.stock} unidades` : 'Agotado'}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const parsedOpts = product.options
+                              ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
+                              : []
+                            if (Array.isArray(parsedOpts) && parsedOpts.length > 0) {
+                              setSelectedProduct(product)
+                            } else {
+                              changeQtyByKey(product.id, 1)
+                            }
+                          }}
+                          disabled={product.stock <= 0}
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 border-0 shadow-sm",
+                            isItemInCart 
+                              ? "bg-emerald-700 text-white font-extrabold"
+                              : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                          )}
+                        >
+                          {isItemInCart ? <span className="text-[10px] tabular-nums">{productCartQty}</span> : <ShoppingCart className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Panel de Detalles (Columna Derecha) */}
+            {selectedProduct && (
+              <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-2xl p-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto space-y-6">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-zinc-400 tracking-wider">{selectedProduct.category || 'General'} • SKU: {productSku}</p>
+                    <h3 className="text-base font-bold text-zinc-900 leading-tight">{selectedProduct.name}</h3>
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                      <div className="flex items-center text-amber-400">
+                        {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-500">4.8 (32 reseñas)</span>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedProduct(null)} className="w-8 h-8 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/50 rounded-lg flex items-center justify-center text-zinc-500 cursor-pointer shrink-0"><X className="w-4 h-4" /></button>
+                </div>
+
+                <div className="relative aspect-square w-full rounded-xl bg-zinc-50 border border-zinc-200 overflow-hidden flex items-center justify-center">
+                  {currentDetailImg ? <img src={currentDetailImg} alt="" className="w-full h-full object-cover" /> : <ShoppingBag className="w-12 h-12 text-zinc-300" />}
+                  {productImages.length > 1 && (
+                    <>
+                      <button onClick={() => setActiveImageIdx(p => p === 0 ? productImages.length - 1 : p - 1)} className="absolute left-2.5 w-7 h-7 rounded-full bg-white/90 text-zinc-700 flex items-center justify-center border border-zinc-200/50 cursor-pointer"><ChevronLeft className="w-4 h-4" /></button>
+                      <button onClick={() => setActiveImageIdx(p => p === productImages.length - 1 ? 0 : p + 1)} className="absolute right-2.5 w-7 h-7 rounded-full bg-white/90 text-zinc-700 flex items-center justify-center border border-zinc-200/50 cursor-pointer"><ChevronRight className="w-4 h-4" /></button>
+                    </>
+                  )}
+                </div>
+
+                {productImages.length > 1 && (
+                  <div className="flex gap-2 justify-center overflow-x-auto py-1">
+                    {productImages.map((img, idx) => (
+                      <button key={idx} onClick={() => setActiveImageIdx(idx)} className={cn("w-11 h-11 rounded-lg overflow-hidden border bg-white shrink-0 cursor-pointer transition-all", activeImageIdx === idx ? "border-emerald-600 scale-102" : "border-zinc-200 opacity-60")}><img src={img} alt="" className="w-full h-full object-cover" /></button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-4 pt-1">
+                  <span className="text-2xl font-black text-zinc-950 block">${selectedProduct.price.toLocaleString('es-CO')}</span>
+                  
+                  {/* Dynamic Product Options Selectors */}
+                  {(() => {
+                    const parsedOpts = selectedProduct.options
+                      ? (typeof selectedProduct.options === 'string' ? JSON.parse(selectedProduct.options) : selectedProduct.options)
+                      : []
+                    if (!Array.isArray(parsedOpts) || parsedOpts.length === 0) return null
+                    return (
+                      <div className="space-y-4 pt-1">
+                        {parsedOpts.map((opt: any) => {
+                          if (!opt.name || !Array.isArray(opt.values) || opt.values.length === 0) return null
+                          const currentVal = selectedOptions[opt.name] || opt.values[0]
+                          return (
+                            <div key={opt.name} className="space-y-1.5 text-left">
+                              <span className="text-[11px] font-bold text-zinc-500">{opt.name}: {currentVal}</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {opt.values.map((val: string) => (
+                                  <button
+                                    key={val}
+                                    onClick={() => setSelectedOptions(prev => ({ ...prev, [opt.name]: val }))}
+                                    className={cn(
+                                      "px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer flex items-center justify-center min-w-9",
+                                      currentVal === val
+                                        ? "bg-emerald-600 border-emerald-600 text-white font-extrabold"
+                                        : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                    )}
+                                  >
+                                    {val}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
+
+                  <div className="text-[11px] font-bold text-emerald-600">Stock disponible: {selectedProduct.stock} unidades</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="p-3 bg-zinc-50 border border-zinc-200/80 rounded-xl space-y-1">
+                    <div className="flex items-center gap-1.5 text-zinc-700"><Truck className="w-3.5 h-3.5 text-emerald-600" /><span className="text-[10px] font-bold">Envío</span></div>
+                    <p className="text-[9px] font-bold text-zinc-500 leading-normal">24 a 48 horas<br/>Bogotá y alrededores</p>
+                  </div>
+                  <div className="p-3 bg-zinc-50 border border-zinc-200/80 rounded-xl space-y-1">
+                    <div className="flex items-center gap-1.5 text-zinc-700"><ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /><span className="text-[10px] font-bold">Devoluciones</span></div>
+                    <p className="text-[9px] font-bold text-zinc-500 leading-normal">30 días<br/>Garantía de satisfacción</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Descripción</h4>
+                  <p className="text-zinc-500 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Sin descripción disponible.'}</p>
+                </div>
+
+                <div className="pt-2">
+                  {qtyInCart > 0 ? (
+                    <div className="flex items-center justify-between gap-4 p-1.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => changeQtyByKey(selectedCartKey, -1)} className="w-8 h-8 rounded-lg bg-white border border-zinc-250 flex items-center justify-center cursor-pointer active:scale-95"><Minus className="w-3.5 h-3.5" /></button>
+                        <span className="font-extrabold text-sm w-4 text-center tabular-nums">{qtyInCart}</span>
+                        <button onClick={() => changeQtyByKey(selectedCartKey, 1)} disabled={qtyInCart >= selectedProduct.stock} className="w-8 h-8 rounded-lg bg-white border border-zinc-250 flex items-center justify-center cursor-pointer active:scale-95"><Plus className="w-3.5 h-3.5" /></button>
+                      </div>
+                      <span className="text-xs font-black text-zinc-950 pr-2">${(selectedProduct.price * qtyInCart).toLocaleString('es-CO')}</span>
+                    </div>
+                  ) : (
+                    <button onClick={() => changeQtyByKey(selectedCartKey, 1)} disabled={selectedProduct.stock <= 0} className="w-full flex items-center justify-center gap-2 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-none cursor-pointer transition-all active:scale-[0.98]"><ShoppingCart className="w-4 h-4" /><span>Agregar al carrito</span></button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 📱 VISTA MÓVIL (PANTALLAS CELULAR/TABLET - lg:hidden) */}
+      {/* ========================================================================= */}
+      <div className="lg:hidden flex flex-col min-h-screen pb-20">
+        
+        {/* Cabecera Móvil */}
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-16 flex items-center justify-between px-4 shadow-none">
+          <div className="flex items-center gap-2.5">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="text-zinc-650 hover:text-zinc-900 cursor-pointer">
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 overflow-hidden">
+                {store.logoUrl ? (
+                  <img src={store.logoUrl} alt={formattedStoreName} className="w-full h-full object-cover" />
+                ) : (
+                  <Sprout className="w-4.5 h-4.5" />
+                )}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-bold text-xs text-zinc-900 tracking-tight leading-none">{formattedStoreName}</span>
+                <span className="text-[9px] text-zinc-400 font-medium mt-1 leading-none">{store.bio || "Productos que te hacen bien"}</span>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => handleMobileTabClick('carrito')}
+            className="w-10 h-10 flex items-center justify-center relative bg-transparent border-0 cursor-pointer"
+          >
+            <ShoppingCart className="w-5 h-5 text-zinc-700" />
+            {itemsInCart > 0 && (
+              <span className="absolute top-1.5 right-1.5 bg-emerald-500 text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
+                {itemsInCart}
+              </span>
+            )}
+          </button>
+        </header>
+
+        {/* Cuerpo del Catálogo Móvil */}
+        <main className="flex-1 px-4 py-4 space-y-6">
+          
+          {/* Barra de Búsqueda Móvil con botón Sliders */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input 
+                ref={searchInputRef}
+                type="text"
+                placeholder="Buscar productos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold text-zinc-900 outline-none focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+              />
+            </div>
+            <button onClick={() => setIsFilterOpen(true)} className="w-10 h-10 bg-zinc-50 border border-zinc-200 rounded-xl flex items-center justify-center text-zinc-650 hover:bg-zinc-100 hover:text-zinc-900 active:scale-95 transition-all cursor-pointer">
+              <Sliders className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Categorías Squircles (Mockup Móvil) */}
+          <div id="mobile-categories-row" className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1 scroll-smooth">
+            {categories.map(cat => {
+              const Icon = getCategoryIcon(cat)
+              const isActive = selectedCategory === cat
+              const styles = (() => {
+                const name = cat.toLowerCase()
+                if (name.includes('todos')) return { bg: "bg-emerald-50", text: "text-emerald-650 text-emerald-600" }
+                if (name.includes('moda')) return { bg: "bg-[#FFF7ED]", text: "text-[#F97316]" }
+                if (name.includes('tecnolo')) return { bg: "bg-[#EFF6FF]", text: "text-[#3B82F6]" }
+                if (name.includes('belleza')) return { bg: "bg-[#FFF1F2]", text: "text-[#F43F5E]" }
+                if (name.includes('hogar')) return { bg: "bg-[#F8FAFC]", text: "text-[#475569]" }
+                if (name.includes('deport')) return { bg: "bg-[#EEF2FF]", text: "text-[#6366F1]" }
+                return { bg: "bg-zinc-50", text: "text-zinc-550 text-zinc-500" }
+              })()
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className="flex flex-col items-center gap-2 shrink-0 select-none group cursor-pointer"
+                >
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-none border-0",
+                    styles.bg,
+                    styles.text,
+                    isActive && "scale-105"
+                  )}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className={cn(
+                      "text-[10px] font-bold tracking-tight transition-colors",
+                      isActive ? "text-emerald-600 font-extrabold" : "text-zinc-500"
+                    )}>
+                      {cat === 'Todos' ? 'Todos' : cat}
+                    </span>
+                    {isActive && <div className="w-4 h-0.5 bg-emerald-500 rounded-full mt-0.5" />}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+
+          {/* Toggles Cuadrícula / Lista en Móvil */}
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl border border-zinc-200 w-full max-w-[280px]">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all cursor-pointer",
+                  viewMode === 'grid' ? "bg-white text-emerald-600 shadow-sm" : "text-zinc-500"
+                )}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Cuadrícula</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all cursor-pointer",
+                  viewMode === 'list' ? "bg-white text-emerald-600 shadow-sm" : "text-zinc-500"
+                )}
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>Lista</span>
+              </button>
+            </div>
+          </div>
+
+
+
+          {/* Sección Más Productos (Cuadrícula vertical) */}
+          <div className="space-y-3.5 pb-12">
+            <h3 className="text-sm font-black text-zinc-900 tracking-tight text-left">Más productos</h3>
+            
+            <div className={cn(
+              "gap-4",
+              viewMode === 'grid' ? "grid grid-cols-2" : "grid grid-cols-1"
+            )}>
+              {filteredProducts.map(product => {
+                const productCartQty = Object.entries(cart).reduce((sum, [k, q]) => {
+                  const { productId } = parseCartKey(k)
+                  return sum + (productId === product.id ? q : 0)
+                }, 0)
+                const isItemInCart = productCartQty > 0
+                return (
+                  <div 
+                    key={product.id}
+                    className={cn(
+                      "group bg-white border border-zinc-200 rounded-xl overflow-hidden p-3 flex flex-col justify-between h-full shadow-none",
+                      viewMode === 'list' && "flex-row gap-4 items-center"
+                    )}
+                  >
+                    <div className={cn(viewMode === 'list' && "flex gap-4 items-center flex-1")}>
+                      <div 
+                        className={cn("relative rounded-lg overflow-hidden bg-zinc-50 shrink-0 cursor-pointer", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-16 h-16")}
+                        onClick={() => setSelectedProduct(product)}
+                      >
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl.split(',')[0]} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-200"><ShoppingBag className="w-6 h-6" /></div>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-0.5 text-left cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                        <h4 className="font-bold text-[11px] text-zinc-900 leading-snug line-clamp-2">{product.name}</h4>
+                        <p className="font-black text-[11px] text-zinc-950">${product.price.toLocaleString('es-CO')}</p>
+                      </div>
+                    </div>
+
+                    <div className={cn("flex items-center justify-between pt-2 border-t border-zinc-50 mt-2", viewMode === 'list' && "flex-col items-end border-t-0 mt-0 gap-2 shrink-0")}>
+                      <span className="text-[8px] font-bold text-emerald-600">Stock: {product.stock}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const parsedOpts = product.options
+                            ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
+                            : []
+                          if (Array.isArray(parsedOpts) && parsedOpts.length > 0) {
+                            setSelectedProduct(product)
+                          } else {
+                            changeQtyByKey(product.id, 1)
+                          }
+                        }}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 border-0 shadow-sm",
+                          isItemInCart 
+                            ? "bg-emerald-700 text-white font-extrabold"
+                            : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        )}
+                      >
+                        {isItemInCart ? <span className="text-[10px] tabular-nums">{productCartQty}</span> : <ShoppingCart className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+        </main>
+
+        {/* 5. BOTTOM NAVIGATION BAR FOR MOBILE (Mockup Móvil) */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-zinc-150 h-16 flex items-center justify-around shadow-none px-4 select-none">
+          <button 
+            onClick={() => handleMobileTabClick('inicio')}
+            className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
+          >
+            <Home className={cn("w-5 h-5 transition-colors", activeMobileTab === 'inicio' ? "text-emerald-600" : "text-zinc-400")} />
+            <span className={cn("text-[9px] font-bold transition-colors", activeMobileTab === 'inicio' ? "text-emerald-600 font-extrabold" : "text-zinc-400")}>Inicio</span>
+          </button>
+          
+          <button 
+            onClick={() => handleMobileTabClick('categorias')}
+            className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
+          >
+            <LayoutGrid className={cn("w-5 h-5 transition-colors", activeMobileTab === 'categorias' ? "text-emerald-600" : "text-zinc-400")} />
+            <span className={cn("text-[9px] font-bold transition-colors", activeMobileTab === 'categorias' ? "text-emerald-600 font-extrabold" : "text-zinc-400")}>Categorías</span>
+          </button>
+          
+          <button 
+            onClick={() => handleMobileTabClick('buscar')}
+            className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
+          >
+            <Search className={cn("w-5 h-5 transition-colors", activeMobileTab === 'buscar' ? "text-emerald-600" : "text-zinc-400")} />
+            <span className={cn("text-[9px] font-bold transition-colors", activeMobileTab === 'buscar' ? "text-emerald-600 font-extrabold" : "text-zinc-400")}>Buscar</span>
+          </button>
+          
+          <button 
+            onClick={() => handleMobileTabClick('carrito')}
+            className="flex flex-col items-center gap-1 cursor-pointer relative bg-transparent border-0 outline-none"
+          >
+            <div className="relative">
+              <ShoppingCart className={cn("w-5 h-5 transition-colors", activeMobileTab === 'carrito' ? "text-emerald-600" : "text-zinc-400")} />
+              {itemsInCart > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-emerald-500 text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
+                  {itemsInCart}
+                </span>
+              )}
+            </div>
+            <span className={cn("text-[9px] font-bold transition-colors", activeMobileTab === 'carrito' ? "text-emerald-600 font-extrabold" : "text-zinc-400")}>Carrito</span>
+          </button>
+        </div>
+
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. MODAL / DRAWER DE CARRITO & CHECKOUT (COMPARTIDO) */}
+      {/* ========================================================================= */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsCartOpen(false)} />
+          
+          <div className="relative w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+            
+            {/* Cabecera del Carrito */}
+            <div className="p-6 pb-4 flex justify-between items-center border-b border-zinc-100">
+              <div>
+                <h2 className="text-lg font-bold text-zinc-900 tracking-tight">Tu Pedido</h2>
+                <p className="text-xs font-bold text-zinc-400">Total: {itemsInCart} items</p>
+              </div>
+              <button 
+                onClick={() => setIsCartOpen(false)}
+                className="w-10 h-10 bg-zinc-50 border border-zinc-200/50 rounded-lg flex items-center justify-center text-zinc-500 cursor-pointer active:scale-90 transition-transform border-none"
+              >
+                <X className="w-5 h-5 text-zinc-900" />
+              </button>
+            </div>
+
+            {/* Contenido Desplazable del Pedido */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              {/* Listado de Productos en el Carrito */}
+              <div className="space-y-4">
+                {cartProducts.length === 0 ? (
+                  <div className="text-center py-10 space-y-3">
+                    <ShoppingBag className="w-12 h-12 text-zinc-300 mx-auto" />
+                    <p className="text-xs font-bold text-zinc-400">Tu carrito está vacío</p>
+                  </div>
+                ) : (
+                  cartProducts.map(p => (
+                    <div key={p.cartKey} className="flex items-center justify-between bg-zinc-50/50 border border-zinc-100 p-3 rounded-xl gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-12 h-12 rounded-lg bg-zinc-100 border border-zinc-200 overflow-hidden shrink-0 flex items-center justify-center">
+                          {p.imageUrl ? (
+                            <img src={p.imageUrl.split(',')[0]} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <ShoppingBag className="w-5 h-5 text-zinc-300" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1 text-left">
+                          <p className="font-bold text-xs text-zinc-900 truncate">{p.name}</p>
+                          {Object.keys(p.variations).length > 0 && (
+                            <p className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                              {Object.entries(p.variations).map(([k, v]) => `${k}: ${v}`).join(' • ')}
+                            </p>
+                          )}
+                          <p className="text-[10px] text-zinc-400 mt-0.5 font-bold">${p.price.toLocaleString('es-CO')} x {p.qty}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white border border-zinc-200 p-1 rounded-lg shrink-0">
+                        <button onClick={() => changeQtyByKey(p.cartKey, -1)} className="p-1 cursor-pointer hover:bg-zinc-50 rounded text-zinc-500 border-none bg-transparent"><Minus className="w-3.5 h-3.5" /></button>
+                        <span className="text-xs font-bold w-4 text-center tabular-nums">{p.qty}</span>
+                        <button onClick={() => changeQtyByKey(p.cartKey, 1)} className="p-1 cursor-pointer hover:bg-zinc-50 rounded text-zinc-500 border-none bg-transparent"><Plus className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Formulario de Checkout */}
+              {cartProducts.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-zinc-100">
+                  <div className="space-y-3.5">
+                    <label className="text-[10px] font-bold text-zinc-400 tracking-wider">Datos de entrega</label>
+                    
                     <input 
                       placeholder="¿A nombre de quién?" 
-                      className="w-full bg-zinc-100/50 border-none rounded-lg p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all" 
                       value={form.customerName}
                       onChange={e => {
                         setForm(f => ({ ...f, customerName: e.target.value }))
                         setHasChanged(true)
                       }}
                     />
+
                     <div className="grid grid-cols-2 gap-3">
                       <input 
                         placeholder="Ciudad" 
-                        className="w-full bg-zinc-100/50 border-none rounded-lg p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all" 
                         value={form.city}
                         onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
                       />
                       <input 
                         placeholder="Dirección" 
-                        className="w-full bg-zinc-100/50 border-none rounded-lg p-4 text-[15px] outline-none focus:bg-zinc-100 transition-all" 
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all" 
                         value={form.address}
                         onChange={e => {
                           setForm(f => ({ ...f, address: e.target.value }))
@@ -523,216 +1119,336 @@ export default function WhatsAppCatalog({
                         }}
                       />
                     </div>
-                    <p className="text-[11px] text-zinc-400 px-1 italic">* También puedes seleccionar en el mapa debajo.</p>
-                 </div>
-                 
-                 <div className="rounded-lg overflow-hidden border border-zinc-100 h-44 shadow-sm">
-                   <MapPicker 
+                    
+                    <p className="text-[10px] text-zinc-400 italic font-semibold">* También puedes ubicarte en el mapa interactivo:</p>
+                  </div>
+                  
+                  {/* Mapa Interactivo */}
+                  <div className="rounded-xl overflow-hidden border border-zinc-200 h-40 shadow-none">
+                    <MapPicker 
                       onLocationSelectAction={(lat, lng, addr) => {
                         setForm(f => ({ ...f, lat, lng, address: addr || f.address, city: f.city || 'Bogotá' }))
                       }}
-                   />
-                 </div>
+                    />
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer de Checkout y Compra */}
+            {cartProducts.length > 0 && (
+              <div className="p-6 bg-zinc-50 border-t border-zinc-150 space-y-3.5 shrink-0">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs font-bold text-zinc-500">Total a pagar</span>
+                  <span className="text-xl font-black text-zinc-950 tabular-nums">${total.toLocaleString('es-CO')}</span>
+                </div>
+                
+                <button 
+                  onClick={handleWhatsAppOrder}
+                  disabled={loadingAction !== null}
+                  className={cn(
+                    "w-full h-12 bg-[#25D366] hover:bg-[#22c35e] text-white rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-none border-none",
+                    loadingAction === 'whatsapp' && "opacity-75 cursor-not-allowed"
+                  )}
+                >
+                  <MessageCircle className="w-4.5 h-4.5 text-white fill-current" />
+                  <span>{loadingAction === 'whatsapp' ? 'Procesando...' : 'Pedir por WhatsApp'}</span>
+                </button>
+
+                {store.cardPaymentsEnabled && (
+                  <button 
+                    onClick={handleCardPayment}
+                    disabled={loadingAction !== null}
+                    className={cn(
+                      "w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-none border-none",
+                      loadingAction === 'card' && "opacity-75 cursor-not-allowed"
+                    )}
+                  >
+                    <CreditCard className="w-4.5 h-4.5" />
+                    <span>{loadingAction === 'card' ? 'Iniciando Pago...' : 'Pagar con Tarjeta'}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. SIMULATOR DRAWER PARA DETALLE EN MÓVILES (COMPARTIDO) */}
+      {/* ========================================================================= */}
+      {selectedProduct && (
+        <div className="lg:hidden fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onClick={() => setSelectedProduct(null)} />
+          
+          <div className="relative w-full bg-white rounded-t-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+            
+            {/* Header */}
+            <div className="p-5 pb-3 flex justify-between items-start border-b border-zinc-100">
+              <div>
+                <p className="text-[9px] font-bold text-zinc-400 tracking-wider">{selectedProduct.category || 'General'} • SKU: {productSku}</p>
+                <h3 className="text-sm font-bold text-zinc-900 mt-0.5 leading-snug">{selectedProduct.name}</h3>
+              </div>
+              <button 
+                onClick={() => setSelectedProduct(null)}
+                className="w-8 h-8 bg-zinc-50 border border-zinc-200/50 rounded-lg flex items-center justify-center text-zinc-500 cursor-pointer border-none"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable details */}
+            <div className="flex-1 overflow-y-auto">
+              
+              {/* Product Image */}
+              <div className="relative w-full aspect-video bg-zinc-50 border-b border-zinc-100 flex items-center justify-center">
+                {currentDetailImg ? <img src={currentDetailImg} alt="" className="w-full h-full object-cover" /> : <ShoppingBag className="w-10 h-10 text-zinc-300" />}
+              </div>
+
+              <div className="p-5 space-y-4">
+                <span className="text-xl font-black text-zinc-950 block">${selectedProduct.price.toLocaleString('es-CO')}</span>
+
+                {/* Dynamic Product Options Selectors */}
+                {(() => {
+                  const parsedOpts = selectedProduct.options
+                    ? (typeof selectedProduct.options === 'string' ? JSON.parse(selectedProduct.options) : selectedProduct.options)
+                    : []
+                  if (!Array.isArray(parsedOpts) || parsedOpts.length === 0) return null
+                  return (
+                    <div className="space-y-4 pt-1">
+                      {parsedOpts.map((opt: any) => {
+                        if (!opt.name || !Array.isArray(opt.values) || opt.values.length === 0) return null
+                        const currentVal = selectedOptions[opt.name] || opt.values[0]
+                        return (
+                          <div key={opt.name} className="space-y-1.5 text-left">
+                            <span className="text-[10px] font-bold text-zinc-500">{opt.name}: {currentVal}</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {opt.values.map((val: string) => (
+                                <button
+                                  key={val}
+                                  onClick={() => setSelectedOptions(prev => ({ ...prev, [opt.name]: val }))}
+                                  className={cn(
+                                    "px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer flex items-center justify-center min-w-9",
+                                    currentVal === val
+                                      ? "bg-emerald-600 border-emerald-600 text-white font-extrabold"
+                                      : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                  )}
+                                >
+                                  {val}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
+
+                <div className="text-[10px] font-bold text-emerald-600">Stock disponible: {selectedProduct.stock} unidades</div>
+                <div className="space-y-1.5 pt-2 border-t border-zinc-100">
+                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Descripción</h4>
+                  <p className="text-zinc-500 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Sin descripción disponible.'}</p>
+                </div>
               </div>
             </div>
 
-            <div className="p-6 bg-zinc-50 space-y-3">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-zinc-500 font-medium">Total a pagar</span>
-                <span className="text-2xl font-black">${total.toLocaleString('es-CO')}</span>
-              </div>
-              
-              <button 
-                onClick={handleWhatsAppOrder}
-                disabled={loadingAction !== null}
-                className={cn(
-                  "w-full h-15 bg-[#25D366] text-white rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-green-200 active:scale-95 transition-all",
-                  loadingAction === 'whatsapp' && "opacity-70 animate-pulse"
-                )}
-              >
-                <MessageCircle className="w-5 h-5" />
-                {loadingAction === 'whatsapp' ? 'Procesando...' : 'Pedir por WhatsApp'}
-              </button>
-
-              {store.cardPaymentsEnabled && (
-                <button 
-                  onClick={handleCardPayment}
-                  disabled={loadingAction !== null}
-                  className={cn(
-                    "w-full h-15 bg-zinc-900 text-white rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all",
-                    loadingAction === 'card' && "opacity-70 animate-pulse"
-                  )}
+            {/* Drawer Actions Footer */}
+            <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex items-center gap-3">
+              {qtyInCart > 0 ? (
+                <div className="flex items-center gap-4 bg-white border border-zinc-200 rounded-xl p-1.5 w-full justify-between">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => changeQtyByKey(selectedCartKey, -1)} className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-700 border-none bg-transparent"><Minus className="w-3.5 h-3.5" /></button>
+                    <span className="font-extrabold text-sm tabular-nums">{qtyInCart}</span>
+                    <button onClick={() => changeQtyByKey(selectedCartKey, 1)} className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-700 border-none bg-transparent"><Plus className="w-3.5 h-3.5" /></button>
+                  </div>
+                  <span className="text-xs font-black text-zinc-950 pr-2">${(selectedProduct.price * qtyInCart).toLocaleString('es-CO')}</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => changeQtyByKey(selectedCartKey, 1)}
+                  className="w-full flex items-center justify-center gap-2 h-11 bg-emerald-600 text-white rounded-xl text-xs font-bold cursor-pointer border-none"
                 >
-                  <CreditCard className="w-5 h-5" />
-                  {loadingAction === 'card' ? 'Iniciando Pago...' : 'Pagar con Tarjeta'}
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Agregar al carrito</span>
                 </button>
               )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
+      {/* Drawer: Menú Lateral Móvil (Categorías & Enlaces) */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+          />
+          {/* Menu Panel */}
+          <div className="relative flex w-full max-w-[280px] flex-col bg-white h-full shadow-2xl animate-in slide-in-from-left duration-200">
+            {/* Header */}
+            <div className="p-4 border-b border-zinc-150 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 overflow-hidden">
+                  {store.logoUrl ? (
+                    <img src={store.logoUrl} alt={formattedStoreName} className="w-full h-full object-cover" />
+                  ) : (
+                    <Sprout className="w-4.5 h-4.5" />
+                  )}
+                </div>
+                <span className="font-bold text-xs text-zinc-900 tracking-tight">{formattedStoreName}</span>
+              </div>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 cursor-pointer border-none bg-transparent"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 text-left">
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Categorías</h4>
+                <div className="space-y-1">
+                  {categories.map(cat => {
+                    const Icon = getCategoryIcon(cat)
+                    const isActive = selectedCategory === cat
+                    const count = cat === 'Todos' ? store.products.length : categoryCounts[cat] || 0
+
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setSelectedCategory(cat)
+                          setIsMobileMenuOpen(false)
+                          document.getElementById('mobile-categories-row')?.scrollIntoView({ behavior: 'smooth' })
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-left cursor-pointer",
+                          isActive
+                            ? "text-emerald-700 bg-emerald-50/50 font-bold border-l-2 border-emerald-500 rounded-l-none"
+                            : "text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent hover:bg-zinc-50/50"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          <span>{cat === 'Todos' ? 'Todos los productos' : cat}</span>
+                        </div>
+                        <span className={cn(
+                          "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
+                          isActive ? "bg-emerald-100 text-emerald-800" : "text-zinc-400 bg-zinc-100"
+                        )}>{count}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-zinc-100">
+                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Contacto</h4>
+                <a 
+                  href={`https://wa.me/${initialPhone}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 py-2 px-3 text-xs font-semibold text-emerald-600 hover:bg-emerald-50/50 rounded-lg"
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-500 fill-current" />
+                  <span>Comprar por WhatsApp</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Product Detail Modal */}
-      {selectedProduct && (() => {
-        const images = selectedProduct.imageUrl ? selectedProduct.imageUrl.split(',').filter(Boolean) : []
-        const currentImage = images[activeImageIdx] || null
-        const qtyInCart = cart[selectedProduct.id] ?? 0
-
-        return (
-          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
-            <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setSelectedProduct(null)} />
-            
-            <div className="relative w-full max-w-xl bg-white rounded-t-2xl sm:rounded-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
-              
-              {/* Header */}
-              <div className="p-6 pb-4 flex justify-between items-start border-b border-zinc-100">
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
-                    {selectedProduct.category || 'General'}
-                  </span>
-                  <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 mt-1">
-                    {selectedProduct.name}
-                  </h2>
-                </div>
-                <button 
-                  onClick={() => setSelectedProduct(null)} 
-                  className="w-10 h-10 bg-zinc-100 rounded-lg flex items-center justify-center active:scale-90 transition-transform"
-                >
-                  <X className="w-5 h-5 text-zinc-900" />
-                </button>
-              </div>
-
-              {/* Scrollable detail content */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Image Gallery */}
-                <div className="relative w-full aspect-square bg-zinc-50 border-b border-zinc-100 flex items-center justify-center group overflow-hidden">
-                  {currentImage ? (
-                    <img 
-                      src={currentImage} 
-                      alt={selectedProduct.name} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-200">
-                      <ShoppingBag className="w-16 h-16" />
-                    </div>
-                  )}
-
-                  {/* Left & Right Chevrons */}
-                  {images.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setActiveImageIdx(prev => (prev === 0 ? images.length - 1 : prev - 1))}
-                        className="absolute left-4 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-zinc-950 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-20"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveImageIdx(prev => (prev === images.length - 1 ? 0 : prev + 1))}
-                        className="absolute right-4 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-zinc-950 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity active:scale-95 z-20"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </>
-                  )}
-
-                  {/* Image Counter Badge */}
-                  {images.length > 1 && (
-                    <div className="absolute bottom-4 right-4 bg-black/60 text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-20">
-                      {activeImageIdx + 1} / {images.length}
-                    </div>
-                  )}
-                </div>
-
-                {/* Thumbnails Row */}
-                {images.length > 1 && (
-                  <div className="flex gap-2.5 justify-center p-4 bg-zinc-50/50 border-b border-zinc-100 overflow-x-auto no-scrollbar">
-                    {images.map((img, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setActiveImageIdx(idx)}
-                        className={cn(
-                          "relative w-14 h-14 rounded-lg overflow-hidden border-2 bg-white transition-all shrink-0",
-                          activeImageIdx === idx ? "border-zinc-950 scale-105 shadow-sm" : "border-transparent opacity-70 hover:opacity-100"
-                        )}
-                      >
-                        <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Product Information */}
-                <div className="p-6 space-y-4">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-black text-zinc-950">
-                      ${selectedProduct.price.toLocaleString('es-CO')}
-                    </span>
-                    <span className={cn(
-                      "text-[12px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wider",
-                      selectedProduct.stock > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-700 border-red-100"
-                    )}>
-                      {selectedProduct.stock > 0 ? `Stock: ${selectedProduct.stock} un.` : 'Agotado'}
-                    </span>
-                  </div>
-
-                  <div className="h-px bg-zinc-100" />
-
-                  <div className="space-y-1">
-                    <h4 className="text-[11px] font-black uppercase text-zinc-400 tracking-wider">Descripción del producto</h4>
-                    <p className="text-zinc-600 text-sm leading-relaxed font-medium">
-                      Calidad premium garantizada. Este producto cumple con los más altos estándares de fabricación y está disponible para despacho inmediato a nivel nacional.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Bar (Footer) */}
-              <div className="p-6 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between gap-4">
-                {qtyInCart > 0 ? (
-                  <div className="flex-1 flex flex-col sm:flex-row items-center gap-3">
-                    <div className="flex items-center gap-4 bg-white rounded-lg p-2 border border-zinc-200 shadow-sm shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                      <button 
-                        onClick={() => changeQty(selectedProduct.id, -1)} 
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-50 hover:bg-zinc-100 active:scale-90 transition-transform"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <span className="font-black text-lg w-6 text-center tabular-nums">{qtyInCart}</span>
-                      <button 
-                        onClick={() => changeQty(selectedProduct.id, 1)} 
-                        disabled={qtyInCart >= selectedProduct.stock}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-50 hover:bg-zinc-100 active:scale-90 transition-transform disabled:opacity-30"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="flex-1 w-full text-center sm:text-right">
-                      <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest block">Subtotal en carrito</span>
-                      <span className="text-lg font-black text-zinc-950 tabular-nums">
-                        ${(selectedProduct.price * qtyInCart).toLocaleString('es-CO')}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => changeQty(selectedProduct.id, 1)}
-                    disabled={selectedProduct.stock <= 0}
-                    className="w-full h-14 bg-zinc-950 hover:bg-zinc-800 text-white rounded-lg font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-zinc-950/10 disabled:opacity-40 disabled:cursor-not-allowed uppercase text-[13px] tracking-wider"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    Añadir al carrito
-                  </button>
-                )}
-              </div>
-
+      {/* Drawer: Filtros / Ordenación Bottom Sheet */}
+      {isFilterOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center lg:hidden">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsFilterOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+          />
+          {/* Sheet Panel */}
+          <div className="relative w-full max-w-lg bg-white rounded-t-2xl shadow-2xl p-6 space-y-6 animate-in slide-in-from-bottom duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-sm font-bold text-zinc-900 tracking-tight">Ordenar y Filtrar</h3>
+              <button 
+                onClick={() => setIsFilterOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 cursor-pointer border-none bg-transparent"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
+
+            {/* Sort Options */}
+            <div className="space-y-3 text-left">
+              <h4 className="text-xs font-bold text-zinc-800">Ordenar por</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'default', label: 'Destacados' },
+                  { value: 'price-asc', label: 'Menor precio' },
+                  { value: 'price-desc', label: 'Mayor precio' },
+                  { value: 'name-asc', label: 'Nombre A-Z' }
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSortBy(opt.value as any)}
+                    className={cn(
+                      "py-2.5 px-3 rounded-xl border text-[11px] font-bold text-center cursor-pointer transition-all active:scale-[0.97]",
+                      sortBy === opt.value
+                        ? "border-emerald-600 bg-emerald-50/50 text-emerald-700"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter Options */}
+            <div className="space-y-3 text-left">
+              <h4 className="text-xs font-bold text-zinc-800">Disponibilidad</h4>
+              <button
+                onClick={() => setOnlyInStock(!onlyInStock)}
+                className={cn(
+                  "w-full flex items-center justify-between py-2.5 px-4 rounded-xl border text-xs font-bold cursor-pointer transition-all",
+                  onlyInStock
+                    ? "border-emerald-600 bg-emerald-50/50 text-emerald-700"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-600"
+                )}
+              >
+                <span>Mostrar solo productos en stock</span>
+                <div className={cn(
+                  "w-4 h-4 rounded border flex items-center justify-center transition-all",
+                  onlyInStock ? "bg-emerald-600 border-emerald-600 text-white" : "border-zinc-300 bg-white"
+                )}>
+                  {onlyInStock && <Check className="w-3 h-3 stroke-[3]" />}
+                </div>
+              </button>
+            </div>
+
+            {/* Apply Button */}
+            <button
+              onClick={() => setIsFilterOpen(false)}
+              className="w-full py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-none active:scale-[0.98] transition-all cursor-pointer border-none"
+            >
+              Aplicar filtros
+            </button>
           </div>
-        )
-      })()}
+        </div>
+      )}
+
     </div>
   )
 }
+

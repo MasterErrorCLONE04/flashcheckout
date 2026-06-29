@@ -5,7 +5,17 @@ import { QrCode, Download, X, Share2, CornerRightUp } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { cn } from '@/lib/utils'
 
-export default function QrGenerator({ url, storeName }: { url: string; storeName: string }) {
+export default function QrGenerator({ 
+  url, 
+  storeName,
+  inline = false,
+  size = 200
+}: { 
+  url: string; 
+  storeName: string;
+  inline?: boolean;
+  size?: number
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
 
@@ -23,6 +33,20 @@ export default function QrGenerator({ url, storeName }: { url: string; storeName
     document.body.appendChild(downloadLink)
     downloadLink.click()
     document.body.removeChild(downloadLink)
+  }
+
+  if (inline) {
+    return (
+      <div ref={qrRef} className="flex items-center justify-center">
+        <QRCodeCanvas 
+          value={url} 
+          size={size}
+          level="H"
+          includeMargin={false}
+          fgColor="#18181B"
+        />
+      </div>
+    )
   }
 
   return (

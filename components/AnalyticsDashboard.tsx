@@ -36,45 +36,45 @@ export default function AnalyticsDashboard({
       {/* Financial KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI: Revenue */}
-        <div className="premium-card p-5 bg-white border border-zinc-200/60 shadow-sm rounded-2xl flex items-center justify-between">
+        <div className="premium-card p-5 bg-white border border-zinc-200/60 rounded-lg flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Ventas Totales</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Ventas Totales</span>
             <span className="text-2xl font-black text-zinc-950 tabular-nums">${stats.totalRevenue.toLocaleString('es-CO')}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
         {/* KPI: Orders */}
-        <div className="premium-card p-5 bg-white border border-zinc-200/60 shadow-sm rounded-2xl flex items-center justify-between">
+        <div className="premium-card p-5 bg-white border border-zinc-200/60 rounded-lg flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Pedidos Completados</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Pedidos Completados</span>
             <span className="text-2xl font-black text-zinc-950 tabular-nums">{stats.totalOrders}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-zinc-50 border flex items-center justify-center text-zinc-400">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border flex items-center justify-center text-zinc-400">
             <ShoppingBag className="w-5 h-5" />
           </div>
         </div>
 
         {/* KPI: AOV */}
-        <div className="premium-card p-5 bg-white border border-zinc-200/60 shadow-sm rounded-2xl flex items-center justify-between">
+        <div className="premium-card p-5 bg-white border border-zinc-200/60 rounded-lg flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Ticket Promedio</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Ticket Promedio</span>
             <span className="text-2xl font-black text-zinc-950 tabular-nums">${Math.round(stats.averageValue).toLocaleString('es-CO')}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-zinc-50 border flex items-center justify-center text-zinc-400">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border flex items-center justify-center text-zinc-400">
             <Award className="w-5 h-5" />
           </div>
         </div>
 
         {/* KPI: Conversion */}
-        <div className="premium-card p-5 bg-white border border-zinc-200/60 shadow-sm rounded-2xl flex items-center justify-between">
+        <div className="premium-card p-5 bg-white border border-zinc-200/60 rounded-lg flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Tasa Conversión Chat</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Tasa Conversión Chat</span>
             <span className="text-2xl font-black text-zinc-950 tabular-nums">{stats.conversionRate}%</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
             <Percent className="w-5 h-5" />
           </div>
         </div>
@@ -82,14 +82,14 @@ export default function AnalyticsDashboard({
 
       <div className="grid lg:grid-cols-12 gap-6">
         {/* Left Column: Funnel Analysis */}
-        <div className="lg:col-span-6 premium-card p-6 bg-white border border-zinc-200/60 shadow-sm rounded-2xl space-y-6">
+        <div className="lg:col-span-6 premium-card p-6 bg-white border border-zinc-200/60 rounded-lg space-y-6">
           <div className="flex items-center gap-3 border-b border-zinc-100 pb-3">
             <div className="w-9 h-9 rounded-lg bg-zinc-950 text-white flex items-center justify-center">
               <Target className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-zinc-900 text-[14px]">Embudo de Conversión Conversional</h3>
-              <p className="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase mt-0.5">Efectividad del Bot en WhatsApp</p>
+              <p className="text-[10px] text-zinc-400 font-semibold tracking-wider mt-0.5">Efectividad del Bot en WhatsApp</p>
             </div>
           </div>
 
@@ -162,14 +162,14 @@ export default function AnalyticsDashboard({
         {/* Right Column: Top Products & Search Keywords */}
         <div className="lg:col-span-6 space-y-6">
           {/* Top Products */}
-          <div className="premium-card p-6 bg-white border border-zinc-200/60 shadow-sm rounded-2xl space-y-4">
-            <h4 className="font-bold text-zinc-900 text-xs uppercase tracking-wider">Productos más vendidos</h4>
+          <div className="premium-card p-6 bg-white border border-zinc-200/60 rounded-lg space-y-4">
+            <h4 className="font-bold text-zinc-900 text-xs tracking-wider">Productos más vendidos</h4>
             <div className="divide-y divide-zinc-100 text-xs">
               {stats.popularProducts.map((p, idx) => (
                 <div key={idx} className="flex items-center justify-between py-2.5">
                   <div>
                     <span className="font-bold text-zinc-800">{p.name}</span>
-                    <span className="block text-[10px] text-zinc-400 font-bold uppercase mt-0.5">{p.sold} unidades vendidas</span>
+                    <span className="block text-[10px] text-zinc-400 font-bold mt-0.5">{p.sold} unidades vendidas</span>
                   </div>
                   <span className="font-black text-zinc-950 tabular-nums">${p.revenue.toLocaleString('es-CO')}</span>
                 </div>
@@ -178,13 +178,13 @@ export default function AnalyticsDashboard({
           </div>
 
           {/* Search Keywords */}
-          <div className="premium-card p-6 bg-white border border-zinc-200/60 shadow-sm rounded-2xl space-y-4">
-            <h4 className="font-bold text-zinc-900 text-xs uppercase tracking-wider">Términos buscados en Chatbot</h4>
+          <div className="premium-card p-6 bg-white border border-zinc-200/60 rounded-lg space-y-4">
+            <h4 className="font-bold text-zinc-900 text-xs tracking-wider">Términos buscados en Chatbot</h4>
             <div className="flex flex-wrap gap-2">
               {stats.searchKeywords.map((k, idx) => (
                 <div 
                   key={idx} 
-                  className="px-3 py-1.5 bg-zinc-50 border border-zinc-200/40 rounded-xl text-xs font-bold text-zinc-700 flex items-center gap-1.5 shadow-sm"
+                  className="px-3 py-1.5 bg-zinc-50 border border-zinc-200/40 rounded-lg text-xs font-bold text-zinc-700 flex items-center gap-1.5"
                 >
                   <span>"{k.keyword}"</span>
                   <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-px rounded-md">{k.count}</span>

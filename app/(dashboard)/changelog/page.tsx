@@ -39,13 +39,16 @@ const RELEASES = [
 export default function ChangelogPage() {
   return (
     <div className="max-w-4xl mx-auto pb-20 animate-in">
-      <div className="mb-12">
-        <h1 className="text-4xl font-semibold tracking-tight text-zinc-950">
-          Registro de Cambios
-        </h1>
-        <p className="text-sm font-medium text-zinc-500 mt-2">
-          Entérate de las últimas mejoras, correcciones y nuevas funcionalidades añadidas a la plataforma.
-        </p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Registro de Cambios</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Entérate de las últimas mejoras, correcciones y nuevas funcionalidades añadidas a la plataforma.</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="relative border-l border-zinc-200 ml-4 md:ml-32 space-y-12">

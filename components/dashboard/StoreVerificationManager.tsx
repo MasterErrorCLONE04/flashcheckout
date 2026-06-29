@@ -146,7 +146,7 @@ export default function StoreVerificationManager({
     <div className="space-y-6">
       {/* Banner de Tienda Pausada por Disputa */}
       {(!store.active || store.pausedReason === 'dispute') && (
-        <div className="p-5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-4 animate-in fade-in duration-300">
+        <div className="p-5 bg-red-50 border border-red-200 rounded-lg flex items-start gap-4 animate-in fade-in duration-300">
           <ShieldAlert className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <h3 className="font-bold text-red-900 text-sm">Tienda temporalmente pausada</h3>
@@ -159,10 +159,10 @@ export default function StoreVerificationManager({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Panel Izquierdo: Nivel y Validación WhatsApp */}
-        <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
                 store.verificationLevel === 1 
                   ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
                   : 'bg-zinc-50 border-zinc-200 text-zinc-600'
@@ -170,10 +170,10 @@ export default function StoreVerificationManager({
                 {store.verificationLevel === 1 ? <ShieldCheck className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
               </div>
               <div>
-                <h4 className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
-                  Nivel de Seguridad: {store.verificationLevel === 1 ? 'Nivel 1 (Verificado)' : 'Nivel 0 (Básico)'}
+                <h4 className="text-sm font-bold text-zinc-900 tracking-tight">
+                  Nivel de seguridad: {store.verificationLevel === 1 ? 'Nivel 1 (Verificado)' : 'Nivel 0 (Básico)'}
                 </h4>
-                <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">
+                <p className="text-[11px] font-bold text-zinc-400 tracking-widest mt-0.5">
                   {store.verificationLevel === 1 ? 'Sin límites de ventas manuales' : 'Límites activos para transferencias'}
                 </p>
               </div>
@@ -190,12 +190,12 @@ export default function StoreVerificationManager({
             </div>
 
             {store.whatsappVerified ? (
-              <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50/50 border border-emerald-100 rounded-xl text-emerald-700 text-xs font-semibold select-none w-fit">
+              <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50/50 border border-emerald-100 rounded-lg text-emerald-700 text-xs font-semibold select-none w-fit">
                 <Check className="w-4 h-4 stroke-[3px]" />
                 <span>Número +{store.whatsapp} Verificado</span>
               </div>
             ) : (
-              <div className="space-y-3 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+              <div className="space-y-3 p-4 bg-zinc-50 rounded-lg border border-zinc-100">
                 <p className="text-xs text-zinc-500 font-medium">
                   Te hemos enviado un código OTP a tu WhatsApp *+{store.whatsapp}* para verificar que eres el propietario.
                 </p>
@@ -211,7 +211,7 @@ export default function StoreVerificationManager({
                   <button
                     onClick={handleVerifyOtp}
                     disabled={verifyingOtp}
-                    className="bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs rounded-lg px-4 py-2 active:scale-95 transition-transform flex items-center gap-1 cursor-pointer"
+                    className="bg-zinc-955 hover:bg-zinc-900 text-white font-bold text-xs rounded-lg px-4 py-2 active:scale-95 transition-transform flex items-center gap-1 cursor-pointer"
                   >
                     {verifyingOtp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verificar'}
                   </button>
@@ -229,7 +229,7 @@ export default function StoreVerificationManager({
         </div>
 
         {/* Panel Derecho: Límites Activos o Verificación de Identidad */}
-        <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-6 flex flex-col justify-between">
           {store.verificationLevel === 1 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center space-y-4 flex-1">
               <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center border border-emerald-100 animate-pulse">
@@ -289,11 +289,11 @@ export default function StoreVerificationManager({
               {/* Subir Documento para Nivel 1 */}
               <form onSubmit={handleUploadAndVerify} className="space-y-4 pt-4 border-t border-zinc-100">
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase text-zinc-400 tracking-wider">
-                    Subir Cédula para desbloquear límites o reactivar
+                  <label className="text-[11px] font-bold text-zinc-400 tracking-wider">
+                    Subir cédula para desbloquear límites o reactivar
                   </label>
                   <div className="flex items-center gap-3">
-                    <label className="flex items-center justify-center gap-2 border-2 border-dashed border-zinc-200 hover:border-zinc-300 rounded-xl px-4 py-3 cursor-pointer text-xs font-semibold text-zinc-600 bg-zinc-50 hover:bg-zinc-100/50 transition-all flex-1">
+                    <label className="flex items-center justify-center gap-2 border-2 border-dashed border-zinc-200 hover:border-zinc-300 rounded-lg px-4 py-3 cursor-pointer text-xs font-semibold text-zinc-600 bg-zinc-50 hover:bg-zinc-100/50 transition-all flex-1">
                       <Upload className="w-4 h-4 text-zinc-400" />
                       <span>{selectedFile ? selectedFile.name : 'Seleccionar Documento'}</span>
                       <input
@@ -307,7 +307,7 @@ export default function StoreVerificationManager({
                     <button
                       type="submit"
                       disabled={uploadingDoc || !selectedFile}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl h-11 px-5 flex items-center justify-center gap-1 active:scale-95 transition-transform disabled:opacity-40 cursor-pointer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg h-11 px-5 flex items-center justify-center gap-1 active:scale-95 transition-transform disabled:opacity-40 cursor-pointer"
                     >
                       {uploadingDoc ? (
                         <>

@@ -12,10 +12,12 @@ export type InteractiveLink = {
 export class WhatsAppCloudAPI {
   private url: string;
   private accessToken: string;
+  private phoneNumberId: string;
 
   constructor(config: WhatsAppConfig) {
     this.url = `https://graph.facebook.com/v21.0/${config.phoneNumberId}/messages`;
     this.accessToken = config.accessToken;
+    this.phoneNumberId = config.phoneNumberId;
   }
 
   async sendText(to: string, text: string) {
@@ -214,8 +216,10 @@ export class WhatsAppCloudAPI {
     if (to && text) {
       try {
         const { prisma } = await import('@/lib/prisma');
-        const session = await (prisma as any).whatsAppSession.findUnique({
-          where: { phoneNumber: to }
+        
+        const session = await (prisma as any).whatsAppSession.findFirst({
+          where: { phoneNumber: to },
+          orderBy: { lastInteraction: 'desc' }
         });
         if (session) {
           const messages = Array.isArray(session.messages) ? (session.messages as any[]) : [];

@@ -6,16 +6,16 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, Package, ShoppingCart, Settings, Bot, Truck, Users, BarChart3, History, ShieldCheck } from 'lucide-react'
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Panel de Control" },
-  { href: "/productos", icon: Package, label: "Enlaces de Pago" },
-  { href: "/pedidos", icon: ShoppingCart, label: "Ventas Registradas" },
-  { href: "/verificaciones", icon: ShieldCheck, label: "Verificar Pagos" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Panel de control" },
+  { href: "/productos", icon: Package, label: "Productos" },
+  { href: "/pedidos", icon: ShoppingCart, label: "Ventas registradas" },
+  { href: "/verificaciones", icon: ShieldCheck, label: "Verificar pagos" },
   { href: "/agente", icon: Bot, label: "Agente de WhatsApp" },
-  { href: "/envios", icon: Truck, label: "Envíos y Logística" },
-  { href: "/clientes", icon: Users, label: "Directorio de Clientes" },
-  { href: "/analitica", icon: BarChart3, label: "Métricas y Analítica" },
-  { href: "/historial-chats", icon: History, label: "Historial de Chats" },
-  { href: "/configuracion", icon: Settings, label: "Ajustes de Tienda" },
+  { href: "/envios", icon: Truck, label: "Envíos y logística" },
+  { href: "/clientes", icon: Users, label: "Directorio de clientes" },
+  { href: "/analitica", icon: BarChart3, label: "Métricas y analítica" },
+  { href: "/historial-chats", icon: History, label: "Historial de chats" },
+  { href: "/configuracion", icon: Settings, label: "Ajustes de tienda" },
 ]
 
 export default function SidebarNav() {
@@ -32,10 +32,10 @@ export default function SidebarNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "group/item flex items-center h-10 rounded-xl text-sm transition-all duration-300 border w-full overflow-hidden relative",
+              "group/item flex items-center h-10 rounded-lg text-sm transition-all duration-300 border w-full overflow-hidden relative",
               isActive
-                ? "bg-white border-zinc-200/80 shadow-sm text-zinc-955 font-semibold"
-                : "border-transparent text-zinc-500 hover:text-zinc-950 font-medium hover:bg-zinc-100/50"
+                ? "bg-white border-zinc-200/80 text-zinc-955 font-semibold"
+                : "border-transparent text-zinc-500 hover:text-zinc-955 font-medium hover:bg-zinc-100/50"
             )}
             title={item.label}
           >

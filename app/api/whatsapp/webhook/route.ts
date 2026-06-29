@@ -22,11 +22,21 @@ export async function GET(req: Request) {
 async function logIncoming(from: string, text: string) {
   try {
     let session = await (prisma as any).whatsAppSession.findUnique({
-      where: { phoneNumber: from }
+      where: {
+        phoneNumber_storeId: {
+          phoneNumber: from,
+          storeId: 'global'
+        }
+      }
     });
     if (!session) {
       session = await (prisma as any).whatsAppSession.create({
-        data: { phoneNumber: from, step: 'START' }
+        data: {
+          phoneNumber: from,
+          storeId: 'global',
+          receivingPhoneId: 'global',
+          step: 'START'
+        }
       });
     }
     const messages = Array.isArray(session.messages) ? (session.messages as any[]) : [];
@@ -49,14 +59,19 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Estructura de Meta: entry -> changes -> value -> messages
+    // 1. Detect if it's an Evolution API webhook event
+    if (body.event && body.instance) {
+      return handleEvolutionWebhook(body);
+    }
+
+    // 2. Otherwise handle Meta WhatsApp Business webhook event
     const entry = body.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
     const message = value?.messages?.[0];
 
     if (message) {
-      const from = message.from; // Número de teléfono que envió el mensaje
+      const from = message.from; // Customer's phone number
       
       if (message.type === 'image') {
         const mediaId = message.image.id;
@@ -66,7 +81,12 @@ export async function POST(req: Request) {
         await handleWhatsAppImage(from, mediaId, mimeType);
       } else if (message.type === 'location') {
         const session = await (prisma as any).whatsAppSession.findUnique({
-          where: { phoneNumber: from },
+          where: {
+            phoneNumber_storeId: {
+              phoneNumber: from,
+              storeId: 'global'
+            }
+          },
         });
 
         if (session && session.step === 'AWAITING_ADDRESS') {
@@ -82,18 +102,16 @@ export async function POST(req: Request) {
 
           console.log(`[WhatsApp Webhook] Incoming location from ${from}: ${addressText}`);
           await logIncoming(from, `[Ubicación] ${addressText}`);
-          await handleWhatsAppMessage(from, addressText);
+          await handleWhatsAppMessage(from, addressText, 'global');
         } else {
           await waClient.sendText(from, 'Lo siento, no estoy esperando una ubicación en este momento. Si quieres hacer un pedido, escribe "Hola".');
         }
       } else {
         let text = '';
 
-        // Podría ser un mensaje de texto simple
         if (message.type === 'text') {
           text = message.text.body;
         } 
-        // O una respuesta interactiva (Botón/Lista)
         else if (message.type === 'interactive') {
           const interactive = message.interactive;
           if (interactive.type === 'button_reply') {
@@ -101,7 +119,6 @@ export async function POST(req: Request) {
           } else if (interactive.type === 'list_reply') {
             text = interactive.list_reply.id;
           } else if (interactive.type === 'nfm_reply') {
-            // Capturar respuesta de WhatsApp Flow
             text = `flow_response_${interactive.nfm_reply.response_json}`;
           }
         }
@@ -110,8 +127,7 @@ export async function POST(req: Request) {
 
         if (text) {
           await logIncoming(from, text);
-          // Ejecutar lógica del bot
-          await handleWhatsAppMessage(from, text);
+          await handleWhatsAppMessage(from, text, 'global');
         }
       }
     }
@@ -119,6 +135,138 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: 'ok' });
   } catch (error) {
     console.error('[WhatsApp Webhook Error]', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+async function handleEvolutionWebhook(body: any) {
+  try {
+    const instanceName = body.instance; // store_storeId
+    const data = body.data;
+    const key = data?.key;
+
+    if (body.event !== 'messages.upsert' || !key) {
+      return NextResponse.json({ status: 'ignored' });
+    }
+
+    const fromMe = key.fromMe;
+    const remoteJid = key.remoteJid;
+    if (!remoteJid) return NextResponse.json({ status: 'ignored' });
+    
+    const from = remoteJid.split('@')[0];
+
+    const message = data.message;
+    if (!message) return NextResponse.json({ status: 'ignored' });
+
+    let text = '';
+    const messageType = data.messageType || 'conversation';
+    if (messageType === 'conversation') {
+      text = message.conversation || '';
+    } else if (messageType === 'extendedTextMessage') {
+      text = message.extendedTextMessage?.text || '';
+    } else if (messageType === 'imageMessage') {
+      text = '[Imagen comprobante de pago]';
+    } else if (messageType === 'documentMessage') {
+      text = `[Documento] ${message.documentMessage?.fileName || ''}`;
+    }
+
+    // Resolve store by instance name
+    const store = await prisma.store.findUnique({
+      where: { whatsappInstanceName: instanceName }
+    });
+
+    if (!store) {
+      console.warn(`[Evolution Webhook] Store not found for instance: ${instanceName}`);
+      return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+    }
+
+    // Get or create session
+    let session = await (prisma as any).whatsAppSession.findUnique({
+      where: {
+        phoneNumber_storeId: {
+          phoneNumber: from,
+          storeId: store.id
+        }
+      }
+    });
+
+    if (!session) {
+      session = await (prisma as any).whatsAppSession.create({
+        data: {
+          phoneNumber: from,
+          storeId: store.id,
+          receivingPhoneId: instanceName,
+          step: 'START'
+        }
+      });
+    }
+
+    // Ensure receivingPhoneId is updated
+    if (session.receivingPhoneId !== instanceName) {
+      session = await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { receivingPhoneId: instanceName }
+      });
+    }
+
+    const messages = Array.isArray(session.messages) ? (session.messages as any[]) : [];
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (fromMe) {
+      // Outgoing message sent by merchant phone or our own dashboard.
+      // Deduplicate if already saved
+      const lastMsg = messages[messages.length - 1];
+      const isDuplicate = lastMsg && lastMsg.text === text && lastMsg.sender === 'bot';
+
+      if (!isDuplicate && text) {
+        messages.push({
+          sender: text.startsWith('[Asesor Humano]:') ? 'bot' : 'bot',
+          text,
+          time: timeString,
+          timestamp: Date.now()
+        });
+        await (prisma as any).whatsAppSession.update({
+          where: { id: session.id },
+          data: { messages }
+        });
+      }
+    } else {
+      // Incoming message from customer
+      if (messageType === 'imageMessage') {
+        messages.push({
+          sender: 'user',
+          text: '[Imagen comprobante de pago]',
+          time: timeString,
+          timestamp: Date.now()
+        });
+        const updatedSession = await (prisma as any).whatsAppSession.update({
+          where: { id: session.id },
+          data: { messages }
+        });
+
+        const mimeType = message.imageMessage?.mimetype || 'image/jpeg';
+        const { handleWhatsAppImage } = await import('@/lib/bot/chatbot-logic');
+        await handleWhatsAppImage(from, key, mimeType, store.id, instanceName, message);
+      } else if (text) {
+        messages.push({
+          sender: 'user',
+          text,
+          time: timeString,
+          timestamp: Date.now()
+        });
+        const updatedSession = await (prisma as any).whatsAppSession.update({
+          where: { id: session.id },
+          data: { messages }
+        });
+
+        // Trigger bot logic with this session!
+        await handleWhatsAppMessage(from, text, updatedSession);
+      }
+    }
+
+    return NextResponse.json({ status: 'ok' });
+  } catch (err) {
+    console.error('[handleEvolutionWebhook Error]', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

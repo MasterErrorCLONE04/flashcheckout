@@ -32,6 +32,8 @@ type Product = {
   stock: number
   imageUrl: string | null
   category?: string | null
+  description?: string | null
+  options?: any
   active: boolean
 }
 
@@ -62,9 +64,11 @@ export default function ProductManager({
     price: '',
     stock: '',
     category: 'General',
+    description: '',
   })
   const [productImages, setProductImages] = useState<ProductImageItem[]>([])
   const [mounted, setMounted] = useState(false)
+  const [options, setOptions] = useState<{ name: string; values: string }[]>([])
 
   useEffect(() => {
     setMounted(true)
@@ -89,7 +93,19 @@ export default function ProductManager({
       price: String(product.price),
       stock: String(product.stock),
       category: product.category || 'General',
+      description: product.description || '',
     })
+
+    const parsedOptions = product.options
+      ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
+      : []
+    const mappedOptions = Array.isArray(parsedOptions)
+      ? parsedOptions.map((opt: any) => ({
+          name: opt.name || '',
+          values: Array.isArray(opt.values) ? opt.values.join(', ') : ''
+        }))
+      : []
+    setOptions(mappedOptions)
     
     // Parse existing image URLs
     const urls = product.imageUrl ? product.imageUrl.split(',').filter(Boolean) : []
@@ -106,7 +122,8 @@ export default function ProductManager({
   function closeForm() {
     setShowForm(false)
     setEditingId(null)
-    setForm({ name: '', price: '', stock: '', category: 'General' })
+    setForm({ name: '', price: '', stock: '', category: 'General', description: '' })
+    setOptions([])
     productImages.forEach(img => {
       if (img.file && img.preview.startsWith('blob:')) {
         URL.revokeObjectURL(img.preview)
@@ -143,12 +160,24 @@ export default function ProductManager({
       const imageUrl = uploadedUrls.length > 0 ? uploadedUrls.join(',') : null
 
       const method = editingId ? 'PUT' : 'POST'
+      const serializedOptions = options
+        .map(opt => ({
+          name: opt.name.trim(),
+          values: opt.values
+            .split(',')
+            .map(v => v.trim())
+            .filter(Boolean)
+        }))
+        .filter(opt => opt.name && opt.values.length > 0)
+
       const payload: any = {
         id: editingId,
         name: form.name,
         price: parseInt(form.price),
         stock: Math.min(parseInt(form.stock) || 0, 99),
         category: form.category,
+        description: form.description,
+        options: serializedOptions.length > 0 ? serializedOptions : null,
         imageUrl,
       }
 
@@ -292,20 +321,20 @@ export default function ProductManager({
       {/* Unified Reactive Header */}
       {!showForm && (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-zinc-950 font-display">Suministros y Activos</h1>
-              <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                Inventario Operativo — <span className="text-zinc-950 font-bold">{products.length} MÓDULOS ACTIVOS</span>
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Suministros y Activos</h1>
+              <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Inventario operativo — <span className="text-zinc-900 font-bold">{products.length} módulos activos</span>
               </div>
             </div>
 
-            <div className="flex flex-col sm:items-end gap-3">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 justify-end">
               {!isPro && (
-                <div className="bg-primary/10 border border-primary/20 text-primary px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] flex items-center gap-2 whitespace-nowrap">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  {products.length} / 10 Espacios Usados
+                <div className="bg-zinc-50 border border-zinc-200 text-zinc-600 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap shadow-sm">
+                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                  <span>{products.length} / 10 espacios usados</span>
                 </div>
               )}
               
@@ -313,35 +342,32 @@ export default function ProductManager({
                 <button
                   onClick={() => {
                     setEditingId(null)
-                    setForm({ name: '', price: '', stock: '', category: 'General' })
+                    setForm({ name: '', price: '', stock: '', category: 'General', description: '' })
+                    setOptions([])
                     setProductImages([])
                     setShowForm(true)
                   }}
-                  className="btn-premium h-12 flex items-center gap-3 w-full sm:w-auto px-8"
+                  className="flex items-center justify-center gap-2 h-9 px-3.5 bg-zinc-950 text-white hover:bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer"
                 >
-                  <Plus className="w-5 h-5 truncate" />
-                  Añadir Producto
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Añadir Producto</span>
                 </button>
               ) : (
-                <div className="premium-card p-5 flex items-center gap-5 bg-amber-50/50 border-amber-200/60 group hover:bg-amber-50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <div className="flex flex-col pr-4">
-                    <p className="text-[10px] font-black text-amber-800 tracking-[0.12em] uppercase leading-none mb-1.5">Límite alcanzado</p>
+                <div className="flex items-center gap-2.5 bg-amber-50/50 border border-amber-200/60 rounded-lg px-3.5 py-1.5 text-xs font-medium text-amber-800 shadow-sm">
+                  <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold text-amber-900 leading-none">Límite alcanzado</span>
                     <Link 
                       href="/configuracion"
-                      className="text-[11px] font-bold text-amber-600 hover:text-amber-700 underline underline-offset-4 decoration-amber-200"
+                      className="text-amber-600 hover:text-amber-700 underline underline-offset-2 text-[10px] font-semibold mt-1"
                     >
-                      Eleva tu cuenta a Pro
+                      Actualizar a Pro
                     </Link>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          
-          <div className="h-px w-full bg-zinc-100" />
         </div>
       )}
 
@@ -387,6 +413,19 @@ export default function ProductManager({
                         value={form.name}
                         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                         required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field: Description */}
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Descripción y Características</label>
+                    <div className="relative group">
+                      <textarea
+                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg px-5 py-3 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all min-h-[120px] resize-y"
+                        placeholder="Describe tu producto detalladamente. Puedes añadir características usando viñetas o guiones."
+                        value={form.description}
+                        onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                       />
                     </div>
                   </div>
@@ -451,6 +490,73 @@ export default function ProductManager({
                         />
                       </div>
                     </div>
+                  </div>
+
+                  {/* Variantes / Clasificación */}
+                  <div className="space-y-4 pt-4 border-t border-zinc-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-[13px] font-bold tracking-tight text-zinc-800">Variantes / Opciones</label>
+                        <p className="text-[11px] text-zinc-400">Define variaciones como talla, color, sabor, etc.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOptions(prev => [...prev, { name: '', values: '' }])}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Añadir Opción</span>
+                      </button>
+                    </div>
+
+                    {options.length === 0 ? (
+                      <p className="text-[11px] text-zinc-400 italic bg-zinc-50 border border-zinc-100 rounded-lg p-3 text-center">Este producto se venderá sin variaciones (sin selectores de talla/color).</p>
+                    ) : (
+                      <div className="space-y-3.5">
+                        {options.map((opt, idx) => (
+                          <div key={idx} className="flex gap-3 items-end p-3.5 bg-zinc-50 border border-zinc-100 rounded-xl relative group">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400">Nombre de la opción (Ej: Color)</label>
+                                <input
+                                  type="text"
+                                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all"
+                                  placeholder="Ej: Talla"
+                                  value={opt.name}
+                                  onChange={e => {
+                                    const val = e.target.value
+                                    setOptions(prev => prev.map((o, i) => i === idx ? { ...o, name: val } : o))
+                                  }}
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-zinc-400">Valores (separados por comas)</label>
+                                <input
+                                  type="text"
+                                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-950 placeholder:text-zinc-350 focus:outline-none focus:border-emerald-500/30 transition-all"
+                                  placeholder="Ej: S, M, L, XL"
+                                  value={opt.values}
+                                  onChange={e => {
+                                    const val = e.target.value
+                                    setOptions(prev => prev.map((o, i) => i === idx ? { ...o, values: val } : o))
+                                  }}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setOptions(prev => prev.filter((_, i) => i !== idx))}
+                              className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-all cursor-pointer border-none shrink-0 mb-0.5"
+                              title="Eliminar opción"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

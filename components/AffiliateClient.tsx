@@ -25,13 +25,16 @@ export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: s
 
   return (
     <div className="max-w-5xl mx-auto pb-20 animate-in">
-      <div className="mb-12">
-        <h1 className="text-4xl font-semibold tracking-tight text-zinc-950">
-          Programa de Afiliados
-        </h1>
-        <p className="text-sm font-medium text-zinc-500 mt-2">
-          Recomienda FlashCheckout a otros comerciantes y gana el 10% de comisión en cada Pase Beta vendido.
-        </p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Programa de Afiliados</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Recomienda FlashCheckout a otros comerciantes y gana el 10% de comisión en cada Pase Beta vendido.</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Link card */}

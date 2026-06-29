@@ -16,28 +16,49 @@ export default async function AgentePage() {
 
   if (!store) return <StoreCreationWizard />
 
+  const products = await prisma.product.findMany({
+    where: { storeId: store.id },
+    orderBy: { name: 'asc' }
+  })
+
+  const faqs = await prisma.faq.findMany({
+    where: { storeId: store.id },
+    orderBy: { createdAt: 'desc' }
+  })
+
   const defaultSettings = {
     systemPrompt: store.systemPrompt || `Eres el agente de IA oficial de ${store.name}. Atiende con amabilidad y educación. Tu objetivo es ayudar al usuario a ver el catálogo de la tienda y responder dudas de los productos disponibles. Mantén las respuestas muy cortas.`,
     welcomeMessage: store.welcomeMessage || `¡Hola! Bienvenido a ${store.name}. 🤖 Soy tu asistente virtual. ¿Qué te gustaría comprar hoy?`,
     active: store.aiActive,
+    aiSettings: typeof store.aiSettings === 'string' ? JSON.parse(store.aiSettings) : (store.aiSettings || {}),
   }
 
+  // Format popular products list for preview/edit
+  const formattedProducts = products.map(p => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    active: p.active,
+    aiRecommendation: !!(p as any).aiRecommendation,
+    aiDescription: (p as any).aiDescription || ''
+  }))
+
+  const formattedFaqs = faqs.map((f: any) => ({
+    id: f.id,
+    question: f.question,
+    answer: f.answer
+  }))
+
   return (
-    <div className="space-y-4 pb-2 animate-in">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-955 font-display">Agente de WhatsApp</h1>
-            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Configuración de IA — <span className="text-zinc-950 font-bold">PROMPTS Y ENTRENAMIENTO</span>
-            </div>
-          </div>
-        </div>
-        <div className="h-px w-full bg-zinc-100" />
-      </div>
-      
-      <AgentSettingsManager initialSettings={defaultSettings} storeName={store.name} />
+    <div className="pb-2 animate-in">
+      <AgentSettingsManager 
+        initialSettings={defaultSettings} 
+        storeName={store.name}
+        storeSlug={store.slug}
+        storeId={store.id}
+        initialProducts={formattedProducts}
+        initialFaqs={formattedFaqs}
+      />
     </div>
   )
 }

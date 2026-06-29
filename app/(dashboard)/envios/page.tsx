@@ -33,26 +33,30 @@ export default async function EnviosPage() {
   const formattedDispatches = orders.map((o: any) => ({
     id: o.id,
     customerName: o.customerName,
+    customerPhone: o.customerPhone || '',
     address: o.address,
     city: o.city,
     total: o.total,
     status: o.status,
-    driver: o.driver?.name || undefined,
+    driver: o.driver ? {
+      name: o.driver.name,
+      phoneNumber: o.driver.phoneNumber,
+      rating: o.driver.rating
+    } : null,
   }))
 
   return (
     <div className="space-y-4 pb-2 animate-in">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-955 font-display">Envíos y Logística</h1>
-            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Gestión de Entregas — <span className="text-zinc-950 font-bold">DESPACHOS Y MENSAJEROS</span>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Envíos y Logística</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Gestión de entregas — <span className="text-zinc-900 font-bold">Despachos y mensajeros</span>
             </div>
           </div>
         </div>
-        <div className="h-px w-full bg-zinc-100" />
       </div>
       
       <LogisticsManager initialDrivers={drivers} initialDispatches={formattedDispatches} />

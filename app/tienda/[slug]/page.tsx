@@ -54,9 +54,12 @@ export default async function StorePage({ params, searchParams }: Props) {
       price: Number(p.price),
       stock: p.stock,
       imageUrl: p.imageUrl,
-      category: p.category || undefined
+      category: p.category || undefined,
+      description: p.description || undefined,
+      options: p.options ? (p.options as any) : undefined
     })),
     logoUrl: store.logoUrl,
+    bio: store.bio,
     cardPaymentsEnabled,
   }
 
@@ -66,7 +69,12 @@ export default async function StorePage({ params, searchParams }: Props) {
 
   if (identity) {
     const session = await (prisma as any).whatsAppSession.findUnique({
-      where: { phoneNumber: identity }
+      where: {
+        phoneNumber_storeId: {
+          phoneNumber: identity,
+          storeId: store.id
+        }
+      }
     })
     if (session) {
       const items = (session.cart as any)?.items || {}

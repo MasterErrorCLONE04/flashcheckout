@@ -61,16 +61,15 @@ export default async function VerificacionesPage() {
   return (
     <div className="space-y-6 pb-2 animate-in">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-950 font-display">Verificar Pagos</h1>
-            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Verificar Pagos</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Validación Manual — <span className="text-zinc-955 font-bold uppercase">{store.name}</span>
+              Validación manual — <span className="text-zinc-900 font-bold">{store.name}</span>
             </div>
           </div>
         </div>
-        <div className="h-px w-full bg-zinc-100" />
       </div>
       
       <StoreVerificationManager 

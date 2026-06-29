@@ -36,8 +36,21 @@ export async function POST(req: Request) {
         store.whatsapp,
         `¡Hola! Tu nuevo código de verificación para FlashCheckout es: *${otpCode}*. Ingrésalo en tu panel para verificar tu cuenta.`
       )
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error sending resend OTP:', err)
+      const errMsg = err?.message || ''
+      if (errMsg.includes('131030') || errMsg.includes('allowed list')) {
+        let userFriendlyMsg = 'El número de WhatsApp no está en la lista de destinatarios autorizados de la cuenta Sandbox de Meta.'
+        if (process.env.NODE_ENV === 'development') {
+          userFriendlyMsg += ` [Desarrollo] Tu código OTP es: ${otpCode}`
+        } else {
+          userFriendlyMsg += ' Por favor, agrégalo en tu panel de desarrollador de Facebook.'
+        }
+        return NextResponse.json({
+          error: userFriendlyMsg,
+          code: 'WHATSAPP_SANDBOX_RESTRICTION'
+        }, { status: 400 })
+      }
       return NextResponse.json({ error: 'No se pudo enviar el mensaje por WhatsApp' }, { status: 500 })
     }
 

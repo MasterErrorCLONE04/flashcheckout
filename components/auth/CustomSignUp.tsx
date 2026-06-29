@@ -58,8 +58,8 @@ const CustomSignUp = () => {
         redirectUrlComplete: '/productos',
       })
     } catch (err: any) {
-      console.error('OAuth error:', err)
-      setError(err.message || 'Error al conectar con Google.')
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Error al conectar con Google.'
+      setError(errorMessage)
       setLoading(false)
     }
   }
@@ -83,8 +83,8 @@ const CustomSignUp = () => {
       
       setPendingVerification(true)
     } catch (err: any) {
-      console.error('SignUp error:', err)
-      setError(err.message || 'No se pudo crear la cuenta.')
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'No se pudo crear la cuenta.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -105,8 +105,8 @@ const CustomSignUp = () => {
         router.push('/productos')
       }
     } catch (err: any) {
-      console.error('Verification error:', err)
-      setError(err.message || 'Código de verificación inválido.')
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Código de verificación inválido.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

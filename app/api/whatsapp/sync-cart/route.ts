@@ -38,20 +38,26 @@ export async function POST(req: Request) {
       }
     }
 
+    const resolvedStoreId = storeId || 'global';
+
     // Buscamos o creamos la sesión
     const session = await prisma.whatsAppSession.upsert({
-      where: { phoneNumber },
+      where: {
+        phoneNumber_storeId: {
+          phoneNumber,
+          storeId: resolvedStoreId
+        }
+      },
       create: {
         phoneNumber,
         cart: enrichedCart,
-        storeId,
+        storeId: resolvedStoreId,
         customerName,
         address,
         step: 'IDLE'
       },
       update: {
         cart: enrichedCart,
-        storeId: storeId || undefined,
         customerName: customerName || undefined,
         address: address || undefined,
         lastInteraction: new Date()

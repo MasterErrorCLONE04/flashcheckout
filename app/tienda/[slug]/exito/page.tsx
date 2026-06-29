@@ -63,7 +63,7 @@ export default async function TiendaExitoPage({ params, searchParams }: Props) {
         </Link>
         
         {orderId && (
-          <div className="pt-4 border-t border-zinc-150">
+          <div className="pt-4 border-t border-zinc-200">
             <ReportButton orderId={orderId} initialReported={initialReported} />
           </div>
         )}

@@ -1,33 +1,142 @@
 import { prisma } from '@/lib/prisma';
-import { waClient } from '@/lib/whatsapp/cloud-api';
+import { waClient as officialWaClient } from '@/lib/whatsapp/cloud-api';
 import { parseIntent } from './intent-engine';
 import { searchGlobalProducts } from './search-service';
 import { mpPreference } from '@/lib/mercadopago';
 import { uploadProofImage } from '@/lib/supabase';
 
-export async function handleWhatsAppMessage(from: string, text: string) {
-  // 1. Obtener o crear sesión
-  let session = await (prisma as any).whatsAppSession.findUnique({
-    where: { phoneNumber: from },
-  });
-
-  if (!session) {
-    session = await (prisma as any).whatsAppSession.create({
-      data: { phoneNumber: from, step: 'START' },
+export async function handleWhatsAppMessage(from: string, text: string, sessionOrStoreId: any = 'global') {
+  // 1. Obtener o crear sesión usando el índice compuesto
+  let session: any;
+  if (typeof sessionOrStoreId === 'object' && sessionOrStoreId !== null) {
+    session = sessionOrStoreId;
+  } else {
+    const storeId = sessionOrStoreId || 'global';
+    session = await (prisma as any).whatsAppSession.findUnique({
+      where: {
+        phoneNumber_storeId: {
+          phoneNumber: from,
+          storeId: storeId
+        }
+      },
     });
+
+    if (!session) {
+      session = await (prisma as any).whatsAppSession.create({
+        data: {
+          phoneNumber: from,
+          storeId: storeId,
+          receivingPhoneId: storeId === 'global' ? 'global' : `store_${storeId}`,
+          step: 'START'
+        },
+      });
+    }
   }
+
+  // 1.5 Resolver el cliente de envío dinámico (Meta Cloud API o Evolution API)
+  const isGlobal = !session.storeId || session.storeId === 'global';
+  let client: any = officialWaClient; // Default to official Meta waClient
+  let isEvolution = false;
+  let store: any = null;
+
+  if (!isGlobal) {
+    store = await prisma.store.findUnique({
+      where: { id: session.storeId }
+    });
+    if (store && store.whatsappInstanceName && store.whatsappConnected) {
+      isEvolution = true;
+      const { evolutionClient } = await import('@/lib/whatsapp/evolution');
+      client = {
+        sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName, to, msg),
+        sendButtons: (to: string, msg: string, btns: any[]) => evolutionClient.sendButtons(store.whatsappInstanceName, to, msg, btns),
+        sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: any[]) => evolutionClient.sendList(store.whatsappInstanceName, to, hdr, bdy, btnText, secs),
+        sendImage: (to: string, img: string, cap: string) => evolutionClient.sendImage(store.whatsappInstanceName, to, img, cap),
+        sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(store.whatsappInstanceName, to, doc, fn),
+        sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(store.whatsappInstanceName, to, bdy, btnText, url)
+      };
+    }
+  }
+
+  // Helper to log bot outgoing messages in database
+  const logBotOutgoing = async (text: string) => {
+    try {
+      const currentSession = await (prisma as any).whatsAppSession.findUnique({
+        where: { id: session.id }
+      });
+      if (!currentSession) return;
+      const messages = Array.isArray(currentSession.messages) ? (currentSession.messages as any[]) : [];
+      const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      messages.push({
+        sender: 'bot',
+        text,
+        time: timeString,
+        timestamp: Date.now()
+      });
+
+      await (prisma as any).whatsAppSession.update({
+        where: { id: session.id },
+        data: { messages }
+      });
+    } catch (err) {
+      console.error('[logBotOutgoing Error]', err);
+    }
+  };
+
+  // Wrapped client to intercept and log all messages sent by the bot
+  const waClient = {
+    sendText: async (to: string, msg: string) => {
+      const res = await client.sendText(to, msg);
+      await logBotOutgoing(msg);
+      return res;
+    },
+    sendButtons: async (to: string, msg: string, btns: any[]) => {
+      const res = await client.sendButtons(to, msg, btns);
+      await logBotOutgoing(msg);
+      return res;
+    },
+    sendList: async (to: string, hdr: string, bdy: string, btnText: string, secs: any[]) => {
+      const res = await client.sendList(to, hdr, bdy, btnText, secs);
+      await logBotOutgoing(`${hdr}\n${bdy}`);
+      return res;
+    },
+    sendImage: async (to: string, img: string, cap: string) => {
+      const res = await client.sendImage(to, img, cap);
+      await logBotOutgoing(cap ? `[Imagen] ${cap}` : '[Imagen]');
+      return res;
+    },
+    sendDocument: async (to: string, doc: string, fn: string) => {
+      const res = await client.sendDocument(to, doc, fn);
+      await logBotOutgoing(`[Documento] ${fn}`);
+      return res;
+    },
+    sendUrlButton: async (to: string, bdy: string, btnText: string, url: string) => {
+      const res = await client.sendUrlButton(to, bdy, btnText, url);
+      await logBotOutgoing(bdy);
+      return res;
+    },
+    sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: any, header?: string, body?: string) => {
+      if (typeof client.sendFlow === 'function') {
+        const res = await client.sendFlow(to, flowId, buttonText, flowToken, screen, data, header, body);
+        await logBotOutgoing(body || `[Flujo: ${buttonText}]`);
+        return res;
+      }
+      throw new Error('sendFlow is not supported on this client configuration.');
+    }
+  };
 
   const intent = await parseIntent(text);
 
   // Verificar si la tienda de la sesión está activa
-  if (session.storeId) {
+  if (session.storeId && session.storeId !== 'global') {
     const activeStore = await prisma.store.findUnique({
       where: { id: session.storeId }
     });
     if (activeStore && !activeStore.active) {
+      const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
       session = await (prisma as any).whatsAppSession.update({
         where: { id: session.id },
-        data: { storeId: null, cart: null }
+        data: { storeId: resetStoreId, cart: null }
       });
       await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕');
       return;
@@ -69,14 +178,15 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   }
 
   if (text.toLowerCase().includes('inicio') || text.toLowerCase().includes('hola') || text === 'search_now') {
+    const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
     await (prisma as any).whatsAppSession.update({
       where: { id: session.id },
-      data: { step: 'IDLE', storeId: null },
+      data: { step: 'IDLE', storeId: resetStoreId },
     });
     if (text === 'search_now') {
         await waClient.sendText(from, '¡Claro! Dime qué buscas (ej: "Pizza", "Zapatos").');
     } else {
-        await handleWhatsAppMessage(from, 'reset_welcome'); // Disparar bienvenida
+        await handleWhatsAppMessage(from, 'reset_welcome', session); // Disparar bienvenida
     }
     return;
   }
@@ -88,11 +198,12 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   // Protocolo de Finalización (EXIT)
   if (intent.intent === 'EXIT') {
     await waClient.sendText(from, '¡De nada! Ha sido un placer ayudarte. 😊\n\nSi necesitas algo más en el futuro, solo escribe "Hola". ¡Que tengas un gran día! 👋');
+    const exitStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
     await (prisma as any).whatsAppSession.update({
       where: { id: session.id },
       data: { 
         step: 'START', 
-        storeId: null, 
+        storeId: exitStoreId, 
         cart: null 
       },
     });
@@ -498,10 +609,27 @@ export async function handleWhatsAppMessage(from: string, text: string) {
 
   switch (session.step) {
     case 'START':
-      await waClient.sendButtons(from, '¡Hola! Bienvenido a *StoreFCheckout*. 🚀\n\n¿Cómo prefieres empezar hoy?', [
-        { id: 'view_stores', title: '🏬 Ver tiendas' },
-        { id: 'search_now', title: '🔍 Buscar algo' },
-      ]);
+      if (session.storeId && session.storeId !== 'global' && store) {
+        const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
+        const defaultMsg = `¡Hola! Bienvenido a *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
+        const welcomeText = store.welcomeMessage || defaultMsg;
+
+        await waClient.sendUrlButton(
+          from, 
+          welcomeText,
+          '📱 Abrir Catálogo Pro',
+          storeUrl
+        );
+
+        await waClient.sendButtons(from, '¿Prefieres comprar enviando mensajes directamente aquí?', [
+          { id: `view_list_${store.id}`, title: '📜 Usar Chat' }
+        ]);
+      } else {
+        await waClient.sendButtons(from, '¡Hola! Bienvenido a *StoreFCheckout*. 🚀\n\n¿Cómo prefieres empezar hoy?', [
+          { id: 'view_stores', title: '🏬 Ver tiendas' },
+          { id: 'search_now', title: '🔍 Buscar algo' },
+        ]);
+      }
       await (prisma as any).whatsAppSession.update({
         where: { id: session.id },
         data: { step: 'IDLE' },
@@ -550,7 +678,26 @@ export async function handleWhatsAppMessage(from: string, text: string) {
           });
         }
       } else {
-        await waClient.sendText(from, 'No logré entender tu pedido. Puedes decir algo como "Busco Pizza" o escribir "Cambiar tienda" para elegir otro comercio.');
+        let faqResponse = null;
+        if (session.storeId && session.storeId !== 'global') {
+          try {
+            const faqs = await prisma.faq.findMany({
+              where: { storeId: session.storeId }
+            });
+            const match = faqs.find((f: any) => text.toLowerCase().includes(f.question.toLowerCase()));
+            if (match) {
+              faqResponse = match.answer;
+            }
+          } catch (faqErr) {
+            console.error('Error fetching FAQs in chatbot fallback:', faqErr);
+          }
+        }
+
+        if (faqResponse) {
+          await waClient.sendText(from, faqResponse);
+        } else {
+          await waClient.sendText(from, 'No logré entender tu pedido. Puedes decir algo como "Busco Pizza" o escribir "Ver productos" para abrir nuestro catálogo.');
+        }
       }
       break;
 
@@ -568,27 +715,43 @@ export async function handleWhatsAppMessage(from: string, text: string) {
           if (store.products.length === 0) {
             await waClient.sendText(from, `Esta tienda aún no tiene productos registrados o activos. 😕\n\nPuedes escribir "Tiendas" para ver otro comercio.`);
           } else {
-            const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
+            // Handoff redirection link if WhatsApp QR connection is active
+            if (store.whatsappConnected && store.whatsapp) {
+              const waUrl = `https://wa.me/${store.whatsapp}?text=¡Hola!%20Quiero%20hacer%20un%20pedido%20en%20*${encodeURIComponent(store.name)}*`;
+              await waClient.sendUrlButton(
+                from,
+                `¡Excelente elección! Para comprar en *${store.name}*, pulsa el botón de abajo para abrir el chat oficial de la tienda e iniciar tu pedido:`,
+                '💬 Chatear con Tienda',
+                waUrl
+              );
+              // Clean up corporate session
+              await (prisma as any).whatsAppSession.update({
+                where: { id: session.id },
+                data: { step: 'START', storeId: 'global' },
+              });
+            } else {
+              // Fallback: stay on global line
+              const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
+              const defaultMsg = `¡Genial! Estás en *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
+              const welcomeText = store.welcomeMessage || defaultMsg;
 
-            const defaultMsg = `¡Genial! Estás en *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
-            const welcomeText = store.welcomeMessage || defaultMsg;
+              await waClient.sendUrlButton(
+                from, 
+                welcomeText,
+                '📱 Abrir Catálogo Pro',
+                storeUrl
+              );
 
-            await waClient.sendUrlButton(
-              from, 
-              welcomeText,
-              '📱 Abrir Catálogo Pro',
-              storeUrl
-            );
+              await waClient.sendButtons(from, '¿Prefieres comprar enviando mensajes directamente aquí?', [
+                { id: `view_list_${store.id}`, title: '📜 Usar Chat' }
+              ]);
 
-            await waClient.sendButtons(from, '¿Prefieres comprar enviando mensajes directamente aquí?', [
-              { id: `view_list_${store.id}`, title: '📜 Usar Chat' }
-            ]);
+              await (prisma as any).whatsAppSession.update({
+                where: { id: session.id },
+                data: { step: 'IDLE', storeId: store.id },
+              });
+            }
           }
-
-          await (prisma as any).whatsAppSession.update({
-            where: { id: session.id },
-            data: { step: 'IDLE', storeId: store.id },
-          });
         }
       } else {
         // Si el usuario escribe algo en lugar de seleccionar, volvemos a IDLE
@@ -686,10 +849,36 @@ export async function handleWhatsAppMessage(from: string, text: string) {
   }
 }
 
-export async function handleWhatsAppImage(from: string, mediaId: string, mimeType: string) {
-  // 1. Obtener sesión del bot
+export async function handleWhatsAppImage(
+  from: string,
+  mediaIdOrKey: any,
+  mimeType: string,
+  storeId: string = 'global',
+  instanceName?: string,
+  messagePayload?: any
+) {
+  // Shadow client
+  let waClientInstance: any = officialWaClient;
+  if (instanceName && instanceName !== 'global') {
+    const { evolutionClient } = await import('@/lib/whatsapp/evolution');
+    waClientInstance = {
+      sendText: (to: string, msg: string) => evolutionClient.sendText(instanceName, to, msg),
+      downloadMedia: async (id: any) => {
+        const buffer = await evolutionClient.downloadMedia(instanceName, id, messagePayload);
+        return { buffer };
+      }
+    };
+  }
+  const waClient = waClientInstance;
+
+  // 1. Obtener sesión del bot usando compound key
   const session = await (prisma as any).whatsAppSession.findUnique({
-    where: { phoneNumber: from },
+    where: {
+      phoneNumber_storeId: {
+        phoneNumber: from,
+        storeId: storeId
+      }
+    },
   });
 
   if (!session || session.step !== 'AWAITING_CONFIRMATION') {
@@ -701,6 +890,7 @@ export async function handleWhatsAppImage(from: string, mediaId: string, mimeTyp
   const order = await prisma.order.findFirst({
     where: {
       customerPhone: from,
+      storeId: storeId,
       paymentStatus: 'PENDING',
     },
     orderBy: {
@@ -717,7 +907,7 @@ export async function handleWhatsAppImage(from: string, mediaId: string, mimeTyp
     await waClient.sendText(from, 'Procesando tu comprobante de pago... ⏳');
 
     // 3. Descargar comprobante de WhatsApp
-    const { buffer } = await waClient.downloadMedia(mediaId);
+    const { buffer } = await waClient.downloadMedia(mediaIdOrKey);
 
     // 4. Subir a Supabase Storage
     const ext = mimeType.split('/')[1] || 'png';

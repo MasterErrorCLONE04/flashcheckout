@@ -23,7 +23,7 @@ export default function SidebarLink({
     <Link
       href={href}
       className={cn(
-        "group flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-200 border",
+        "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200 border",
         isActive
           ? "bg-white border-zinc-200/80 shadow-sm text-zinc-950 font-semibold"
           : "border-transparent text-zinc-500 hover:text-zinc-900 font-medium",

@@ -17,7 +17,12 @@ export default async function HistorialChatsPage() {
   if (!store) return <StoreCreationWizard />
 
   const sessions = await (prisma as any).whatsAppSession.findMany({
-    where: { storeId: store.id },
+    where: { 
+      storeId: store.id,
+      receivingPhoneId: store.whatsappConnected && store.whatsappInstanceName
+        ? store.whatsappInstanceName
+        : 'global'
+    },
     orderBy: { lastInteraction: 'desc' }
   })
 
@@ -66,7 +71,12 @@ export default async function HistorialChatsPage() {
       customerName: name,
       lastInteraction: s.lastInteraction.toISOString(),
       step: s.step,
-      messages
+      messages,
+      tags: s.tags || [],
+      notes: Array.isArray(s.notes) ? s.notes : [],
+      assignedTo: s.assignedTo || 'Tú',
+      isFavorite: !!s.isFavorite,
+      status: s.status || 'active'
     }
   })
 
@@ -81,26 +91,19 @@ export default async function HistorialChatsPage() {
       messages: [
         { sender: 'user' as const, text: 'Hola, me interesa comprar unos AirPods Max', time: '18:10' },
         { sender: 'bot' as const, text: '¡Hola! Qué excelente elección. Contamos con AirPods Max en stock con entrega inmediata. ¿Quieres proceder con la compra?', time: '18:11' }
-      ]
+      ],
+      tags: ['Demo'],
+      notes: [],
+      assignedTo: 'Tú',
+      isFavorite: false,
+      status: 'active'
     })
   }
 
   return (
-    <div className="space-y-4 pb-2 animate-in">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-955 font-display">Historial de Chats</h1>
-            <div className="text-[13px] font-medium text-zinc-500 mt-1.5 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Bandeja de Entrada — <span className="text-zinc-950 font-bold">MONITOREO DE CONVERSACIONES EN VIVO</span>
-            </div>
-          </div>
-        </div>
-        <div className="h-px w-full bg-zinc-100" />
-      </div>
-      
-      <ChatHistoryViewer initialSessions={formattedSessions} />
-    </div>
+    <ChatHistoryViewer 
+      initialSessions={formattedSessions} 
+      whatsappConnected={!!store.whatsappConnected}
+    />
   )
 }

@@ -27,6 +27,8 @@ services:
     command: sh -c "npx prisma db push && npm run dev"
     ports:
       - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - .:/app
       - /app/node_modules
@@ -45,7 +47,7 @@ services:
       dockerfile: Dockerfile
     container_name: flashcheckout-prisma-studio
     # Runs Prisma Studio visually in the browser without local tools installation
-    command: npx prisma studio --browser none --port 5555 --address 0.0.0.0
+    command: npx prisma studio --browser none --port 5555
     ports:
       - "5555:5555"
     volumes:
