@@ -55,8 +55,9 @@ export class EvolutionClient {
 
   async setWebhook(instanceName: string) {
     const url = `${this.apiUrl}/webhook/set/${instanceName}`;
-    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/whatsapp/webhook`;
+    const webhookUrl = process.env.WHATSAPP_WEBHOOK_URL || `${process.env.NEXT_PUBLIC_APP_URL}/api/whatsapp/webhook`;
     
+    console.log(`[Evolution Client] Setting webhook URL for ${instanceName} to: ${webhookUrl}`);
     const response = await fetch(url, {
       method: 'POST',
       headers: this.getHeaders(),

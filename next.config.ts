@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ['*.trycloudflare.com', 'localhost:3000'],
+  allowedDevOrigins: ['*.trycloudflare.com', 'localhost:3000', '*.lhr.life', '*.localhost.run'],
 };
 
 export default nextConfig;

@@ -61,5 +61,13 @@ services:
       db:
         condition: service_healthy
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: flashcheckout-tunnel
+    command: tunnel --url http://web:3000
+    restart: always
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
