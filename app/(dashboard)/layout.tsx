@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import SidebarNav from '@/components/dashboard/SidebarNav'
 import { checkSubscription } from '@/lib/subscription'
+import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export default async function DashboardLayout({
   children,
@@ -21,7 +22,7 @@ export default async function DashboardLayout({
 
   const store = await prisma.store.findFirst({
     where: { userId },
-    select: { id: true, slug: true, name: true },
+    select: { id: true, slug: true, name: true, welcomeMessage: true },
   })
 
   const isPro = await checkSubscription()
@@ -30,6 +31,12 @@ export default async function DashboardLayout({
     productCount = await prisma.product.count({
       where: { storeId: store.id },
     })
+  }
+
+  const onboardingCompleted = store && store.welcomeMessage && productCount > 0
+
+  if (!store || !onboardingCompleted) {
+    return <StoreCreationWizard />
   }
 
   return (
