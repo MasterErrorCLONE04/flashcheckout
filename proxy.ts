@@ -1,21 +1,31 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/sso-callback(.*)',
-  '/api(.*)',
   '/tienda(.*)',
   '/explorar(.*)',
   '/work(.*)',
   '/sitemap.xml',
-  '/robots.txt'
+  '/robots.txt',
+  '/api/whatsapp/webhook(.*)',
+  '/api/webhook/(.*)',
+  '/api/checkout/(.*)',
+  '/api/cron/(.*)'
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
-    await auth.protect();
+    const { userId } = await auth();
+    if (!userId) {
+      if (request.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      }
+      await auth.protect();
+    }
   }
 });
 

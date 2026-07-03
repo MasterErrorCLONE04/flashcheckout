@@ -37,7 +37,7 @@ export default async function DashboardLayout({
 
   if (!store || !onboardingCompleted) {
     return (
-      <div className="w-full h-screen overflow-hidden bg-white z-50 relative">
+      <div className="w-full h-screen overflow-hidden bg-white z-50 relative font-sans">
         <StoreCreationWizard />
       </div>
     )
@@ -194,9 +194,9 @@ export default async function DashboardLayout({
 
                 {/* Expanded state (full detailed card) */}
                 <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-emerald-100 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300">
-                  <div className="flex justify-between items-center text-xs font-bold text-zinc-850">
+                  <div className="flex justify-between items-center text-xs font-bold text-zinc-855">
                     <span className="flex items-center gap-1 text-emerald-700 font-extrabold">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-650" />
                       Premium
                     </span>
                     <span className="text-zinc-500 font-bold tabular-nums">{productCount} productos</span>
@@ -215,6 +215,20 @@ export default async function DashboardLayout({
                 </div>
               </>
             )}
+
+            {/* Separator line, visible on expanded */}
+            <div className="h-px w-full bg-zinc-250/20 hidden group-hover:block my-3" />
+
+            {/* Bottom User Menu Profile Card */}
+            <div className="w-full flex items-center justify-center">
+              <div className="w-full group-hover:hidden flex justify-center pb-2">
+                <CustomUserMenu variant="avatar" storeName={store?.name || undefined} />
+              </div>
+              <div className="w-full hidden group-hover:block animate-in fade-in duration-200">
+                <CustomUserMenu variant="card" storeName={store?.name || undefined} />
+              </div>
+            </div>
+
           </div>
         </aside>
 
