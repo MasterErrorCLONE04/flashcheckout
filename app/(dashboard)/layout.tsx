@@ -36,7 +36,11 @@ export default async function DashboardLayout({
   const onboardingCompleted = store && store.welcomeMessage && productCount > 0
 
   if (!store || !onboardingCompleted) {
-    return <StoreCreationWizard />
+    return (
+      <div className="w-full h-screen overflow-hidden bg-white z-50 relative">
+        <StoreCreationWizard />
+      </div>
+    )
   }
 
   return (
