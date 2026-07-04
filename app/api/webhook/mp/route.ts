@@ -52,9 +52,27 @@ export async function POST(req: Request) {
         },
       })
 
+      // Resolve dynamic waClient for notifications
+      let clientToUse: any = waClient;
+      let store: any = null;
+      try {
+        store = await prisma.store.findUnique({
+          where: { id: order.storeId },
+        });
+        if (store && store.whatsappInstanceName && store.whatsappConnected) {
+          const { evolutionClient } = await import('@/lib/whatsapp/evolution');
+          clientToUse = {
+            sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName!, to, msg),
+            sendButtons: (to: string, msg: string, btns: any[]) => evolutionClient.sendButtons(store.whatsappInstanceName!, to, msg, btns)
+          };
+        }
+      } catch (err) {
+        console.error('[MP Webhook] Error resolving dynamic waClient:', err);
+      }
+
       if (order.source === 'WHATSAPP' && order.customerWhatsAppId && newStatus === 'PAID') {
         try {
-          await waClient.sendText(
+          await clientToUse.sendText(
             order.customerWhatsAppId,
             `¡Pago confirmado! 🎉\n\nTu pedido *#${order.id.slice(-6)}* por un total de $${order.total.toLocaleString()} ha sido procesado exitosamente.\n\n¡Gracias por usar StoreFCheckout! 🚀`
           )
@@ -68,16 +86,13 @@ export async function POST(req: Request) {
       // Notificar al dueño de la tienda por WhatsApp sobre la nueva venta y sugerir domicilio
       if (newStatus === 'PAID') {
         try {
-          const store = await prisma.store.findUnique({
-            where: { id: order.storeId },
-          })
           if (store && store.whatsapp) {
-            await waClient.sendText(
+            await clientToUse.sendText(
               store.whatsapp,
               `📦 *¡Nuevo pedido recibido!* 🎉\n\nHola, tienes una nueva venta en tu tienda *${store.name}*:\n\n*Detalles del pedido:*\n• *ID:* #${order.id.slice(-6)}\n• *Cliente:* ${order.customerName}\n• *Teléfono:* ${order.customerPhone || 'N/A'}\n• *Dirección de Entrega:* ${order.address}, ${order.city}\n• *Total:* $${order.total.toLocaleString('es-CO')}`
             )
 
-            await waClient.sendButtons(
+            await clientToUse.sendButtons(
               store.whatsapp,
               `🚚 *¿Te gustaría solicitar nuestro Servicio de Domicilio?*\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequeña cuota de *$5.000 COP* (se descontará del pago final de la orden).`,
               [

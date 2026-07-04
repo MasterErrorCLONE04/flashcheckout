@@ -5,6 +5,7 @@ export async function sendInvoiceToWhatsApp(orderId: string) {
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
+      include: { store: true }
     })
 
     if (!order) {
@@ -23,7 +24,17 @@ export async function sendInvoiceToWhatsApp(orderId: string) {
     console.log(`[sendInvoiceToWhatsApp] Sending PDF invoice to ${order.customerWhatsAppId}`)
     console.log(`[sendInvoiceToWhatsApp] Invoice URL: ${invoiceUrl}`)
 
-    await waClient.sendDocument(
+    // Resolve client to use
+    let clientToUse: any = waClient
+    const store = order.store
+    if (store && store.whatsappInstanceName && store.whatsappConnected) {
+      const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+      clientToUse = {
+        sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(store.whatsappInstanceName!, to, doc, fn)
+      }
+    }
+
+    await clientToUse.sendDocument(
       order.customerWhatsAppId,
       invoiceUrl,
       `factura-${orderId.slice(-6).toUpperCase()}.pdf`

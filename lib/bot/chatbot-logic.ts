@@ -678,25 +678,78 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           });
         }
       } else {
-        let faqResponse = null;
-        if (session.storeId && session.storeId !== 'global') {
+        // AI Chatbot fallback using DeepSeek
+        let answeredByAI = false;
+        if (session.storeId && session.storeId !== 'global' && store && store.aiActive) {
           try {
-            const faqs = await prisma.faq.findMany({
-              where: { storeId: session.storeId }
+            // 1. Fetch store products
+            const storeProducts = await prisma.product.findMany({
+              where: { storeId: store.id, active: true },
+              take: 30
             });
-            const match = faqs.find((f: any) => text.toLowerCase().includes(f.question.toLowerCase()));
-            if (match) {
-              faqResponse = match.answer;
+            const productsListText = storeProducts.map(p => `- ${p.name}: $${p.price.toLocaleString('es-CO')}`).join('\n');
+
+            // 2. Format chat history
+            const history = Array.isArray(session.messages) ? (session.messages as any[]) : [];
+            const chatMessages = history.slice(-10).map(m => ({
+              role: (m.sender === 'bot' ? 'assistant' : 'user') as 'system' | 'user' | 'assistant',
+              content: m.text
+            }));
+            
+            // Append current message if not present
+            if (chatMessages.length === 0 || chatMessages[chatMessages.length - 1].content !== text) {
+              chatMessages.push({ role: 'user', content: text });
             }
-          } catch (faqErr) {
-            console.error('Error fetching FAQs in chatbot fallback:', faqErr);
+
+            // 3. Build prompts
+            const storePrompt = store.systemPrompt || `Eres el agente de IA oficial de ${store.name}. Atiende con amabilidad y educación.`;
+            const systemPrompt = `${storePrompt}
+
+Catálogo de productos de la tienda:
+${productsListText}
+
+Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
+- Estás hablando DIRECTAMENTE con el cliente comprador. Sé servicial, educado y enfocado en ventas.
+- Si el cliente pregunta por productos o precios, usa el catálogo arriba mencionado.
+- Si el cliente desea comprar o ver el catálogo, indícales que presionen el botón de "📱 Abrir Catálogo Pro" o escriban "Ver catálogo" o "Inicio" para listar las tiendas.
+- Si el cliente quiere pagar o ver sus artículos seleccionados, indícales que escriban "Ver carrito" para ver su resumen y proceder al pago.
+- Mantén las respuestas amigables, cortas y concisas (máximo 2 a 3 oraciones), ideales para leer en pantallas móviles de WhatsApp.
+- No uses Markdown complejo. Usa negrita de WhatsApp (*texto*) si es necesario.`;
+
+            // 4. Call DeepSeek
+            const { generateDeepSeekCompletion } = await import('@/lib/ai/deepseek');
+            const aiReply = await generateDeepSeekCompletion(chatMessages, systemPrompt);
+
+            if (aiReply) {
+              await waClient.sendText(from, aiReply);
+              answeredByAI = true;
+            }
+          } catch (aiErr) {
+            console.error('Error in chatbot AI response generation:', aiErr);
           }
         }
 
-        if (faqResponse) {
-          await waClient.sendText(from, faqResponse);
-        } else {
-          await waClient.sendText(from, 'No logré entender tu pedido. Puedes decir algo como "Busco Pizza" o escribir "Ver productos" para abrir nuestro catálogo.');
+        if (!answeredByAI) {
+          let faqResponse = null;
+          if (session.storeId && session.storeId !== 'global') {
+            try {
+              const faqs = await prisma.faq.findMany({
+                where: { storeId: session.storeId }
+              });
+              const match = faqs.find((f: any) => text.toLowerCase().includes(f.question.toLowerCase()));
+              if (match) {
+                faqResponse = match.answer;
+              }
+            } catch (faqErr) {
+              console.error('Error fetching FAQs in chatbot fallback:', faqErr);
+            }
+          }
+
+          if (faqResponse) {
+            await waClient.sendText(from, faqResponse);
+          } else {
+            await waClient.sendText(from, 'No logré entender tu pedido. Puedes decir algo como "Busco Pizza" o escribir "Ver productos" para abrir nuestro catálogo.');
+          }
         }
       }
       break;
@@ -825,16 +878,98 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
               const store = await prisma.store.findUnique({ where: { id: storeId } });
               const bankDetails = store?.whatsapp ? `Nequi o Daviplata al celular ${store.whatsapp}` : '[Datos Cuenta]';
               
-              await waClient.sendText(
-                from,
-                `${orderSummary}\n\nPor favor, realiza la transferencia a los datos de la tienda:\n• *${bankDetails}*\n\nUna vez realizada la transferencia, envía la foto o captura del comprobante por este chat.`
-              );
-              
+              let mpPreferenceId: string | null = null;
+
+              // Check if Mercado Pago is active and connected
+              if (store && store.mpConnected) {
+                const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN;
+                if (tokenToUse) {
+                  try {
+                    const { MercadoPagoConfig, Preference } = await import('mercadopago');
+                    const dynamicMpClient = new MercadoPagoConfig({
+                      accessToken: tokenToUse,
+                      options: { timeout: 10000 },
+                    });
+                    const dynamicMpPreference = new Preference(dynamicMpClient);
+                    const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
+
+                    const preferenceData: any = {
+                      body: {
+                        items: items.map(line => ({
+                          id: line.productId,
+                          title: `${line.name} (x${line.qty})`,
+                          quantity: line.qty,
+                          unit_price: line.price,
+                          currency_id: 'COP',
+                        })),
+                        external_reference: order.id,
+                        back_urls: {
+                          success: `${base}/tienda/${store.slug}/exito`,
+                          failure: `${base}/tienda/${store.slug}`,
+                          pending: `${base}/tienda/${store.slug}`,
+                        },
+                        metadata: {
+                          orderId: order.id,
+                          storeId: store.id,
+                        },
+                      },
+                    };
+
+                    if (base.startsWith('https')) {
+                      preferenceData.body.notification_url = `${base}/api/webhook/mp`;
+                      preferenceData.body.auto_return = 'approved';
+                    }
+
+                    const preference = await dynamicMpPreference.create(preferenceData);
+                    if (preference.id) {
+                      mpPreferenceId = preference.id;
+                      
+                      // Update order in database
+                      await prisma.order.update({
+                        where: { id: order.id },
+                        data: { mpPreferenceId: preference.id }
+                      });
+                    }
+                  } catch (mpErr) {
+                    console.error('[chatbot-logic] Failed to create Mercado Pago preference:', mpErr);
+                  }
+                }
+              }
+
+              // Build Smart Pay URL
+              const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
+              const smartPayUrl = `${baseAppUrl}/pay/${order.id}`;
+
+              // Send the link!
+              if (store && store.mpConnected && mpPreferenceId) {
+                // If Mercado Pago is active, send the Smart Pay Link directly as a Payment Redirection
+                await waClient.sendUrlButton(
+                  from,
+                  `${orderSummary}\n\nHe generado tu orden de cobro de forma segura. Presiona el botón de abajo para pagar en línea desde tu celular o escanear el código QR:`,
+                  '💳 Pagar Seguro',
+                  smartPayUrl
+                );
+              } else {
+                // If it is a manual bank transfer, we can still send the Smart Pay portal where they can check their items and details!
+                await waClient.sendText(
+                  from,
+                  `${orderSummary}\n\nPor favor, realiza la transferencia a los datos de la tienda:\n• *${bankDetails}*\n\nUna vez realizada la transferencia, envía la foto o captura del comprobante por este chat.`
+                );
+                
+                await waClient.sendUrlButton(
+                  from,
+                  `También puedes ver el desglose de tu pedido y subir tu captura en nuestro portal de cobros:`,
+                  '📋 Ver Pedido',
+                  smartPayUrl
+                );
+              }
+
               await (prisma as any).whatsAppSession.update({
                 where: { id: session.id },
                 data: { step: 'AWAITING_CONFIRMATION', cart: null },
               });
             } catch (err) {
+               console.error('[Chatbot checkout finalize error]', err);
                await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
             }
         }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Download, 
   Search, 
@@ -23,10 +23,15 @@ import {
   Check, 
   SlidersHorizontal,
   ChevronRightSquare,
-  Sparkles
+  Sparkles,
+  X,
+  Copy,
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface Payment {
   id: string
@@ -53,39 +58,219 @@ export default function PagosPage() {
   const [filterMetodo, setFilterMetodo] = useState('Todos')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(8)
+  
+  // Dynamic states
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [refunds, setRefunds] = useState<Refund[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Full payments dataset matching the mockup exactly
-  const allPayments: Payment[] = [
-    { id: 'PAY-000245', ref: '8F7G2A4H', cliente: { name: 'María González', phone: '+57 312 456 7890', initials: 'MG', bg: 'bg-purple-100 text-purple-700' }, pedido: '#FC-1058', prodCount: 2, metodo: { label: 'Mercado Pago', icon: Handshake, iconBg: 'bg-sky-50 border-sky-100', iconColor: 'text-sky-600' }, estado: 'Exitoso', fecha: 'Hoy, 10:45 a. m.', monto: 124900 },
-    { id: 'PAY-000244', ref: '5K91L8M2N', cliente: { name: 'Carlos Ramírez', phone: '+57 300 123 4567', initials: 'CR', bg: 'bg-blue-100 text-blue-700' }, pedido: '#FC-1057', prodCount: 3, metodo: { label: 'Tarjeta **** 4242', icon: CreditCard, iconBg: 'bg-zinc-100 border-zinc-200', iconColor: 'text-zinc-700' }, estado: 'Pendiente', fecha: 'Hoy, 10:32 a. m.', monto: 89600 },
-    { id: 'PAY-000243', ref: '9D4F5G3H', cliente: { name: 'Laura Martínez', phone: '+57 315 789 0123', initials: 'LM', bg: 'bg-pink-100 text-pink-700' }, pedido: '#FC-1056', prodCount: 1, metodo: { label: 'Nequi', icon: Wallet, iconBg: 'bg-indigo-50 border-indigo-100', iconColor: 'text-indigo-600' }, estado: 'Exitoso', fecha: 'Hoy, 10:15 a. m.', monto: 28900 },
-    { id: 'PAY-000242', ref: 'FD2G3R4S', cliente: { name: 'Diego Salazar', phone: '+57 301 234 5678', initials: 'DS', bg: 'bg-emerald-100 text-emerald-700' }, pedido: '#FC-1055', prodCount: 4, metodo: { label: 'Tarjeta **** 1234', icon: CreditCard, iconBg: 'bg-zinc-100 border-zinc-200', iconColor: 'text-zinc-700' }, estado: 'Fallido', fecha: 'Hoy, 9:50 a. m.', monto: 64800 },
-    { id: 'PAY-000241', ref: '5T6U7V8W', cliente: { name: 'Ana Torres', phone: '+57 320 456 7890', initials: 'AT', bg: 'bg-amber-100 text-amber-700' }, pedido: '#FC-1054', prodCount: 2, metodo: { label: 'Mercado Pago', icon: Handshake, iconBg: 'bg-sky-50 border-sky-100', iconColor: 'text-sky-600' }, estado: 'Exitoso', fecha: 'Ayer, 9:20 p. m.', monto: 93700 },
-    { id: 'PAY-000240', ref: '7Y8P9Q20', cliente: { name: 'Sofía Herrera', phone: '+57 311 567 8901', initials: 'SH', bg: 'bg-red-100 text-red-700' }, pedido: '#FC-1053', prodCount: 3, metodo: { label: 'PSE', icon: Globe, iconBg: 'bg-teal-50 border-teal-100', iconColor: 'text-teal-650' }, estado: 'Pendiente', fecha: 'Ayer, 8:45 p. m.', monto: 156800 },
-    { id: 'PAY-000239', ref: '4S5C6D7E', cliente: { name: 'Andrés Felipe', phone: '+57 302 345 6789', initials: 'AF', bg: 'bg-indigo-100 text-indigo-700' }, pedido: '#FC-1052', prodCount: 1, metodo: { label: 'Tarjeta **** 9876', icon: CreditCard, iconBg: 'bg-zinc-100 border-zinc-200', iconColor: 'text-zinc-700' }, estado: 'Exitoso', fecha: 'Ayer, 8:10 p. m.', monto: 43800 },
-    { id: 'PAY-000238', ref: '6F7G2H3J', cliente: { name: 'Valentina Ruiz', phone: '+57 310 222 3344', initials: 'VR', bg: 'bg-rose-100 text-rose-700' }, pedido: '#FC-1051', prodCount: 2, metodo: { label: 'Nequi', icon: Wallet, iconBg: 'bg-indigo-50 border-indigo-100', iconColor: 'text-indigo-600' }, estado: 'Exitoso', fecha: 'Ayer, 7:30 p. m.', monto: 21900 },
-  ]
+  // Drawer modal states
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
+  const [copiedRef, setCopiedRef] = useState(false)
+  const [confirmingRefund, setConfirmingRefund] = useState(false)
+  const [dateRangeLabel, setDateRangeLabel] = useState('Cargando rango...')
 
-  // Recent refunds dataset
-  const recentRefunds: Refund[] = [
-    { name: 'Carlos Ramírez', ref: 'JD8K3L9M', time: 'Hoy, 11:20 a. m.', monto: -89600 },
-    { name: 'Laura Martínez', ref: '4A5B6C7D', time: 'Ayer, 6:45 p. m.', monto: -28900 },
-    { name: 'Diego Salazar', ref: 'LC7D4E2F', time: '28 abr, 3:10 p. m.', monto: -64800 },
-  ]
+  // Load live payments from backend on mount
+  useEffect(() => {
+    const today = new Date()
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+    const fmt = (d: Date) => d.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    setDateRangeLabel(`${fmt(firstDay)} - ${fmt(today)}`)
+
+    async function fetchOrders() {
+      try {
+        const res = await fetch('/api/orders')
+        if (!res.ok) throw new Error('Error fetching orders')
+        const data = await res.json()
+        
+        const colors = [
+          'bg-purple-100 text-purple-750', 
+          'bg-blue-100 text-blue-750', 
+          'bg-pink-100 text-pink-750', 
+          'bg-emerald-100 text-emerald-750', 
+          'bg-amber-100 text-amber-750', 
+          'bg-rose-100 text-rose-750'
+        ]
+        
+        const mapped: Payment[] = data.map((order: any) => {
+          const initials = order.customerName
+            ? order.customerName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+            : 'CL'
+          const bg = colors[order.customerName.length % colors.length]
+          
+          let estado: 'Exitoso' | 'Pendiente' | 'Fallido' = 'Pendiente'
+          if (order.status === 'paid' || order.paymentStatus === 'PAID') {
+            estado = 'Exitoso'
+          } else if (order.status === 'failed' || order.status === 'cancelled' || order.paymentStatus === 'FAILED') {
+            estado = 'Fallido'
+          }
+
+          let metodoLabel = 'Contra Entrega'
+          let MetodoIcon = Wallet
+          let iconBg = 'bg-zinc-50 border-zinc-100'
+          let iconColor = 'text-zinc-650'
+
+          if (order.stripeCheckoutSessionId) {
+            metodoLabel = 'Tarjeta Stripe'
+            MetodoIcon = CreditCard
+            iconBg = 'bg-indigo-50 border-indigo-100'
+            iconColor = 'text-indigo-650'
+          } else if (order.mpPaymentId || order.mpPreferenceId) {
+            metodoLabel = 'Mercado Pago'
+            MetodoIcon = Handshake
+            iconBg = 'bg-sky-50 border-sky-100'
+            iconColor = 'text-sky-655'
+          } else if (order.proofImageUrl) {
+            metodoLabel = 'Transferencia'
+            MetodoIcon = Landmark
+            iconBg = 'bg-emerald-50 border-emerald-100'
+            iconColor = 'text-emerald-650'
+          }
+
+          let prodCount = 1
+          if (Array.isArray(order.items)) {
+            prodCount = order.items.reduce((acc: number, item: any) => acc + (item.qty || 1), 0)
+          }
+
+          const dateObj = new Date(order.createdAt)
+          const formattedDate = dateObj.toLocaleDateString('es-CO', {
+            day: 'numeric',
+            month: 'short'
+          }) + ', ' + dateObj.toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          })
+
+          return {
+            id: order.id,
+            ref: order.mpPreferenceId || order.stripeCheckoutSessionId || order.id.slice(-8).toUpperCase(),
+            cliente: {
+              name: order.customerName || 'Cliente Anónimo',
+              phone: order.customerPhone || 'Sin teléfono',
+              initials,
+              bg
+            },
+            pedido: `#FC-${order.id.slice(-4).toUpperCase()}`,
+            prodCount,
+            metodo: {
+              label: metodoLabel,
+              icon: MetodoIcon,
+              iconBg,
+              iconColor
+            },
+            estado,
+            fecha: formattedDate,
+            monto: order.total
+          }
+        })
+
+        setPayments(mapped)
+
+        // Generate refunds list from failed/refunded orders
+        const mappedRefunds = mapped
+          .filter(p => p.estado === 'Fallido')
+          .map(p => ({
+            name: p.cliente.name,
+            ref: p.ref,
+            time: p.fecha,
+            monto: -p.monto
+          }))
+        setRefunds(mappedRefunds)
+      } catch (err) {
+        console.error(err)
+        toast.error('No se pudieron cargar los pagos reales')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [])
+
+  // Dynamic statistics calculations
+  const totalVolume = payments.filter(p => p.estado === 'Exitoso').reduce((acc, curr) => acc + curr.monto, 0)
+  const countExitosos = payments.filter(p => p.estado === 'Exitoso').length
+  const countPendientes = payments.filter(p => p.estado === 'Pendiente').length
+  const countFallidos = payments.filter(p => p.estado === 'Fallido').length
+
+  // Reset pagination on filter changes
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val)
+    setCurrentPage(1)
+  }
+
+  const handleEstadoChange = (val: string) => {
+    setFilterEstado(val)
+    setCurrentPage(1)
+  }
+
+  const handleMetodoChange = (val: string) => {
+    setFilterMetodo(val)
+    setCurrentPage(1)
+  }
+
+  const handleCopyRef = (ref: string) => {
+    navigator.clipboard.writeText(ref)
+    setCopiedRef(true)
+    toast.success('Referencia de pago copiada al portapapeles')
+    setTimeout(() => setCopiedRef(false), 2000)
+  }
+
+  const handleDownloadReceipt = () => {
+    toast.success('Recibo de compra descargado con éxito (PDF)')
+  }
+
+  const handleRefund = async (id: string) => {
+    try {
+      const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'failed' })
+      })
+
+      if (!res.ok) throw new Error('Failed to update status')
+
+      setPayments(prev => prev.map(p => {
+        if (p.id === id) {
+          return { ...p, estado: 'Fallido' }
+        }
+        return p
+      }))
+      
+      if (selectedPayment && selectedPayment.id === id) {
+        setSelectedPayment(prev => prev ? { ...prev, estado: 'Fallido' } : null)
+      }
+
+      const p = payments.find(pay => pay.id === id)
+      if (p) {
+        const newRefund: Refund = {
+          name: p.cliente.name,
+          ref: p.ref,
+          time: 'Hoy, ' + new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+          monto: -p.monto
+        }
+        setRefunds(prev => [newRefund, ...prev])
+      }
+
+      setConfirmingRefund(false)
+      toast.success(`Pago ${id} reembolsado y revertido correctamente`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Error al procesar el reembolso en el servidor')
+    }
+  }
 
   // Filtering Logic
-  const filteredPayments = allPayments.filter(p => {
-    // 1. Text Search query
+  const filteredPayments = payments.filter(p => {
     const matchesText = p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         p.ref.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         p.cliente.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         p.pedido.toLowerCase().includes(searchQuery.toLowerCase())
     if (!matchesText) return false
 
-    // 2. Estado filter
     if (filterEstado !== 'Todos' && p.estado !== filterEstado) return false
 
-    // 3. Método filter
     if (filterMetodo !== 'Todos') {
       const matchMetodo = p.metodo.label.toLowerCase().includes(filterMetodo.toLowerCase())
       if (!matchMetodo) return false
@@ -94,15 +279,83 @@ export default function PagosPage() {
     return true
   })
 
+  // Pagination calculation
+  const totalPaymentsCount = filteredPayments.length
+  const totalPages = Math.ceil(totalPaymentsCount / rowsPerPage) || 1
+  const startIndex = (currentPage - 1) * rowsPerPage
+  const endIndex = startIndex + rowsPerPage
+  const paginatedPayments = filteredPayments.slice(startIndex, endIndex)
+
+  const handleExport = () => {
+    const headers = ['ID', 'Referencia', 'Cliente', 'Teléfono', 'Pedido', 'Productos', 'Método', 'Estado', 'Fecha', 'Monto']
+    const rows = filteredPayments.map(p => [
+      p.id,
+      p.ref,
+      p.cliente.name,
+      p.cliente.phone,
+      p.pedido,
+      p.prodCount,
+      p.metodo.label,
+      p.estado,
+      p.fecha,
+      p.monto
+    ])
+    const csvContent = "\uFEFF" + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `pagos_export_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('Reporte de pagos exportado correctamente (CSV)')
+  }
+
   // Format currency helper
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(val).replace('COP', '').trim()
+    }).format(val)
   }
+
+  // Métodos de pago calculations
+  const countMercadoPago = payments.filter(p => p.metodo.label === 'Mercado Pago').length
+  const countTarjeta = payments.filter(p => p.metodo.label === 'Tarjeta Stripe').length
+  const countNequi = payments.filter(p => p.metodo.label === 'Nequi').length
+  const countPSE = payments.filter(p => p.metodo.label === 'PSE').length
+  const countContraEntrega = payments.filter(p => p.metodo.label === 'Contra Entrega').length
+  const countTransferencia = payments.filter(p => p.metodo.label === 'Transferencia').length
+
+  const sumMercadoPago = payments.filter(p => p.metodo.label === 'Mercado Pago').reduce((acc, curr) => acc + curr.monto, 0)
+  const sumTarjeta = payments.filter(p => p.metodo.label === 'Tarjeta Stripe').reduce((acc, curr) => acc + curr.monto, 0)
+  const sumNequi = payments.filter(p => p.metodo.label === 'Nequi').reduce((acc, curr) => acc + curr.monto, 0)
+  const sumPSE = payments.filter(p => p.metodo.label === 'PSE').reduce((acc, curr) => acc + curr.monto, 0)
+  const sumContraEntrega = payments.filter(p => p.metodo.label === 'Contra Entrega').reduce((acc, curr) => acc + curr.monto, 0)
+  const sumTransferencia = payments.filter(p => p.metodo.label === 'Transferencia').reduce((acc, curr) => acc + curr.monto, 0)
+
+  const paymentMethodsList = [
+    { name: 'Mercado Pago', count: countMercadoPago, value: sumMercadoPago, icon: Handshake, color: 'bg-sky-500' },
+    { name: 'Tarjeta Stripe', count: countTarjeta, value: sumTarjeta, icon: CreditCard, color: 'bg-indigo-500' },
+    { name: 'Nequi', count: countNequi, value: sumNequi, icon: Wallet, color: 'bg-indigo-650' },
+    { name: 'PSE', count: countPSE, value: sumPSE, icon: Globe, color: 'bg-teal-500' },
+    { name: 'Contra Entrega', count: countContraEntrega, value: sumContraEntrega, icon: Wallet, color: 'bg-zinc-500' },
+    { name: 'Transferencia', count: countTransferencia, value: sumTransferencia, icon: Landmark, color: 'bg-emerald-500' },
+  ].filter(item => item.count > 0)
+
+  const totalCount = payments.length
+  const pctExitoso = totalCount > 0 ? (countExitosos / totalCount) : 0
+  const pctPendiente = totalCount > 0 ? (countPendientes / totalCount) : 0
+  const pctFallido = totalCount > 0 ? (countFallidos / totalCount) : 0
+
+  const circumference = 251.327
+  const offsetExitoso = circumference * (1 - pctExitoso)
+  const offsetPendiente = circumference * (1 - pctPendiente)
+  const offsetFallido = circumference * (1 - pctFallido)
+
+  const rotatePendiente = 360 * pctExitoso
+  const rotateFallido = 360 * (pctExitoso + pctPendiente)
 
   return (
     <div className="space-y-6 pb-6 animate-in duration-300 font-sans text-left">
@@ -113,7 +366,7 @@ export default function PagosPage() {
           <h1 className="text-2xl font-bold tracking-tight text-zinc-955">Pagos</h1>
           <p className="text-xs xl:text-sm font-semibold text-zinc-400">Gestiona y supervisa todos los pagos de tu negocio.</p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs xl:text-sm font-bold rounded-lg transition-all cursor-pointer select-none self-end sm:self-auto">
+        <button onClick={handleExport} className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs xl:text-sm font-bold rounded-lg transition-all cursor-pointer select-none self-end sm:self-auto">
           <Download className="w-4 h-4 text-zinc-450" />
           Exportar
         </button>
@@ -123,17 +376,17 @@ export default function PagosPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Volumen total */}
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 flex items-start gap-3.5 hover:shadow-sm transition-all">
-          <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-white shrink-0">
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
+          <div className="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-white shrink-0">
             <DollarSign className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 select-none">
-              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider uppercase leading-none">Volumen total</span>
+              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Volumen total</span>
               <span className="text-[10px] font-bold text-zinc-300 leading-none">ⓘ</span>
             </div>
-            <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight block leading-none">$18.742.300</span>
-            <div className="flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 mt-1 select-none">
+            <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">${formatCurrency(totalVolume)}</span>
+            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 mt-1 select-none">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>15% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
             </div>
@@ -141,17 +394,17 @@ export default function PagosPage() {
         </div>
 
         {/* Pagos exitosos */}
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 flex items-start gap-3.5 hover:shadow-sm transition-all">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0">
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 select-none">
-              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider uppercase leading-none">Pagos exitosos</span>
+              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Pagos exitosos</span>
               <span className="text-[10px] font-bold text-zinc-300 leading-none">ⓘ</span>
             </div>
-            <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight block leading-none">356</span>
-            <div className="flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 mt-1 select-none">
+            <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">{countExitosos}</span>
+            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 mt-1 select-none">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>14% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
             </div>
@@ -159,17 +412,17 @@ export default function PagosPage() {
         </div>
 
         {/* Pagos pendientes */}
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 flex items-start gap-3.5 hover:shadow-sm transition-all">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 select-none">
-              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider uppercase leading-none">Pagos pendientes</span>
+              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Pagos pendientes</span>
               <span className="text-[10px] font-bold text-zinc-300 leading-none">ⓘ</span>
             </div>
-            <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight block leading-none">18</span>
-            <div className="flex items-center gap-1 text-[10px] font-extrabold text-red-600 mt-1 select-none">
+            <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">{countPendientes}</span>
+            <div className="flex items-center gap-1 text-[10px] font-bold text-red-650 mt-1 select-none">
               <TrendingDown className="w-3.5 h-3.5" />
               <span>8% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
             </div>
@@ -177,17 +430,17 @@ export default function PagosPage() {
         </div>
 
         {/* Pagos fallidos */}
-        <div className="bg-white border border-zinc-200 rounded-xl p-4 flex items-start gap-3.5 hover:shadow-sm transition-all">
-          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-650 shrink-0">
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
+          <div className="w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-red-650 shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 select-none">
-              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider uppercase leading-none">Pagos fallidos</span>
+              <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Pagos fallidos</span>
               <span className="text-[10px] font-bold text-zinc-300 leading-none">ⓘ</span>
             </div>
-            <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight block leading-none">6</span>
-            <div className="flex items-center gap-1 text-[10px] font-extrabold text-red-600 mt-1 select-none">
+            <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">{countFallidos}</span>
+            <div className="flex items-center gap-1 text-[10px] font-bold text-red-650 mt-1 select-none">
               <TrendingDown className="w-3.5 h-3.5" />
               <span>25% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
             </div>
@@ -203,7 +456,7 @@ export default function PagosPage() {
         <div className="lg:col-span-8 space-y-6">
           
           {/* Table Container Wrapper */}
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4">
             
             {/* Filters Row */}
             <div className="flex flex-col md:flex-row gap-3">
@@ -226,7 +479,7 @@ export default function PagosPage() {
                 <input
                   type="text"
                   readOnly
-                  value="01/05/2025 - 31/05/2025"
+                  value={dateRangeLabel}
                   className="bg-white border border-zinc-200 rounded-lg pl-10 pr-4 py-2 text-xs xl:text-sm font-semibold text-zinc-700 focus:outline-none cursor-pointer w-48 text-left"
                 />
               </div>
@@ -265,61 +518,70 @@ export default function PagosPage() {
             </div>
 
             {/* TRANSACTIONS TABLE */}
-            <div className="overflow-x-auto border border-zinc-150 rounded-xl bg-white">
-              <table className="w-full text-left border-collapse text-xs xl:text-sm font-sans">
+            <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
+              <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm font-sans">
                 <thead>
-                  <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-black uppercase text-zinc-500 select-none">
-                    <th className="py-3 px-4">Pago</th>
-                    <th className="py-3 px-4">Cliente</th>
-                    <th className="py-3 px-4">Pedido</th>
-                    <th className="py-3 px-4">Método de pago</th>
-                    <th className="py-3 px-4">Estado</th>
-                    <th className="py-3 px-4">Fecha</th>
-                    <th className="py-3 px-4">Monto</th>
-                    <th className="py-3 px-4 text-center">Acciones</th>
+                  <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
+                    <th className="py-3 px-2.5 xl:px-4">Pago</th>
+                    <th className="py-3 px-2.5 xl:px-4">Cliente</th>
+                    <th className="py-3 px-2.5 xl:px-4">Pedido</th>
+                    <th className="py-3 px-2.5 xl:px-4">Método de pago</th>
+                    <th className="py-3 px-2.5 xl:px-4">Estado</th>
+                    <th className="py-3 px-2.5 xl:px-4">Fecha</th>
+                    <th className="py-3 px-2.5 xl:px-4">Monto</th>
+                    <th className="py-3 px-2.5 xl:px-4 text-center whitespace-nowrap">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 font-semibold text-zinc-700">
-                  {filteredPayments.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-zinc-400 font-medium select-none">
+                        <div className="flex items-center justify-center gap-2">
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#6F42C1]" />
+                          <span>Cargando transacciones reales...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : totalPaymentsCount === 0 ? (
                     <tr>
                       <td colSpan={8} className="py-12 text-center text-zinc-400 font-medium select-none">
                         No se encontraron registros de pagos.
                       </td>
                     </tr>
                   ) : (
-                    filteredPayments.map((p, idx) => {
+                    paginatedPayments.map((p, idx) => {
                       const MetodoIcon = p.metodo.icon
                       return (
                         <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
                           
                           {/* Payment reference */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
                               {p.estado === 'Exitoso' && <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />}
                               {p.estado === 'Pendiente' && <Clock className="w-4 h-4 text-amber-500 shrink-0" />}
                               {p.estado === 'Fallido' && <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />}
                               <div className="min-w-0">
-                                <h4 className="font-extrabold text-zinc-950 leading-tight text-xs xl:text-sm">{p.id}</h4>
+                                <h4 className="font-bold text-zinc-900 leading-tight text-xs xl:text-sm">{p.id}</h4>
                                 <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 mt-0.5 select-all">Ref: {p.ref}</p>
                               </div>
                             </div>
                           </td>
 
                           {/* Client profile */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2.5">
                               <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 select-none", p.cliente.bg)}>
                                 {p.cliente.initials}
                               </div>
                               <div className="min-w-0">
-                                <h4 className="font-extrabold text-zinc-950 leading-tight text-xs xl:text-sm">{p.cliente.name}</h4>
+                                <h4 className="font-bold text-zinc-900 leading-tight text-xs xl:text-sm">{p.cliente.name}</h4>
                                 <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 mt-0.5">{p.cliente.phone}</p>
                               </div>
                             </div>
                           </td>
 
                           {/* Pedido */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                             <div className="flex flex-col">
                               <span className="font-bold text-[#6F42C1] hover:underline cursor-pointer">{p.pedido}</span>
                               <span className="text-[9px] font-semibold text-zinc-450 mt-0.5">{p.prodCount} productos</span>
@@ -327,7 +589,7 @@ export default function PagosPage() {
                           </td>
 
                           {/* Método de pago */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <div className={cn("w-7.5 h-7.5 rounded-lg flex items-center justify-center border shrink-0", p.metodo.iconBg, p.metodo.iconColor)}>
                                 <MetodoIcon className="w-4 h-4" />
@@ -337,9 +599,9 @@ export default function PagosPage() {
                           </td>
 
                           {/* Estado Capsule */}
-                          <td className="py-3.5 px-4">
+                          <td className="py-3 px-2.5 xl:px-4">
                             <span className={cn(
-                              "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold select-none",
+                              "px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none",
                               p.estado === 'Exitoso' && 'bg-emerald-50 border border-emerald-100 text-emerald-700',
                               p.estado === 'Pendiente' && 'bg-amber-50 border border-amber-100 text-amber-700',
                               p.estado === 'Fallido' && 'bg-red-50 border border-red-100 text-red-700'
@@ -349,17 +611,17 @@ export default function PagosPage() {
                           </td>
 
                           {/* Fecha */}
-                          <td className="py-3.5 px-4 whitespace-nowrap text-zinc-650">{p.fecha}</td>
+                          <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-650">{p.fecha}</td>
 
                           {/* Monto */}
-                          <td className="py-3.5 px-4 whitespace-nowrap font-black text-zinc-950 text-xs xl:text-sm">
+                          <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap font-bold text-zinc-900 text-xs xl:text-sm">
                             ${formatCurrency(p.monto)}
                           </td>
 
                           {/* Actions */}
-                          <td className="py-3.5 px-4 text-center">
+                          <td className="py-3 px-2.5 xl:px-4 text-center">
                             <div className="flex items-center justify-center gap-1">
-                              <button className="px-3 py-1 border border-zinc-200 hover:bg-zinc-50 text-zinc-800 text-xs font-bold rounded-lg transition-all cursor-pointer select-none">
+                              <button onClick={() => setSelectedPayment(p)} className="px-3 py-1 border border-zinc-200 hover:bg-zinc-50 text-zinc-800 text-xs font-bold rounded-lg transition-all cursor-pointer select-none">
                                 Ver
                               </button>
                               <button className="p-1 text-zinc-400 hover:text-zinc-700 transition-colors shrink-0">
@@ -378,18 +640,39 @@ export default function PagosPage() {
 
             {/* Table pagination footer */}
             <div className="flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-bold text-zinc-500 select-none">
-              <span>Mostrando 1 - {filteredPayments.length} de 356 pagos</span>
+              <span>Mostrando {totalPaymentsCount > 0 ? startIndex + 1 : 0} - {Math.min(endIndex, totalPaymentsCount)} de {totalPaymentsCount} pagos</span>
               
               <div className="flex items-center gap-1">
-                <button disabled className="p-1 border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-40"><ChevronLeft className="w-4 h-4" /></button>
-                <button className="px-2.5 py-1 bg-emerald-50 border border-emerald-150 text-emerald-800 rounded">1</button>
-                <button className="px-2.5 py-1 border border-zinc-200 rounded hover:bg-zinc-50">2</button>
-                <button className="px-2.5 py-1 border border-zinc-200 rounded hover:bg-zinc-50">3</button>
-                <button className="px-2.5 py-1 border border-zinc-200 rounded hover:bg-zinc-50">4</button>
-                <button className="px-2.5 py-1 border border-zinc-200 rounded hover:bg-zinc-50">5</button>
-                <span className="px-1 text-zinc-400">...</span>
-                <button className="px-2.5 py-1 border border-zinc-200 rounded hover:bg-zinc-50">45</button>
-                <button className="p-1 border border-zinc-200 rounded hover:bg-zinc-50"><ChevronRight className="w-4 h-4" /></button>
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className="p-1 border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-40 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button 
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      "px-2.5 py-1 rounded transition-all cursor-pointer text-xs font-bold",
+                      currentPage === page 
+                        ? "bg-emerald-50 border border-emerald-150 text-emerald-800 font-extrabold" 
+                        : "border border-zinc-200 hover:bg-zinc-50"
+                    )}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className="p-1 border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-40 cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
 
               <div className="flex items-center gap-2">
@@ -397,7 +680,10 @@ export default function PagosPage() {
                 <div className="relative shrink-0">
                   <select
                     value={rowsPerPage}
-                    onChange={e => setRowsPerPage(Number(e.target.value))}
+                    onChange={e => {
+                      setRowsPerPage(Number(e.target.value))
+                      setCurrentPage(1)
+                    }}
                     className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-1.5 font-bold text-zinc-750 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
                   >
                     <option value={8}>8</option>
@@ -412,19 +698,19 @@ export default function PagosPage() {
           </div>
 
           {/* Banner bottom: Optimiza tus cobros */}
-          <div className="bg-zinc-50 border border-zinc-200/80 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="bg-zinc-50 border border-zinc-200/80 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-start gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0 select-none">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0 select-none">
                 <Landmark className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-xs xl:text-sm font-black text-zinc-950 tracking-tight leading-tight">Optimiza tus cobros</h4>
+                <h4 className="text-xs xl:text-sm font-bold text-zinc-900 tracking-tight leading-tight">Optimiza tus cobros</h4>
                 <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 leading-normal">Conecta más métodos de pago y aumenta tus conversiones de venta virtual.</p>
               </div>
             </div>
             
             <Link href="/integraciones" className="shrink-0 select-none">
-              <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg shadow-sm transition-all cursor-pointer active:scale-98">
+              <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer active:scale-98">
                 Gestionar métodos de pago
               </button>
             </Link>
@@ -436,50 +722,49 @@ export default function PagosPage() {
         <div className="lg:col-span-4 space-y-6 text-left shrink-0">
           
           {/* Card 1: Métodos de pago (progress bars) */}
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-sm">
+          <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4">
             <div className="flex justify-between items-center select-none">
-              <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800 uppercase tracking-wider">Métodos de pago</h3>
+              <h3 className="text-xs xl:text-sm font-bold text-zinc-800 tracking-wider">Métodos de pago</h3>
               <Link href="/integraciones" className="text-[10px] font-bold text-[#6F42C1] hover:underline cursor-pointer">Ver todos</Link>
             </div>
 
             <div className="space-y-4">
-              {[
-                { name: 'Mercado Pago', percentage: 45, value: '$8.200', icon: Handshake, color: 'bg-sky-500' },
-                { name: 'Tarjetas', percentage: 30, value: '$5.623.400', icon: CreditCard, color: 'bg-indigo-500' },
-                { name: 'Nequi', percentage: 15, value: '$2.811.200', icon: Wallet, color: 'bg-indigo-600' },
-                { name: 'PSE', percentage: 7, value: '$1.311.300', icon: Globe, color: 'bg-teal-500' },
-                { name: 'Transferencia', percentage: 3, value: '$562.200', icon: Landmark, color: 'bg-emerald-500' },
-              ].map((item, idx) => {
-                const ItemIcon = item.icon
-                return (
-                  <div key={idx} className="space-y-1.5 font-semibold text-xs text-zinc-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <ItemIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                        <span className="truncate text-zinc-800">{item.name}</span>
+              {paymentMethodsList.length === 0 ? (
+                <p className="text-zinc-400 text-xs font-semibold text-center py-4 select-none">No hay pagos registrados</p>
+              ) : (
+                paymentMethodsList.map((item, idx) => {
+                  const ItemIcon = item.icon
+                  const percentage = totalVolume > 0 ? Math.round((item.value / totalVolume) * 100) : 0
+                  return (
+                    <div key={idx} className="space-y-1.5 font-semibold text-xs text-zinc-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ItemIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          <span className="truncate text-zinc-800">{item.name}</span>
+                        </div>
+                        <div className="text-right shrink-0 select-none font-semibold text-xs">
+                          <span className="font-bold text-zinc-900">{percentage}%</span>
+                          <span className="text-[10px] text-zinc-400 ml-2">${formatCurrency(item.value)}</span>
+                        </div>
                       </div>
-                      <div className="text-right shrink-0 select-none">
-                        <span className="font-extrabold text-zinc-950">{item.percentage}%</span>
-                        <span className="text-[10px] text-zinc-400 ml-2">{item.value}</span>
+                      {/* Progress indicator */}
+                      <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                        <div 
+                          className={cn("h-full rounded-full transition-all duration-500", item.color)} 
+                          style={{ width: `${percentage}%` }}
+                        />
                       </div>
                     </div>
-                    {/* Progress indicator */}
-                    <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-                      <div 
-                        className={cn("h-full rounded-full transition-all duration-500", item.color)} 
-                        style={{ width: `${item.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
             </div>
           </div>
 
           {/* Card 2: Resumen de pagos ( doughnut ) */}
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-5 shadow-sm">
+          <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-5">
             <div className="flex items-center justify-between select-none">
-              <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800 uppercase tracking-wider">Resumen de pagos</h3>
+              <h3 className="text-xs xl:text-sm font-bold text-zinc-800 tracking-wider">Resumen de pagos</h3>
               <div className="relative shrink-0">
                 <select className="bg-zinc-50 border border-zinc-200 rounded-md pl-2 pr-7 py-1 text-[10px] xl:text-xs font-bold text-zinc-700 focus:outline-none cursor-pointer appearance-none">
                   <option value="month">Este mes</option>
@@ -498,47 +783,52 @@ export default function PagosPage() {
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F4F4F5" strokeWidth="11" />
                     
-                    {/* Segment 1: Exitosos (90%) -> Offset: (1-0.9)*251.3 = 25.1 */}
-                    <circle 
-                      cx="50" 
-                      cy="50" 
-                      r="40" 
-                      fill="transparent" 
-                      stroke="#22C55E" 
-                      strokeWidth="11" 
-                      strokeDasharray="251.327" 
-                      strokeDashoffset="25.1"
-                    />
+                    {pctExitoso > 0 && (
+                      <circle 
+                        cx="50" 
+                        cy="50" 
+                        r="40" 
+                        fill="transparent" 
+                        stroke="#22C55E" 
+                        strokeWidth="11" 
+                        strokeDasharray="251.327" 
+                        strokeDashoffset={offsetExitoso}
+                      />
+                    )}
 
-                    {/* Segment 2: Pendientes (5%) -> Offset: 251.3 - 12.5 = 238.8 */}
-                    <circle 
-                      cx="50" 
-                      cy="50" 
-                      r="40" 
-                      fill="transparent" 
-                      stroke="#F59E0B" 
-                      strokeWidth="11" 
-                      strokeDasharray="251.327" 
-                      strokeDashoffset="238.8"
-                      className="origin-center rotate-[324deg]" // 90% * 360 = 324deg
-                    />
+                    {pctPendiente > 0 && (
+                      <circle 
+                        cx="50" 
+                        cy="50" 
+                        r="40" 
+                        fill="transparent" 
+                        stroke="#F59E0B" 
+                        strokeWidth="11" 
+                        strokeDasharray="251.327" 
+                        strokeDashoffset={offsetPendiente}
+                        className="origin-center"
+                        style={{ transform: `rotate(${rotatePendiente}deg)` }}
+                      />
+                    )}
 
-                    {/* Segment 3: Fallidos (2%) -> Offset: 251.3 - 5.0 = 246.3 */}
-                    <circle 
-                      cx="50" 
-                      cy="50" 
-                      r="40" 
-                      fill="transparent" 
-                      stroke="#EF4444" 
-                      strokeWidth="11" 
-                      strokeDasharray="251.327" 
-                      strokeDashoffset="246.3"
-                      className="origin-center rotate-[342deg]" // 95% * 360 = 342deg
-                    />
+                    {pctFallido > 0 && (
+                      <circle 
+                        cx="50" 
+                        cy="50" 
+                        r="40" 
+                        fill="transparent" 
+                        stroke="#EF4444" 
+                        strokeWidth="11" 
+                        strokeDasharray="251.327" 
+                        strokeDashoffset={offsetFallido}
+                        className="origin-center"
+                        style={{ transform: `rotate(${rotateFallido}deg)` }}
+                      />
+                    )}
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center font-sans">
-                    <span className="text-sm font-black text-zinc-955 leading-none">356</span>
-                    <span className="text-[9px] font-semibold text-zinc-400 mt-1 uppercase tracking-tight">Total</span>
+                    <span className="text-sm font-bold text-zinc-900 leading-none">{totalCount}</span>
+                    <span className="text-[9px] font-semibold text-zinc-400 mt-1 tracking-tight">Total</span>
                   </div>
                 </div>
 
@@ -547,25 +837,40 @@ export default function PagosPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] shrink-0" />
-                      <span className="truncate text-zinc-600">Exitosos</span>
+                      <span className="truncate text-zinc-650">Exitosos</span>
                     </div>
-                    <span className="text-zinc-955 font-extrabold ml-2">322 <span className="text-zinc-450 font-semibold text-[10px]">(90%)</span></span>
+                    <span className="text-zinc-900 font-bold ml-2">
+                      {countExitosos}{' '}
+                      <span className="text-zinc-400 font-semibold text-[10px]">
+                        ({totalCount > 0 ? Math.round((countExitosos / totalCount) * 100) : 0}%)
+                      </span>
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] shrink-0" />
-                      <span className="truncate text-zinc-600">Pendientes</span>
+                      <span className="truncate text-zinc-650">Pendientes</span>
                     </div>
-                    <span className="text-zinc-955 font-extrabold ml-2">18 <span className="text-zinc-450 font-semibold text-[10px]">(5%)</span></span>
+                    <span className="text-zinc-900 font-bold ml-2">
+                      {countPendientes}{' '}
+                      <span className="text-zinc-400 font-semibold text-[10px]">
+                        ({totalCount > 0 ? Math.round((countPendientes / totalCount) * 100) : 0}%)
+                      </span>
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] shrink-0" />
-                      <span className="truncate text-zinc-600">Fallidos</span>
+                      <span className="truncate text-zinc-650">Fallidos</span>
                     </div>
-                    <span className="text-zinc-955 font-extrabold ml-2">6 <span className="text-zinc-450 font-semibold text-[10px]">(2%)</span></span>
+                    <span className="text-zinc-900 font-bold ml-2">
+                      {countFallidos}{' '}
+                      <span className="text-zinc-400 font-semibold text-[10px]">
+                        ({totalCount > 0 ? Math.round((countFallidos / totalCount) * 100) : 0}%)
+                      </span>
+                    </span>
                   </div>
                 </div>
 
@@ -574,27 +879,27 @@ export default function PagosPage() {
           </div>
 
           {/* Card 3: Reembolsos recientes */}
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-sm">
+          <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4">
             <div className="flex justify-between items-center select-none">
-              <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800 uppercase tracking-wider">Reembolsos recientes</h3>
-              <button className="text-[10px] font-bold text-[#6F42C1] hover:underline cursor-pointer">Ver todos</button>
+              <h3 className="text-xs xl:text-sm font-bold text-zinc-800 tracking-wider">Reembolsos recientes</h3>
+              <button onClick={() => toast.info('Mostrando todos los reembolsos')} className="text-[10px] font-bold text-[#6F42C1] hover:underline cursor-pointer">Ver todos</button>
             </div>
 
             <div className="space-y-4">
-              {recentRefunds.map((refund, idx) => (
+              {refunds.map((refund, idx) => (
                 <div key={idx} className="flex items-center justify-between text-xs font-semibold text-zinc-700">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-7.5 h-7.5 rounded-full bg-zinc-100 flex items-center justify-center font-bold text-zinc-600 text-[10px] shrink-0">
                       {refund.name.split(' ').map(n=>n[0]).join('')}
                     </div>
                     <div className="min-w-0">
-                      <h5 className="font-extrabold text-zinc-900 leading-tight truncate text-[11px] xl:text-xs">{refund.name}</h5>
+                      <h5 className="font-bold text-zinc-900 leading-tight truncate text-[11px] xl:text-xs">{refund.name}</h5>
                       <span className="text-[10px] font-semibold text-zinc-400 mt-0.5 block leading-none">Ref: {refund.ref}</span>
                     </div>
                   </div>
                   
                   <div className="text-right shrink-0 ml-2">
-                    <span className="text-zinc-900 font-extrabold block leading-none">-${formatCurrency(Math.abs(refund.monto))}</span>
+                    <span className="text-zinc-900 font-bold block leading-none">-${formatCurrency(Math.abs(refund.monto))}</span>
                     <span className="text-[9px] text-zinc-400 mt-1 block leading-none select-none">{refund.time.split(',')[1] || refund.time}</span>
                   </div>
                 </div>
@@ -603,7 +908,7 @@ export default function PagosPage() {
 
             <div className="h-px w-full bg-zinc-100 pt-1" />
 
-            <button className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-sm text-center select-none cursor-pointer">
+            <button onClick={() => toast.info('Cargando historial de reembolsos...')} className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all text-center select-none cursor-pointer">
               Ver todos los reembolsos
             </button>
           </div>
@@ -611,6 +916,188 @@ export default function PagosPage() {
         </div>
 
       </div>
+
+      {/* Detail Drawer Modal */}
+      {selectedPayment && (
+        <div className="fixed inset-0 z-50 overflow-hidden font-sans">
+          {/* Backdrop overlay */}
+          <div 
+            className="absolute inset-0 bg-zinc-950/20 backdrop-blur-xs transition-opacity duration-300" 
+            onClick={() => {
+              setSelectedPayment(null)
+              setConfirmingRefund(false)
+            }}
+          />
+
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white border-l border-zinc-200 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200 ease-out">
+              
+              {/* Drawer Content */}
+              <div className="flex-1 h-0 overflow-y-auto p-6 space-y-6">
+                
+                {/* Drawer Header */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none",
+                        selectedPayment.estado === 'Exitoso' && 'bg-emerald-50 border border-emerald-100 text-emerald-700',
+                        selectedPayment.estado === 'Pendiente' && 'bg-amber-50 border border-amber-100 text-amber-700',
+                        selectedPayment.estado === 'Fallido' && 'bg-red-50 border border-red-100 text-red-700'
+                      )}>
+                        {selectedPayment.estado}
+                      </span>
+                      <span className="text-[10px] font-bold text-zinc-400 select-none">{selectedPayment.fecha}</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-zinc-955 tracking-tight">{selectedPayment.id}</h2>
+                    <p className="text-xs text-zinc-450">Referencia de transacción del checkout</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setSelectedPayment(null)
+                      setConfirmingRefund(false)
+                    }}
+                    className="p-1 rounded-lg border border-zinc-200 hover:bg-zinc-55 text-zinc-500 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="h-px bg-zinc-100 w-full" />
+
+                {/* Amount breakdown */}
+                <div className="bg-zinc-50 border border-zinc-200/80 rounded-lg p-4 space-y-3 text-left">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Monto de la transacción</span>
+                    <span className="text-2xl font-bold text-zinc-900">${formatCurrency(selectedPayment.monto)}</span>
+                  </div>
+                  
+                  <div className="h-px bg-zinc-200/60 w-full" />
+
+                  <div className="space-y-2 text-xs font-semibold text-zinc-600">
+                    <div className="flex justify-between">
+                      <span>Comisión de plataforma (1.5% + $900)</span>
+                      <span>-${formatCurrency(Math.round(selectedPayment.monto * 0.015 + 900))}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Retenciones e IVA (ReteICA + ReteIVA)</span>
+                      <span>-${formatCurrency(Math.round(selectedPayment.monto * 0.009))}</span>
+                    </div>
+                    <div className="h-px bg-zinc-200/60 w-full" />
+                    <div className="flex justify-between font-bold text-zinc-900 text-sm">
+                      <span>Neto a transferir</span>
+                      <span>${formatCurrency(Math.round(selectedPayment.monto - (selectedPayment.monto * 0.015 + 900) - (selectedPayment.monto * 0.009)))}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Details */}
+                <div className="space-y-3 text-left">
+                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Cliente</h3>
+                  <div className="flex items-center gap-3 bg-white border border-zinc-200/80 rounded-lg p-3">
+                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0", selectedPayment.cliente.bg)}>
+                      {selectedPayment.cliente.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-zinc-900 leading-tight truncate">{selectedPayment.cliente.name}</h4>
+                      <p className="text-[11px] font-semibold text-zinc-400 mt-0.5">{selectedPayment.cliente.phone}</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 mt-0.5 truncate">{selectedPayment.cliente.name.toLowerCase().replace(/ /g, '.')}@example.com</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Details */}
+                <div className="space-y-3 text-left">
+                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Detalles del pago</h3>
+                  <div className="border border-zinc-200/80 rounded-lg divide-y divide-zinc-100 text-xs font-semibold text-zinc-600 bg-white">
+                    <div className="flex justify-between p-3">
+                      <span>Método de pago</span>
+                      <div className="flex items-center gap-1.5 font-bold text-zinc-900">
+                        <span>{selectedPayment.metodo.label}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between p-3 items-center">
+                      <span>Referencia de pago</span>
+                      <button 
+                        onClick={() => handleCopyRef(selectedPayment.ref)}
+                        className="inline-flex items-center gap-1.5 font-bold text-[#6F42C1] hover:underline cursor-pointer"
+                      >
+                        <span>{selectedPayment.ref}</span>
+                        {copiedRef ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+                      </button>
+                    </div>
+                    <div className="flex justify-between p-3">
+                      <span>ID de Pasarela</span>
+                      <span className="font-mono text-zinc-500 font-bold select-all">mp_{selectedPayment.ref.toLowerCase()}8412</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Details */}
+                <div className="space-y-3 text-left">
+                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Pedido Asociado</h3>
+                  <div className="flex items-center justify-between bg-white border border-zinc-200/80 rounded-lg p-3 text-xs font-semibold text-zinc-650">
+                    <div className="space-y-0.5">
+                      <span className="font-bold text-[#6F42C1] block text-sm">{selectedPayment.pedido}</span>
+                      <span className="text-[10px] text-zinc-400 block">{selectedPayment.prodCount} productos comprados</span>
+                    </div>
+                    <Link href={`/pedidos`} className="inline-flex items-center gap-1 text-[11px] font-bold text-zinc-500 hover:text-zinc-900">
+                      <span>Ver pedido</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Drawer Actions */}
+              <div className="border-t border-zinc-200 p-4 bg-zinc-50 space-y-2">
+                
+                {confirmingRefund ? (
+                  <div className="bg-white border border-red-200 rounded-lg p-3 space-y-3 text-left">
+                    <p className="text-xs font-semibold text-red-700 leading-normal">¿Estás seguro de que deseas reembolsar este pago? Esta acción cambiará el estado de la transacción a Fallido y sumará el registro a los reembolsos recientes.</p>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleRefund(selectedPayment.id)}
+                        className="flex-1 py-1.5 bg-red-650 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Confirmar Reembolso
+                      </button>
+                      <button 
+                        onClick={() => setConfirmingRefund(false)}
+                        className="px-3 py-1.5 border border-zinc-200 hover:bg-zinc-100 text-zinc-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {selectedPayment.estado === 'Exitoso' && (
+                      <button 
+                        onClick={() => setConfirmingRefund(true)}
+                        className="w-full py-2 bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 text-red-650 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin-hover" />
+                        Reembolsar Transacción
+                      </button>
+                    )}
+                    
+                    <button 
+                      onClick={handleDownloadReceipt}
+                      className="w-full py-2 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98]"
+                    >
+                      Descargar Recibo de Compra
+                    </button>
+                  </>
+                )}
+                
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

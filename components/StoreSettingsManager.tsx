@@ -121,6 +121,10 @@ export default function StoreSettingsManager({
       if (initialStore.whatsappInstanceName) {
         try {
           const res = await fetch('/api/whatsapp/instance')
+          if (!res.ok) {
+            console.warn("checkInitialStatus got response status", res.status)
+            return
+          }
           const data = await res.json()
           if (data.status === 'CONNECTED') {
             setWhatsappConnected(true)
@@ -143,6 +147,10 @@ export default function StoreSettingsManager({
       intervalId = setInterval(async () => {
         try {
           const res = await fetch('/api/whatsapp/instance');
+          if (!res.ok) {
+            console.warn("pollingStatus got response status", res.status)
+            return
+          }
           const data = await res.json();
           if (data.status === 'CONNECTED') {
             setWhatsappConnected(true);

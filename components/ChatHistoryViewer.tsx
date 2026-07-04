@@ -3,13 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  History,
   User,
   Bot,
   Send,
   MessageCircle,
   ShieldAlert,
-  Sparkles,
   Star,
   Tag,
   CheckCircle,
@@ -18,18 +16,15 @@ import {
   Smile,
   Lock,
   Copy,
-  Calendar,
-  Smartphone,
   Plus,
   SlidersHorizontal,
-  X,
-  Check,
   ChevronLeft,
   ChevronRight,
   Download,
   Search,
   Zap,
-  Package
+  Package,
+  Check
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -44,6 +39,7 @@ type ChatSession = {
   id: string
   phoneNumber: string
   customerName: string
+  avatarUrl: string | null
   lastInteraction: string
   step: string
   messages: Message[]
@@ -64,6 +60,14 @@ type ChatSessionExtended = ChatSession & {
   status: 'active' | 'closed'
 }
 
+type CustomerDetails = {
+  orders: any[]
+  totalSpent: number
+  ordersCount: number
+  cartItems: any[]
+  firstInteractionDate: string
+}
+
 export default function ChatHistoryViewer({
   initialSessions,
   whatsappConnected,
@@ -72,19 +76,15 @@ export default function ChatHistoryViewer({
   whatsappConnected: boolean
 }) {
   const router = useRouter()
-  // Wrap initial sessions with metadata for interactive mock functionality
   const [sessions, setSessions] = useState<ChatSessionExtended[]>(() =>
-    initialSessions.map((s, idx) => {
-      return {
-        ...s,
-        messages: s.messages,
-        tags: [],
-        notes: [],
-        assignedTo: 'Tú',
-        isFavorite: false,
-        status: 'active'
-      }
-    })
+    initialSessions.map((s) => ({
+      ...s,
+      tags: (s as any).tags || [],
+      notes: (s as any).notes || [],
+      assignedTo: (s as any).assignedTo || 'Tú',
+      isFavorite: !!(s as any).isFavorite,
+      status: (s as any).status || 'active'
+    }))
   )
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(
@@ -93,46 +93,79 @@ export default function ChatHistoryViewer({
   const [takeoverText, setTakeoverText] = useState('')
   const [sending, setSending] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'assigned' | 'closed'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'assigned' | 'unassigned'>('all')
   const [currentPage, setCurrentPage] = useState(1)
-  
-  // Note adding state
+  const [composerTab, setComposerTab] = useState<'reply' | 'note'>('reply')
+
+  // Note state
   const [newNoteText, setNewNoteText] = useState('')
-  
-  // Tag adding state
+
+  // Tag state
   const [showAddTag, setShowAddTag] = useState(false)
   const [newTagText, setNewTagText] = useState('')
+
+  // Customer details loaded dynamically
+  const [activeDetails, setActiveDetails] = useState<CustomerDetails | null>(null)
+  const [detailsLoading, setDetailsLoading] = useState(false)
 
   const itemsPerPage = 8
   const activeSession = sessions.find(s => s.id === activeSessionId)
   const chatEndRef = useRef<HTMLDivElement>(null)
+
+  // Fetch active details from backend when switching sessions
+  useEffect(() => {
+    if (!activeSessionId) {
+      setActiveDetails(null)
+      return
+    }
+    setDetailsLoading(true)
+    fetch(`/api/whatsapp/session?sessionId=${activeSessionId}`)
+      .then(res => {
+        if (!res.ok) throw new Error()
+        return res.json()
+      })
+      .then((data: CustomerDetails) => {
+        setActiveDetails(data)
+      })
+      .catch(() => {
+        toast.error('No se pudieron cargar los detalles del cliente')
+      })
+      .finally(() => {
+        setDetailsLoading(false)
+      })
+  }, [activeSessionId])
 
   // Scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [activeSession?.messages])
 
-  // Filter conversations list
+  // Tab counts
+  const totalCount = sessions.length
+  const unreadCount = sessions.filter(s => s.messages.length > 0 && s.messages[s.messages.length - 1].sender === 'user').length
+  const assignedCount = sessions.filter(s => s.assignedTo === 'Tú').length
+  const unassignedCount = sessions.filter(s => s.assignedTo !== 'Tú' && s.assignedTo !== 'Bot de IA').length
+
+  // Filter conversations
   const filteredSessions = sessions.filter(s => {
-    const matchesSearch = 
+    const matchesSearch =
       s.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.phoneNumber.includes(searchQuery) ||
       s.messages.some(m => m.text.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    const matchesTab = 
+    const matchesTab =
       activeTab === 'all' ||
       (activeTab === 'unread' && s.messages.length > 0 && s.messages[s.messages.length - 1].sender === 'user') ||
       (activeTab === 'assigned' && s.assignedTo === 'Tú') ||
-      (activeTab === 'closed' && s.status === 'closed')
+      (activeTab === 'unassigned' && s.assignedTo !== 'Tú' && s.assignedTo !== 'Bot de IA')
 
     return matchesSearch && matchesTab
   })
 
-  // Pagination bounds
+  // Pagination
   const totalPages = Math.max(Math.ceil(filteredSessions.length / itemsPerPage), 1)
   const currentSessions = filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  // Helper to persist session property updates to database via PATCH
   const persistSessionUpdate = async (sessionId: string, data: any) => {
     try {
       const res = await fetch('/api/whatsapp/session', {
@@ -140,131 +173,92 @@ export default function ChatHistoryViewer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, ...data })
       })
-      if (!res.ok) throw new Error('Error al guardar en base de datos')
-    } catch (err: any) {
-      console.error('[persistSessionUpdate Error]', err)
-      toast.error('No se pudo guardar el cambio en el servidor')
+      if (!res.ok) throw new Error()
+    } catch {
+      toast.error('Error al persistir cambios en el servidor')
     }
   }
 
-  // Toggle Favorite
   const toggleFavorite = async (id: string) => {
-    const sessionToUpdate = sessions.find(s => s.id === id)
-    if (!sessionToUpdate) return
-    const nextFavorite = !sessionToUpdate.isFavorite
-
-    setSessions(prev =>
-      prev.map(s => (s.id === id ? { ...s, isFavorite: nextFavorite } : s))
-    )
-    toast.success(nextFavorite ? 'Agregado a favoritos' : 'Quitado de favoritos')
-    await persistSessionUpdate(id, { isFavorite: nextFavorite })
+    const session = sessions.find(s => s.id === id)
+    if (!session) return
+    const nextVal = !session.isFavorite
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, isFavorite: nextVal } : s))
+    toast.success(nextVal ? 'Marcado como favorito' : 'Quitado de favoritos')
+    await persistSessionUpdate(id, { isFavorite: nextVal })
   }
 
-  // Toggle Status (Resolve/Close)
   const toggleStatus = async (id: string) => {
-    const sessionToUpdate = sessions.find(s => s.id === id)
-    if (!sessionToUpdate) return
-    const nextStatus = sessionToUpdate.status === 'active' ? 'closed' : 'active'
-
-    setSessions(prev =>
-      prev.map(s => (s.id === id ? { ...s, status: nextStatus } : s))
-    )
-    toast.success(nextStatus === 'closed' ? 'Conversación cerrada con éxito' : 'Conversación reabierta')
-    await persistSessionUpdate(id, { status: nextStatus })
+    const session = sessions.find(s => s.id === id)
+    if (!session) return
+    const nextVal = session.status === 'active' ? 'closed' : 'active'
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, status: nextVal } : s))
+    toast.success(nextVal === 'closed' ? 'Conversación cerrada' : 'Conversación reabierta')
+    await persistSessionUpdate(id, { status: nextVal })
   }
 
-  // Update Assignment
   const handleAssigneeChange = async (id: string, assignee: string) => {
-    setSessions(prev =>
-      prev.map(s => (s.id === id ? { ...s, assignedTo: assignee } : s))
-    )
-    toast.success(`Conversación asignada a: ${assignee}`)
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, assignedTo: assignee } : s))
+    toast.success(`Asignado a: ${assignee}`)
     await persistSessionUpdate(id, { assignedTo: assignee })
   }
 
-  // Add Note
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newNoteText.trim() || !activeSessionId) return
-
-    const noteText = newNoteText.trim()
+    if (!newNoteText.trim() || !activeSessionId || !activeSession) return
+    const text = newNoteText.trim()
     setNewNoteText('')
-
-    const sessionToUpdate = sessions.find(s => s.id === activeSessionId)
-    if (!sessionToUpdate) return
 
     const newNote: InternalNote = {
       id: Date.now().toString(),
-      text: noteText,
-      createdAt: 'Hoy, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      text,
+      createdAt: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       author: 'Tú'
     }
-    const updatedNotes = [...sessionToUpdate.notes, newNote]
 
-    setSessions(prev =>
-      prev.map(s => (s.id === activeSessionId ? { ...s, notes: updatedNotes } : s))
-    )
-    toast.success('Nota interna agregada con éxito')
+    const updatedNotes = [...activeSession.notes, newNote]
+    setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, notes: updatedNotes } : s))
+    toast.success('Nota interna guardada')
     await persistSessionUpdate(activeSessionId, { notes: updatedNotes })
   }
 
-  // Delete Note
   const handleDeleteNote = async (sessionId: string, noteId: string) => {
-    const sessionToUpdate = sessions.find(s => s.id === sessionId)
-    if (!sessionToUpdate) return
-
-    const updatedNotes = sessionToUpdate.notes.filter(n => n.id !== noteId)
-
-    setSessions(prev =>
-      prev.map(s => (s.id === sessionId ? { ...s, notes: updatedNotes } : s))
-    )
-    toast.success('Nota interna eliminada')
+    const session = sessions.find(s => s.id === sessionId)
+    if (!session) return
+    const updatedNotes = session.notes.filter(n => n.id !== noteId)
+    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, notes: updatedNotes } : s))
+    toast.success('Nota eliminada')
     await persistSessionUpdate(sessionId, { notes: updatedNotes })
   }
 
-  // Add Tag
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newTagText.trim() || !activeSessionId) return
-
+    if (!newTagText.trim() || !activeSessionId || !activeSession) return
     const tag = newTagText.trim()
     setNewTagText('')
     setShowAddTag(false)
 
-    const sessionToUpdate = sessions.find(s => s.id === activeSessionId)
-    if (!sessionToUpdate) return
-    if (sessionToUpdate.tags.includes(tag)) return
-
-    const updatedTags = [...sessionToUpdate.tags, tag]
-
-    setSessions(prev =>
-      prev.map(s => (s.id === activeSessionId ? { ...s, tags: updatedTags } : s))
-    )
+    if (activeSession.tags.includes(tag)) return
+    const updatedTags = [...activeSession.tags, tag]
+    setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, tags: updatedTags } : s))
     toast.success(`Etiqueta "${tag}" agregada`)
     await persistSessionUpdate(activeSessionId, { tags: updatedTags })
   }
 
-  // Remove Tag
   const handleRemoveTag = async (sessionId: string, tag: string) => {
-    const sessionToUpdate = sessions.find(s => s.id === sessionId)
-    if (!sessionToUpdate) return
-
-    const updatedTags = sessionToUpdate.tags.filter(t => t !== tag)
-
-    setSessions(prev =>
-      prev.map(s => (s.id === sessionId ? { ...s, tags: updatedTags } : s))
-    )
-    toast.success(`Etiqueta "${tag}" quitada`)
+    const session = sessions.find(s => s.id === sessionId)
+    if (!session) return
+    const updatedTags = session.tags.filter(t => t !== tag)
+    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, tags: updatedTags } : s))
+    toast.success(`Etiqueta "${tag}" eliminada`)
     await persistSessionUpdate(sessionId, { tags: updatedTags })
   }
 
-  // Copy Phone Number
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    toast.success('Número copiado al portapapeles')
+    toast.success('Número copiado')
   }
 
-  // Trigger CSV export
   const exportChats = () => {
     const headers = ['ID Sesión', 'Cliente', 'WhatsApp', 'Última interacción', 'Estado', 'Mensajes']
     const rows = sessions.map(s => [
@@ -295,84 +289,87 @@ export default function ChatHistoryViewer({
     toast.success('Conversaciones exportadas en CSV')
   }
 
-  // Send WhatsApp message (API Takeover)
-  async function handleTakeover(e: React.FormEvent) {
+  const handleTakeover = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!takeoverText.trim() || !activeSessionId || sending) return
-
     const newMsg = takeoverText.trim()
     setTakeoverText('')
     setSending(true)
 
-    // Optimistic Update
     const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    setSessions(prev =>
-      prev.map(s => {
-        if (s.id === activeSessionId) {
-          return {
-            ...s,
-            messages: [
-              ...s.messages,
-              { sender: 'bot', text: '[Asesor Humano]: ' + newMsg, time: timeNow }
-            ]
-          }
+    setSessions(prev => prev.map(s => {
+      if (s.id === activeSessionId) {
+        return {
+          ...s,
+          messages: [...s.messages, { sender: 'bot', text: '[Asesor Humano]: ' + newMsg, time: timeNow }]
         }
-        return s
-      })
-    )
+      }
+      return s
+    }))
 
     try {
       const res = await fetch('/api/whatsapp/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId: activeSessionId,
-          text: newMsg,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: activeSessionId, text: newMsg })
       })
-
-      if (!res.ok) {
-        throw new Error('Error al enviar el mensaje')
-      }
-      toast.success('Mensaje enviado por WhatsApp')
-    } catch (error: any) {
-      toast.error('No se pudo enviar el mensaje', {
-        description: error.message || 'Ocurrió un error en el servidor. Inténtalo de nuevo.'
-      })
+      if (!res.ok) throw new Error()
+      toast.success('Mensaje enviado')
+    } catch {
+      toast.error('Error al enviar el mensaje por WhatsApp')
     } finally {
       setSending(false)
     }
   }
 
-  // Parse product card special messages
+  const handleSendPaymentLink = async () => {
+    if (!activeSessionId) return
+    const loadingToast = toast.loading('Generando y enviando link de pago...')
+    try {
+      const res = await fetch('/api/whatsapp/session/send-payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: activeSessionId })
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to send payment link')
+      }
+      toast.success('Link de pago enviado correctamente por WhatsApp', { id: loadingToast })
+      
+      // Update sidebar details and list
+      const resDetails = await fetch(`/api/whatsapp/session?sessionId=${activeSessionId}`)
+      const detailsData = await resDetails.json()
+      setActiveDetails(detailsData)
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e.message || 'Error al enviar link de pago', { id: loadingToast })
+    }
+  }
+
   function renderMessageText(text: string) {
     if (text.startsWith('[PRODUCT_CARD]')) {
       const parts = text.replace('[PRODUCT_CARD] ', '').split(' | ')
       const title = parts[0] || 'Producto'
-      const price = parts[1] || '$0 COP'
+      const price = parts[1] || '$0'
       const desc = parts[2] || ''
       return (
-        <div className="bg-white border border-zinc-200/80 rounded-lg overflow-hidden mt-1 max-w-sm text-zinc-950 font-semibold p-0.5 shadow-sm">
-          {/* Mock image container */}
-          <div className="w-full h-24 bg-emerald-50/20 border-b border-zinc-100 flex items-center justify-center relative p-3">
-            <div className="w-12 h-12 rounded-lg border border-zinc-250 bg-white flex items-center justify-center p-2 text-zinc-400">
-              <Package className="w-6 h-6 text-zinc-400" />
-            </div>
-            <span className="absolute top-2 right-2 text-[8px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded uppercase">
+        <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden mt-1 max-w-xs text-zinc-955 font-semibold p-0.5">
+          <div className="w-full h-24 bg-zinc-50 border-b border-zinc-100 flex items-center justify-center relative p-3">
+            <Package className="w-6 h-6 text-zinc-400" />
+            <span className="absolute top-2 right-2 text-[8px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded uppercase select-none">
               Bot
             </span>
           </div>
-          <div className="p-3.5 space-y-1.5">
+          <div className="p-3 space-y-1">
             <div className="flex justify-between items-baseline gap-2">
               <span className="font-bold text-xs truncate max-w-[130px]">{title}</span>
               <span className="text-[10px] font-extrabold text-emerald-600 tabular-nums shrink-0">{price}</span>
             </div>
-            {desc && <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">{desc}</p>}
+            {desc && <p className="text-[9px] text-zinc-400 font-medium leading-relaxed truncate">{desc}</p>}
             <button
               onClick={() => toast.success(`Abriendo enlace de: ${title}`)}
-              className="w-full text-center py-2 border border-zinc-250 hover:border-zinc-350 hover:bg-zinc-50 rounded-lg text-[10px] font-bold text-zinc-650 transition-colors uppercase tracking-widest mt-2 cursor-pointer h-8 flex items-center justify-center"
+              className="w-full text-center py-1.5 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-[9px] font-bold text-zinc-655 transition-colors uppercase tracking-widest mt-2 cursor-pointer h-7 flex items-center justify-center"
             >
               Ver producto
             </button>
@@ -381,36 +378,59 @@ export default function ChatHistoryViewer({
       )
     }
 
+    if (text.startsWith('[Link de Pago Enviado]')) {
+      const parts = text.split('\n')
+      const amount = parts[0]?.replace('[Link de Pago Enviado]: ', '') || ''
+      const url = parts[1] || '#'
+      return (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg overflow-hidden mt-1 max-w-xs text-emerald-955 p-3 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <CheckCircle className="w-4 h-4 text-emerald-600" />
+            <span className="font-bold text-xs">Link de Pago Generado</span>
+          </div>
+          <p className="text-[10px] text-emerald-805 font-semibold leading-relaxed">
+            Se ha enviado un link de pago por valor de <strong className="text-emerald-955">{amount}</strong>.
+          </p>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-center py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-bold transition-all block"
+          >
+            PAGAR AHORA
+          </a>
+        </div>
+      )
+    }
+
     const isHumanTakeover = text.startsWith('[Asesor Humano]')
     const cleanText = isHumanTakeover ? text.replace('[Asesor Humano]: ', '') : text
 
     return (
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         {isHumanTakeover && (
-          <span className="block text-[8px] opacity-75 font-black tracking-wider leading-none">
+          <span className="block text-[8px] opacity-75 font-black tracking-wider leading-none text-zinc-400">
             Intervención Humana
           </span>
         )}
-        <p className="leading-relaxed break-words">{cleanText}</p>
+        <p className="leading-relaxed break-words font-semibold text-zinc-800">{cleanText}</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-12 font-sans text-left">
+      
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Historial de Chats</h1>
-          <div className="text-[12px] font-medium text-zinc-505 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Bandeja de Entrada — <span className="text-zinc-900 font-bold">Monitoreo de conversaciones en vivo</span>
-          </div>
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Conversaciones</h1>
+          <p className="text-xs xl:text-sm font-semibold text-zinc-400">Gestiona y responde todas tus conversaciones.</p>
         </div>
 
         <button
           onClick={exportChats}
-          className="flex items-center justify-center gap-2 h-9 px-4 bg-white border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-xs font-semibold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-95 self-end sm:self-center"
+          className="flex items-center justify-center gap-2 h-9 px-4 bg-white border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-xs font-semibold text-zinc-755 transition-all cursor-pointer select-none"
         >
           <Download className="w-3.5 h-3.5 text-zinc-400" />
           <span>Exportar conversaciones</span>
@@ -418,79 +438,83 @@ export default function ChatHistoryViewer({
       </div>
 
       {/* THREE-COLUMN WORKSPACE GRID */}
-      {whatsappConnected ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
-        {/* COLUMN 1: CONVERSATIONS LIST PANEL (Spans 3/12 or 4/12) */}
-        <div className="lg:col-span-4 xl:col-span-3 bg-white border border-zinc-200/80 rounded-lg overflow-hidden flex flex-col justify-between h-[650px]">
+        {/* COLUMN 1: CONVERSATIONS LIST PANEL */}
+        <div className="lg:col-span-4 xl:col-span-3 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col justify-between h-[680px]">
           
           <div className="p-4 space-y-4">
+            
+            {/* Filter Tabs */}
+            <div className="flex gap-1 pb-1 overflow-x-auto border-b border-zinc-100 text-[10px] font-bold text-zinc-500">
+              <button 
+                onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
+                className={cn(
+                  "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
+                  activeTab === 'all' ? "text-emerald-600" : "hover:text-zinc-950"
+                )}
+              >
+                Todas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{totalCount}</span>
+                {activeTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab('unread'); setCurrentPage(1); }}
+                className={cn(
+                  "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
+                  activeTab === 'unread' ? "text-emerald-600" : "hover:text-zinc-955"
+                )}
+              >
+                No leídas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{unreadCount}</span>
+                {activeTab === 'unread' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab('assigned'); setCurrentPage(1); }}
+                className={cn(
+                  "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
+                  activeTab === 'assigned' ? "text-emerald-600" : "hover:text-zinc-955"
+                )}
+              >
+                Asignadas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{assignedCount}</span>
+                {activeTab === 'assigned' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+              </button>
+
+              <button 
+                onClick={() => { setActiveTab('unassigned'); setCurrentPage(1); }}
+                className={cn(
+                  "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
+                  activeTab === 'unassigned' ? "text-emerald-600" : "hover:text-zinc-955"
+                )}
+              >
+                Sin asignar <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{unassignedCount}</span>
+                {activeTab === 'unassigned' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+              </button>
+            </div>
+
             {/* Search conversations */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
                 <input
                   type="text"
-                  placeholder="Buscar conversaciones..."
+                  placeholder="Buscar conversación..."
                   value={searchQuery}
                   onChange={e => {
                     setSearchQuery(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full pl-8.5 pr-3 py-1.5 bg-zinc-50/40 border border-zinc-200 hover:border-zinc-300 focus:border-zinc-400 focus:bg-white rounded-lg text-xs font-semibold outline-none transition-all placeholder:text-zinc-400"
+                  className="w-full pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg text-xs font-semibold outline-none transition-all placeholder:text-zinc-400"
                 />
               </div>
               <button className="w-8 h-8 rounded-lg border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors shrink-0 cursor-pointer">
                 <SlidersHorizontal className="w-3.5 h-3.5" />
               </button>
             </div>
-
-            {/* Filter Tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-1 custom-scrollbar text-[10px] font-bold text-zinc-500">
-              <button 
-                onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
-                className={cn(
-                  "px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer",
-                  activeTab === 'all' ? "bg-zinc-950 text-white" : "hover:bg-zinc-100/60 hover:text-zinc-955"
-                )}
-              >
-                Todos <span className={cn("ml-1 px-1 py-0.2 rounded text-[8px]", activeTab === 'all' ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-450")}>{sessions.length}</span>
-              </button>
-
-              <button 
-                onClick={() => { setActiveTab('unread'); setCurrentPage(1); }}
-                className={cn(
-                  "px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer",
-                  activeTab === 'unread' ? "bg-zinc-950 text-white" : "hover:bg-zinc-100/60 hover:text-zinc-955"
-                )}
-              >
-                No leídos <span className={cn("ml-1 px-1 py-0.2 rounded text-[8px]", activeTab === 'unread' ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-450")}>1</span>
-              </button>
-
-              <button 
-                onClick={() => { setActiveTab('assigned'); setCurrentPage(1); }}
-                className={cn(
-                  "px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer",
-                  activeTab === 'assigned' ? "bg-zinc-950 text-white" : "hover:bg-zinc-100/60 hover:text-zinc-955"
-                )}
-              >
-                Asignados
-              </button>
-
-              <button 
-                onClick={() => { setActiveTab('closed'); setCurrentPage(1); }}
-                className={cn(
-                  "px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer",
-                  activeTab === 'closed' ? "bg-zinc-950 text-white" : "hover:bg-zinc-100/60 hover:text-zinc-955"
-                )}
-              >
-                Cerrados
-              </button>
-            </div>
           </div>
 
           {/* Conversations list container */}
-          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100/60 custom-scrollbar pr-0.5">
+          <div className="flex-1 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar pr-0.5">
             {currentSessions.length === 0 ? (
               <div className="py-20 text-center text-zinc-400">
                 <MessageCircle className="w-8 h-8 mx-auto mb-2 text-zinc-200" />
@@ -504,12 +528,11 @@ export default function ChatHistoryViewer({
                 if (lastMsg.startsWith('[PRODUCT_CARD]')) {
                   const parts = lastMsg.replace('[PRODUCT_CARD] ', '').split(' | ')
                   lastMsg = `Tarjeta de producto: ${parts[0] || 'Producto'}`
+                } else if (lastMsg.startsWith('[Link de Pago Enviado]')) {
+                  lastMsg = 'Link de Pago Enviado 🛒'
                 }
-                const lastTime = lastMsgObj ? lastMsgObj.time : '10:00 AM'
-                const isUnread = s.id === 'demo-session' // Mock unread indicator
-                
-                // Get initials for profile placeholder
-                const initials = s.customerName.slice(0, 2)
+                const lastTime = lastMsgObj ? lastMsgObj.time : '10:00'
+                const isUnread = s.messages.length > 0 && s.messages[s.messages.length - 1].sender === 'user'
 
                 return (
                   <button
@@ -521,15 +544,23 @@ export default function ChatHistoryViewer({
                       setShowAddTag(false)
                     }}
                     className={cn(
-                      "w-full text-left p-4 hover:bg-zinc-50/50 transition-colors flex items-start gap-3 relative group/session",
+                      "w-full text-left p-4 hover:bg-zinc-50 transition-colors flex items-start gap-3 relative group/session",
                       isSelected && "bg-zinc-50"
                     )}
                   >
                     {/* Profile image with WhatsApp Badge */}
-                    <div className="relative shrink-0">
-                      <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-650 flex items-center justify-center uppercase">
-                        {initials}
-                      </div>
+                    <div className="relative shrink-0 select-none">
+                      {s.avatarUrl ? (
+                        <img 
+                          src={s.avatarUrl} 
+                          alt={s.customerName}
+                          className="w-8.5 h-8.5 rounded-full object-cover shrink-0 border border-zinc-200"
+                        />
+                      ) : (
+                        <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-650 flex items-center justify-center uppercase">
+                          {s.customerName.slice(0, 2)}
+                        </div>
+                      )}
                       {/* superposed WhatsApp icon */}
                       <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white flex items-center justify-center text-white p-0.5">
                         <MessageCircle className="w-2.5 h-2.5 fill-current" />
@@ -538,20 +569,22 @@ export default function ChatHistoryViewer({
 
                     <div className="min-w-0 flex-1 space-y-0.5">
                       <div className="flex justify-between items-baseline gap-2">
-                        <span className="font-bold text-zinc-950 text-xs truncate max-w-[100px] leading-tight">{s.customerName}</span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-bold text-zinc-950 text-xs truncate leading-tight">{s.customerName}</span>
+                          {s.status === 'closed' && (
+                            <Lock className="w-2.5 h-2.5 text-zinc-400 shrink-0" />
+                          )}
+                        </div>
                         <span className="text-[9px] text-zinc-400 tabular-nums font-bold shrink-0">{lastTime}</span>
                       </div>
                       <p className="text-[10px] text-zinc-400 truncate font-semibold">{lastMsg}</p>
                     </div>
 
-                    {/* Unread dot or counter */}
+                    {/* Unread dot indicator */}
                     {isUnread && (
-                      <div className="w-4.5 h-4.5 rounded-full bg-emerald-500 text-white text-[8px] font-extrabold flex items-center justify-center shrink-0 ml-1.5 self-center">
-                        2
+                      <div className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[8px] font-extrabold flex items-center justify-center shrink-0 ml-1.5 self-center">
+                        {s.messages.filter(m => m.sender === 'user').length}
                       </div>
-                    )}
-                    {!isUnread && s.status === 'active' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 ml-1.5 self-center opacity-0 group-hover/session:opacity-100 transition-opacity" />
                     )}
                   </button>
                 )
@@ -595,32 +628,44 @@ export default function ChatHistoryViewer({
           )}
         </div>
 
-        {/* COLUMN 2: CONVERSATION DIALOG CHAT WINDOW (Spans 5/12 or 6/12) */}
-        <div className="lg:col-span-8 xl:col-span-6 bg-white border border-zinc-200/80 rounded-lg overflow-hidden flex flex-col justify-between h-[650px] relative">
+        {/* COLUMN 2: CONVERSATION DIALOG CHAT WINDOW */}
+        <div className="lg:col-span-8 xl:col-span-6 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col justify-between h-[680px] relative">
           {activeSession ? (
             <>
               {/* Header section with assignee and toolbar */}
-              <div className="bg-white border-b border-zinc-150 p-4 flex items-center justify-between shrink-0">
+              <div className="bg-white border-b border-zinc-100 p-4 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   {/* Circular profile image placeholder */}
-                  <div className="relative">
-                    <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-650 flex items-center justify-center uppercase">
-                      {activeSession.customerName.slice(0, 2)}
-                    </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 rounded-full bg-emerald-500 border border-white flex items-center justify-center text-white p-0.5">
-                      <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                    </div>
+                  <div className="relative select-none">
+                    {activeSession.avatarUrl ? (
+                      <img 
+                        src={activeSession.avatarUrl} 
+                        alt={activeSession.customerName}
+                        className="w-8.5 h-8.5 rounded-full object-cover shrink-0 border border-zinc-200"
+                      />
+                    ) : (
+                      <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-650 flex items-center justify-center uppercase">
+                        {activeSession.customerName.slice(0, 2)}
+                      </div>
+                    )}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border border-white flex items-center justify-center" />
                   </div>
                   <div className="space-y-0.5">
-                    <h4 className="text-xs font-bold text-zinc-950 leading-none">{activeSession.customerName}</h4>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-zinc-950 leading-none">{activeSession.customerName}</h4>
+                      <span className="text-emerald-500 flex items-center shrink-0">
+                        <Check className="w-3 h-3 text-white bg-emerald-500 rounded-full p-0.5" />
+                      </span>
+                      <span className="text-[10px] text-zinc-400 font-semibold select-all">+{activeSession.phoneNumber}</span>
+                    </div>
                     
                     {/* Assignment Selector Dropdown */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-zinc-400 font-medium">Asignado a:</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-zinc-400 font-semibold">Asignado a:</span>
                       <select
                         value={activeSession.assignedTo}
                         onChange={(e) => handleAssigneeChange(activeSession.id, e.target.value)}
-                        className="bg-transparent border-none text-[10px] font-bold text-zinc-700 cursor-pointer focus:outline-none hover:text-zinc-950 transition-colors p-0 leading-none"
+                        className="bg-transparent border-none text-[10px] font-bold text-zinc-700 cursor-pointer focus:outline-none hover:text-zinc-955 transition-colors p-0 leading-none"
                       >
                         <option value="Tú">Tú</option>
                         <option value="Bot de IA">Bot de IA</option>
@@ -631,14 +676,14 @@ export default function ChatHistoryViewer({
                 </div>
 
                 {/* Header Action Tools */}
-                <div className="flex items-center gap-1.5 text-zinc-400">
+                <div className="flex items-center gap-1 text-zinc-400">
                   <button 
                     onClick={() => toggleFavorite(activeSession.id)}
                     className={cn(
                       "w-7.5 h-7.5 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center transition-all cursor-pointer",
                       activeSession.isFavorite ? "text-amber-500" : "text-zinc-400 hover:text-zinc-700"
                     )}
-                    title={activeSession.isFavorite ? "Quitar de favoritos" : "Marcar como favorito"}
+                    title="Favorito"
                   >
                     <Star className={cn("w-3.5 h-3.5", activeSession.isFavorite && "fill-current")} />
                   </button>
@@ -655,7 +700,7 @@ export default function ChatHistoryViewer({
                       "w-7.5 h-7.5 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center transition-all cursor-pointer",
                       activeSession.status === 'closed' ? "text-emerald-500" : "text-zinc-400 hover:text-zinc-700"
                     )}
-                    title={activeSession.status === 'closed' ? "Reabrir chat" : "Resolver conversación"}
+                    title="Resolver"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
                   </button>
@@ -669,7 +714,7 @@ export default function ChatHistoryViewer({
               {/* Chat Stream Dialog Area */}
               <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-zinc-50/20 custom-scrollbar flex flex-col">
                 <div className="w-fit mx-auto text-[9px] font-bold text-zinc-400 bg-zinc-100/80 px-2 py-0.5 rounded-md uppercase tracking-wider mb-2 shrink-0 select-none">
-                  Hoy, 14 de Mayo
+                  Hoy
                 </div>
 
                 <div className="space-y-4 flex-1">
@@ -685,47 +730,58 @@ export default function ChatHistoryViewer({
                       >
                         <div className="flex items-start gap-2.5 max-w-[70%]">
                           {isUser && (
-                            <div className="w-6 h-6 rounded-full bg-zinc-150 border border-zinc-250/50 flex items-center justify-center text-[9px] text-zinc-650 font-bold shrink-0 mt-0.5 uppercase">
-                              {activeSession.customerName.slice(0, 1)}
+                            <div className="relative select-none shrink-0 mt-0.5">
+                              {activeSession.avatarUrl ? (
+                                <img
+                                  src={activeSession.avatarUrl}
+                                  alt={activeSession.customerName}
+                                  className="w-6 h-6 rounded-full object-cover border border-zinc-200"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-zinc-150 border border-zinc-200 flex items-center justify-center text-[9px] text-zinc-655 font-bold uppercase">
+                                  {activeSession.customerName.slice(0, 1)}
+                                </div>
+                              )}
                             </div>
                           )}
 
                           <div className={cn(
-                            "rounded-lg px-3.5 py-2.5 text-xs font-semibold flex flex-col gap-1.5",
+                            "rounded-lg px-3.5 py-2.5 text-xs flex flex-col gap-1.5",
                             isUser 
-                              ? "bg-white text-zinc-950 rounded-tl-none border border-zinc-200/60" 
-                              : msg.text.startsWith('[PRODUCT_CARD]')
+                              ? "bg-zinc-100 text-zinc-955 rounded-tl-none border border-zinc-200/40" 
+                              : msg.text.startsWith('[PRODUCT_CARD]') || msg.text.startsWith('[Link de Pago Enviado]')
                               ? "bg-transparent p-0 border-none shadow-none"
-                              : msg.text.startsWith('[Asesor Humano]')
-                              ? "bg-blue-600 text-white rounded-tr-none"
-                              : "bg-zinc-950 text-white rounded-tr-none"
+                              : "bg-[#E6F4EA] text-emerald-955 rounded-tr-none border border-emerald-100"
                           )}>
                             {/* Render message body (supports product cards) */}
                             {renderMessageText(msg.text)}
 
                             {/* Timestamp + checkmarks */}
-                            {!msg.text.startsWith('[PRODUCT_CARD]') && (
+                            {!msg.text.startsWith('[PRODUCT_CARD]') && !msg.text.startsWith('[Link de Pago Enviado]') && (
                               <div className={cn(
-                                "flex items-center justify-end gap-1.5 text-[8px] font-bold mt-1 select-none leading-none",
-                                isUser ? "text-zinc-400" : "text-white/60"
+                                "flex items-center justify-end gap-1 text-[8px] font-semibold mt-1 select-none leading-none",
+                                isUser ? "text-zinc-400" : "text-emerald-700"
                               )}>
                                 <span>{msg.time}</span>
                                 {!isUser && (
-                                  <span className="text-emerald-400 font-extrabold">✓✓</span>
+                                  <span className="text-emerald-600 font-extrabold">✓✓</span>
                                 )}
                               </div>
                             )}
                           </div>
-
-                          {!isUser && (
-                            <div className="w-6 h-6 rounded-full bg-zinc-950 text-white flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">
-                              {msg.text.startsWith('[Asesor Humano]') ? 'Yo' : <Bot className="w-3.5 h-3.5" />}
-                            </div>
-                          )}
                         </div>
                       </div>
                     )
                   })}
+                  
+                  {/* Cart item added notification banner inside chat feed if cart is active */}
+                  {activeDetails && activeDetails.cartItems.length > 0 && (
+                    <div className="w-fit mx-auto text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/50 px-3 py-1 rounded-full flex items-center gap-1 select-none">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                      <span>Producto agregado al carrito</span>
+                    </div>
+                  )}
+
                   <div ref={chatEndRef} />
                 </div>
               </div>
@@ -734,14 +790,14 @@ export default function ChatHistoryViewer({
               {showAddTag && (
                 <form 
                   onSubmit={handleAddTag} 
-                  className="absolute bottom-[160px] left-6 right-6 p-4 bg-white border border-zinc-200 rounded-lg shadow-lg z-30 animate-in fade-in duration-200 flex gap-2"
+                  className="absolute bottom-[160px] left-6 right-6 p-4 bg-white border border-zinc-200 rounded-lg z-30 animate-in fade-in duration-200 flex gap-2"
                 >
                   <input
                     type="text"
                     value={newTagText}
                     onChange={e => setNewTagText(e.target.value)}
                     placeholder="Escribe el nombre de la etiqueta..."
-                    className="flex-1 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-zinc-300 font-semibold"
+                    className="flex-1 bg-zinc-550/5 border border-zinc-250 rounded-lg px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-zinc-355 font-semibold"
                     required
                   />
                   <button
@@ -754,7 +810,7 @@ export default function ChatHistoryViewer({
                   <button
                     type="button"
                     onClick={() => { setShowAddTag(false); setNewTagText(''); }}
-                    className="border border-zinc-200 hover:bg-zinc-50 text-zinc-500 font-bold text-xs rounded-lg px-3 py-1.5 active:scale-95 transition-transform"
+                    className="border border-zinc-200 hover:bg-zinc-50 text-zinc-500 font-bold text-xs rounded-lg px-3 py-1.5 active:scale-95 transition-transform cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -762,68 +818,122 @@ export default function ChatHistoryViewer({
               )}
 
               {/* Bot takeover warning notification banner */}
-              <div className="bg-amber-50 border-t border-b border-amber-200/50 p-2.5 flex items-center gap-2 px-4.5">
+              <div className="bg-amber-50 border-t border-b border-amber-100 p-2.5 flex items-center gap-2 px-4.5">
                 <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <p className="text-[9px] text-amber-800 font-bold tracking-wide leading-none">
+                <p className="text-[9px] text-amber-800 font-bold tracking-wide leading-none select-none">
                   El bot está respondiendo automáticamente. Al enviar un mensaje tomarás el control.
                 </p>
               </div>
 
               {/* Message Composer Footer Input area */}
               <div className="p-4 bg-white border-t border-zinc-150 shrink-0 space-y-3">
-                <form onSubmit={handleTakeover} className="space-y-3">
-                  <textarea
-                    rows={1}
-                    value={takeoverText}
-                    onChange={e => setTakeoverText(e.target.value)}
-                    placeholder="Escribe un mensaje..."
-                    className="w-full bg-zinc-50/50 border border-zinc-200 hover:border-zinc-250 focus:border-zinc-350 focus:bg-white rounded-lg px-4.5 py-3 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        handleTakeover(e)
-                      }
-                    }}
-                  />
-                  
-                  <div className="flex items-center justify-between gap-4 text-zinc-400">
-                    <div className="flex items-center gap-2">
-                      <button 
-                        type="button" 
-                        onClick={() => toast.info('Emojis (Próximamente)')}
-                        className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
+                
+                {/* Tabs Responder / Nota Interna */}
+                <div className="flex gap-4 border-b border-zinc-100 text-[10px] font-bold text-zinc-500 pb-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setComposerTab('reply')}
+                    className={cn(
+                      "pb-0.5 relative transition-colors cursor-pointer",
+                      composerTab === 'reply' ? "text-emerald-600" : "hover:text-zinc-900"
+                    )}
+                  >
+                    Responder
+                    {composerTab === 'reply' && <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setComposerTab('note')}
+                    className={cn(
+                      "pb-0.5 relative transition-colors cursor-pointer",
+                      composerTab === 'note' ? "text-emerald-600" : "hover:text-zinc-900"
+                    )}
+                  >
+                    Nota interna
+                    {composerTab === 'note' && <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+                  </button>
+                </div>
+
+                {composerTab === 'reply' ? (
+                  <form onSubmit={handleTakeover} className="space-y-3">
+                    <textarea
+                      rows={1}
+                      value={takeoverText}
+                      onChange={e => setTakeoverText(e.target.value)}
+                      placeholder="Escribe tu mensaje..."
+                      className="w-full bg-zinc-50 border border-zinc-200 hover:border-zinc-300 focus:border-zinc-400 focus:bg-white rounded-lg px-4 py-2.5 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleTakeover(e)
+                        }
+                      }}
+                    />
+                    
+                    <div className="flex items-center justify-between gap-4 text-zinc-400">
+                      <div className="flex items-center gap-2">
+                        <button 
+                          type="button" 
+                          onClick={() => toast.info('Emojis (Próximamente)')}
+                          className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
+                        >
+                          <Smile className="w-4 h-4 text-zinc-400" />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => toast.info('Adjuntar archivos (Próximamente)')}
+                          className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
+                        >
+                          <Paperclip className="w-4 h-4 text-zinc-400" />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setTakeoverText('¡Hola! Claro que sí, con gusto te ayudo.')
+                            toast.success('Respuesta rápida cargada')
+                          }}
+                          className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
+                          title="Respuesta rápida"
+                        >
+                          <Zap className="w-4 h-4 text-zinc-400" />
+                        </button>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={!takeoverText.trim() || sending}
+                        className="w-8 h-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:scale-100 hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
                       >
-                        <Smile className="w-4 h-4 text-zinc-400" />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => toast.info('Adjuntar archivos (Próximamente)')}
-                        className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-                      >
-                        <Paperclip className="w-4 h-4 text-zinc-400" />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          setTakeoverText('¡Hola! Claro que sí, con mucho gusto.')
-                          toast.success('Respuesta rápida cargada')
-                        }}
-                        className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-                        title="Respuesta rápida"
-                      >
-                        <Zap className="w-4 h-4 text-zinc-400" />
+                        <Send className="w-3.5 h-3.5 fill-current rotate-45 -translate-x-[2px] translate-y-[2px]" />
                       </button>
                     </div>
-
-                    <button
-                      type="submit"
-                      disabled={!takeoverText.trim() || sending}
-                      className="w-8 h-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:scale-100 hover:scale-105 active:scale-95 shadow-sm shrink-0 cursor-pointer"
-                    >
-                      <Send className="w-3.5 h-3.5 fill-current rotate-45 -translate-x-[2px] translate-y-[2px]" />
-                    </button>
-                  </div>
-                </form>
+                  </form>
+                ) : (
+                  <form onSubmit={handleAddNote} className="space-y-3">
+                    <textarea
+                      rows={1}
+                      value={newNoteText}
+                      onChange={e => setNewNoteText(e.target.value)}
+                      placeholder="Escribe una nota interna..."
+                      className="w-full bg-amber-50/30 border border-amber-200/50 hover:border-amber-250 focus:border-amber-350 focus:bg-white rounded-lg px-4 py-2.5 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleAddNote(e)
+                        }
+                      }}
+                    />
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={!newNoteText.trim()}
+                        className="px-4 py-1.5 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-45 cursor-pointer"
+                      >
+                        Guardar nota
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </>
           ) : (
@@ -834,87 +944,206 @@ export default function ChatHistoryViewer({
           )}
         </div>
 
-        {/* COLUMN 3: CONVERSATION DETAILS & METADATA SIDEBAR (Spans 3/12) */}
+        {/* COLUMN 3: CONVERSATION DETAILS & METADATA SIDEBAR */}
         <div className="lg:col-span-12 xl:col-span-3 space-y-5">
           
-          {/* PROFILE SUMMARY WIDGET */}
           {activeSession ? (
             <>
-              {/* DETAILS CARD */}
-              <div className="bg-white border border-zinc-200/80 p-5 rounded-lg flex flex-col items-center justify-center text-center space-y-3.5">
-                <div className="w-14 h-14 rounded-full bg-zinc-100 border border-zinc-250 flex items-center justify-center text-lg font-extrabold text-zinc-650 uppercase select-none">
-                  {activeSession.customerName.slice(0, 2)}
+              {/* Card 1: Información del cliente */}
+              <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
+                <h4 className="text-xs font-bold text-zinc-955 tracking-wider select-none">Información del cliente</h4>
+                
+                <div className="flex items-center gap-3.5 select-none">
+                  {activeSession.avatarUrl ? (
+                    <img 
+                      src={activeSession.avatarUrl} 
+                      alt={activeSession.customerName}
+                      className="w-12 h-12 rounded-full object-cover shrink-0 border border-zinc-200"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-lg font-extrabold text-zinc-650 uppercase shrink-0">
+                      {activeSession.customerName.slice(0, 2)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-zinc-955 truncate leading-tight">{activeSession.customerName}</h4>
+                      <span className="bg-emerald-50 border border-emerald-250 text-emerald-600 text-[8px] px-1 py-0.2 rounded font-extrabold uppercase shrink-0">
+                        Cliente
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-zinc-400 mt-1 block flex items-center gap-1">
+                      <span>+{activeSession.phoneNumber}</span>
+                      <button 
+                        onClick={() => copyToClipboard('+' + activeSession.phoneNumber)}
+                        className="text-zinc-350 hover:text-zinc-500 cursor-pointer ml-0.5"
+                        title="Copiar"
+                      >
+                        <Copy className="w-2.5 h-2.5" />
+                      </button>
+                    </span>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-zinc-950">{activeSession.customerName}</h3>
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-zinc-500">
-                    <span>+{activeSession.phoneNumber}</span>
-                    <button 
-                      onClick={() => copyToClipboard('+' + activeSession.phoneNumber)}
-                      className="text-zinc-405 hover:text-zinc-700 transition-colors"
-                      title="Copiar número"
+
+                <div className="h-px bg-zinc-100" />
+
+                <div className="space-y-3.5 text-xs font-semibold text-zinc-600">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-zinc-400 select-none">Cliente desde:</span>
+                    <span className="text-zinc-950">
+                      {detailsLoading ? 'Cargando...' : activeDetails?.firstInteractionDate || '15 mar 2025'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-zinc-400 select-none">Total compras:</span>
+                    <span className="text-zinc-950 font-bold">
+                      {detailsLoading ? 'Cargando...' : `$${activeDetails?.totalSpent.toLocaleString('es-CO') || '0'}`}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-zinc-400 select-none">Pedidos:</span>
+                    <span className="text-zinc-955">
+                      {detailsLoading ? 'Cargando...' : `${activeDetails?.ordersCount || 0} pedidos`}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => router.push(`/clientes?search=${activeSession.customerName}`)}
+                  className="w-full text-center py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all cursor-pointer mt-2 block"
+                >
+                  Ver perfil completo
+                </button>
+              </div>
+
+              {/* Card 2: Carrito actual */}
+              <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
+                <div className="flex justify-between items-baseline select-none">
+                  <h4 className="text-xs font-bold text-zinc-955 tracking-wider">Carrito actual</h4>
+                  <span className="text-[10px] text-zinc-400 font-bold">{activeDetails?.cartItems.length || 0} productos</span>
+                </div>
+
+                {activeDetails && activeDetails.cartItems.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+                      {activeDetails.cartItems.map((item, idx) => (
+                        <div key={idx} className="flex gap-2.5 items-center text-xs font-semibold text-zinc-755 py-1.5 border-b border-zinc-50 last:border-none">
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt={item.name} className="w-8.5 h-8.5 rounded border border-zinc-100 object-cover shrink-0" />
+                          ) : (
+                            <div className="w-8.5 h-8.5 bg-zinc-50 border border-zinc-150 rounded flex items-center justify-center text-zinc-400 shrink-0">
+                              <Package className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-bold text-zinc-900 truncate text-[11px] leading-tight">{item.name}</h5>
+                            <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Cant: {item.qty}</p>
+                          </div>
+                          <span className="font-bold text-zinc-900 shrink-0 text-[11px]">${(item.price * item.qty).toLocaleString('es-CO')}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="h-px bg-zinc-100 pt-1" />
+
+                    <div className="space-y-2 text-[11px] font-semibold text-zinc-650">
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Subtotal</span>
+                        <span>${activeDetails.cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0).toLocaleString('es-CO')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">Envío</span>
+                        <span className="text-emerald-600 font-bold">Gratis</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-bold text-zinc-950 pt-1.5 border-t border-zinc-50">
+                        <span>Total</span>
+                        <span>${activeDetails.cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0).toLocaleString('es-CO')}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleSendPaymentLink}
+                      className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-3 select-none active:scale-[0.98]"
                     >
-                      <Copy className="w-3 h-3" />
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      <span>Enviar link de pago</span>
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <p className="text-[10px] text-zinc-400 font-semibold py-4 text-center select-none">No hay productos en el carrito</p>
+                )}
               </div>
 
-              {/* INFORMATION DETAILS CARD */}
-              <div className="bg-white border border-zinc-200/80 p-5 rounded-lg space-y-4">
-                <h4 className="text-xs font-bold text-zinc-950 tracking-wider">Información</h4>
-                
-                <div className="space-y-3 text-xs font-semibold text-zinc-600">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-zinc-400">Primera interacción</span>
-                    <span className="text-zinc-950 text-right">14 May, 10:21 AM</span>
-                  </div>
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-zinc-400">Último mensaje</span>
-                    <span className="text-zinc-955 text-right">14 May, 10:24 AM</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-zinc-400">Canal</span>
-                    <span className="text-zinc-950 flex items-center gap-1.5">
-                      {/* WhatsApp Mini Logo */}
-                      <span className="text-emerald-500 flex items-center">
-                        <MessageCircle className="w-3.5 h-3.5 fill-current" />
-                      </span>
-                      WhatsApp
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-zinc-400">Estado</span>
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-md border text-[9px] font-extrabold leading-none uppercase",
-                      activeSession.status === 'active' ? "text-emerald-600 bg-emerald-50 border-emerald-200/50" : "text-rose-600 bg-rose-50 border-rose-200/50"
-                    )}>
-                      {activeSession.status === 'active' ? 'Activa' : 'Cerrada'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-zinc-400">Asignado a</span>
-                    <span className="text-zinc-955">{activeSession.assignedTo}</span>
-                  </div>
+              {/* Card 3: Historial reciente */}
+              <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
+                <div className="flex justify-between items-baseline select-none">
+                  <h4 className="text-xs font-bold text-zinc-955 tracking-wider">Historial reciente</h4>
+                  <button 
+                    onClick={() => router.push(`/pedidos?search=${activeSession.customerName}`)} 
+                    className="text-[10px] font-bold text-emerald-600 hover:underline cursor-pointer"
+                  >
+                    Ver todos
+                  </button>
                 </div>
+
+                {activeDetails && activeDetails.orders.length > 0 ? (
+                  <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+                    {activeDetails.orders.slice(0, 4).map((order, idx) => {
+                      const isPaid = order.status === 'paid' || order.paymentStatus === 'PAID'
+                      const statusText = isPaid ? 'Pagado' : order.status === 'failed' ? 'Reembolsado' : 'Pendiente'
+                      const statusColor = isPaid 
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-250' 
+                        : order.status === 'failed'
+                        ? 'bg-rose-50 text-rose-600 border-rose-250'
+                        : 'bg-amber-50 text-amber-600 border-amber-250'
+
+                      return (
+                        <div key={idx} className="flex justify-between items-center text-[10px] font-semibold py-1.5 border-b border-zinc-50 last:border-none">
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-zinc-800 truncate">Pedido #{order.id.slice(-6).toUpperCase()}</span>
+                            <span className="text-[9px] text-zinc-400 mt-0.5">{new Date(order.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            <span className={cn("px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase border scale-90", statusColor)}>
+                              {statusText}
+                            </span>
+                            <span className="font-bold text-zinc-950">${order.total.toLocaleString('es-CO')}</span>
+                            <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isPaid ? "bg-emerald-500" : order.status === 'failed' ? "bg-rose-500" : "bg-amber-500")} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-zinc-400 font-semibold py-4 text-center select-none">No registra pedidos anteriores</p>
+                )}
               </div>
 
-              {/* INTERACTIVE TAGS WIDGET */}
-              <div className="bg-white border border-zinc-200/80 p-5 rounded-lg space-y-4">
-                <h4 className="text-xs font-bold text-zinc-955 tracking-wider">Etiquetas</h4>
-                
+              {/* Card 4: Etiquetas */}
+              <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
+                <div className="flex justify-between items-baseline select-none">
+                  <h4 className="text-xs font-bold text-zinc-955 tracking-wider">Etiquetas</h4>
+                  <button 
+                    onClick={() => setShowAddTag(!showAddTag)} 
+                    className="text-[10px] font-bold text-emerald-600 hover:underline cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
-                  {/* Pre-defined labels loop */}
                   {activeSession.tags.map((tag, tIdx) => {
-                    let color = 'text-emerald-700 bg-emerald-50 border-emerald-200/60'
-                    if (tag.toLowerCase() === 'kit facial') color = 'text-purple-700 bg-purple-50 border-purple-200/60'
-                    if (tag.toLowerCase().includes('envio')) color = 'text-amber-700 bg-amber-50 border-amber-200/60'
-                    
+                    let color = 'text-[#6F42C1] bg-purple-50 border-purple-200'
+                    if (tag.toLowerCase().includes('compra')) color = 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    if (tag.toLowerCase().includes('envio') || tag.toLowerCase().includes('domicilio')) color = 'text-amber-700 bg-amber-50 border-amber-200'
+
                     return (
                       <span 
                         key={tIdx} 
                         className={cn(
-                          "px-2.5 py-1.5 rounded-lg border text-[10px] font-bold flex items-center gap-1 leading-none group/tag",
+                          "px-2 py-0.5 rounded-md border text-[9px] font-bold flex items-center gap-1 leading-none",
                           color
                         )}
                       >
@@ -922,7 +1151,7 @@ export default function ChatHistoryViewer({
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(activeSession.id, tag)}
-                          className="w-3.5 h-3.5 rounded-md hover:bg-black/5 flex items-center justify-center shrink-0 text-current hover:text-zinc-900 transition-colors ml-0.5 opacity-60 hover:opacity-100"
+                          className="hover:text-zinc-955 text-[10px] ml-0.5 opacity-60 hover:opacity-100"
                         >
                           ×
                         </button>
@@ -932,68 +1161,22 @@ export default function ChatHistoryViewer({
 
                   <button
                     onClick={() => setShowAddTag(!showAddTag)}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-7.5 border-2 border-dashed border-zinc-200 hover:border-zinc-300 rounded-lg text-[10px] font-bold text-zinc-650 transition-colors bg-white active:scale-95 cursor-pointer"
+                    className="flex items-center justify-center gap-1 px-2 py-0.5 border border-dashed border-zinc-200 hover:border-zinc-300 rounded-md text-[9px] font-bold text-zinc-500 transition-colors bg-white cursor-pointer"
                   >
-                    <Plus className="w-3 h-3 text-zinc-450" />
-                    <span>Agregar etiqueta</span>
+                    <Plus className="w-2.5 h-2.5 text-zinc-450" />
+                    <span>Nueva etiqueta</span>
                   </button>
                 </div>
-              </div>
-
-              {/* INTERNAL NOTES BOARD CARD */}
-              <div className="bg-white border border-zinc-200/80 p-5 rounded-lg space-y-4 flex flex-col justify-between">
-                <h4 className="text-xs font-bold text-zinc-950 tracking-wider">Notas internas</h4>
-                
-                {/* Notes Loop */}
-                <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
-                  {activeSession.notes.length === 0 ? (
-                    <p className="text-[10px] text-zinc-450 font-medium py-4 text-center">Sin notas internas registradas</p>
-                  ) : (
-                    activeSession.notes.map((note) => (
-                      <div key={note.id} className="p-3 bg-zinc-50 border border-zinc-200/60 rounded-lg space-y-2 relative group/note text-xs">
-                        <p className="font-semibold text-zinc-800 leading-relaxed break-words">{note.text}</p>
-                        <div className="flex justify-between items-center text-[8px] font-bold text-zinc-400">
-                          <span>Agregado por {note.author} · {note.createdAt}</span>
-                          <button
-                            onClick={() => handleDeleteNote(activeSession.id, note.id)}
-                            className="w-4 h-4 rounded text-zinc-400 hover:text-rose-600 flex items-center justify-center shrink-0 transition-colors hover:bg-zinc-150/50"
-                            title="Eliminar nota"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Add note form text box */}
-                <form onSubmit={handleAddNote} className="pt-3.5 border-t border-zinc-100 flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Escribe una nota..."
-                    value={newNoteText}
-                    onChange={e => setNewNoteText(e.target.value)}
-                    className="flex-1 bg-zinc-550/5 border border-zinc-200 rounded-lg px-3 py-1.5 text-[11px] font-semibold outline-none focus:bg-white focus:border-zinc-300 transition-colors placeholder:text-zinc-400"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs rounded-lg px-3.5 py-1.5 active:scale-95 transition-transform cursor-pointer shrink-0"
-                  >
-                    Agregar
-                  </button>
-                </form>
               </div>
 
               {/* Close session button action */}
               <button
                 onClick={() => toggleStatus(activeSession.id)}
                 className={cn(
-                  "w-full flex items-center justify-center gap-2 border rounded-lg py-3 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-sm",
+                  "w-full flex items-center justify-center gap-2 border rounded-lg py-3 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer",
                   activeSession.status === 'closed'
                     ? "border-emerald-250 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/50"
-                    : "border-rose-200/60 bg-white text-rose-600 hover:bg-rose-50/30"
+                    : "border-rose-200 bg-white text-rose-600 hover:bg-rose-50/30"
                 )}
               >
                 <Lock className="w-3.5 h-3.5" />
@@ -1001,69 +1184,13 @@ export default function ChatHistoryViewer({
               </button>
             </>
           ) : (
-            <div className="bg-white border border-zinc-200/80 p-5 rounded-lg flex items-center justify-center text-center py-20 text-zinc-400">
+            <div className="bg-white border border-zinc-200 p-5 rounded-lg flex items-center justify-center text-center py-20 text-zinc-400">
               Selecciona un chat
             </div>
           )}
 
         </div>
       </div>
-    ) : (
-        <div className="bg-white border border-zinc-200/80 rounded-lg p-8 md:p-12 flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-6">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200/50 flex items-center justify-center text-emerald-500 shadow-sm animate-bounce">
-            <MessageCircle className="w-8 h-8 fill-current" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-lg font-bold text-zinc-955">Enlaza tu WhatsApp para comenzar</h2>
-            <p className="text-xs text-zinc-505 max-w-md mx-auto leading-relaxed">
-              Monitorea conversaciones en vivo, responde preguntas frecuentes automáticamente con tu bot de IA e interviene directamente desde una sola pantalla.
-            </p>
-          </div>
-
-          <div className="w-full border-t border-zinc-100 my-2" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full text-left">
-            <div className="p-4 bg-zinc-50/50 border border-zinc-200/60 rounded-lg space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <h4 className="text-xs font-bold text-zinc-900">Bot Inteligente</h4>
-              <p className="text-[10px] text-zinc-400 font-semibold leading-relaxed">
-                Tu bot de IA responderá automáticamente con tu catálogo oficial las 24 horas del día.
-              </p>
-            </div>
-
-            <div className="p-4 bg-zinc-50/50 border border-zinc-200/60 rounded-lg space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                <MessageCircle className="w-4 h-4" />
-              </div>
-              <h4 className="text-xs font-bold text-zinc-900">Chat en Vivo</h4>
-              <p className="text-[10px] text-zinc-400 font-semibold leading-relaxed">
-                Interviene en cualquier chat en tiempo real cuando el bot detecte una consulta humana.
-              </p>
-            </div>
-
-            <div className="p-4 bg-zinc-50/50 border border-zinc-200/60 rounded-lg space-y-2">
-              <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-                <Tag className="w-4 h-4" />
-              </div>
-              <h4 className="text-xs font-bold text-zinc-900">Gestión de Leads</h4>
-              <p className="text-[10px] text-zinc-400 font-semibold leading-relaxed">
-                Organiza a tus clientes mediante etiquetas personalizadas y notas internas de seguimiento.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => router.push('/configuracion')}
-            className="flex items-center justify-center gap-2 h-11 px-6 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer mt-4"
-          >
-            <span>Enlazar WhatsApp</span>
-            <span className="text-white/60">→</span>
-          </button>
-        </div>
-      )}
     </div>
   )
 }

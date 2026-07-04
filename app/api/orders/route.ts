@@ -2,8 +2,39 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { buildWhatsAppLink } from '@/lib/whatsapp'
 import { waClient } from '@/lib/whatsapp/cloud-api'
+import { auth } from '@clerk/nextjs/server'
 
 export const dynamic = 'force-dynamic'
+
+export async function GET() {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const store = await prisma.store.findFirst({
+      where: { userId }
+    })
+
+    if (!store) {
+      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { storeId: store.id },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    return NextResponse.json(orders)
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    return NextResponse.json(
+      { error: 'Error al obtener pedidos' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(req: Request) {
   try {

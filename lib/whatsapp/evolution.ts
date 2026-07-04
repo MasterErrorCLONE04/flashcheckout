@@ -333,6 +333,25 @@ export class EvolutionClient {
     const message = `${body}\n\n🔗 *${buttonText}:* ${url}`;
     return this.sendText(instanceName, to, message);
   }
+
+  async fetchProfilePictureUrl(instanceName: string, phone: string): Promise<string | null> {
+    try {
+      const cleanPhone = this.cleanNumber(phone);
+      const url = `${this.apiUrl}/chat/fetchProfilePictureUrl/${instanceName}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ number: cleanPhone }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.profilePictureUrl || data.url || null;
+      }
+    } catch (e) {
+      console.error('[Evolution API fetchProfilePictureUrl Error]', e);
+    }
+    return null;
+  }
 }
 
 export const evolutionClient = new EvolutionClient();

@@ -45,6 +45,7 @@ model Store {
   orders                      Order[]
   products                    Product[]
   faqs                        Faq[]
+  automations                 Automation[]
 }
 
 model Product {
@@ -123,6 +124,7 @@ model WhatsAppSession {
   lastInteraction DateTime @default(now()) @updatedAt
   address         String?
   customerName    String?
+  avatarUrl       String?
   messages        Json?
   tags            String[] @default([])
   notes           Json?    @default("[]")
@@ -133,3 +135,20 @@ model WhatsAppSession {
   @@unique([phoneNumber, storeId])
 }
 
+model Automation {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  description String
+  active      Boolean  @default(true)
+  sentToday   Int      @default(0)
+  rate        String   @default("0%")
+  rateLabel   String   @default("Tasa de apertura")
+  icon        String   @default("👋")
+  iconColor   String   @default("bg-amber-100 text-amber-600")
+  channels    String[] @default(["WhatsApp"])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
