@@ -17,10 +17,10 @@ import {
   Link2 
 } from 'lucide-react'
 
-const navItems = [
+const getNavItems = (conversationsCount: number, ordersCount: number) => [
   { href: "/dashboard", icon: LayoutDashboard, label: "Inicio" },
-  { href: "/conversaciones", icon: MessageSquare, label: "Conversaciones", badge: 12 },
-  { href: "/pedidos", icon: ShoppingCart, label: "Pedidos", badge: 8 },
+  { href: "/conversaciones", icon: MessageSquare, label: "Conversaciones", badge: conversationsCount },
+  { href: "/pedidos", icon: ShoppingCart, label: "Pedidos", badge: ordersCount },
   { href: "/productos", icon: Package, label: "Productos" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/pagos", icon: CreditCard, label: "Pagos" },
@@ -31,8 +31,14 @@ const navItems = [
   { href: "/configuracion", icon: Settings, label: "Configuración" },
 ]
 
-export default function SidebarNav() {
+interface SidebarNavProps {
+  conversationsCount?: number
+  ordersCount?: number
+}
+
+export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: SidebarNavProps) {
   const pathname = usePathname();
+  const navItems = getNavItems(conversationsCount, ordersCount);
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -64,10 +70,9 @@ export default function SidebarNav() {
                 />
               </div>
               
-              {/* Label Text & Badge */}
               <div className="pl-12 pr-3 flex items-center justify-between w-full transition-opacity duration-300 opacity-0 group-hover:opacity-100">
                 <span className="whitespace-nowrap">{item.label}</span>
-                {item.badge !== undefined && (
+                {item.badge !== undefined && item.badge > 0 && (
                   <span className={cn(
                     "px-1.5 py-0.5 rounded text-[10px] font-extrabold tracking-tight shrink-0 select-none",
                     isActive ? "bg-zinc-150 text-zinc-900" : "bg-zinc-100/80 text-zinc-500"
@@ -107,7 +112,7 @@ export default function SidebarNav() {
                 <span className="text-xs xl:text-sm font-extrabold text-zinc-900 truncate">Nova</span>
                 <span className="text-[9px] xl:text-[10px] font-bold text-emerald-650 uppercase tracking-wider shrink-0">• En línea</span>
               </div>
-              <div className="text-[10px] xl:text-xs font-semibold text-zinc-400 truncate">Tu asistente de ventas IA</div>
+              <div className="text-[10px] xl:text-xs font-semibold text-zinc-400 truncate">Copiloto de la plataforma</div>
             </div>
           </div>
 
@@ -122,9 +127,9 @@ export default function SidebarNav() {
             <span className="text-[9px] xl:text-[10px] font-bold text-zinc-400 tracking-wider uppercase block">Actividad reciente</span>
             <div className="space-y-2">
               {[
-                { text: "Recomendó 3 productos", time: "Hace 2 min" },
-                { text: "Envío link de pago", time: "Hace 5 min" },
-                { text: "Nuevo pedido creado", time: "Hace 12 min" }
+                { text: "Guio en configuración", time: "Hace 2 min" },
+                { text: "Ayudó con pasarela MP", time: "Hace 5 min" },
+                { text: "Explicó reporte de ventas", time: "Hace 12 min" }
               ].map((act, i) => (
                 <div key={i} className="flex items-center justify-between text-[10px] xl:text-xs text-zinc-655 font-semibold">
                   <div className="flex items-center gap-1.5 min-w-0">

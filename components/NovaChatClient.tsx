@@ -15,7 +15,18 @@ import {
   ShieldCheck, 
   ArrowRight,
   X,
-  Loader2
+  Loader2,
+  Brain,
+  ChevronDown,
+  Sparkles,
+  Mic,
+  Waves,
+  MessageSquare,
+  Plus,
+  Trash2,
+  MoreVertical,
+  AlignLeft,
+  FolderOpen
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -26,9 +37,18 @@ interface Message {
   sender: 'user' | 'bot'
   text: string
   time: string
-  type?: 'products_list' | 'discount_card' | 'text'
+  type?: 'products_list' | 'discount_card' | 'text' | 'product_created_card'
   products?: { name: string; sales: string; price: string }[]
   coupon?: { code: string; desc: string; validity: string; active: boolean }
+  productDetail?: {
+    name: string
+    status: string
+    category: string
+    description: string
+    price: string
+    stock: string
+    image: string
+  }
 }
 
 interface NovaChatClientProps {
@@ -46,39 +66,142 @@ interface NovaChatClientProps {
   activeProductsCount: number
   ordersCount: number
   activeChatsCount: number
+  initialSessions?: {
+    id: string
+    title: string
+    messages: Message[]
+    updatedAt: string
+  }[]
 }
+
+const formatSessionTime = (dateStr: string) => {
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return ''
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+  
+  const timeStr = d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })
+  
+  if (d.toDateString() === today.toDateString()) {
+    return `Hoy, ${timeStr}`
+  } else if (d.toDateString() === yesterday.toDateString()) {
+    return `Ayer, ${timeStr}`
+  } else {
+    const day = d.getDate()
+    const month = d.toLocaleString('es-ES', { month: 'short' })
+    return `${day} ${month}, ${timeStr}`
+  }
+}
+
+const DEMO_SESSIONS = [
+  {
+    id: 'demo-session-1',
+    title: 'Ayúdame a crear un nuevo...',
+    updatedAt: new Date().toISOString(),
+    messages: [
+      {
+        id: 'demo-msg-1',
+        sender: 'user' as const,
+        text: 'Ayúdame a crear un nuevo producto',
+        time: '10:24 AM',
+        type: 'text' as const
+      },
+      {
+        id: 'demo-msg-2',
+        sender: 'bot' as const,
+        text: "¡Excelente iniciativa! Para agregar un nuevo producto a tu catálogo de 'Tienda webs', necesito que me compartas los siguientes detalles: **Nombre del producto**, **Precio**, **Stock disponible** y una **breve descripción**. Una vez que me proporciones esta información, podré registrarlo de inmediato en tu panel. Mientras tanto, he preparado una estructura base para que veas cómo se procesará la creación.",
+        time: '10:24 AM',
+        type: 'products_list' as const,
+        products: [
+          { name: 'Nuevo Producto', sales: 'Stock: 0', price: '$0' }
+        ]
+      },
+      {
+        id: 'demo-msg-3',
+        sender: 'user' as const,
+        text: 'PC Gamer, 2000000, 99, crea tu la descripcion y colocale la categoria de tecnologia',
+        time: '10:25 AM',
+        type: 'text' as const
+      },
+      {
+        id: 'demo-msg-4',
+        sender: 'bot' as const,
+        text: "¡Listo! He creado el producto 'PC Gamer' en tu catálogo con un precio de $2.000.000 y un stock de 99 unidades. Le he asignado la categoría de Tecnología y una descripción atractiva para resaltar sus características. Ya está disponible para que tus clientes lo adquieran a través de tu link de checkout y el chatbot de WhatsApp.",
+        time: '10:25 AM',
+        type: 'product_created_card' as const,
+        productDetail: {
+          name: 'PC Gamer',
+          status: 'Creado',
+          category: 'Tecnología',
+          description: 'PC de alto rendimiento ideal para gaming, diseño y tareas exigentes. Procesador potente, gráficos dedicados y excelente refrigeración.',
+          price: '$2.000.000',
+          stock: 'Stock: 99',
+          image: '/images/pc-gamer.png'
+        }
+      }
+    ]
+  },
+  {
+    id: 'demo-session-2',
+    title: 'Muéstrame mis últimos pedi...',
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    messages: []
+  }
+]
 
 export default function NovaChatClient({
   merchantName,
   store,
   activeProductsCount,
   ordersCount,
-  activeChatsCount
+  activeChatsCount,
+  initialSessions = []
 }: NovaChatClientProps) {
   const [inputText, setInputText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [showMemoryModal, setShowMemoryModal] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Compute initials based on the real merchant name
-  const initials = merchantName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'DV'
-
-  // Preloaded greeting message using real database values
-  const [messages, setMessages] = useState<Message[]>(() => [
-    {
-      id: 'm1',
-      sender: 'bot',
-      text: `¡Hola ${merchantName.split(' ')[0]}! 👋 Soy Nova, tu asistente de ventas de FlashCheckout.\n¿En qué puedo ayudarte hoy para optimizar tu tienda "${store.name}"?`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      type: 'text'
+  // Layout main tag dynamic padding adjuster to achieve full screen layout
+  useEffect(() => {
+    const mainEl = document.querySelector('main')
+    if (mainEl) {
+      const originalClassName = mainEl.className
+      mainEl.classList.remove('px-4', 'md:px-8', 'pb-8', 'md:pb-12', 'pt-4', 'md:pt-6', 'lg:pl-12')
+      mainEl.classList.add('p-0', 'w-full', 'h-[calc(100vh-53px)]')
+      return () => {
+        mainEl.className = originalClassName
+      }
     }
-  ])
+  }, [])
 
-  // Scroll to bottom on new messages
+  // Auto-resize textarea to fit text length up to 200px max height
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = 'auto'
+      const nextHeight = Math.min(textarea.scrollHeight, 200)
+      textarea.style.height = `${nextHeight}px`
+    }
+  }, [inputText])
+
+  const [sessions, setSessions] = useState<any[]>(() => {
+    return initialSessions.length > 0 ? initialSessions : DEMO_SESSIONS
+  })
+  
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(() => {
+    return sessions.length > 0 ? sessions[0].id : null
+  })
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (sessions.length > 0) {
+      return sessions[0].messages
+    }
+    return []
+  })
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -92,7 +215,55 @@ export default function NovaChatClient({
     return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
-  // Send message to actual DeepSeek endpoint
+  const handleSelectSession = (sessionId: string) => {
+    const sess = sessions.find(s => s.id === sessionId)
+    if (sess) {
+      setActiveSessionId(sessionId)
+      setMessages(sess.messages)
+    }
+  }
+
+  const handleNewChat = () => {
+    setActiveSessionId(null)
+    setMessages([])
+  }
+
+  const handleDeleteSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation()
+    
+    // Si es demo, solo remover localmente
+    if (sessionId.startsWith('demo-')) {
+      setSessions(prev => prev.filter(s => s.id !== sessionId))
+      if (activeSessionId === sessionId) {
+        handleNewChat()
+      }
+      toast.success('Conversación eliminada')
+      return
+    }
+
+    if (!confirm('¿Estás seguro de que deseas eliminar esta conversación? 🗑️')) return
+
+    try {
+      const res = await fetch('/api/agent/nova', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      })
+
+      if (res.ok) {
+        setSessions(prev => prev.filter(s => s.id !== sessionId))
+        if (activeSessionId === sessionId) {
+          handleNewChat()
+        }
+        toast.success('Conversación eliminada')
+      } else {
+        throw new Error()
+      }
+    } catch {
+      toast.error('Error al eliminar la conversación')
+    }
+  }
+
   const handleSend = async (textToSend: string) => {
     if (!textToSend.trim()) return
 
@@ -114,10 +285,7 @@ export default function NovaChatClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: textToSend,
-          history: messages.slice(-10).map(m => ({
-            sender: m.sender,
-            text: m.text
-          }))
+          sessionId: activeSessionId?.startsWith('demo-') ? null : activeSessionId
         })
       })
 
@@ -134,7 +302,44 @@ export default function NovaChatClient({
         coupon: data.coupon
       }
 
+      // Check if it was a product creation action and transform it into a gorgeous created card
+      if (data.action?.type === 'CREATE_PRODUCT' && data.action.payload) {
+        botMsg.type = 'product_created_card'
+        botMsg.productDetail = {
+          name: data.action.payload.name || 'Producto',
+          status: 'Creado',
+          category: data.action.payload.category || 'Tecnología',
+          description: data.action.payload.description || 'Descripción del producto recién creado.',
+          price: `$${Number(data.action.payload.price || 0).toLocaleString('es-CO')}`,
+          stock: `Stock: ${data.action.payload.stock || 0}`,
+          image: '/images/pc-gamer.png'
+        }
+      }
+
       setMessages(prev => [...prev, botMsg])
+
+      const isDemo = activeSessionId?.startsWith('demo-')
+      if ((!activeSessionId || isDemo) && data.sessionId) {
+        setActiveSessionId(data.sessionId)
+        const newSess = {
+          id: data.sessionId,
+          title: textToSend.slice(0, 35) || 'Nuevo Chat',
+          messages: [userMsg, botMsg],
+          updatedAt: new Date().toISOString()
+        }
+        setSessions(prev => [newSess, ...prev].filter(s => !s.id.startsWith('demo-')))
+      } else if (activeSessionId) {
+        setSessions(prev => prev.map(s => {
+          if (s.id === activeSessionId) {
+            return {
+              ...s,
+              messages: [...s.messages, userMsg, botMsg],
+              updatedAt: new Date().toISOString()
+            }
+          }
+          return s
+        }))
+      }
     } catch {
       toast.error('Error al comunicarse con Nova')
       const errorMsg: Message = {
@@ -150,394 +355,477 @@ export default function NovaChatClient({
     }
   }
 
-  // Handle clicking on quick suggestions
   const handleSuggestionClick = (suggestion: string) => {
     let query = ''
     switch (suggestion) {
-      case 'producto':
-        query = 'Ayúdame a crear un nuevo producto'
-        break
-      case 'pedidos':
-        query = 'Muéstrame mis últimos pedidos pendientes'
-        break
-      case 'reporte':
-        query = 'Genera un reporte del rendimiento de ventas'
-        break
-      case 'descuento':
-        query = 'Crea un cupón de descuento activo'
-        break
-      case 'tienda':
-        query = `¿Cómo configuro el logo y apariencia de mi tienda ${store.name}?`
-        break
-      default:
-        query = suggestion
+      case 'producto': query = 'Ayúdame a crear un nuevo producto'; break
+      case 'pedidos': query = 'Muéstrame mis últimos pedidos pendientes'; break
+      case 'descuento': query = 'Crea un cupón de descuento activo'; break
+      default: query = suggestion
     }
     handleSend(query)
   }
 
-  return (
-    <div className="space-y-6 pb-2 animate-in duration-300 font-sans text-left">
-      
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-stretch">
-        
-        {/* LEFT COLUMN: Chat Console (8/12) */}
-        <div className="lg:col-span-8 flex flex-col justify-between border border-zinc-200 rounded-2xl bg-white shadow-none overflow-hidden h-[calc(100vh-140px)] min-h-[500px]">
-          
-          {/* Header */}
-          <header className="p-4 border-b border-zinc-150 flex items-center justify-between shrink-0 bg-white select-none">
-            <div className="text-left space-y-0.5">
-              <h2 className="text-lg font-black text-zinc-950 tracking-tight">Hablar con Nova</h2>
-              <p className="text-[10px] xl:text-xs font-semibold text-zinc-400">Tu asistente de ventas inteligente</p>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1 bg-zinc-50 border border-zinc-200/50 rounded-full">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] xl:text-xs font-bold text-zinc-800">Nova en línea</span>
-            </div>
-          </header>
+  const firstName = merchantName.split(' ')[0] || 'Comerciante'
 
-          {/* Conversation list */}
-          <div className="flex-1 overflow-y-auto p-4 xl:p-6 space-y-6 bg-zinc-50/50 scrollbar-none">
-            {messages.map((m) => {
-              const isBot = m.sender === 'bot'
-              return (
-                <div key={m.id} className={cn("flex gap-3 max-w-[85%] animate-in fade-in duration-200", isBot ? "mr-auto text-left" : "ml-auto flex-row-reverse text-right")}>
-                  
-                  {/* Avatar */}
-                  <div className="shrink-0 select-none">
-                    {isBot ? (
-                      <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-none">
-                        <Bot className="w-5 h-5" />
+  return (
+    <div className="flex w-full h-full bg-white font-sans text-left overflow-hidden select-none">
+      
+      <aside className="w-64 border-r border-zinc-200/80 bg-[#FAFAFA] flex flex-col shrink-0 h-full justify-between">
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="p-3">
+            <button 
+              onClick={handleNewChat}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nuevo Chat</span>
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto px-2 py-1 space-y-1.5 scrollbar-none select-none">
+            {sessions.length === 0 ? (
+              <div className="text-center py-8 text-zinc-400 text-xs font-semibold select-none leading-relaxed">
+                No hay chats guardados.
+                <br />
+                <span className="text-[10px] text-zinc-350">¡Escribe algo para comenzar!</span>
+              </div>
+            ) : (
+              sessions.map((s) => {
+                const isActive = activeSessionId === s.id
+                const formattedTime = formatSessionTime(s.updatedAt)
+                return (
+                  <div 
+                    key={s.id}
+                    onClick={() => handleSelectSession(s.id)}
+                    className={cn(
+                      "group w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-xs transition-all relative border cursor-pointer select-none",
+                      isActive 
+                        ? "bg-[#EEFDF7] text-[#065F46] font-bold border-[#A7F3D0]" 
+                        : "border-transparent text-zinc-650 hover:bg-zinc-100/50 hover:text-zinc-900"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors",
+                        isActive 
+                          ? "bg-[#D1FAE5] border-[#A7F3D0] text-[#065F46]" 
+                          : "bg-white border-zinc-200 text-zinc-400 group-hover:border-zinc-300 group-hover:text-zinc-650"
+                      )}>
+                        <MessageSquare className="w-4 h-4 stroke-[2px]" />
                       </div>
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-zinc-950 flex items-center justify-center text-white border border-zinc-900 shadow-none text-xs font-bold font-sans">
-                        {initials}
+                      <div className="min-w-0 flex-1 text-left">
+                        <span className={cn(
+                          "block truncate font-bold text-xs leading-none",
+                          isActive ? "text-[#065F46]" : "text-zinc-805"
+                        )}>
+                          {s.title}
+                        </span>
+                        {formattedTime && (
+                          <span className="block text-[10px] font-semibold text-zinc-400 mt-1.5 leading-none">
+                            {formattedTime}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button 
+                      onClick={(e) => handleDeleteSession(e, s.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-200/50 text-zinc-400 hover:text-red-650 rounded transition-all shrink-0 cursor-pointer absolute right-2.5 bg-transparent"
+                      title="Eliminar conversación"
+                    >
+                      <MoreVertical className="w-3.5 h-3.5 text-zinc-450" />
+                    </button>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="p-3 border-t border-zinc-200/60 bg-[#FAFAFA] shrink-0">
+          <button 
+            onClick={() => toast.info('Historial completo de conversaciones próximamente')}
+            className="w-full flex items-center justify-start gap-2.5 px-3 py-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 hover:text-zinc-900 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+          >
+            <AlignLeft className="w-4 h-4 text-zinc-500" />
+            <span>Ver todas las conversaciones</span>
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0 bg-white h-full relative">
+        <header className="flex items-center justify-between px-6 py-2.5 bg-white shrink-0 border-b border-zinc-100">
+          <div className="flex flex-col text-left">
+            <div className="flex items-center gap-1 text-base font-bold text-zinc-900 cursor-pointer hover:bg-zinc-50 px-2 py-0.5 rounded transition-colors group">
+              <span>Nova</span>
+              <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            </div>
+            <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold text-[#10B981] select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>En línea</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowMemoryModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-zinc-50 text-zinc-650 text-xs font-semibold rounded-lg border border-zinc-200 transition-all cursor-pointer shadow-sm active:scale-95"
+            >
+              <Brain className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Mostrar memoria</span>
+            </button>
+            <Link href="/dashboard/suscripcion">
+              <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm active:scale-95">
+                <Sparkles className="w-3.5 h-3.5 text-white fill-current animate-pulse" />
+                <span>Mejorar el plan</span>
+              </button>
+            </Link>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto w-full scrollbar-none flex flex-col items-center select-text">
+          {messages.length === 0 ? (
+            <div className="flex-1 w-full max-w-2xl mx-auto px-4 flex flex-col justify-center items-center text-center space-y-8 select-none py-12">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shadow-sm">
+                <Bot className="w-8 h-8" />
+              </div>
+              <h1 className="text-3xl font-medium text-zinc-800 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-300">
+                ¿Cómo puedo ayudarte, {firstName}?
+              </h1>
+              <div className="flex items-center gap-2 mt-4 flex-wrap justify-center w-full max-w-lg">
+                {[
+                  { label: '🛍️ Crear producto', value: 'producto' },
+                  { label: '📦 Ver pedidos', value: 'pedidos' },
+                  { label: '🏷️ Crear descuento', value: 'descuento' }
+                ].map((btn, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSuggestionClick(btn.value)}
+                    className="px-4 py-2.5 bg-white border border-zinc-200 hover:bg-zinc-50/50 hover:border-zinc-300 text-zinc-700 text-xs font-semibold rounded-full transition-all shadow-sm cursor-pointer select-none active:scale-95 animate-in fade-in duration-300"
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
+              {messages.map((m) => {
+                const isBot = m.sender === 'bot'
+                return (
+                  <div key={m.id} className={cn("flex w-full gap-4 items-start animate-in fade-in duration-200", isBot ? "justify-start text-left" : "justify-end text-left")}>
+                    {isBot && (
+                      <div className="shrink-0 select-none mt-0.5">
+                        <div className="w-8 h-8 rounded-full bg-[#10B981] flex items-center justify-center text-white shadow-sm">
+                          <Bot className="w-4.5 h-4.5 stroke-[2.5px]" />
+                        </div>
                       </div>
                     )}
-                  </div>
-
-                  {/* Message bubble */}
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex items-center gap-2 select-none">
-                      <span className="text-xs font-black text-zinc-800">{isBot ? 'Nova' : merchantName.split(' ')[0]}</span>
-                      <span className="text-[10px] font-semibold text-zinc-400">{m.time}</span>
-                    </div>
-
-                    <div className={cn(
-                      "p-3.5 rounded-2xl shadow-none text-xs xl:text-sm font-medium leading-relaxed break-words border",
-                      isBot 
-                        ? "bg-white border-zinc-200 text-zinc-850" 
-                        : "bg-[#6F42C1] border-[#5E32B0] text-white"
-                    )}>
-                      {/* Normal text renderer */}
-                      <p className="whitespace-pre-line">{m.text}</p>
-
-                      {/* Custom UI components based on reply type */}
-                      {isBot && m.type === 'products_list' && m.products && (
-                        <div className="mt-4 space-y-2">
-                          <div className="bg-zinc-50 border border-zinc-150 rounded-xl overflow-hidden divide-y divide-zinc-150">
-                            {m.products.map((p, idx) => (
-                              <div key={idx} className="p-3 flex items-center justify-between bg-white/50">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <span className="text-[10px] font-black text-zinc-400 w-4">{idx + 1}.</span>
-                                  <div className="min-w-0">
-                                    <h5 className="font-bold text-zinc-900 truncate text-xs xl:text-sm">{p.name}</h5>
-                                    <p className="text-[10px] font-semibold text-zinc-405 mt-0.5">{p.sales}</p>
+                    <div className={cn("min-w-0 max-w-[85%]", isBot ? "space-y-1.5" : "ml-auto")}>
+                      <div className={cn(
+                        "text-sm leading-relaxed font-medium",
+                        isBot 
+                          ? "text-zinc-805 bg-white py-1 px-1" 
+                          : "bg-[#F4F4F4] text-zinc-800 rounded-3xl px-5 py-3 ml-auto inline-block border border-zinc-200/40"
+                      )}>
+                        <p className="whitespace-pre-line">{m.text}</p>
+                        
+                        {isBot && m.type === 'products_list' && m.products && (
+                          <div className="mt-4 space-y-2">
+                            <div className="bg-[#FAFAFA] border border-zinc-200 rounded-xl p-1.5 space-y-1.5">
+                              {m.products.map((p, idx) => (
+                                <div key={idx} className="p-3.5 flex items-center justify-between bg-white rounded-lg border border-zinc-100 shadow-sm">
+                                  <div className="flex items-center gap-3.5 min-w-0">
+                                    <div className="w-10 h-10 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-zinc-500 font-bold text-sm">
+                                      {idx + 1}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h5 className="font-bold text-zinc-900 truncate text-xs xl:text-sm">{p.name}</h5>
+                                      <p className="text-xs font-semibold text-zinc-400 mt-1 leading-none">{p.sales}</p>
+                                    </div>
                                   </div>
+                                  <span className="font-bold text-zinc-900 text-xs xl:text-sm shrink-0">{p.price}</span>
                                 </div>
-                                <span className="font-black text-zinc-950 text-xs xl:text-sm shrink-0">{p.price}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <Link href="/productos" className="block w-full">
-                            <button className="w-full mt-2 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer">
-                              Ver inventario completo
-                            </button>
-                          </Link>
-                        </div>
-                      )}
-
-                      {isBot && m.type === 'discount_card' && m.coupon && (
-                        <div className="mt-4 space-y-2">
-                          <div className="bg-emerald-50/30 border border-emerald-100/60 rounded-xl p-3 flex items-center justify-between gap-3 text-left">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="px-2 py-1 bg-emerald-100 border border-emerald-250 rounded-lg text-emerald-800 font-black text-xs shrink-0">
-                                {m.coupon.code}
-                              </span>
-                              <div className="min-w-0">
-                                <h5 className="font-bold text-zinc-900 truncate text-xs xl:text-sm leading-tight">{m.coupon.desc}</h5>
-                                <p className="text-[10px] font-semibold text-zinc-400 mt-0.5">{m.coupon.validity}</p>
-                              </div>
+                              ))}
                             </div>
-                            <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black shrink-0 tracking-wide">
-                              • Activo
-                            </span>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Link href="/descuentos" className="flex-1">
-                              <button className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none cursor-pointer select-none">
-                                Ver descuento
+                            <Link href="/productos" className="block w-full">
+                              <button className="w-full mt-2 py-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer">
+                                <FolderOpen className="w-3.5 h-3.5 text-zinc-500" />
+                                <span>Ver inventario completo</span>
                               </button>
                             </Link>
-                            <button onClick={() => toast.success('Enlace de cupón copiado')} className="flex-1 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer select-none">
-                              Copiar cupón
-                            </button>
                           </div>
+                        )}
+
+                        {isBot && m.type === 'product_created_card' && m.productDetail && (
+                          <div className="mt-4 space-y-2">
+                            <div className="bg-[#FAFAFA] border border-zinc-200 rounded-xl p-4 flex items-center justify-between gap-4">
+                              <div className="flex items-start gap-4 min-w-0">
+                                <img 
+                                  src={m.productDetail.image} 
+                                  alt={m.productDetail.name} 
+                                  className="w-16 h-16 rounded-lg object-cover border border-zinc-200 bg-white shrink-0" 
+                                />
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <h5 className="font-bold text-zinc-955 text-sm">{m.productDetail.name}</h5>
+                                    <span className="px-2 py-0.5 bg-[#ECFDF5] text-[#10B981] border border-[#A7F3D0] rounded-full text-[9px] font-black uppercase tracking-wider">
+                                      {m.productDetail.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide mt-1.5">{m.productDetail.category}</p>
+                                  <p className="text-xs text-zinc-500 leading-relaxed mt-2.5 pr-2">{m.productDetail.description}</p>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end shrink-0 text-right">
+                                <span className="font-black text-zinc-955 text-sm xl:text-base">{m.productDetail.price}</span>
+                                <span className="text-[11px] font-semibold text-zinc-400 mt-1.5">{m.productDetail.stock}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isBot && m.type === 'discount_card' && m.coupon && (
+                          <div className="mt-4 space-y-2">
+                            <div className="bg-emerald-50/30 border border-emerald-100/60 rounded-lg p-3 flex items-center justify-between gap-3 text-left">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="px-2 py-1 bg-emerald-100 border border-emerald-250 rounded-lg text-emerald-800 font-black text-xs shrink-0">
+                                  {m.coupon.code}
+                                </span>
+                                <div className="min-w-0">
+                                  <h5 className="font-bold text-zinc-900 truncate text-xs xl:text-sm leading-tight">{m.coupon.desc}</h5>
+                                  <p className="text-[10px] font-semibold text-zinc-400 mt-0.5">{m.coupon.validity}</p>
+                                </div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black shrink-0 tracking-wide">
+                                • Activo
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Link href="/descuentos" className="flex-1">
+                                <button className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none cursor-pointer select-none">
+                                  Ver descuento
+                                </button>
+                              </Link>
+                              <button onClick={() => toast.success('Enlace de cupón copiado')} className="flex-1 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer select-none">
+                                Copiar cupón
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {isBot && (
+                        <div className="flex items-center gap-3 pl-1 pt-1.5 select-none opacity-60 hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(m.text)
+                              toast.success('Mensaje copiado al portapapeles')
+                            }} 
+                            className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" 
+                            title="Copiar mensaje"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => toast.success('Gracias por tu feedback')} className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" title="Me gusta">
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => toast.success('Gracias por tu feedback')} className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" title="No me gusta">
+                            <ThumbsDown className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       )}
                     </div>
-
-                    {/* Actions bar for bot replies */}
-                    {isBot && (
-                      <div className="flex items-center gap-3 pl-2 select-none">
-                        <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(m.text)
-                            toast.success('Mensaje copiado al portapapeles')
-                          }} 
-                          className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" 
-                          title="Copiar mensaje"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => toast.success('Gracias por tu feedback')} className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" title="Me gusta">
-                          <ThumbsUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => toast.success('Gracias por tu feedback')} className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" title="No me gusta">
-                          <ThumbsDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-
+                  </div>
+                )
+              })}
+              {isTyping && (
+                <div className="flex gap-4 items-start w-full text-left animate-pulse">
+                  <div className="shrink-0 select-none mt-0.5">
+                    <div className="w-8 h-8 rounded-full bg-[#10B981] flex items-center justify-center text-white shadow-sm">
+                      <Bot className="w-4.5 h-4.5" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="p-3 bg-zinc-50 border border-zinc-200/50 rounded-2xl shadow-none text-zinc-400 flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-zinc-450 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <div className="w-1.5 h-1.5 bg-zinc-450 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <div className="w-1.5 h-1.5 bg-zinc-450 rounded-full animate-bounce" />
+                    </div>
                   </div>
                 </div>
-              )
-            })}
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
 
-            {/* Simulated typing status */}
-            {isTyping && (
-              <div className="flex gap-3 max-w-[80%] mr-auto text-left animate-pulse">
-                <div className="shrink-0 select-none">
-                  <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-none">
-                    <Bot className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-xs font-black text-zinc-800">Nova</span>
-                  <div className="p-3 bg-white border border-zinc-200 rounded-2xl shadow-none text-zinc-400 flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                    <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                    <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input control box */}
-          <footer className="p-3 xl:p-4 border-t border-zinc-150 bg-white shrink-0 space-y-3">
-            
-            {/* Input textarea */}
-            <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 focus-within:border-zinc-950 focus-within:ring-2 focus-within:ring-zinc-100 transition-all">
-              <button onClick={() => toast.info('Adjuntar archivos estará disponible en producción')} className="text-zinc-400 hover:text-zinc-600 transition-colors shrink-0 cursor-pointer">
-                <Paperclip className="w-4.5 h-4.5" />
-              </button>
-              <textarea 
-                value={inputText}
-                onChange={e => setInputText(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSend(inputText)
-                  }
-                }}
-                rows={1}
-                placeholder="Escribe tu mensaje..."
-                className="flex-1 bg-transparent border-none focus:outline-none resize-none text-xs xl:text-sm font-semibold text-zinc-800 placeholder-zinc-400 py-1"
-              />
+        <footer className="w-full max-w-2xl mx-auto px-4 py-3 bg-white shrink-0 select-none border-t border-zinc-100/60">
+          <div className="relative flex items-end gap-3 bg-[#F4F4F4] border border-zinc-200/65 rounded-[24px] px-4 py-3.5 focus-within:border-zinc-350 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-100 transition-all">
+            <button 
+              onClick={() => toast.info('Cargar archivos estará disponible en la versión final')}
+              className="w-8 h-8 rounded-full bg-transparent hover:bg-zinc-200/50 border border-zinc-300 text-zinc-505 flex items-center justify-center transition-colors shrink-0 cursor-pointer mb-0.5"
+              title="Adjuntar archivo"
+            >
+              <Plus className="w-4.5 h-4.5" />
+            </button>
+            <textarea 
+              ref={textareaRef}
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSend(inputText)
+                }
+              }}
+              rows={1}
+              placeholder="Preguntar lo que quieras"
+              className="flex-1 bg-transparent border-none focus:outline-none resize-none text-sm font-semibold text-zinc-800 placeholder-zinc-400 py-1.5 select-text scrollbar-none min-h-[24px] max-h-[200px]"
+            />
+            <div className="flex items-center gap-2 shrink-0 mb-0.5">
               <button 
-                onClick={() => handleSend(inputText)}
-                disabled={!inputText.trim() || isTyping}
-                className="w-8 h-8 rounded-full bg-[#6F42C1] hover:bg-purple-700 text-white flex items-center justify-center transition-all disabled:opacity-40 shrink-0 cursor-pointer"
+                onClick={() => toast.info('Entrada de voz próximamente')}
+                className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-200/50 rounded-full transition-colors cursor-pointer"
+                title="Entrada de voz"
               >
-                <Send className="w-3.5 h-3.5" />
+                <Mic className="w-4.5 h-4.5" />
               </button>
-            </div>
-
-            {/* Quick action buttons list */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-none pb-0.5 justify-start">
-              {[
-                { label: 'Crear producto', value: 'producto' },
-                { label: 'Ver pedidos', value: 'pedidos' },
-                { label: 'Generar reporte', value: 'reporte' },
-                { label: 'Crear descuento', value: 'descuento' },
-                { label: 'Configurar tienda', value: 'tienda' }
-              ].map((btn, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSuggestionClick(btn.value)}
-                  className="px-3.5 py-1.5 bg-zinc-50 border border-zinc-200 hover:bg-zinc-100/50 hover:border-zinc-300 text-zinc-700 text-[11px] xl:text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer select-none active:scale-[0.97]"
+              <button 
+                onClick={() => toast.info('Modo de voz en tiempo real próximamente')}
+                className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-200/50 rounded-full transition-colors cursor-pointer"
+                title="Modo de voz"
+              >
+                <Waves className="w-4.5 h-4.5" />
+              </button>
+              {inputText.trim() && (
+                <button 
+                  onClick={() => handleSend(inputText)}
+                  disabled={isTyping}
+                  className="w-8 h-8 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white flex items-center justify-center transition-all disabled:opacity-40 cursor-pointer ml-1 shrink-0"
                 >
-                  {btn.label}
+                  <Send className="w-3.5 h-3.5" />
                 </button>
-              ))}
-            </div>
-          </footer>
-
-        </div>
-
-        {/* RIGHT COLUMN: Tooling and Store Context (4/12) */}
-        <div className="lg:col-span-4 space-y-6 text-left select-none">
-          
-          {/* Card 1: Nova puede ayudarte con */}
-          <div className="bg-white border border-zinc-200 rounded-2xl p-5 space-y-4 shadow-none">
-            <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800 uppercase tracking-wider">Nova puede ayudarte con:</h3>
-            
-            <div className="space-y-1">
-              {[
-                { label: 'Gestionar productos', desc: 'Crear, editar o eliminar productos', href: '/productos' },
-                { label: 'Ver pedidos y ventas', desc: 'Consultar pedidos, ventas y métricas', href: '/pedidos' },
-                { label: 'Crear descuentos', desc: 'Generar cupones y promociones', href: '/descuentos' },
-                { label: 'Configurar tienda', desc: 'Editar logo, colores y ajustes', href: '/tienda' },
-                { label: 'Respuestas automáticas', desc: 'Activar o desactivar plantillas', href: '/automatizaciones' }
-              ].map((tool, idx) => (
-                <Link 
-                  key={idx}
-                  href={tool.href}
-                  className="flex items-center justify-between p-2.5 hover:bg-zinc-50 rounded-xl transition-all group select-none"
-                >
-                  <div className="min-w-0">
-                    <h4 className="text-xs xl:text-sm font-extrabold text-zinc-900 group-hover:text-emerald-800 transition-colors leading-tight">{tool.label}</h4>
-                    <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 mt-0.5 truncate">{tool.desc}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-450 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-              ))}
-            </div>
-
-            <div className="h-px w-full bg-zinc-100 pt-1" />
-
-            <Link 
-              href="/automatizaciones" 
-              className="text-xs xl:text-sm font-bold text-[#6F42C1] hover:text-purple-700 flex items-center justify-between px-2 pt-1 select-none"
-            >
-              <span>Ver todas las herramientas</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {/* Card 2: Contexto de tu tienda */}
-          <div className="bg-white border border-zinc-200 rounded-2xl p-5 space-y-4 shadow-none">
-            <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800 uppercase tracking-wider">Contexto de tu tienda</h3>
-            
-            <div className="space-y-3.5">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-650 shrink-0">
-                  <Store className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-405 block tracking-wider uppercase leading-none">Tienda</span>
-                  <span className="text-xs xl:text-sm font-extrabold text-zinc-950 mt-1 block leading-none">{store.name}</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                  <Crown className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-405 block tracking-wider uppercase leading-none">Plan actual</span>
-                  <span className="text-xs xl:text-sm font-extrabold text-zinc-950 mt-1 block leading-none">
-                    {store.verificationLevel === 0 ? 'Básico' : 'Pro'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className={cn(
-                  "w-8 h-8 rounded-lg border flex items-center justify-center shrink-0",
-                  store.whatsappConnected ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-zinc-50 border-zinc-200 text-zinc-400"
-                )}>
-                  <CheckCircle className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-405 block tracking-wider uppercase leading-none">Estado WhatsApp</span>
-                  <span className={cn(
-                    "text-xs xl:text-sm font-extrabold mt-1 block leading-none",
-                    store.whatsappConnected ? "text-emerald-700" : "text-zinc-500"
-                  )}>
-                    {store.whatsappConnected ? 'Conectado' : 'Desconectado'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className={cn(
-                  "w-8 h-8 rounded-lg border flex items-center justify-center shrink-0",
-                  store.mpConnected ? "bg-blue-50 border-blue-100 text-blue-600" : "bg-zinc-50 border-zinc-200 text-zinc-400"
-                )}>
-                  <ShieldCheck className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-405 block tracking-wider uppercase leading-none">Conexión de pagos</span>
-                  <span className="text-xs xl:text-sm font-extrabold text-zinc-950 mt-1 block leading-none">
-                    {store.mpConnected ? 'Mercado Pago (Conectado)' : 'Mercado Pago (Desconectado)'}
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
-
-          {/* Card 3: Actividad de Nova */}
-          <div className="bg-white border border-zinc-200 rounded-2xl p-5 space-y-4 shadow-none">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800 uppercase tracking-wider">Actividad de tu Negocio</h3>
-            </div>
-
-            <div className="space-y-3 font-sans">
-              <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0" />
-                  <span className="truncate text-zinc-850">{activeProductsCount} productos activos</span>
-                </div>
-                <span className="text-[10px] text-zinc-400 shrink-0 ml-2 select-none">Catálogo</span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" />
-                  <span className="truncate text-zinc-850">{ordersCount} pedidos registrados</span>
-                </div>
-                <span className="text-[10px] text-zinc-400 shrink-0 ml-2 select-none">Ventas</span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0" />
-                  <span className="truncate text-zinc-850">{activeChatsCount} chats de clientes</span>
-                </div>
-                <span className="text-[10px] text-zinc-400 shrink-0 ml-2 select-none">WhatsApp</span>
-              </div>
-            </div>
-
-            <div className="h-px w-full bg-zinc-100 pt-1" />
-
-            <Link 
-              href="/conversaciones" 
-              className="text-xs xl:text-sm font-bold text-[#6F42C1] hover:text-purple-700 flex items-center justify-between px-2 pt-1 select-none"
-            >
-              <span>Ver bandeja de entrada</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-        </div>
-
+          <p className="text-[10px] text-zinc-400 text-center mt-2">
+            Nova puede cometer errores. Considera verificar la información importante.
+          </p>
+        </footer>
       </div>
 
+      {showMemoryModal && (
+        <div className="fixed inset-0 bg-black/45 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none">
+          <div className="bg-white border border-zinc-200 rounded-lg max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900 leading-none">Memoria de Nova</h3>
+                <p className="text-[10px] font-medium text-zinc-405 mt-1.5 leading-none">Contexto operativo y base de conocimientos activa</p>
+              </div>
+              <button 
+                onClick={() => setShowMemoryModal(false)}
+                className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-zinc-100 text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto space-y-5 text-left select-text">
+              <div className="p-3 bg-indigo-50/40 border border-indigo-100/50 rounded-lg text-[11px] font-semibold text-indigo-700 leading-normal">
+                🤖 Nova utiliza la información en tiempo real de tu base de datos y canales integrados para entender el contexto de tu negocio de forma automática.
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-xs font-black text-zinc-800 uppercase tracking-wider select-none">Contexto de la Tienda</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+                    <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">Tienda</span>
+                    <span className="text-xs font-bold text-zinc-800 mt-1 block truncate leading-none">{store.name}</span>
+                  </div>
+                  <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+                    <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">Plan Actual</span>
+                    <span className="text-xs font-bold text-zinc-800 mt-1 block truncate leading-none">
+                      {store.verificationLevel === 0 ? 'Básico' : 'Pro'}
+                    </span>
+                  </div>
+                  <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+                    <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">WhatsApp</span>
+                    <span className={cn(
+                      "text-xs font-bold mt-1 block leading-none",
+                      store.whatsappConnected ? "text-emerald-700 font-extrabold" : "text-zinc-500"
+                    )}>
+                      {store.whatsappConnected ? 'Conectado' : 'Desconectado'}
+                    </span>
+                  </div>
+                  <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+                    <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">Pagos MP</span>
+                    <span className={cn(
+                      "text-xs font-bold mt-1 block leading-none",
+                      store.mpConnected ? "text-blue-700 font-extrabold" : "text-zinc-500"
+                    )}>
+                      {store.mpConnected ? 'Conectado' : 'Desconectado'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-xs font-black text-zinc-800 uppercase tracking-wider select-none">Actividad de tu Negocio</h4>
+                <div className="bg-white border border-zinc-200 rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0" />
+                      <span className="truncate text-zinc-800">{activeProductsCount} productos activos</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 shrink-0 select-none">Inventario</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" />
+                      <span className="truncate text-zinc-800">{ordersCount} pedidos registrados</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 shrink-0 select-none">Ventas</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0" />
+                      <span className="truncate text-zinc-800">{activeChatsCount} chats de clientes</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 shrink-0 select-none">Mensajería</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-xs font-black text-zinc-800 uppercase tracking-wider select-none">Herramientas Asociadas</h4>
+                <div className="divide-y divide-zinc-100 bg-white border border-zinc-200 rounded-lg overflow-hidden">
+                  {[
+                    { label: 'Gestionar productos', href: '/productos' },
+                    { label: 'Ver pedidos y ventas', href: '/pedidos' },
+                    { label: 'Crear descuentos', href: '/descuentos' },
+                    { label: 'Configurar tienda', href: '/tienda' },
+                    { label: 'Respuestas automáticas', href: '/automatizaciones' }
+                  ].map((tool, idx) => (
+                    <Link 
+                      key={idx}
+                      href={tool.href}
+                      className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-955 transition-colors group text-xs font-bold"
+                    >
+                      <span>{tool.label}</span>
+                      <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="px-5 py-3 border-t border-zinc-100 flex justify-end bg-zinc-50/50 select-none">
+              <button 
+                onClick={() => setShowMemoryModal(false)}
+                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

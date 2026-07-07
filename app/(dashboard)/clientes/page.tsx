@@ -149,7 +149,7 @@ export default async function ClientesPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Directorio de Clientes</h1>
             <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Gestión de relación (CRM) — <span className="text-zinc-900 font-bold">Clientes y ventas históricas</span>
             </div>
           </div>

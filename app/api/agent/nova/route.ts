@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
-import { generateDeepSeekCompletion } from '@/lib/ai/deepseek'
+import { generateGroqCompletion } from '@/lib/ai/groq'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { message, history } = body
+    const { message, history, sessionId } = body
 
     if (!message) {
       return NextResponse.json({ error: 'Missing message' }, { status: 400 })
@@ -49,8 +49,8 @@ export async function POST(req: Request) {
       : 'No hay pedidos recientes.'
 
     // 3. Build System Prompt for DeepSeek
-    const systemPrompt = `Eres Nova, la Inteligencia Artificial y asistente de ventas del panel de control de FlashCheckout para la tienda "${store.name}".
-Tu propósito es ayudar al administrador (comerciante) a optimizar su negocio, gestionar sus productos, analizar ventas y automatizar su WhatsApp.
+    const systemPrompt = `Eres Nova, el copiloto inteligente y guía de la plataforma FlashCheckout para la tienda "${store.name}".
+Tu propósito principal es guiar y asistir al usuario (comerciante) dentro de la plataforma, ayudándole a navegar por el panel de control, configurar su tienda, gestionar productos, configurar pasarelas de pago, crear cupones de descuento, activar automatizaciones y resolver dudas operativas sobre el uso de la plataforma. Recuerda que tú no vendes directamente a los compradores finales (de eso se encarga el chatbot de WhatsApp y el link de checkout), sino que eres la guía y soporte del comerciante dentro del panel.
 
 Información actual de la tienda en tiempo real:
 - Nombre: ${store.name}
@@ -77,44 +77,198 @@ DEBES responder con un formato JSON estructurado que contenga los siguientes cam
     "desc": "Descripción del descuento",
     "validity": "Válido hasta: fecha",
     "active": true
+  },
+  "action": {
+    "type": "CREATE_PRODUCT | CREATE_COUPON | NONE",
+    "payload": {
+      "name": "Nombre del producto",
+      "price": 12000,
+      "stock": 10,
+      "description": "Breve descripción",
+      "code": "CÓDIGO_CUPÓN",
+      "desc": "Descripción",
+      "valor": "15%",
+      "tipo": "Código",
+      "tipoDesc": "Porcentaje",
+      "validoHasta": "fecha o texto"
+    }
   }
 }
 
-Reglas para definir "type":
+Reglas para definir "type" y "action":
 - Si el usuario te pregunta por los productos más vendidos, stock o catálogo general, usa "products_list" y llena la propiedad "products".
-- Si el usuario te pide crear un descuento, cupón o promoción, simula la creación del cupón, usa "discount_card" y llena la propiedad "coupon".
-- Para el resto de consultas conversacionales generales, usa "text" (y deja "products" y "coupon" vacíos o nulos).
+- Si el usuario te pide crear un descuento, cupón o promoción, usa "discount_card", llena la propiedad "coupon" y define la acción CREATE_COUPON en "action" con los datos correspondientes.
+- Si el usuario te pide explícitamente crear un producto, usa "products_list", llena la propiedad "products" con el producto que se creará y define la acción CREATE_PRODUCT en "action" con los datos correspondientes.
+- Si no hay ninguna base de datos o cambio que realizar (conversación normal), usa "text" para "type" y pon "action": null o {"type": "NONE", "payload": {}}.
 
-IMPORTANTE: Devuelve ÚNICAMENTE el objeto JSON válido. No uses bloques de código markdown como \`\`\`json ni texto explicativo adicional fuera del JSON.`
+IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento (<think>) extremadamente corto (máximo 2 o 3 líneas). Luego del razonamiento, debes responder únicamente con el objeto JSON válido. No uses bloques de código markdown como \`\`\`json ni texto explicativo adicional fuera del JSON. Devuelve ÚNICAMENTE el objeto JSON válido.`
 
-    // 4. Map client history to ChatMessage[] structure
-    const apiMessages = (history || []).map((h: any) => ({
+    // 4. Fetch session history or use new
+    let dbSession = null
+    let dbHistory: any[] = []
+    if (sessionId) {
+      dbSession = await prisma.novaChatSession.findUnique({
+        where: { id: sessionId }
+      })
+      if (dbSession && dbSession.storeId === store.id) {
+        dbHistory = Array.isArray(dbSession.messages) ? (dbSession.messages as any[]) : []
+      }
+    }
+
+    const apiMessages = dbHistory.slice(-10).map((h: any) => ({
       role: h.sender === 'bot' ? 'assistant' : 'user',
       content: h.text
     }))
     apiMessages.push({ role: 'user', content: message })
 
-    // 5. Invoke DeepSeek
-    const aiReplyText = await generateDeepSeekCompletion(apiMessages, systemPrompt)
+    // 5. Invoke Groq
+    const aiReplyText = await generateGroqCompletion(apiMessages, systemPrompt)
 
     // 6. Parse reply safely
     let jsonResponse: any
     try {
-      // Intentar limpiar posibles decoraciones de markdown que el modelo haya devuelto a pesar de la instrucción
-      const cleanedText = aiReplyText
+      let cleanedText = aiReplyText.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim()
+      
+      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        cleanedText = jsonMatch[0]
+      }
+      
+      cleanedText = cleanedText
         .replace(/```json/gi, '')
         .replace(/```/g, '')
         .trim()
+
       jsonResponse = JSON.parse(cleanedText)
+
+      // -- EJECUTAR ACCIONES EN LA BASE DE DATOS --
+      if (jsonResponse.action && jsonResponse.action.type && jsonResponse.action.type !== 'NONE') {
+        const { type, payload } = jsonResponse.action
+        
+        if (type === 'CREATE_PRODUCT' && payload) {
+          const newProd = await prisma.product.create({
+            data: {
+              name: payload.name || 'Nuevo Producto',
+              price: Number(payload.price || 0),
+              stock: Number(payload.stock || 0),
+              description: payload.description || '',
+              storeId: store.id,
+              active: true
+            }
+          })
+          
+          jsonResponse.products = [
+            {
+              name: newProd.name,
+              sales: `Stock: ${newProd.stock}`,
+              price: `$${newProd.price.toLocaleString('es-CO')}`
+            }
+          ]
+          jsonResponse.type = 'products_list'
+        }
+        
+        else if (type === 'CREATE_COUPON' && payload) {
+          const newCoupon = await prisma.coupon.create({
+            data: {
+              code: String(payload.code || 'PROMO').toUpperCase().trim(),
+              desc: payload.desc || 'Descuento creado por Nova',
+              tipo: payload.tipo || 'Código',
+              tipoDesc: payload.tipoDesc || 'Porcentaje',
+              valor: String(payload.valor || '10%'),
+              validoHasta: payload.validoHasta || 'Sin fecha límite',
+              estado: 'Activo',
+              storeId: store.id
+            }
+          })
+          
+          jsonResponse.coupon = {
+            code: newCoupon.code,
+            desc: newCoupon.desc,
+            validity: newCoupon.validoHasta,
+            active: true
+          }
+          jsonResponse.type = 'discount_card'
+        }
+      }
     } catch (e) {
       console.warn('[Nova Agent Route JSON Parse failed] Text was:', aiReplyText)
+      
+      // Intentar limpiar el texto para el fallback quitando el bloque <think> de forma robusta
+      const cleanFallbackText = aiReplyText
+        .replace(/<think>[\s\S]*?(<\/think>|$)/gi, '')
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim()
+
+      // Si parece un JSON pero falló el parseo (por ejemplo, si está truncado),
+      // intentar extraer solo el contenido del campo "text"
+      let textContent = cleanFallbackText
+      if (cleanFallbackText.includes('"text"')) {
+        const textMatch = cleanFallbackText.match(/"text"\s*:\s*"([\s\S]*?)"/)
+        if (textMatch) {
+          textContent = textMatch[1]
+        } else {
+          const partialMatch = cleanFallbackText.match(/"text"\s*:\s*"([\s\S]*)/)
+          if (partialMatch) {
+            // Limpiar comillas, comas o llaves de cierre rotas al final si quedó truncado
+            textContent = partialMatch[1]
+              .replace(/",?\s*$/, '')
+              .replace(/}\s*$/, '')
+              .trim()
+          }
+        }
+      }
+
       jsonResponse = {
-        text: aiReplyText || 'Disculpa, ocurrió un problema al procesar la respuesta de la IA. ¿Me lo puedes repetir?',
+        text: textContent || 'Disculpa, ocurrió un problema al procesar la respuesta de la IA. ¿Me lo puedes repetir?',
         type: 'text'
       }
     }
+    
+    // 7. Guardar historial de conversación en la base de datos
+    const userMessageObj = {
+      id: Math.random().toString(),
+      sender: 'user',
+      text: message,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      type: 'text'
+    }
+    
+    const botMessageObj = {
+      id: Math.random().toString(),
+      sender: 'bot',
+      text: jsonResponse.text || 'Entendido.',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      type: jsonResponse.type || 'text',
+      products: jsonResponse.products,
+      coupon: jsonResponse.coupon
+    }
 
-    return NextResponse.json(jsonResponse)
+    if (dbSession) {
+      const updatedHistory = [...dbHistory, userMessageObj, botMessageObj]
+      const newTitle = dbSession.title === 'Nuevo Chat' ? (message.slice(0, 35) || 'Chat') : dbSession.title
+      
+      await prisma.novaChatSession.update({
+        where: { id: dbSession.id },
+        data: {
+          messages: updatedHistory,
+          title: newTitle
+        }
+      })
+      
+      return NextResponse.json({ ...jsonResponse, sessionId: dbSession.id })
+    } else {
+      const newTitle = message.slice(0, 35) || 'Nuevo Chat'
+      const newSession = await prisma.novaChatSession.create({
+        data: {
+          title: newTitle,
+          storeId: store.id,
+          messages: [userMessageObj, botMessageObj]
+        }
+      })
+      
+      return NextResponse.json({ ...jsonResponse, sessionId: newSession.id })
+    }
 
   } catch (error: any) {
     console.error('Nova Agent API Error:', error)

@@ -32,7 +32,18 @@ import {
   Mail,
   Truck,
   Bell,
-  Users
+  Users,
+  Bot,
+  Settings,
+  MapPin,
+  Clock,
+  Calendar,
+  Shield,
+  ChevronDown,
+  Save,
+  Power,
+  Pencil,
+  Building2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import SubscriptionButton from '@/components/SubscriptionButton'
@@ -53,7 +64,28 @@ interface StoreSettingsData {
   mpUserId?: string | null;
   whatsappInstanceName?: string | null;
   whatsappConnected?: boolean;
+  settings?: any;
 }
+
+const TABS = [
+  { id: 'general', label: 'General' },
+  { id: 'perfil', label: 'Perfil del negocio' },
+  { id: 'pagos', label: 'Pagos' },
+  { id: 'notificaciones', label: 'Notificaciones' },
+  { id: 'usuarios', label: 'Usuarios' },
+  { id: 'seguridad', label: 'Seguridad' },
+  { id: 'actividad', label: 'Registro de actividad' },
+]
+
+const SCHEDULE_DAYS = [
+  { key: 'lunes',    label: 'Lunes',    from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
+  { key: 'martes',   label: 'Martes',   from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
+  { key: 'miercoles',label: 'Miércoles',from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
+  { key: 'jueves',   label: 'Jueves',   from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
+  { key: 'viernes',  label: 'Viernes',  from: '7:00 a. m.', to: '9:00 p. m.', enabled: true },
+  { key: 'sabado',   label: 'Sábado',   from: '8:00 a. m.', to: '9:00 p. m.', enabled: true },
+  { key: 'domingo',  label: 'Domingo',  from: '8:00 a. m.', to: '6:00 p. m.', enabled: true },
+]
 
 export default function StoreSettingsManager({
   initialStore,
@@ -62,19 +94,74 @@ export default function StoreSettingsManager({
   initialStore: StoreSettingsData
   isPro: boolean
 }) {
-  const [activeTab, setActiveTab] = useState<'general' | 'personalizacion' | 'dominios' | 'pagos' | 'envios' | 'notificaciones' | 'integraciones' | 'usuarios' | 'facturacion'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'perfil' | 'pagos' | 'notificaciones' | 'usuarios' | 'seguridad' | 'actividad'>('general')
   
+  const storeSettings = typeof initialStore.settings === 'object' && initialStore.settings !== null
+    ? (initialStore.settings as any)
+    : {}
+
   const [form, setForm] = useState({
     name: initialStore.name,
     whatsapp: initialStore.whatsapp,
     bio: initialStore.bio || '',
     category: initialStore.category || 'General',
     logoFile: null as File | null,
-    contactEmail: 'hola@tiendawebs.com',
-    currency: 'COP',
-    timezone: 'GMT-05:00',
-    isActive: true
+    contactEmail: storeSettings.contactEmail || 'hola@tiendawebs.com',
+    currency: storeSettings.currency || 'COP',
+    timezone: storeSettings.timezone || 'GMT-05:00',
+    language: storeSettings.language || 'es',
+    dateFormat: storeSettings.dateFormat || 'DD/MM/YYYY',
+    isActive: storeSettings.isActive ?? true,
+    botEnabled: storeSettings.botEnabled ?? true,
+    autoReply: storeSettings.autoReply ?? true,
+    humanHandoff: storeSettings.humanHandoff ?? true,
+    address: storeSettings.address || 'Calle 70 # 45-23',
+    city: storeSettings.city || 'Medellín',
+    department: storeSettings.department || 'Antioquia',
+    postalCode: storeSettings.postalCode || '050021',
+    country: storeSettings.country || 'Colombia',
   })
+
+  // Dynamic state bindings for the new tabs
+  const [bannerUrl, setBannerUrl] = useState<string | null>(storeSettings.bannerUrl || null)
+  const [brandColor, setBrandColor] = useState<string>(storeSettings.brandColor || '#10B981')
+  const [instagramUrl, setInstagramUrl] = useState<string>(storeSettings.instagramUrl || '')
+  const [facebookUrl, setFacebookUrl] = useState<string>(storeSettings.facebookUrl || '')
+  const [tiktokUrl, setTiktokUrl] = useState<string>(storeSettings.tiktokUrl || '')
+  const [websiteUrl, setWebsiteUrl] = useState<string>(storeSettings.websiteUrl || '')
+
+  const [notifications, setNotifications] = useState({
+    orderWhatsapp: storeSettings.notifications?.orderWhatsapp ?? true,
+    orderEmail: storeSettings.notifications?.orderEmail ?? false,
+    resumenEmail: storeSettings.notifications?.resumenEmail ?? true,
+    resumenWhatsapp: storeSettings.notifications?.resumenWhatsapp ?? false,
+    stockWhatsapp: storeSettings.notifications?.stockWhatsapp ?? true,
+    stockEmail: storeSettings.notifications?.stockEmail ?? true,
+    esperaWhatsapp: storeSettings.notifications?.esperaWhatsapp ?? true,
+    esperaEmail: storeSettings.notifications?.esperaEmail ?? false,
+  })
+
+  const defaultTeam = [
+    { name: initialStore.name + ' Admin', email: 'admin@tiendawebs.com', role: 'Propietario', active: true },
+    { name: 'Diana Gómez', email: 'diana@tiendawebs.com', role: 'Administrador', active: true },
+    { name: 'Soporte Ventas', email: 'ventas@tiendawebs.com', role: 'Soporte / Chat', active: false }
+  ]
+  const [team, setTeam] = useState<any[]>(storeSettings.team || defaultTeam)
+
+  const [doubleFactor, setDoubleFactor] = useState<boolean>(storeSettings.security?.doubleFactor ?? false)
+  const [autologout, setAutologout] = useState<boolean>(storeSettings.security?.autologout ?? true)
+  const [apiToken, setApiToken] = useState<string>(storeSettings.security?.apiToken || 'flash_token_live_38294hjda8921jkdskla')
+
+  const defaultLogs = [
+    { event: 'Inicio de sesión exitoso', detail: 'Ingreso desde Medellín, CO (Chrome/Windows)', user: initialStore.name + ' Admin', time: 'Hoy, 08:34 a. m.' },
+    { event: 'Panel configurado', detail: 'Se cargaron los ajustes de inicialización', user: 'Sistema', time: 'Hace unos instantes' }
+  ]
+  const [activityLog, setActivityLog] = useState<any[]>(storeSettings.activityLog || defaultLogs)
+
+  const [schedule, setSchedule] = useState(storeSettings.schedule || SCHEDULE_DAYS)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [editingAddress, setEditingAddress] = useState(false)
+  const [editingSchedule, setEditingSchedule] = useState(false)
 
   const [mpConnected, setMpConnected] = useState(!!initialStore.mpConnected)
   const [mpPublicKey, setMpPublicKey] = useState(initialStore.mpPublicKey || '')
@@ -84,14 +171,12 @@ export default function StoreSettingsManager({
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  // WhatsApp QR States
   const [whatsappConnected, setWhatsappConnected] = useState(!!initialStore.whatsappConnected)
   const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null)
   const [qrCodeText, setQrCodeText] = useState<string | null>(null)
   const [loadingQr, setLoadingQr] = useState(false)
   const [pollingStatus, setPollingStatus] = useState(false)
 
-  // Public Storefront URL construction
   const storefrontUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/tienda/${initialStore.name.toLowerCase().replace(/\s+/g, '-')}`
     : `http://localhost:3000/tienda/tienda-webs`
@@ -121,10 +206,7 @@ export default function StoreSettingsManager({
       if (initialStore.whatsappInstanceName) {
         try {
           const res = await fetch('/api/whatsapp/instance')
-          if (!res.ok) {
-            console.warn("checkInitialStatus got response status", res.status)
-            return
-          }
+          if (!res.ok) { console.warn("checkInitialStatus got response status", res.status); return }
           const data = await res.json()
           if (data.status === 'CONNECTED') {
             setWhatsappConnected(true)
@@ -147,10 +229,7 @@ export default function StoreSettingsManager({
       intervalId = setInterval(async () => {
         try {
           const res = await fetch('/api/whatsapp/instance');
-          if (!res.ok) {
-            console.warn("pollingStatus got response status", res.status)
-            return
-          }
+          if (!res.ok) { console.warn("pollingStatus got response status", res.status); return }
           const data = await res.json();
           if (data.status === 'CONNECTED') {
             setWhatsappConnected(true);
@@ -170,9 +249,7 @@ export default function StoreSettingsManager({
         }
       }, 3000);
     }
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
+    return () => { if (intervalId) clearInterval(intervalId); };
   }, [pollingStatus, whatsappConnected, qrCodeBase64]);
 
   async function handleConnectWhatsApp() {
@@ -204,9 +281,7 @@ export default function StoreSettingsManager({
   async function handleDisconnectWhatsApp() {
     setLoadingQr(true);
     try {
-      const res = await fetch('/api/whatsapp/instance', {
-        method: 'DELETE'
-      });
+      const res = await fetch('/api/whatsapp/instance', { method: 'DELETE' });
       if (!res.ok) throw new Error('Fallo al desconectar');
       setWhatsappConnected(false);
       setQrCodeBase64(null);
@@ -237,20 +312,13 @@ export default function StoreSettingsManager({
   async function handleDisconnectMercadoPago() {
     setDisconnectingMp(true)
     try {
-      const res = await fetch('/api/stores/disconnect-mercadopago', {
-        method: 'POST',
-      })
+      const res = await fetch('/api/stores/disconnect-mercadopago', { method: 'POST' })
       if (!res.ok) throw new Error('Error al desconectar')
-      
       setMpConnected(false)
       setMpPublicKey('')
-      toast.success("Mercado Pago desconectado", {
-        description: "Se han removido las credenciales del comercio."
-      })
+      toast.success("Mercado Pago desconectado", { description: "Se han removido las credenciales del comercio." })
     } catch (error) {
-      toast.error("Error al desconectar", {
-        description: "No se pudo desconectar tu cuenta de Mercado Pago. Inténtalo de nuevo."
-      })
+      toast.error("Error al desconectar", { description: "No se pudo desconectar tu cuenta de Mercado Pago. Inténtalo de nuevo." })
     } finally {
       setDisconnectingMp(false)
     }
@@ -275,25 +343,62 @@ export default function StoreSettingsManager({
     if (e) e.preventDefault()
     setLoading(true)
     setSuccess(false)
-
     try {
       let finalLogoUrl: string | null | undefined = undefined
-
       if (form.logoFile) {
         const formData = new FormData()
         formData.append('file', form.logoFile)
-        
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        })
-        
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
         if (!uploadRes.ok) throw new Error('Falló subida')
         const uploadData = await uploadRes.json()
         finalLogoUrl = uploadData.url
       } else if (logoPreview === null) {
         finalLogoUrl = null
       }
+
+      // Build updated settings JSON payload
+      const updatedSettings = {
+        bannerUrl,
+        brandColor,
+        instagramUrl,
+        facebookUrl,
+        tiktokUrl,
+        websiteUrl,
+        notifications,
+        team,
+        schedule,
+        security: {
+          doubleFactor,
+          autologout,
+          apiToken
+        },
+        contactEmail: form.contactEmail,
+        currency: form.currency,
+        timezone: form.timezone,
+        language: form.language,
+        dateFormat: form.dateFormat,
+        isActive: form.isActive,
+        botEnabled: form.botEnabled,
+        autoReply: form.autoReply,
+        humanHandoff: form.humanHandoff,
+        address: form.address,
+        city: form.city,
+        department: form.department,
+        postalCode: form.postalCode,
+        country: form.country,
+        activityLog: [
+          {
+            event: 'Configuración guardada',
+            detail: 'Se actualizaron los ajustes de la tienda',
+            user: initialStore.name + ' Admin',
+            time: 'Hace unos instantes'
+          },
+          ...activityLog.slice(0, 15) // Keep last 15 entries
+        ]
+      }
+
+      // Optimistically show the save action in the audit logs tab
+      setActivityLog(updatedSettings.activityLog)
 
       const res = await fetch('/api/stores', {
         method: 'PUT',
@@ -304,416 +409,372 @@ export default function StoreSettingsManager({
           bio: form.bio,
           category: form.category,
           ...(finalLogoUrl !== undefined && { logoUrl: finalLogoUrl }),
+          settings: updatedSettings
         }),
       })
-
       if (!res.ok) throw new Error('Fallo guardando datos')
-      
       setForm(prev => ({ ...prev, logoFile: null }))
       setSuccess(true)
-      toast.success("Configuración sincronizada", {
-        description: "Los cambios ya son visibles en tu tienda pública."
-      })
+      toast.success("Configuración sincronizada", { description: "Los cambios ya son visibles en tu tienda pública." })
       setTimeout(() => setSuccess(false), 3000)
-
     } catch (error) {
       console.error(error)
-      toast.error("Error de sincronización", {
-        description: "No pudimos guardar los cambios. Revisa tu conexión e intenta de nuevo."
-      })
+      toast.error("Error de sincronización", { description: "No pudimos guardar los cambios. Revisa tu conexión e intenta de nuevo." })
     } finally {
       setLoading(false)
     }
   }
 
+  const handleInviteUser = () => {
+    const name = prompt('Ingrese el nombre del nuevo miembro:')
+    if (!name) return
+    const email = prompt('Ingrese el correo electrónico del miembro:')
+    if (!email) return
+    
+    const newUser = {
+      name,
+      email,
+      role: 'Soporte / Chat',
+      active: true
+    }
+    setTeam(prev => [...prev, newUser])
+    toast.success(`${name} invitado(a) al equipo`)
+  }
+
+  const handleToggleUser = (idx: number) => {
+    setTeam(prev => prev.map((u, i) => i === idx ? { ...u, active: !u.active } : u))
+  }
+
+  const handleBannerUrlChange = () => {
+    const url = prompt('Ingrese la URL de la imagen de portada o banner:')
+    if (url !== null) {
+      setBannerUrl(url || null)
+    }
+  }
+
+  const handleRegenerateToken = () => {
+    const newToken = 'flash_token_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    setApiToken(newToken)
+    toast.success('Nuevo Token de API generado. ¡Guarda los cambios para aplicarlo!')
+  }
+
   function handleCopyLink() {
     navigator.clipboard.writeText(storefrontUrl)
-    toast.success("¡Enlace copiado!", {
-      description: "El enlace a tu tienda ha sido copiado al portapapeles."
-    })
+    toast.success("¡Enlace copiado!", { description: "El enlace a tu tienda ha sido copiado al portapapeles." })
+  }
+
+  // ─── Toggle helper ───────────────────────────────────────────
+  function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+          checked ? "bg-emerald-500" : "bg-zinc-200"
+        )}
+      >
+        <span
+          className={cn(
+            "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+            checked ? "translate-x-5" : "translate-x-0"
+          )}
+        />
+      </button>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Encabezado General */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+    <div className="space-y-6 pb-12 animate-in duration-300 font-sans text-left">
+      {/* ── Header ────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 select-none">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Ajustes de Tienda</h1>
-          <p className="text-xs font-medium text-zinc-500 mt-1">
-            Personaliza la información y configuración de tu tienda online.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Configuración</h1>
+          <p className="text-[12px] font-medium text-zinc-500 mt-1">Administra los ajustes generales de tu negocio.</p>
         </div>
-
         <button
           onClick={() => handleSubmit()}
           disabled={loading}
-          className="flex items-center justify-center gap-2 h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-none border border-emerald-500 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-2 h-9 px-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-none border border-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer select-none"
         >
-          {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Check className="w-3.5 h-3.5" />
-          )}
+          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           <span>Guardar cambios</span>
         </button>
       </div>
 
-      {/* Cuerpo Principal de Ajustes: Menú Lateral y Formulario */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* 1. Menú Lateral de Ajustes (Columna Izquierda, spans 3/12) */}
-        <div className="lg:col-span-3 flex flex-col space-y-1.5 select-none pr-2">
-          {[
-            { id: 'general', label: 'Información General' },
-            { id: 'personalizacion', label: 'Personalización' },
-            { id: 'dominios', label: 'Dominios' },
-            { id: 'pagos', label: 'Métodos de Pago' },
-            { id: 'envios', label: 'Envíos' },
-            { id: 'notificaciones', label: 'Notificaciones' },
-            { id: 'integraciones', label: 'Integraciones' },
-            { id: 'usuarios', label: 'Usuarios' },
-            { id: 'facturacion', label: 'Facturación' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={cn(
-                "w-full flex items-center py-2.5 px-3 rounded-none text-xs transition-all text-left cursor-pointer bg-transparent border-y-transparent border-r-transparent border-l-2",
-                activeTab === tab.id
-                  ? "text-emerald-600 font-bold border-emerald-500"
-                  : "text-zinc-650 hover:text-zinc-900 font-semibold border-transparent"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* ── Tab Navigation ────────────────────────────────── */}
+      <div className="flex border-b border-zinc-200 overflow-x-auto scrollbar-none whitespace-nowrap gap-6 select-none">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={cn(
+              "pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0",
+              activeTab === tab.id
+                ? 'border-emerald-500 text-emerald-700'
+                : 'border-transparent text-zinc-400 hover:text-zinc-700'
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        {/* 2. Tarjeta del Formulario Principal (Columna Central, spans 5/12) */}
-        <div className="lg:col-span-5 space-y-5">
-          
-          {/* TAB: INFORMACIÓN GENERAL */}
+      {/* ── Main Two-Column Layout ──────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        {/* ─── LEFT / CENTER CONTENT ─── */}
+        <div className="lg:col-span-8 space-y-6">
+
+          {/* ════════ TAB: GENERAL ════════ */}
           {activeTab === 'general' && (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              
-              {/* Bloque: Información General */}
-              <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900">Información General</h3>
-                  <p className="text-xs text-zinc-500 mt-1">Actualiza la información básica de tu tienda.</p>
+            <>
+              {/* Perfil del negocio */}
+              <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-900">Perfil del negocio</h3>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Información básica de tu tienda.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingProfile(!editingProfile)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar información
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Nombre de la tienda */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500">Nombre de la tienda</label>
-                    <input
-                      type="text"
-                      required
-                      value={form.name}
-                      onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                      placeholder="Nombre comercial"
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
-                    />
-                  </div>
+                <div className="p-6">
+                  <div className="flex items-start gap-6">
+                    {/* Logo */}
+                    <div className="flex flex-col items-center gap-2 shrink-0">
+                      <div className="w-20 h-20 rounded-xl border border-zinc-200 bg-zinc-50 flex items-center justify-center overflow-hidden">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <Store className="w-8 h-8 text-zinc-300" />
+                        )}
+                      </div>
+                      <label className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 hover:text-zinc-800 cursor-pointer transition-colors">
+                        <ImagePlus className="w-3 h-3" />
+                        Editar logo
+                        <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleLogoSelect} />
+                      </label>
+                    </div>
 
-                  {/* Correo de contacto */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500">Correo de contacto</label>
-                    <input
-                      type="email"
-                      required
-                      value={form.contactEmail}
-                      onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))}
-                      placeholder="ejemplo@correo.com"
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
-                    />
-                  </div>
+                    {/* Fields */}
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-zinc-500 block">Nombre de la tienda</label>
+                        {editingProfile ? (
+                          <input
+                            type="text"
+                            value={form.name}
+                            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                          />
+                        ) : (
+                          <p className="text-sm font-semibold text-zinc-800">{form.name}</p>
+                        )}
+                      </div>
 
-                  {/* Descripción de la tienda */}
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-[11px] font-bold text-zinc-500">Descripción</label>
-                    <div className="relative">
-                      <textarea
-                        rows={3}
-                        value={form.bio}
-                        onChange={e => setForm(f => ({ ...f, bio: e.target.value.slice(0, 160) }))}
-                        placeholder="Tienda online de productos naturales..."
-                        className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all resize-none leading-relaxed"
-                      />
-                      <div className="absolute bottom-2 right-3.5 text-[9px] font-bold text-zinc-400">
-                        {form.bio.length} / 160
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-zinc-500 block">Correo electrónico</label>
+                        {editingProfile ? (
+                          <input
+                            type="email"
+                            value={form.contactEmail}
+                            onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                          />
+                        ) : (
+                          <p className="text-sm font-semibold text-zinc-800">{form.contactEmail}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-zinc-500 block">Teléfono</label>
+                        {editingProfile ? (
+                          <input
+                            type="text"
+                            value={form.whatsapp}
+                            onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                          />
+                        ) : (
+                          <p className="text-sm font-semibold text-zinc-800">{form.whatsapp}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <label className="text-[11px] font-bold text-zinc-500 block">Descripción</label>
+                        {editingProfile ? (
+                          <div className="relative">
+                            <textarea
+                              rows={2}
+                              value={form.bio}
+                              onChange={e => setForm(f => ({ ...f, bio: e.target.value.slice(0, 160) }))}
+                              className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all resize-none"
+                            />
+                            <div className="absolute bottom-2 right-3 text-[9px] font-bold text-zinc-400">{form.bio.length}/160</div>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-semibold text-zinc-800">{form.bio || <span className="text-zinc-400">Sin descripción</span>}</p>
+                        )}
                       </div>
                     </div>
                   </div>
-
-                  {/* Teléfono de contacto */}
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-[11px] font-bold text-zinc-500">Teléfono de contacto</label>
-                    <input
-                      type="text"
-                      required
-                      value={form.whatsapp}
-                      onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
-                      placeholder="+57 300 123 4567"
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
-                    />
-                  </div>
                 </div>
               </div>
 
-              {/* Bloque: Logo de la tienda */}
-              <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900">Logo de la tienda</h3>
-                  <p className="text-xs text-zinc-500 mt-1">Este logo se mostrará en tu tienda y en los catálogos.</p>
+              {/* Dirección del negocio */}
+              <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-900">Dirección del negocio</h3>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Esta información se mostrará en tu tienda y documentos.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingAddress(!editingAddress)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </button>
                 </div>
-
-                <div className="flex items-center gap-6">
-                  {logoPreview ? (
-                    <div className="w-18 h-18 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50 relative shrink-0">
-                      <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                <div className="p-6">
+                  {editingAddress ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[
+                        { key: 'address', label: 'Dirección' },
+                        { key: 'country', label: 'País' },
+                        { key: 'city', label: 'Ciudad' },
+                        { key: 'department', label: 'Departamento' },
+                        { key: 'postalCode', label: 'Código postal' },
+                      ].map(f => (
+                        <div key={f.key} className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-zinc-500 block">{f.label}</label>
+                          <input
+                            type="text"
+                            value={(form as any)[f.key]}
+                            onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                          />
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="w-18 h-18 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-bold text-zinc-400">Sin logo</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
+                      {[
+                        { label: 'Dirección', value: form.address },
+                        { label: 'País', value: form.country },
+                        { label: 'Ciudad', value: form.city },
+                        { label: 'Departamento', value: form.department },
+                        { label: 'Código postal', value: form.postalCode },
+                      ].map(item => (
+                        <div key={item.label}>
+                          <p className="text-[11px] font-bold text-zinc-400 mb-0.5">{item.label}</p>
+                          <p className="text-sm font-semibold text-zinc-800">{item.value}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
-
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 h-8 px-3.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-xs font-semibold shadow-none transition-all active:scale-95 cursor-pointer">
-                      <ImagePlus className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Subir nuevo logo</span>
-                      <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleLogoSelect} />
-                    </label>
-
-                    {logoPreview && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveLogo}
-                        className="flex items-center justify-center w-8 h-8 bg-white border border-zinc-200 hover:bg-zinc-50 text-red-500 rounded-lg shadow-none transition-all active:scale-95 cursor-pointer"
-                        title="Eliminar logo"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
 
-              {/* Bloque: Moneda y zona horaria */}
-              <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900">Moneda y zona horaria</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Moneda */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500">Moneda</label>
-                    <select
-                      value={form.currency}
-                      onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-2.5 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all cursor-pointer"
-                    >
-                      <option value="COP">Peso Colombiano (COP) - $</option>
-                      <option value="USD">Dólar Americano (USD) - $</option>
-                      <option value="MXN">Peso Mexicano (MXN) - $</option>
-                      <option value="EUR">Euro (EUR) - €</option>
-                    </select>
-                  </div>
-
-                  {/* Zona Horaria */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500">Zona horaria</label>
-                    <select
-                      value={form.timezone}
-                      onChange={e => setForm(f => ({ ...f, timezone: e.target.value }))}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-2.5 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all cursor-pointer"
-                    >
-                      <option value="GMT-05:00">(GMT-05:00) Bogotá, Lima, Quito</option>
-                      <option value="GMT-06:00">(GMT-06:00) Ciudad de México</option>
-                      <option value="GMT-04:00">(GMT-04:00) Caracas, La Paz</option>
-                      <option value="GMT-03:00">(GMT-03:00) Buenos Aires, Santiago</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bloque: Estado de la tienda */}
-              <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900">Estado de la tienda</h3>
-                  <p className="text-xs text-zinc-500 mt-1">Activa o desactiva tu tienda online.</p>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
+              {/* Horario de atención */}
+              <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
                   <div>
-                    <h4 className="text-xs font-bold text-zinc-900">Tienda visible</h4>
-                    <p className="text-[10px] text-zinc-550 font-semibold mt-0.5">Permite que tus clientes ingresen y compren en línea.</p>
+                    <h3 className="text-sm font-bold text-zinc-900">Horario de atención</h3>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Configura los horarios en los que tu negocio está disponible.</p>
                   </div>
-
-                  <label className="relative inline-flex items-center cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer"
-                      checked={form.isActive}
-                      onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
-                    />
-                    <div className="w-11 h-6 bg-zinc-200 rounded-full peer peer-focus:ring-0 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSchedule(!editingSchedule)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    {editingSchedule ? 'Listo' : 'Editar horario'}
+                  </button>
                 </div>
-              </div>
-
-              {/* Categorías */}
-              <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-zinc-900">Categoría comercial</h3>
-                  <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                    {form.category}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { id: 'Moda', icon: Shirt, label: 'Moda' },
-                    { id: 'Tecnología', icon: Smartphone, label: 'Tecnología' },
-                    { id: 'Hogar', icon: Home, label: 'Hogar' },
-                    { id: 'Belleza', icon: Sparkles, label: 'Belleza' },
-                    { id: 'Comida', icon: Utensils, label: 'Comida' },
-                    { id: 'Deportes', icon: Dumbbell, label: 'Deportes' },
-                    { id: 'Juguetes', icon: Gamepad2, label: 'Juguetes' },
-                    { id: 'Otros', icon: MoreHorizontal, label: 'Otros' },
-                  ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, category: cat.id }))}
-                      className={cn(
-                        "flex items-center gap-2 p-2.5 rounded-lg border transition-all text-left cursor-pointer active:scale-95",
-                        form.category === cat.id
-                          ? "bg-emerald-50 border-emerald-500 text-emerald-800"
-                          : "bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50"
-                      )}
-                    >
-                      <cat.icon className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-bold tracking-tight">{cat.label}</span>
-                    </button>
+                <div className="divide-y divide-zinc-100">
+                  {schedule.map((day, idx) => (
+                    <div key={day.key} className="flex items-center justify-between px-6 py-3">
+                      <span className="text-xs font-semibold text-zinc-700 w-24 shrink-0">{day.label}</span>
+                      <span className="text-xs font-semibold text-zinc-500 flex-1">
+                        {day.enabled ? `${day.from} - ${day.to}` : <span className="text-zinc-300">Cerrado</span>}
+                      </span>
+                      <Toggle
+                        checked={day.enabled}
+                        onChange={(v) => setSchedule(prev => prev.map((d, i) => i === idx ? { ...d, enabled: v } : d))}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
-
-            </form>
+            </>
           )}
 
-          {/* TAB: MÉTODOS DE PAGO */}
+          {/* ════════ TAB: PAGOS ════════ */}
           {activeTab === 'pagos' && (
-            <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-6">
-              <div>
+            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+              <div className="px-6 py-4 border-b border-zinc-100">
                 <h3 className="text-sm font-bold text-zinc-900">Métodos de Pago</h3>
-                <p className="text-xs text-zinc-500 mt-1">
-                  Conecta tus pasarelas para recaudar fondos directamente de las compras de tus clientes.
-                </p>
+                <p className="text-xs text-zinc-500 mt-1">Conecta tus pasarelas para recaudar fondos directamente de las compras de tus clientes.</p>
               </div>
-
-              <div className="space-y-4">
-                {/* Stripe Connect Gateway */}
-                <div className="p-5 bg-zinc-50 border border-zinc-200 rounded-lg space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#635BFF] text-white flex items-center justify-center">
-                        <Zap className="w-4 h-4 fill-current" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-zinc-900">Stripe Connect</h4>
-                        <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Pasarela Global</p>
-                      </div>
+              <div className="p-6 space-y-4">
+                {/* Stripe */}
+                <div className="flex items-start justify-between p-4 bg-zinc-50 border border-zinc-200 rounded-lg gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#635BFF] text-white flex items-center justify-center shrink-0">
+                      <Zap className="w-5 h-5 fill-current" />
                     </div>
-
-                    {initialStore.stripeConnectAccountId ? (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100 text-emerald-700 uppercase tracking-wider">
-                        Conectado
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-400 uppercase tracking-wider">
-                        Desconectado
-                      </span>
-                    )}
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">Stripe Connect</h4>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Global · Tarjetas, Apple Pay, Google Pay</p>
+                    </div>
                   </div>
-
-                  <p className="text-[11px] text-zinc-500 leading-relaxed font-semibold">
-                    Recibe pagos con tarjetas internacionales, Apple Pay, Google Pay y PSE de forma automatizada.
-                  </p>
-
                   {initialStore.stripeConnectAccountId ? (
-                    <div className="p-3 bg-white rounded-lg border border-zinc-200 flex items-center justify-between text-[11px] font-bold text-zinc-700">
-                      <span>ID: <code className="font-mono text-zinc-950">{initialStore.stripeConnectAccountId}</code></span>
-                      <span className="text-[9px] text-emerald-600 flex items-center gap-1">⚡ Cargos habilitados</span>
-                    </div>
+                    <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 shrink-0">Conectado</span>
                   ) : (
-                    <button className="flex items-center gap-1.5 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-semibold shadow-none transition-all cursor-pointer">
-                      <span>Conectar cuenta de Stripe</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                    <button className="flex items-center gap-1.5 h-8 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0">
+                      <span>Conectar</span>
+                      <ExternalLink className="w-3 h-3" />
                     </button>
                   )}
                 </div>
 
-                {/* MercadoPago Gateway */}
-                <div className="p-5 bg-zinc-50 border border-zinc-200 rounded-lg space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#00B1EA] text-white flex items-center justify-center">
-                        <CreditCard className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-zinc-900">Mercado Pago Connect</h4>
-                        <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Pasarela Local</p>
-                      </div>
+                {/* Mercado Pago */}
+                <div className="flex items-start justify-between p-4 bg-zinc-50 border border-zinc-200 rounded-lg gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#00B1EA] text-white flex items-center justify-center shrink-0">
+                      <CreditCard className="w-5 h-5" />
                     </div>
-
-                    {mpConnected ? (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100 text-emerald-700 uppercase tracking-wider">
-                        Conectado
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-400 uppercase tracking-wider">
-                        Desconectado
-                      </span>
-                    )}
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">Mercado Pago Connect</h4>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Local · PSE, Efecty y más</p>
+                    </div>
                   </div>
-
-                  <p className="text-[11px] text-zinc-500 leading-relaxed font-semibold">
-                    Recibe cobros locales mediante PSE, tarjetas y redes de efectivo locales como Efecty.
-                  </p>
-
                   {mpConnected ? (
-                    <div className="space-y-3">
-                      <div className="p-3 bg-white rounded-lg border border-zinc-200 flex flex-col gap-1.5 text-[11px] font-bold text-zinc-700">
-                        <div className="flex items-center gap-1">
-                          <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span>ID de Cuenta: <code className="font-mono text-zinc-950">{initialStore.mpUserId || 'Asociada'}</code></span>
-                        </div>
-                        {mpPublicKey && (
-                          <span className="text-[9px] text-zinc-400 font-mono">Clave Pública: {mpPublicKey.slice(0, 15)}...</span>
-                        )}
-                      </div>
-                      
-                      <button
-                        onClick={handleDisconnectMercadoPago}
-                        disabled={disconnectingMp}
-                        className="flex items-center gap-1.5 h-9 px-4 bg-white hover:bg-zinc-50 border border-red-200 text-red-600 rounded-lg text-xs font-semibold shadow-none transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        {disconnectingMp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
-                        <span>Desconectar Mercado Pago</span>
-                      </button>
-                    </div>
+                    <button
+                      onClick={handleDisconnectMercadoPago}
+                      disabled={disconnectingMp}
+                      className="flex items-center gap-1.5 h-8 px-3.5 bg-white hover:bg-red-50 border border-red-200 text-red-600 rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                    >
+                      {disconnectingMp ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                      <span>Desconectar</span>
+                    </button>
                   ) : (
                     <button
                       onClick={handleConnectMercadoPago}
-                      className="flex items-center gap-1.5 h-9 px-4 bg-[#00B1EA] hover:bg-[#009ed2] text-white rounded-lg text-xs font-semibold shadow-none transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 h-8 px-3.5 bg-[#00B1EA] hover:bg-[#009ed2] text-white rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0"
                     >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Conectar con Mercado Pago</span>
+                      <CreditCard className="w-3 h-3" />
+                      <span>Conectar</span>
                     </button>
                   )}
                 </div>
@@ -721,247 +782,502 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* TAB: INTEGRACIONES (WhatsApp Evolution QR) */}
-          {activeTab === 'integraciones' && (
-            <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-6">
+          {/* ════════ TAB: PERFIL ════════ */}
+          {activeTab === 'perfil' && (
+            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900">Integración de WhatsApp</h3>
-                <p className="text-xs text-zinc-500 mt-1">
-                  Enlaza tu número celular a FlashCheckout mediante código QR para automatizar respuestas e intervenir directamente en conversaciones.
-                </p>
+                <h3 className="text-sm font-bold text-zinc-900">Perfil y Personalización</h3>
+                <p className="text-xs text-zinc-500 mt-1">Personaliza la apariencia visual de tu tienda y redes sociales.</p>
               </div>
 
-              {whatsappConnected ? (
-                <div className="p-5 bg-emerald-50 border border-emerald-200/50 rounded-lg space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                      <Check className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-zinc-900">Línea Conectada e Inteligente</h4>
-                      <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">Tu bot de IA y el chat en vivo están respondiendo activamente.</p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={loadingQr}
-                    onClick={handleDisconnectWhatsApp}
-                    className="flex items-center gap-1.5 h-9 px-4 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold shadow-none transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <span>Desconectar WhatsApp</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider">Pasos para conectar:</h4>
-                    <ol className="list-decimal list-inside text-xs font-medium text-zinc-500 space-y-2 leading-relaxed">
-                      <li>Haz clic en el botón de abajo para generar el Código QR.</li>
-                      <li>Abre WhatsApp en tu teléfono celular.</li>
-                      <li>Ve a <strong className="text-zinc-900">Dispositivos vinculados</strong> y selecciona <strong className="text-zinc-900">Vincular un dispositivo</strong>.</li>
-                      <li>Apunta tu cámara al código QR.</li>
-                    </ol>
-                  </div>
-
-                  <div className="flex flex-col items-center justify-center p-6 border border-zinc-200 rounded-lg bg-zinc-50 min-h-[220px]">
-                    {loadingQr ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-6 h-6 text-zinc-500 animate-spin" />
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Generando QR...</span>
-                      </div>
-                    ) : qrCodeBase64 ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="p-2.5 bg-white border border-zinc-200 rounded-lg">
-                          <img src={qrCodeBase64} alt="Scan QR Code" className="w-40 h-40 object-contain" />
-                        </div>
-                        <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest animate-pulse flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          Esperando escaneo...
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-3 text-center">
-                        <Phone className="w-8 h-8 text-zinc-300 mb-1" />
-                        <button
-                          type="button"
-                          onClick={handleConnectWhatsApp}
-                          className="flex items-center gap-1.5 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-semibold shadow-none transition-all cursor-pointer"
-                        >
-                          <span>Generar Código QR</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB: FACTURACIÓN / PLAN */}
-          {activeTab === 'facturacion' && (
-            <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-none space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900">Suscripción y Límites</h3>
-                <p className="text-xs text-zinc-500 mt-1">Consulta los límites operativos de tu plan comercial.</p>
-              </div>
-
-              <div className="p-5 bg-zinc-50 border border-zinc-200 rounded-lg space-y-4">
-                <div className="flex items-center gap-3.5">
-                  <div className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center border shrink-0",
-                    isPro 
-                      ? "bg-zinc-900 border-zinc-950 text-white" 
-                      : "bg-white border-zinc-200 text-zinc-400"
-                  )}>
-                    {isPro ? <Sparkles className="w-5 h-5 text-amber-400 fill-current" /> : <CreditCard className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest leading-none">Plan actual</p>
-                    <h4 className="text-sm font-bold text-zinc-900 mt-1">{isPro ? 'Flash Pro Premium' : 'Free Terminal'}</h4>
-                  </div>
-                </div>
-
-                <p className="text-xs text-zinc-500 leading-relaxed">
-                  {isPro 
-                    ? 'Tu tienda opera bajo el plan Pro. Tienes acceso a inventario ilimitado, soporte prioritario por WhatsApp y checkout acelerado.' 
-                    : 'Actualmente usas el plan gratuito básico de un solo vendedor. Desbloquea inventario ilimitado y soporte Pro.'}
-                </p>
-
-                <div className="pt-2 flex items-center justify-between gap-4">
-                  <SubscriptionButton isPro={isPro} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* OTHER SIMULATED TABS */}
-          {['personalizacion', 'dominios', 'envios', 'notificaciones', 'usuarios'].includes(activeTab) && (
-            <div className="p-12 bg-white border border-zinc-200 rounded-lg flex flex-col items-center justify-center text-center space-y-4 shadow-none">
-              <div className="w-12 h-12 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 shadow-none">
-                <Lock className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-zinc-900">Sección en desarrollo</h4>
-                <p className="text-xs text-zinc-500 max-w-xs leading-relaxed">
-                  Esta sección estará disponible próximamente para potenciar la personalización, logística y control administrativo de tu comercio.
-                </p>
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* 3. Columna Lateral Derecha (Vista Previa & Enlace de la Tienda, spans 4/12) */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          {/* Card: Vista previa de tu tienda */}
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-sm font-bold text-zinc-900">Vista previa de tu tienda</h3>
-              <p className="text-xs text-zinc-500 mt-1">Así es como verán tu tienda tus clientes.</p>
-            </div>
-
-            {/* Mobile Portada Frame Mockup */}
-            <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-none space-y-4 select-none">
-              
-              {/* Header Mini bar */}
-              <div className="flex items-center justify-between border-b border-zinc-100 pb-2.5">
-                <button className="text-zinc-400 hover:text-zinc-600 text-sm">☰</button>
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-black text-emerald-600">🌿</span>
-                  <span className="text-[10px] font-extrabold text-zinc-900 tracking-tight">{form.name || 'Mi Tienda'}</span>
-                </div>
-                <button className="text-zinc-400 hover:text-zinc-600 text-sm">🛒</button>
-              </div>
-
-              {/* Banner Area */}
-              <div className="bg-emerald-50/50 rounded-lg p-3.5 flex items-center justify-between gap-2 border border-emerald-100/40">
-                <div className="space-y-1.5 max-w-[60%]">
-                  <h4 className="text-[11px] font-extrabold text-emerald-800 leading-snug">
-                    Productos naturales para tu bienestar
-                  </h4>
-                  <p className="text-[8px] text-zinc-500 leading-tight">
-                    Descubre nuestra selección de alta calidad.
-                  </p>
-                  <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[7px] font-bold px-2 py-1 rounded-full cursor-pointer shrink-0 transition-transform active:scale-95 mt-1">
-                    Ver productos
-                  </button>
-                </div>
-
-                {/* CSS supplement/vitamin bottle illustration mockup */}
-                <div className="w-12 h-20 bg-white border border-zinc-200 rounded-lg flex flex-col items-center justify-between p-1 relative overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.05)] shrink-0">
-                  {/* Bottle Cap */}
-                  <div className="w-6 h-2 bg-emerald-600 rounded-t-sm shrink-0" />
-                  <div className="w-7 h-0.5 bg-emerald-700 shrink-0" />
-                  
-                  {/* Bottle Label */}
-                  <div className="flex-1 w-full bg-emerald-50/30 rounded border border-emerald-100 flex flex-col items-center justify-center p-0.5 mt-0.5">
-                    <span className="text-[4px] font-extrabold text-emerald-800 uppercase tracking-widest leading-none">Vitamins</span>
-                    <span className="text-[7px] font-black text-emerald-950 mt-0.5 leading-none">🌿</span>
-                    <span className="text-[3px] font-bold text-zinc-400 mt-0.5 leading-none">Natural</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lower info badges row */}
-              <div className="grid grid-cols-3 gap-1.5 text-center text-[7px] font-semibold text-zinc-500 pt-1">
-                <div className="p-1 bg-zinc-50 border border-zinc-150 rounded flex flex-col items-center justify-center gap-0.5">
-                  <Truck className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>Envíos rápidos</span>
-                </div>
-                <div className="p-1 bg-zinc-50 border border-zinc-150 rounded flex flex-col items-center justify-center gap-0.5">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>Pago 100% seguro</span>
-                </div>
-                <div className="p-1 bg-zinc-50 border border-zinc-150 rounded flex flex-col items-center justify-center gap-0.5">
-                  <span>🌿</span>
-                  <span>Productos naturales</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Card: Enlace de tu tienda */}
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-sm font-bold text-zinc-900">Enlace de tu tienda</h3>
-              <p className="text-xs text-zinc-500 mt-1">Comparte este enlace para que tus clientes visiten tu tienda.</p>
-            </div>
-
-            <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-none space-y-3.5">
-              <div className="flex items-center bg-zinc-50 border border-zinc-200 rounded-lg p-2 gap-2 min-w-0">
-                <input
-                  type="text"
-                  readOnly
-                  value={storefrontUrl}
-                  className="flex-1 bg-transparent text-[11px] font-mono text-zinc-700 outline-none truncate border-none focus:ring-0 p-0 font-bold"
-                />
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="w-7 h-7 rounded-lg bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-650 flex items-center justify-center active:scale-90 transition-transform shrink-0 cursor-pointer"
-                  title="Copiar enlace"
+              {/* Cover Banner Photo */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-zinc-500 block select-none">Imagen de Portada (Banner)</label>
+                <div 
+                  onClick={handleBannerUrlChange}
+                  className="relative w-full h-36 bg-zinc-50 border border-zinc-200 border-dashed rounded-xl overflow-hidden flex items-center justify-center group cursor-pointer"
                 >
-                  <Copy className="w-3.5 h-3.5" />
+                  {bannerUrl ? (
+                    <img src={bannerUrl} alt="Banner de Portada" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all z-10">
+                        <span className="text-zinc-700 text-xs font-bold flex items-center gap-1"><ImagePlus className="w-4 h-4" /> Cambiar portada</span>
+                      </div>
+                      <span className="text-zinc-400 text-xs font-semibold select-none flex items-center gap-1.5"><ImagePlus className="w-5 h-5" /> Configurar URL de imagen de banner</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Brand Color selection */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-bold text-zinc-500 block select-none">Color de Marca (Botones y destacados)</label>
+                <div className="flex items-center gap-3">
+                  {[
+                    { hex: '#10B981', name: 'Esmeralda' },
+                    { hex: '#635BFF', name: 'Índigo' },
+                    { hex: '#EF4444', name: 'Rojo' },
+                    { hex: '#3B82F6', name: 'Azul' },
+                    { hex: '#F59E0B', name: 'Ámbar' },
+                    { hex: '#18181B', name: 'Zinc' }
+                  ].map(color => (
+                    <button
+                      key={color.hex}
+                      type="button"
+                      onClick={() => {
+                        setBrandColor(color.hex)
+                        toast.success(`Color ${color.name} seleccionado`)
+                      }}
+                      className="w-8.5 h-8.5 rounded-full border border-zinc-250/50 flex items-center justify-center transition-all hover:scale-110 active:scale-90 cursor-pointer shadow-sm relative"
+                      style={{ backgroundColor: color.hex }}
+                    >
+                      {color.hex === brandColor && <Check className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                  ))}
+                  <div className="flex items-center gap-2 ml-4">
+                    <input 
+                      type="color" 
+                      value={brandColor} 
+                      onChange={e => setBrandColor(e.target.value)}
+                      className="w-7 h-7 rounded-lg cursor-pointer border border-zinc-200" 
+                    />
+                    <span className="text-xs text-zinc-500 font-semibold select-none">Personalizado</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social networks links */}
+              <div className="space-y-4 pt-2 border-t border-zinc-100">
+                <h4 className="text-xs font-bold text-zinc-800 select-none">Redes sociales del negocio</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-zinc-500 block">Instagram</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="https://instagram.com/tu_tienda"
+                        value={instagramUrl}
+                        onChange={e => setInstagramUrl(e.target.value)}
+                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
+                      />
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-zinc-500 block">Facebook</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="https://facebook.com/tu_tienda"
+                        value={facebookUrl}
+                        onChange={e => setFacebookUrl(e.target.value)}
+                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
+                      />
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-zinc-500 block">TikTok</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="https://tiktok.com/@tu_tienda"
+                        value={tiktokUrl}
+                        onChange={e => setTiktokUrl(e.target.value)}
+                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
+                      />
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-zinc-500 block">Sitio Web Externo</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="https://tudominio.com"
+                        value={websiteUrl}
+                        onChange={e => setWebsiteUrl(e.target.value)}
+                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
+                      />
+                      <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ════════ TAB: NOTIFICACIONES ════════ */}
+          {activeTab === 'notificaciones' && (
+            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900">Ajustes de Notificaciones</h3>
+                <p className="text-xs text-zinc-500 mt-1">Configura qué eventos y canales te alertarán sobre la actividad de tu negocio.</p>
+              </div>
+
+              <div className="space-y-4 divide-y divide-zinc-100">
+                {[
+                  {
+                    title: 'Nuevos Pedidos por WhatsApp',
+                    desc: 'Enviar una alerta instantánea a tu WhatsApp de administrador cuando un cliente realice un pedido.',
+                    whatsappKey: 'orderWhatsapp',
+                    emailKey: 'orderEmail'
+                  },
+                  {
+                    title: 'Resumen de Ventas Diario',
+                    desc: 'Recibir un correo electrónico todas las noches con el balance de ventas de tu tienda.',
+                    whatsappKey: 'resumenWhatsapp',
+                    emailKey: 'resumenEmail'
+                  },
+                  {
+                    title: 'Alertas de Stock Bajo',
+                    desc: 'Notificar cuando un producto tenga menos de 5 unidades disponibles en el inventario.',
+                    whatsappKey: 'stockWhatsapp',
+                    emailKey: 'stockEmail'
+                  },
+                  {
+                    title: 'Mensajes de Clientes en Espera',
+                    desc: 'Notificar por WhatsApp cuando un cliente solicite atención humana o pase más de 10 minutos sin responder.',
+                    whatsappKey: 'esperaWhatsapp',
+                    emailKey: 'esperaEmail'
+                  }
+                ].map((notif, idx) => (
+                  <div key={idx} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 py-4 first:pt-0 last:pb-0">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-zinc-900">{notif.title}</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold leading-relaxed max-w-md">{notif.desc}</p>
+                    </div>
+                    <div className="flex items-center gap-6 shrink-0 pt-1 select-none">
+                      <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-700 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={!!(notifications as any)[notif.whatsappKey]} 
+                          onChange={e => setNotifications(prev => ({ ...prev, [notif.whatsappKey]: e.target.checked }))} 
+                          className="rounded border-zinc-350 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
+                        />
+                        <span>WhatsApp</span>
+                      </label>
+                      <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-700 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={!!(notifications as any)[notif.emailKey]} 
+                          onChange={e => setNotifications(prev => ({ ...prev, [notif.emailKey]: e.target.checked }))} 
+                          className="rounded border-zinc-350 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
+                        />
+                        <span>Email</span>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ════════ TAB: USUARIOS ════════ */}
+          {activeTab === 'usuarios' && (
+            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900">Usuarios y Equipo</h3>
+                  <p className="text-xs text-zinc-500 mt-1">Invita y gestiona a los miembros de tu equipo con acceso al panel.</p>
+                </div>
+                <button 
+                  onClick={handleInviteUser}
+                  className="h-8.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer"
+                >
+                  Invitar usuario
                 </button>
               </div>
 
-              <a
-                href={storefrontUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full flex items-center justify-center gap-1.5 h-9 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-xs font-semibold shadow-none transition-all active:scale-95 cursor-pointer"
+              <div className="space-y-3">
+                {team.map((user, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3.5 bg-zinc-50/50 border border-zinc-200 rounded-xl gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-zinc-200 border border-zinc-250/50 flex items-center justify-center font-bold text-xs text-zinc-650 shrink-0 select-none">
+                        {user.name.split(' ').map((n: string) => n[0]).join('').slice(0,2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-zinc-900 leading-tight truncate">{user.name}</h4>
+                        <span className="text-[10px] text-zinc-400 font-semibold block leading-tight truncate mt-0.5">{user.email}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="px-2 py-0.5 rounded bg-zinc-150 border border-zinc-200 text-zinc-650 text-[9px] font-black tracking-wide uppercase select-none">
+                        {user.role}
+                      </span>
+                      <Toggle checked={user.active} onChange={() => handleToggleUser(idx)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ════════ TAB: SEGURIDAD ════════ */}
+          {activeTab === 'seguridad' && (
+            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900">Ajustes de Seguridad</h3>
+                <p className="text-xs text-zinc-500 mt-1">Administra tus llaves de API, credenciales de accesibilidad y opciones de seguridad.</p>
+              </div>
+
+              <div className="space-y-4">
+                {/* API Webhooks Key */}
+                <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl space-y-3">
+                  <div className="flex justify-between items-center select-none">
+                    <div className="flex items-center gap-2">
+                      <Key className="w-4 h-4 text-zinc-500" />
+                      <h4 className="text-xs font-bold text-zinc-850">Token de API del Comercio</h4>
+                    </div>
+                    <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-600 uppercase">Privado</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input 
+                      type="password" 
+                      value={apiToken} 
+                      readOnly 
+                      className="flex-1 bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-mono text-zinc-800 outline-none select-all" 
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(apiToken)
+                        toast.success('Token copiado')
+                      }} 
+                      className="px-3 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-750 cursor-pointer flex items-center justify-center gap-1.5 transition-all select-none active:scale-95"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copiar</span>
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={handleRegenerateToken} 
+                      className="px-3 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-750 cursor-pointer transition-all select-none active:scale-95"
+                    >
+                      Regenerar
+                    </button>
+                  </div>
+                </div>
+
+                {/* Toggles */}
+                <div className="divide-y divide-zinc-100">
+                  <div className="flex items-center justify-between py-3">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-zinc-850">Doble Factor de Autenticación (2FA)</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Requiere un código temporal para iniciar sesión en el panel.</p>
+                    </div>
+                    <Toggle checked={doubleFactor} onChange={setDoubleFactor} />
+                  </div>
+                  
+                  <div className="flex items-center justify-between py-3">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-zinc-850">Cerrar Sesión por Inactividad</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Desconectar automáticamente del panel tras 30 minutos sin actividad.</p>
+                    </div>
+                    <Toggle checked={autologout} onChange={setAutologout} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ════════ TAB: ACTIVIDAD ════════ */}
+          {activeTab === 'actividad' && (
+            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900">Registro de Actividad</h3>
+                <p className="text-xs text-zinc-500 mt-1">Historial detallado de las operaciones de administración de tu tienda.</p>
+              </div>
+
+              <div className="relative pl-6 border-l border-zinc-150 space-y-6">
+                {activityLog.map((act, idx) => (
+                  <div key={idx} className="relative space-y-1">
+                    {/* Circle bullet indicator */}
+                    <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white ring-2 ring-emerald-100" />
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 select-none">
+                      <h4 className="text-xs font-bold text-zinc-900 leading-none">{act.event}</h4>
+                      <span className="text-[9.5px] font-semibold text-zinc-400 leading-none">{act.time}</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">{act.detail}</p>
+                    <div className="text-[9.5px] text-zinc-500 font-bold select-none pt-0.5">
+                      Por: <span className="text-zinc-650 font-black">{act.user}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ─── RIGHT SIDEBAR ─── */}
+        <div className="lg:col-span-4 space-y-5">
+
+          {/* Preferencias generales */}
+          <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+            <div className="px-5 py-4 border-b border-zinc-100">
+              <h3 className="text-sm font-bold text-zinc-900">Preferencias generales</h3>
+              <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Ajustes principales de tu tienda.</p>
+            </div>
+            <div className="p-5 space-y-4">
+              {[
+                {
+                  label: 'Idioma',
+                  key: 'language',
+                  options: [
+                    { value: 'es', label: 'Español' },
+                    { value: 'en', label: 'English' },
+                  ]
+                },
+                {
+                  label: 'Moneda',
+                  key: 'currency',
+                  options: [
+                    { value: 'COP', label: 'Peso colombiano (COP)' },
+                    { value: 'USD', label: 'Dólar Americano (USD)' },
+                    { value: 'MXN', label: 'Peso Mexicano (MXN)' },
+                    { value: 'EUR', label: 'Euro (EUR)' },
+                  ]
+                },
+                {
+                  label: 'Zona horaria',
+                  key: 'timezone',
+                  options: [
+                    { value: 'GMT-05:00', label: '(GMT-5) Bogotá, Lima, Quito' },
+                    { value: 'GMT-06:00', label: '(GMT-6) Ciudad de México' },
+                    { value: 'GMT-04:00', label: '(GMT-4) Caracas, La Paz' },
+                    { value: 'GMT-03:00', label: '(GMT-3) Buenos Aires' },
+                  ]
+                },
+                {
+                  label: 'Formato de fecha',
+                  key: 'dateFormat',
+                  options: [
+                    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
+                    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
+                    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD' },
+                  ]
+                },
+              ].map(field => (
+                <div key={field.key} className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-zinc-500 block">{field.label}</label>
+                  <div className="relative">
+                    <select
+                      value={(form as any)[field.key]}
+                      onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
+                      className="w-full appearance-none bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2.5 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-500 transition-all cursor-pointer"
+                    >
+                      {field.options.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+                  </div>
+                </div>
+              ))}
+
+              <button
+                onClick={() => handleSubmit()}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-none transition-all active:scale-95 disabled:opacity-50 cursor-pointer mt-2"
               >
-                <span>Ver tienda</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+
+          {/* Estado del bot (Nova) */}
+          <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+            <div className="px-5 py-4 border-b border-zinc-100">
+              <h3 className="text-sm font-bold text-zinc-900">Estado del bot (Nova)</h3>
+              <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Controla el comportamiento de tu asistente IA.</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-600">Estado actual</span>
+                <span className={cn(
+                  "text-[10px] font-bold px-2.5 py-0.5 rounded-full",
+                  form.botEnabled ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-zinc-100 text-zinc-400 border border-zinc-200"
+                )}>
+                  {form.botEnabled ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-zinc-800">Respuesta automática</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Nova responde automáticamente a tus clientes.</p>
+                  </div>
+                  <Toggle checked={form.autoReply} onChange={v => setForm(f => ({ ...f, autoReply: v }))} />
+                </div>
+
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-zinc-800">Desvío a humano</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Permitir que los clientes soliciten atención humana.</p>
+                  </div>
+                  <Toggle checked={form.humanHandoff} onChange={v => setForm(f => ({ ...f, humanHandoff: v }))} />
+                </div>
+              </div>
+
+              <button
+                onClick={() => setActiveTab('pagos')}
+                className="w-full flex items-center justify-center gap-1.5 h-8 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
+              >
+                <Settings className="w-3.5 h-3.5 text-zinc-400" />
+                Configurar comportamiento
+              </button>
+            </div>
+          </div>
+
+          {/* Información del plan */}
+          <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
+            <div className="px-5 py-4 border-b border-zinc-100">
+              <h3 className="text-sm font-bold text-zinc-900">Información del plan</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-zinc-400">Plan actual</p>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Activo</span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {isPro ? (
+                  <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-amber-400 fill-current" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-4 h-4 text-zinc-400" />
+                  </div>
+                )}
+                <span className="text-base font-bold text-zinc-900">{isPro ? 'Pro' : 'Free'}</span>
+              </div>
+
+              <div className="space-y-2 border-t border-zinc-100 pt-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-zinc-500">Renovación</span>
+                  <span className="font-bold text-zinc-800">15 de junio de 2025</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-zinc-500">Conversaciones incluidas</span>
+                  <span className="font-bold text-zinc-800">10.000 / mes</span>
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <SubscriptionButton isPro={isPro} />
+              </div>
             </div>
           </div>
 
         </div>
-
       </div>
     </div>
   )

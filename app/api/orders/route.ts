@@ -97,6 +97,9 @@ export async function POST(req: Request) {
       }
     }
 
+    const aiSettings = store.aiSettings && typeof store.aiSettings === 'object' ? store.aiSettings : {}
+    const whatsappTemplate = (aiSettings as any).whatsappTemplate || ''
+
     const whatsappUrl = buildWhatsAppLink({
       storeName: store.name,
       whatsapp: store.whatsapp,
@@ -105,7 +108,7 @@ export async function POST(req: Request) {
       total,
       address,
       city,
-    })
+    }, whatsappTemplate)
 
     return NextResponse.json({ orderId: order.id, whatsappUrl, success: true })
   } catch (error) {

@@ -27,8 +27,16 @@ export default async function DashboardLayout({
 
   const isPro = await checkSubscription()
   let productCount = 0
+  let conversationsCount = 0
+  let ordersCount = 0
   if (store) {
     productCount = await prisma.product.count({
+      where: { storeId: store.id },
+    })
+    conversationsCount = await (prisma as any).whatsAppSession.count({
+      where: { storeId: store.id },
+    })
+    ordersCount = await prisma.order.count({
       where: { storeId: store.id },
     })
   }
@@ -126,7 +134,10 @@ export default async function DashboardLayout({
         {/* Sidebar: Collapsible hover logic */}
         <aside className="hidden lg:flex flex-col justify-between w-[72px] hover:w-64 group flex-shrink-0 border-r border-zinc-200/60 sticky top-[53px] h-[calc(100vh-53px)] pt-2 pb-6 transition-[width] duration-300 ease-in-out bg-[#FAFAFA] z-20">
           <div className="flex flex-col gap-8 w-full overflow-hidden">
-            <SidebarNav />
+            <SidebarNav 
+              conversationsCount={conversationsCount} 
+              ordersCount={ordersCount} 
+            />
           </div>
 
           {/* Upgrade / Product capacity card */}

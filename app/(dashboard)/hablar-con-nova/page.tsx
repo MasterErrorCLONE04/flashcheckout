@@ -36,6 +36,19 @@ export default async function HablarConNovaPage() {
     })
   ])
 
+  // 3.5 Obtener sesiones de chat guardadas
+  const chatSessions = await prisma.novaChatSession.findMany({
+    where: { storeId: store.id },
+    orderBy: { updatedAt: 'desc' }
+  })
+
+  const initialSessions = chatSessions.map(s => ({
+    id: s.id,
+    title: s.title,
+    messages: Array.isArray(s.messages) ? (s.messages as any[]) : [],
+    updatedAt: s.updatedAt.toISOString()
+  }))
+
   // 4. Mapear objeto serializable para el componente cliente
   const storeData = {
     id: store.id,
@@ -55,6 +68,7 @@ export default async function HablarConNovaPage() {
       activeProductsCount={activeProductsCount}
       ordersCount={ordersCount}
       activeChatsCount={activeChatsCount}
+      initialSessions={initialSessions}
     />
   )
 }

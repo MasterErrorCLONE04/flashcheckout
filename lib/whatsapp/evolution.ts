@@ -347,8 +347,13 @@ export class EvolutionClient {
         const data = await response.json();
         return data.profilePictureUrl || data.url || null;
       }
-    } catch (e) {
-      console.error('[Evolution API fetchProfilePictureUrl Error]', e);
+    } catch (e: any) {
+      const isConnectionError = e.code === 'ECONNREFUSED' || e.message?.includes('fetch failed')
+      if (isConnectionError) {
+        console.warn(`[Evolution API] fetchProfilePictureUrl: No se pudo conectar a la instancia ${instanceName} (${e.message || 'fetch failed'})`)
+      } else {
+        console.error('[Evolution API fetchProfilePictureUrl Error]', e)
+      }
     }
     return null;
   }

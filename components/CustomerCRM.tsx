@@ -120,7 +120,7 @@ export default function CustomerCRM({
         {/* Card 1: Total Customers */}
         <div className="premium-card p-5.5 bg-white border border-zinc-200/80 rounded-lg flex items-center justify-between">
           <div className="space-y-1.5">
-            <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase block">Clientes totales</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Clientes totales</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">{totalUniqueCustomers.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
               <span>▲ 12.5%</span>
@@ -135,7 +135,7 @@ export default function CustomerCRM({
         {/* Card 2: Active Customers */}
         <div className="premium-card p-5.5 bg-white border border-zinc-200/80 rounded-lg flex items-center justify-between">
           <div className="space-y-1.5">
-            <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase block">Clientes activos (30 días)</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Clientes activos (30 días)</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">{active30Days.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
               <span>▲ 8.3%</span>
@@ -150,7 +150,7 @@ export default function CustomerCRM({
         {/* Card 3: Total Revenue */}
         <div className="premium-card p-5.5 bg-white border border-zinc-200/80 rounded-lg flex items-center justify-between">
           <div className="space-y-1.5">
-            <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase block">Ingresos de clientes</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Ingresos de clientes</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">${totalLtvSum.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
               <span>▲ 15.7%</span>
@@ -165,7 +165,7 @@ export default function CustomerCRM({
         {/* Card 4: Avg Customer LTV */}
         <div className="premium-card p-5.5 bg-white border border-zinc-200/80 rounded-lg flex items-center justify-between">
           <div className="space-y-1.5">
-            <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase block">Valor promedio por cliente</span>
+            <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Valor promedio por cliente</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">${avgLtv.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
               <span>▲ 7.2%</span>
@@ -281,7 +281,7 @@ export default function CustomerCRM({
                         {/* Name & Avatar */}
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-extrabold text-zinc-650 flex items-center justify-center uppercase shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-extrabold text-zinc-650 flex items-center justify-center  shrink-0">
                               {c.name.slice(0, 2)}
                             </div>
                             <div className="flex flex-col min-w-0">
@@ -413,14 +413,14 @@ export default function CustomerCRM({
             <div className="flex items-start justify-between border-b border-zinc-100 pb-4">
               <div className="flex items-center gap-3">
                 {/* Big avatar circle */}
-                <div className="w-11 h-11 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600 uppercase">
+                <div className="w-11 h-11 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600 ">
                   {activeCustomer.name.slice(0, 2)}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <h4 className="text-xs font-bold text-zinc-955 leading-none">{activeCustomer.name}</h4>
                     <span className={cn(
-                      "px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider",
+                      "px-1.5 py-0.5 rounded text-[8px] font-black  tracking-wider",
                       activeCustomer.status === 'Activo' 
                         ? "text-emerald-600 bg-emerald-50 border border-emerald-100" 
                         : "text-zinc-550 bg-zinc-100 border border-zinc-200"
@@ -459,7 +459,7 @@ export default function CustomerCRM({
             {/* Quick Metrics Row (3 Columns) */}
             <div className="grid grid-cols-3 gap-2">
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
-                <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider">Pedidos</p>
+                <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Pedidos</p>
                 <p className="text-xs font-black text-zinc-850 tabular-nums">{activeCustomer.totalOrders}</p>
                 <button 
                   onClick={() => toast.info('Mostrando pedidos en la parte inferior')}
@@ -470,7 +470,7 @@ export default function CustomerCRM({
               </div>
 
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
-                <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider">Total gastado</p>
+                <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Total gastado</p>
                 <p className="text-xs font-black text-zinc-850 truncate max-w-full tabular-nums">${activeCustomer.totalSpent.toLocaleString('es-CO')}</p>
                 <button 
                   onClick={() => toast.info('Detalles financieros listos')}
@@ -481,7 +481,7 @@ export default function CustomerCRM({
               </div>
 
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
-                <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider">Ticket prom.</p>
+                <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Ticket prom.</p>
                 <p className="text-xs font-black text-zinc-850 tabular-nums">
                   ${Math.round(activeCustomer.totalSpent / activeCustomer.totalOrders).toLocaleString('es-CO')}
                 </p>
@@ -497,7 +497,7 @@ export default function CustomerCRM({
             {/* Personal Information */}
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
-                <h5 className="text-[10px] font-extrabold text-zinc-450 uppercase tracking-wider">Información personal</h5>
+                <h5 className="text-[10px] font-extrabold text-zinc-450  tracking-wider">Información personal</h5>
                 <button 
                   onClick={() => toast.success('Función para editar información del cliente disponible próximamente.')}
                   className="text-[9px] font-bold text-zinc-500 hover:text-zinc-950 px-2 py-0.5 border border-zinc-200 rounded-md hover:bg-zinc-50 transition-colors"
@@ -527,7 +527,7 @@ export default function CustomerCRM({
             {/* Purchase History Timeline */}
             <div className="space-y-3.5">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
-                <h5 className="text-[10px] font-extrabold text-zinc-450 uppercase tracking-wider">Historial de compras</h5>
+                <h5 className="text-[10px] font-extrabold text-zinc-450  tracking-wider">Historial de compras</h5>
                 <button 
                   onClick={() => toast.success('Todas las compras se cargaron en el listado.')}
                   className="text-[9px] font-bold text-emerald-600 hover:underline"

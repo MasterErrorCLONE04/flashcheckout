@@ -9,24 +9,22 @@ export interface AIGatewayConfig {
   maxTokens: number
 }
 
-// ── AI GATEWAY CONFIGURATION ───────────────────────────────
 const GATEWAY_CONFIG: AIGatewayConfig = {
   maxHistoryMessages: 10,
   temperature: 0.5,
-  maxTokens: 800
+  maxTokens: 4096
 }
 
 /**
- * AI Gateway Central Interface
- * Orchestrates: Prompt Builder, Memory Management, Security Guardrails,
- * Tool Registries, and Redundancy Fallback.
+ * AI Gateway Central Interface using Groq Cloud API
  */
-export async function generateDeepSeekCompletion(
+export async function generateGroqCompletion(
   messages: ChatMessage[],
   systemPrompt?: string
 ): Promise<string> {
-  const apiKey = process.env.DEEPSEEK_API_KEY
-  const apiUrl = process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1'
+  const apiKey = process.env.GROQ_API_KEY
+  const model = process.env.GROQ_MODEL || 'qwen/qwen3.6-27b'
+  const apiUrl = process.env.GROQ_API_URL || 'https://api.groq.com/openai/v1'
 
   // 1. Guardrails: Filtro básico de seguridad y PII
   const cleanMessages = applySecurityGuardrails(messages)
@@ -42,13 +40,13 @@ export async function generateDeepSeekCompletion(
   }
   apiMessages.push(...prunedHistory)
 
-  // 4. Fallback de Redundancia: Si no hay API key o es la de pruebas local
-  if (!apiKey || apiKey === 'sk-mock-deepseek-key-12345' || apiKey.includes('placeholder')) {
-    console.log('[AI Gateway] Conexión principal inactiva. Derivando a Simulador Fallback...')
+  // 4. Fallback de Redundancia: Si no hay API key o es de prueba
+  if (!apiKey || apiKey.includes('placeholder')) {
+    console.log('[Groq Gateway] Conexión principal inactiva (sin API key). Derivando a Simulador Fallback...')
     return generateFallbackAIResponse(apiMessages)
   }
 
-  // 5. Conector de Red (DeepSeek-Chat API Call)
+  // 5. Conector de Red (Groq API Call)
   try {
     const res = await fetch(`${apiUrl}/chat/completions`, {
       method: 'POST',
@@ -57,7 +55,7 @@ export async function generateDeepSeekCompletion(
         Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: model,
         messages: apiMessages.map(m => ({
           role: m.role,
           content: m.content
@@ -69,15 +67,14 @@ export async function generateDeepSeekCompletion(
 
     if (!res.ok) {
       const errorText = await res.text()
-      console.warn(`[AI Gateway Warning - Status ${res.status}]: ${errorText}`)
-      // En caso de caída de API en producción, cae elegantemente al simulador en lugar de arrojar error
+      console.warn(`[Groq Gateway Warning - Status ${res.status}]: ${errorText}`)
       return generateFallbackAIResponse(apiMessages)
     }
 
     const data = await res.json()
     return data.choices?.[0]?.message?.content || ''
   } catch (err) {
-    console.error('[AI Gateway Network Exception]', err)
+    console.error('[Groq Gateway Network Exception]', err)
     return generateFallbackAIResponse(apiMessages)
   }
 }
@@ -85,7 +82,6 @@ export async function generateDeepSeekCompletion(
 // ── MEMORY MANAGER: Historial y Pruning ─────────────────────
 function pruneConversationHistory(messages: ChatMessage[], maxLimit: number): ChatMessage[] {
   if (messages.length <= maxLimit) return messages
-  // Conserva los últimos X mensajes para no saturar el contexto de la sesión
   return messages.slice(-maxLimit)
 }
 
@@ -94,7 +90,6 @@ function applySecurityGuardrails(messages: ChatMessage[]): ChatMessage[] {
   return messages.map(m => {
     let cleanContent = m.content
 
-    // 1. Sanitizar contra ataques comunes de Prompt Injection (ej. "olvida las instrucciones anteriores")
     const injectionPatterns = [
       /ignore previous instructions/gi,
       /ignore all instructions/gi,
@@ -105,12 +100,11 @@ function applySecurityGuardrails(messages: ChatMessage[]): ChatMessage[] {
 
     injectionPatterns.forEach(pattern => {
       if (pattern.test(cleanContent)) {
-        console.warn('[AI Gateway Guardrails] Intento de inyección de prompt detectado y mitigado.')
+        console.warn('[Groq Gateway Guardrails] Intento de inyección de prompt detectado y mitigado.')
         cleanContent = cleanContent.replace(pattern, '[Mensaje Filtrado por Seguridad]')
       }
     })
 
-    // 2. Filtro simple contra inyección de caracteres maliciosos de control
     cleanContent = cleanContent.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F]/g, '')
 
     return {
@@ -136,7 +130,7 @@ function generateFallbackAIResponse(messages: ChatMessage[]): string {
   // 1. Flujo Conversacional para Clientes (WhatsApp Context)
   if ((systemMsg.includes('WhatsApp') || systemMsg.includes('cliente')) && !systemMsg.includes('copiloto') && !systemMsg.includes('guía de la plataforma')) {
     if (q.includes('hola') || q.includes('buenos dias') || q.includes('buenas tardes')) {
-      return `¡Hola! Bienvenido. 🤖 Soy tu asistente de ventas virtual. ¿En qué te puedo colaborar hoy? Puedes escribir "Ver catálogo" para conocer nuestros productos.`
+      return `¡Hola! Bienvenido. 🤖 Soy tu asistente de ventas virtual (Simulado). ¿En qué te puedo colaborar hoy? Puedes escribir "Ver catálogo" para conocer nuestros productos.`
     }
     
     if (q.includes('precio') || q.includes('cuanto vale') || q.includes('catalogo') || q.includes('productos') || q.includes('buscar')) {

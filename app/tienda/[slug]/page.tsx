@@ -42,6 +42,20 @@ export default async function StorePage({ params, searchParams }: Props) {
 
   if (!store) notFound()
 
+  if (!store.active) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 text-center select-none font-sans">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-8 max-w-sm space-y-4">
+          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
+          <h1 className="text-lg font-black text-zinc-900">Tienda Pausada</h1>
+          <p className="text-xs font-semibold text-zinc-400 leading-normal">
+            Esta tienda online está temporalmente inactiva. Vuelve a visitarnos más tarde.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const cardPaymentsEnabled = true 
 
   const storeData = {
@@ -61,6 +75,7 @@ export default async function StorePage({ params, searchParams }: Props) {
     logoUrl: store.logoUrl,
     bio: store.bio,
     cardPaymentsEnabled,
+    aiSettings: store.aiSettings
   }
 
   // Intentar recuperar la sesión de WhatsApp para restaurar carrito y datos si existen

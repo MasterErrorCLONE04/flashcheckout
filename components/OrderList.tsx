@@ -210,7 +210,18 @@ export default function OrderList({
   }
 
   return (
-    <div className="space-y-8 animate-in duration-300">
+    <div className="space-y-6 pb-12 animate-in duration-300">
+      
+      {/* Header section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Listado de Pedidos</h1>
+          <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Monitoreo y gestión de pedidos en tiempo real.
+          </div>
+        </div>
+      </div>
       {/* 1. Bento KPI Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card: Total Revenue */}

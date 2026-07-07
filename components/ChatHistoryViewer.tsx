@@ -422,10 +422,13 @@ export default function ChatHistoryViewer({
     <div className="space-y-6 pb-12 font-sans text-left">
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Conversaciones</h1>
-          <p className="text-xs xl:text-sm font-semibold text-zinc-400">Gestiona y responde todas tus conversaciones.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Conversaciones</h1>
+          <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Gestiona y responde todas tus conversaciones.
+          </div>
         </div>
 
         <button

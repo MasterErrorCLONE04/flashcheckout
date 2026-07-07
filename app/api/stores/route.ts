@@ -119,7 +119,7 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, whatsapp, logoUrl, bio, category, systemPrompt, welcomeMessage, aiActive, aiSettings } = body
+    const { name, whatsapp, logoUrl, bio, category, systemPrompt, welcomeMessage, aiActive, aiSettings, slug, active, settings } = body
 
     const store = await prisma.store.findFirst({
       where: { userId },
@@ -130,6 +130,27 @@ export async function PUT(req: Request) {
         { error: 'Tienda no encontrada' },
         { status: 404 }
       )
+    }
+
+    let cleanSlug = undefined
+    if (slug) {
+      cleanSlug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+
+      if (cleanSlug !== store.slug) {
+        const existing = await prisma.store.findUnique({
+          where: { slug: cleanSlug },
+        })
+        if (existing) {
+          return NextResponse.json(
+            { error: 'El subdominio ya está siendo utilizado por otro comercio' },
+            { status: 409 }
+          )
+        }
+      }
     }
 
     const updated = await prisma.store.update({
@@ -144,6 +165,9 @@ export async function PUT(req: Request) {
         ...(welcomeMessage !== undefined && { welcomeMessage }),
         ...(aiActive !== undefined && { aiActive }),
         ...(aiSettings !== undefined && { aiSettings }),
+        ...(cleanSlug && { slug: cleanSlug }),
+        ...(active !== undefined && { active }),
+        ...(settings !== undefined && { settings }),
       },
     })
 

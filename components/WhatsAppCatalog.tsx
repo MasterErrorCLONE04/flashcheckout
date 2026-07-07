@@ -21,9 +21,10 @@ import {
   MessageCircle,
   CreditCard,
   ShoppingBag,
-  Heart,
   Truck,
   ShieldCheck,
+  Award,
+  Clock,
   Phone,
   Star,
   Check,
@@ -35,7 +36,8 @@ import {
   Shirt,
   Dumbbell,
   Sliders,
-  Menu
+  Menu,
+  Gift
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -61,6 +63,7 @@ type Store = {
   logoUrl: string | null
   cardPaymentsEnabled: boolean
   bio?: string | null
+  aiSettings?: any
 }
 
 function getCartKey(productId: string, selectedOpts: Record<string, string>) {
@@ -90,13 +93,15 @@ export default function WhatsAppCatalog({
   initialPhone,
   initialCart = {},
   initialName = '',
-  initialAddress = ''
+  initialAddress = '',
+  device
 }: { 
   store: Store, 
   initialPhone?: string,
   initialCart?: Record<string, number>,
   initialName?: string,
-  initialAddress?: string
+  initialAddress?: string,
+  device?: 'escritorio' | 'tablet' | 'movil'
 }) {
   const [cart, setCart] = useState<Record<string, number>>(initialCart)
   const [searchQuery, setSearchQuery] = useState('')
@@ -108,13 +113,104 @@ export default function WhatsAppCatalog({
   
   // Mobile Tab state: 'inicio', 'categorias', 'buscar', 'carrito'
   const [activeMobileTab, setActiveMobileTab] = useState('inicio')
+  const [activeNavTab, setActiveNavTab] = useState('Inicio')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'name-asc'>('default')
   const [onlyInStock, setOnlyInStock] = useState(false)
 
+  // Responsive device view check
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const showMobile = device ? (device === 'movil' || device === 'tablet') : isMobile;
+
   
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Configuración de apariencia dinámica proveniente del administrador
+  const aiSettings = store.aiSettings && typeof store.aiSettings === 'object' ? store.aiSettings : {}
+  const colors = {
+    primario: aiSettings.colors?.primario || '#059669', // Emerald 600 default
+    secundario: aiSettings.colors?.secundario || '#D97706', // Amber 600 default
+    acento: aiSettings.colors?.acento || '#10B981', // Emerald 500 default
+    fondo: aiSettings.colors?.fondo || '#F8FAFC',
+    texto: aiSettings.colors?.texto || '#1F2937'
+  }
+  const typography = aiSettings.typography || 'Inter'
+  const bannerUrl = aiSettings.bannerUrl || ''
+  const bannerTitle = aiSettings.bannerTitle || 'El mejor café, directo a tu puerta'
+  const bannerSubtitle = aiSettings.bannerSubtitle || 'Descubre nuestros productos de especialidad cultivados con amor y tostados frescos.'
+  
+  // Announcement Bar config
+  const announcement = aiSettings.announcement || {
+    enabled: false,
+    text: '',
+    bgColor: '#059669',
+    textColor: '#FFFFFF'
+  }
+
+  // Banner Button config
+  const bannerButton = aiSettings.bannerButton || {
+    text: 'Ver productos',
+    action: 'scroll',
+    link: ''
+  }
+
+  // Benefits config
+  const benefits = aiSettings.benefits || {
+    items: [
+      { icon: 'Truck', label: 'Envíos rápidos', desc: 'A todo el país' },
+      { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'Múltiples métodos' },
+      { icon: 'Award', label: 'Café de calidad', desc: 'Granos seleccionados' },
+      { icon: 'Clock', label: 'Atención 24/7', desc: 'Siempre disponibles' }
+    ]
+  }
+
+  // Social config
+  const socialsShowInCatalog = aiSettings.socialsShowInCatalog !== false
+
+  // Schedule config
+  const schedule = aiSettings.schedule || {
+    enabled: false,
+    text: 'Lunes a Viernes 8:00 AM - 6:00 PM',
+    alwaysOpen: true
+  }
+
+  const IconMap: Record<string, any> = {
+    Truck,
+    ShieldCheck,
+    Award,
+    Clock,
+    Gift,
+    Star
+  }
+
+  const handleBannerButtonClick = () => {
+    const action = bannerButton.action || 'scroll'
+    if (action === 'scroll') {
+      const el = document.getElementById('catalog-products')
+      el?.scrollIntoView({ behavior: 'smooth' })
+    } else if (action === 'whatsapp') {
+      window.open(`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Hola! Vengo desde tu banner principal.`, '_blank')
+    } else if (action === 'link' && bannerButton.link) {
+      window.open(bannerButton.link, '_blank')
+    }
+  }
+
+  const sections = aiSettings.sections || {
+    banner: true,
+    destacados: true,
+    categorias: true,
+    beneficios: true
+  }
 
   const formattedStoreName = store.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
@@ -305,6 +401,9 @@ export default function WhatsAppCatalog({
       if (res.ok) {
         setIsSuccess(true)
         toast.success("¡Pedido enviado!")
+        if (data.whatsappUrl) {
+          window.open(data.whatsappUrl, '_blank')
+        }
       } else {
         toast.error(data.error || 'Error al crear pedido')
         setPayError(data.error)
@@ -414,130 +513,254 @@ export default function WhatsAppCatalog({
   const qtyInCart = selectedCartKey ? (cart[selectedCartKey] ?? 0) : 0
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFCFD] text-zinc-900 font-sans selection:bg-zinc-100">
+    <div 
+      className={cn(
+        "flex flex-col min-h-screen text-zinc-900 selection:bg-zinc-100",
+        typography === 'Georgia' ? 'font-serif' : typography === 'Courier New' ? 'font-mono' : 'font-sans'
+      )}
+      style={{ 
+        backgroundColor: colors.fondo,
+        color: colors.texto,
+      }}
+    >
+      <style dangerouslySetInnerHTML={{ __html: `
+        /* Overrides para emular la paleta elegida del comercio */
+        .bg-emerald-600, .bg-emerald-700 {
+          background-color: ${colors.primario} !important;
+        }
+        .bg-emerald-600:hover, .bg-emerald-700:hover {
+          opacity: 0.9 !important;
+          background-color: ${colors.primario} !important;
+        }
+        .bg-emerald-50, .bg-emerald-100 {
+          background-color: ${colors.acento}15 !important;
+        }
+        .text-emerald-600, .text-emerald-700, .text-emerald-800 {
+          color: ${colors.primario} !important;
+        }
+        .border-emerald-100, .border-emerald-200, .border-emerald-500, .border-emerald-600 {
+          border-color: ${colors.primario} !important;
+        }
+        .border-emerald-600:hover {
+          border-color: ${colors.primario} !important;
+        }
+        .focus\\:border-emerald-500:focus {
+          border-color: ${colors.primario} !important;
+        }
+        .focus\\:ring-emerald-500\\/10:focus {
+          box-shadow: 0 0 0 4px ${colors.primario}20 !important;
+        }
+      `}} />
       
       {/* ========================================================================= */}
       {/* 🖥️ VISTA DESKTOP (PANTALLAS GRANDES - lg:flex) */}
       {/* ========================================================================= */}
-      <div className="hidden lg:flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen w-full", showMobile ? "hidden" : "flex")}>
         
-        {/* Cabecera Premium */}
-        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-[76px] shadow-none">
-          <div className="w-full h-full px-6 flex items-center justify-between gap-4">
-            {/* Logo */}
+        {/* Barra de anuncios (Desktop) */}
+        {announcement?.enabled && announcement?.text && (
+          <div 
+            className="w-full text-center py-2 px-4 text-xs font-bold leading-tight select-none shrink-0"
+            style={{ backgroundColor: announcement.bgColor, color: announcement.textColor }}
+          >
+            {announcement.text}
+          </div>
+        )}
+
+        {/* Cabecera Premium Rediseñada */}
+        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-[76px] shadow-none select-none shrink-0 w-full">
+          <div className="max-w-[1300px] mx-auto w-full h-full px-6 flex items-center justify-between gap-6">
+            
+            {/* Logo o Nombre de la Tienda */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 overflow-hidden">
-                {store.logoUrl ? (
-                  <img src={store.logoUrl} alt={formattedStoreName} className="w-full h-full object-cover" />
-                ) : (
-                  <Sprout className="w-5 h-5" />
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-sm text-zinc-900 tracking-tight leading-none">{formattedStoreName}</span>
-                <span className="text-[10px] text-zinc-400 font-medium mt-1 leading-none">{store.bio || "Productos que te hacen bien"}</span>
-              </div>
+              {store.logoUrl ? (
+                <img src={store.logoUrl} alt={formattedStoreName} className="h-8 max-w-[150px] object-contain shrink-0" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[10px] text-emerald-600">
+                    ☕
+                  </div>
+                  <span className="font-black text-sm text-zinc-955 uppercase tracking-tight">{formattedStoreName}</span>
+                </div>
+              )}
+
+              {/* Schedule Badge (Desktop) */}
+              {schedule?.enabled && (
+                <div className="relative group shrink-0 select-none">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EEF2F0] text-emerald-700 cursor-pointer">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>{schedule.alwaysOpen ? 'Abierto 24/7' : 'Abierto'}</span>
+                  </span>
+                  
+                  {!schedule.alwaysOpen && (
+                    <div className="absolute left-0 mt-1.5 hidden group-hover:block bg-zinc-900 text-white text-[9px] font-bold rounded px-2.5 py-1.5 whitespace-nowrap shadow-lg z-50 animate-in fade-in duration-200">
+                      Horario: {schedule.text}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Buscador */}
-            <div className="relative flex-1 max-w-lg mx-8">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-              <input 
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2.5 pl-10 pr-4 text-xs font-semibold text-zinc-900 outline-none focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
-              />
-            </div>
+            {/* Enlaces de Navegación del Rediseño */}
+            <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-zinc-500">
+              {['Inicio', 'Tienda', 'Sobre nosotros', 'Contacto'].map((tab) => {
+                const isActive = activeNavTab === tab;
+                return (
+                  <span
+                    key={tab}
+                    onClick={() => setActiveNavTab(tab)}
+                    className={cn(
+                      "cursor-pointer hover:text-zinc-900 transition-all pb-1 relative",
+                      isActive ? "text-zinc-950 border-b-2 border-emerald-600 font-extrabold" : "text-zinc-500"
+                    )}
+                  >
+                    {tab}
+                  </span>
+                )
+              })}
+            </nav>
 
-            {/* Acciones */}
-            <div className="flex items-center gap-3.5">
-              <a 
-                href={`https://wa.me/${store.whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 h-9 px-3.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-emerald-600 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0"
-              >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-500 fill-current" />
-                <span>Comprar por WhatsApp</span>
-              </a>
+            {/* Buscador y Carrito */}
+            <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
+              
+              {/* Redes Sociales en cabecera (Desktop) */}
+              {socialsShowInCatalog && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {store.aiSettings?.socials?.instagram && (
+                    <a 
+                      href={store.aiSettings.socials.instagram} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
+                      title="Instagram"
+                    >
+                      <span className="text-[10px] font-black tracking-tight">IG</span>
+                    </a>
+                  )}
+                  {store.aiSettings?.socials?.facebook && (
+                    <a 
+                      href={store.aiSettings.socials.facebook} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
+                      title="Facebook"
+                    >
+                      <span className="text-[10px] font-black tracking-tight">FB</span>
+                    </a>
+                  )}
+                  {store.aiSettings?.socials?.twitter && (
+                    <a 
+                      href={store.aiSettings.socials.twitter} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
+                      title="Twitter / X"
+                    >
+                      <span className="text-[10px] font-black tracking-tight">X</span>
+                    </a>
+                  )}
+                </div>
+              )}
 
+              {/* Buscador Compacto */}
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <input 
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 pl-10 pr-4 text-xs font-semibold text-zinc-900 outline-none focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+                />
+              </div>
+
+              {/* Botón Carrito */}
               <button 
                 onClick={() => setIsCartOpen(true)}
-                className="flex items-center gap-2.5 h-9 px-3 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg transition-all active:scale-95 shrink-0 relative"
+                className="flex items-center gap-2.5 h-9.5 px-3 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg transition-all active:scale-95 shrink-0 relative border-0 cursor-pointer"
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4 text-zinc-700" />
-                  {itemsInCart > 0 && (
-                    <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
-                      {itemsInCart}
-                    </span>
-                  )}
+                  <span className="absolute -top-2.5 -right-2.5 bg-[#10B981] text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
+                    {itemsInCart}
+                  </span>
                 </div>
-                <div className="flex flex-col items-start leading-none text-left">
+                <div className="hidden sm:flex flex-col items-start leading-none text-left">
                   <span className="text-[10px] font-bold text-zinc-800">Carrito</span>
-                  <span className="text-[9px] text-zinc-500 font-bold mt-0.5">${total.toLocaleString('es-CO')}</span>
+                  <span className="text-[9px] text-zinc-500 font-bold mt-0.5" suppressHydrationWarning={true}>
+                    ${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                  </span>
                 </div>
               </button>
 
-
             </div>
+
           </div>
         </header>
 
-        {/* Contenido Principal */}
-        <main className="w-full px-6 py-8 flex-1">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Sidebar Categorías & Perks */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-zinc-400 tracking-wider">Categorías</h3>
-                <div className="space-y-1">
-                  {categories.map(cat => {
-                    const Icon = getCategoryIcon(cat)
-                    const isActive = selectedCategory === cat
-                    const count = cat === 'Todos' ? store.products.length : categoryCounts[cat] || 0
-
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={cn(
-                          "w-full flex items-center justify-between py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-left cursor-pointer",
-                          isActive
-                            ? "text-emerald-700 bg-emerald-50/50 font-bold border-l-2 border-emerald-500 rounded-l-none"
-                            : "text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent hover:bg-zinc-50/50"
-                        )}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
-                          <span>{cat === 'Todos' ? 'Todos los productos' : cat}</span>
-                        </div>
-                        <span className={cn(
-                          "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
-                          isActive ? "bg-emerald-100 text-emerald-800" : "text-zinc-400 bg-zinc-100"
-                        )}>{count}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+        {/* Banner principal (Desktop) */}
+        {sections.banner && bannerUrl && (
+          <div className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0">
+            <div className="relative h-[340px] w-full bg-zinc-900 rounded-3xl overflow-hidden flex items-center px-12 text-left select-none shadow-sm">
+              <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent z-0 pointer-events-none" />
+              
+              <div className="relative z-10 space-y-4 max-w-lg">
+                <h2 className="text-2xl xl:text-3xl font-black text-white leading-tight">{bannerTitle}</h2>
+                <p className="text-xs xl:text-sm font-semibold text-zinc-100 leading-normal">{bannerSubtitle}</p>
+                <button 
+                  onClick={handleBannerButtonClick}
+                  className="px-6 py-3 rounded-xl text-white font-extrabold text-xs xl:text-sm flex items-center gap-1.5 shadow-md active:scale-95 transition-all select-none border-0 cursor-pointer"
+                  style={{ backgroundColor: colors.secundario }}
+                >
+                  <span>{bannerButton.text}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-
             </div>
+          </div>
+        )}
 
-            {/* Grid/Feed Central */}
-            <div className={cn(
+        {/* Barra de Beneficios (Desktop) */}
+        {sections.beneficios && benefits?.items?.length > 0 && (
+          <div className="max-w-[1300px] mx-auto w-full px-6 pt-4 pb-2 shrink-0">
+            <div className="bg-white border border-zinc-150 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-2 md:grid-cols-4 gap-6 px-8 py-4">
+              {benefits.items.map((item: any, idx: number) => {
+                const ItemIcon = IconMap[item.icon] || Award
+                return (
+                  <div key={idx} className="flex items-center gap-3.5 p-1.5 text-left select-none">
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${colors.secundario}12`, color: colors.secundario }}
+                    >
+                      <ItemIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-zinc-900 block leading-none">{item.label}</span>
+                      <span className="text-[10px] font-semibold text-zinc-400 mt-1.5 block leading-none">{item.desc}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Contenido Principal */}
+        <main className="max-w-[1300px] mx-auto w-full px-6 py-8 flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            {/* Grid/Feed Central (Ancho completo al eliminar el sidebar) */}
+            <div id="catalog-products" className={cn(
               "space-y-6 transition-all duration-300",
-              selectedProduct ? "lg:col-span-7" : "lg:col-span-10"
+              selectedProduct ? "lg:col-span-8" : "lg:col-span-12"
             )}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                 <div>
-                  <h2 className="text-lg font-bold text-zinc-900">
+                  <h2 className="text-xl font-black text-zinc-900 tracking-tight">
                     {selectedCategory === 'Todos' ? 'Todos los productos' : selectedCategory}
                   </h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-zinc-500 mt-1 font-medium">
                     {filteredProducts.length} {filteredProducts.length === 1 ? 'producto disponible' : 'productos disponibles'}
                   </p>
                 </div>
@@ -548,8 +771,8 @@ export default function WhatsAppCatalog({
                     type="button"
                     onClick={() => setViewMode('grid')}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer",
-                      viewMode === 'grid' ? "bg-white text-zinc-900 shadow-sm border border-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border-0",
+                      viewMode === 'grid' ? "bg-white text-zinc-905 shadow-sm" : "text-zinc-500 hover:text-zinc-900 bg-transparent"
                     )}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
@@ -559,8 +782,8 @@ export default function WhatsAppCatalog({
                     type="button"
                     onClick={() => setViewMode('list')}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer",
-                      viewMode === 'list' ? "bg-white text-zinc-900 shadow-sm border border-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border-0",
+                      viewMode === 'list' ? "bg-white text-zinc-905 shadow-sm" : "text-zinc-500 hover:text-zinc-900 bg-transparent"
                     )}
                   >
                     <List className="w-3.5 h-3.5" />
@@ -569,27 +792,11 @@ export default function WhatsAppCatalog({
                 </div>
               </div>
 
-              {/* Tag Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={cn(
-                      "whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer",
-                      selectedCategory === cat ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50"
-                    )}
-                  >
-                    {cat === 'Todos' ? 'Todos' : cat}
-                  </button>
-                ))}
-              </div>
-
               {/* Productos */}
               <div className={cn(
                 "gap-4 pb-20",
                 viewMode === 'grid' 
-                  ? (selectedProduct ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4") 
+                  ? (selectedProduct ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5") 
                   : "grid grid-cols-1"
               )}>
                 {filteredProducts.map(product => {
@@ -602,53 +809,64 @@ export default function WhatsAppCatalog({
                     <div 
                       key={product.id}
                       className={cn(
-                        "group relative bg-white border border-zinc-200 rounded-xl overflow-hidden p-3 transition-all hover:border-zinc-300 flex flex-col justify-between h-full shadow-none",
+                        "group relative bg-white border border-zinc-150 rounded-2xl overflow-hidden p-3.5 transition-all duration-300 hover:border-zinc-300/80 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:-translate-y-1 flex flex-col justify-between h-full select-none",
                         viewMode === 'list' && "flex-row gap-4 items-center"
                       )}
                     >
-                      <div className={cn(viewMode === 'list' && "flex gap-4 items-center flex-1")}>
+                      <div className={cn("flex flex-col h-full justify-between w-full", viewMode === 'list' && "flex-row gap-4 items-center flex-1")}>
+                        
+                        {/* Image Container with Category Badge */}
                         <div 
-                          className={cn("relative rounded-lg overflow-hidden bg-zinc-50 shrink-0 cursor-pointer", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-20 h-20")}
+                          className={cn("relative rounded-xl overflow-hidden bg-zinc-50 shrink-0 cursor-pointer border border-zinc-100", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-20 h-20")}
                           onClick={() => setSelectedProduct(product)}
                         >
+                          {/* Categoría Badge Overlay */}
+                          <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-1 bg-[#EEF2F0] rounded-md text-[9px] font-bold text-emerald-700 uppercase tracking-wide select-none">
+                            {product.category || 'General'}
+                          </span>
+
                           {product.imageUrl ? (
-                            <img src={product.imageUrl.split(',')[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" />
+                            <img src={product.imageUrl.split(',')[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-300"><ShoppingBag className="w-8 h-8" /></div>
                           )}
                         </div>
 
-                        <div className="flex-1 space-y-1 text-left cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                          <h4 className="font-bold text-xs text-zinc-900 leading-snug line-clamp-2">{product.name}</h4>
-                          <p className="font-black text-xs text-zinc-950">${product.price.toLocaleString('es-CO')}</p>
+                        {/* Title and price row (no bottom stock dot or divider line) */}
+                        <div className="flex-1 flex flex-col justify-between mt-1 select-none text-left">
+                          <h4 className="font-bold text-xs text-zinc-900 leading-snug line-clamp-2 cursor-pointer hover:text-zinc-950 transition-colors" onClick={() => setSelectedProduct(product)}>
+                            {product.name}
+                          </h4>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="font-extrabold text-xs text-zinc-900 leading-none select-none" suppressHydrationWarning={true}>
+                              ${product.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                            </span>
+                            
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const parsedOpts = product.options
+                                  ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
+                                  : []
+                                if (Array.isArray(parsedOpts) && parsedOpts.length > 0) {
+                                  setSelectedProduct(product)
+                                } else {
+                                  changeQtyByKey(product.id, 1)
+                                }
+                              }}
+                              disabled={product.stock <= 0}
+                              className={cn(
+                                "w-8 h-8 rounded-full border border-zinc-200 hover:border-zinc-300 bg-white hover:bg-zinc-50/50 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95",
+                                isItemInCart && "border-emerald-500 bg-emerald-50/20"
+                              )}
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5 text-emerald-600 font-extrabold" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className={cn("flex items-center justify-between pt-2 border-t border-zinc-50 mt-2", viewMode === 'list' && "flex-col items-end border-t-0 mt-0 gap-2.5 shrink-0")}>
-                        <span className="text-[10px] font-bold text-emerald-600">{product.stock > 0 ? `En stock: ${product.stock} unidades` : 'Agotado'}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            const parsedOpts = product.options
-                              ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
-                              : []
-                            if (Array.isArray(parsedOpts) && parsedOpts.length > 0) {
-                              setSelectedProduct(product)
-                            } else {
-                              changeQtyByKey(product.id, 1)
-                            }
-                          }}
-                          disabled={product.stock <= 0}
-                          className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 border-0 shadow-sm",
-                            isItemInCart 
-                              ? "bg-emerald-700 text-white font-extrabold"
-                              : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                          )}
-                        >
-                          {isItemInCart ? <span className="text-[10px] tabular-nums">{productCartQty}</span> : <ShoppingCart className="w-3.5 h-3.5" />}
-                        </button>
                       </div>
                     </div>
                   )
@@ -658,7 +876,7 @@ export default function WhatsAppCatalog({
 
             {/* Panel de Detalles (Columna Derecha) */}
             {selectedProduct && (
-              <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-2xl p-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto space-y-6">
+              <div className="lg:col-span-4 bg-white border border-zinc-200 rounded-2xl p-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto space-y-6">
                 <div className="flex justify-between items-start gap-4">
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold text-zinc-400 tracking-wider">{selectedProduct.category || 'General'} • SKU: {productSku}</p>
@@ -773,8 +991,18 @@ export default function WhatsAppCatalog({
       {/* ========================================================================= */}
       {/* 📱 VISTA MÓVIL (PANTALLAS CELULAR/TABLET - lg:hidden) */}
       {/* ========================================================================= */}
-      <div className="lg:hidden flex flex-col min-h-screen pb-20">
+      <div className={cn("flex flex-col min-h-screen pb-20 w-full", showMobile ? "flex" : "hidden")}>
         
+        {/* Barra de anuncios (Mobile) */}
+        {announcement?.enabled && announcement?.text && (
+          <div 
+            className="w-full text-center py-1.5 px-3 text-[10px] font-bold leading-tight select-none shrink-0"
+            style={{ backgroundColor: announcement.bgColor, color: announcement.textColor }}
+          >
+            {announcement.text}
+          </div>
+        )}
+
         {/* Cabecera Móvil */}
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-16 flex items-center justify-between px-4 shadow-none">
           <div className="flex items-center gap-2.5">
@@ -782,17 +1010,34 @@ export default function WhatsAppCatalog({
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 overflow-hidden">
-                {store.logoUrl ? (
-                  <img src={store.logoUrl} alt={formattedStoreName} className="w-full h-full object-cover" />
-                ) : (
-                  <Sprout className="w-4.5 h-4.5" />
-                )}
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="font-bold text-xs text-zinc-900 tracking-tight leading-none">{formattedStoreName}</span>
-                <span className="text-[9px] text-zinc-400 font-medium mt-1 leading-none">{store.bio || "Productos que te hacen bien"}</span>
-              </div>
+              {store.logoUrl ? (
+                <div className="flex items-center gap-1.5">
+                  <img src={store.logoUrl} alt={formattedStoreName} className="h-6 max-w-[100px] object-contain shrink-0" />
+                  
+                  {/* Schedule Badge (Mobile with Logo) */}
+                  {schedule?.enabled && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-[#EEF2F0] text-emerald-700 select-none scale-90 origin-left shrink-0">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5.5 h-5.5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[9px] text-emerald-600">
+                    ☕
+                  </div>
+                  <span className="font-black text-xs text-zinc-950 uppercase tracking-tight">{formattedStoreName}</span>
+
+                  {/* Schedule Badge (Mobile without Logo) */}
+                  {schedule?.enabled && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-[#EEF2F0] text-emerald-700 select-none scale-90 origin-left shrink-0">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -812,6 +1057,50 @@ export default function WhatsAppCatalog({
         {/* Cuerpo del Catálogo Móvil */}
         <main className="flex-1 px-4 py-4 space-y-6">
           
+          {/* Banner principal (Mobile) */}
+          {sections.banner && bannerUrl && (
+            <div className="relative h-[190px] w-full bg-zinc-900 overflow-hidden flex items-center px-6 rounded-2xl text-left select-none shrink-0 shadow-sm">
+              <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent z-0 pointer-events-none" />
+              
+              <div className="relative z-10 space-y-2 max-w-[220px]">
+                <h2 className="text-xs xl:text-sm font-black text-white leading-tight">{bannerTitle}</h2>
+                <p className="text-[9px] xl:text-[10px] font-semibold text-zinc-200 leading-normal">{bannerSubtitle}</p>
+                <button 
+                  onClick={handleBannerButtonClick}
+                  className="inline-flex items-center gap-0.5 px-3 py-1.5 rounded-md text-white font-extrabold text-[9px] xl:text-[10px] border-0 cursor-pointer active:scale-95 transition-all" 
+                  style={{ backgroundColor: colors.secundario }}
+                >
+                  <span>{bannerButton.text}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Barra de Beneficios (Mobile) */}
+          {sections.beneficios && benefits?.items?.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 bg-white rounded-xl p-3 border border-zinc-150 shrink-0">
+              {benefits.items.map((item: any, idx: number) => {
+                const ItemIcon = IconMap[item.icon] || Award
+                return (
+                  <div key={idx} className="flex items-center gap-1.5 p-1 text-left min-w-0">
+                    <div 
+                      className="w-7 h-7 rounded-lg border flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${colors.secundario}12`, color: colors.secundario, borderColor: `${colors.secundario}22` }}
+                    >
+                      <ItemIcon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 leading-none">
+                      <span className="text-[9px] font-bold text-zinc-900 block truncate">{item.label}</span>
+                      <span className="text-[8px] font-semibold text-zinc-400 mt-0.5 block truncate">{item.desc}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          
           {/* Barra de Búsqueda Móvil con botón Sliders */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -830,49 +1119,7 @@ export default function WhatsAppCatalog({
             </button>
           </div>
 
-          {/* Categorías Squircles (Mockup Móvil) */}
-          <div id="mobile-categories-row" className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1 scroll-smooth">
-            {categories.map(cat => {
-              const Icon = getCategoryIcon(cat)
-              const isActive = selectedCategory === cat
-              const styles = (() => {
-                const name = cat.toLowerCase()
-                if (name.includes('todos')) return { bg: "bg-emerald-50", text: "text-emerald-650 text-emerald-600" }
-                if (name.includes('moda')) return { bg: "bg-[#FFF7ED]", text: "text-[#F97316]" }
-                if (name.includes('tecnolo')) return { bg: "bg-[#EFF6FF]", text: "text-[#3B82F6]" }
-                if (name.includes('belleza')) return { bg: "bg-[#FFF1F2]", text: "text-[#F43F5E]" }
-                if (name.includes('hogar')) return { bg: "bg-[#F8FAFC]", text: "text-[#475569]" }
-                if (name.includes('deport')) return { bg: "bg-[#EEF2FF]", text: "text-[#6366F1]" }
-                return { bg: "bg-zinc-50", text: "text-zinc-550 text-zinc-500" }
-              })()
 
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className="flex flex-col items-center gap-2 shrink-0 select-none group cursor-pointer"
-                >
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-none border-0",
-                    styles.bg,
-                    styles.text,
-                    isActive && "scale-105"
-                  )}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className={cn(
-                      "text-[10px] font-bold tracking-tight transition-colors",
-                      isActive ? "text-emerald-600 font-extrabold" : "text-zinc-500"
-                    )}>
-                      {cat === 'Todos' ? 'Todos' : cat}
-                    </span>
-                    {isActive && <div className="w-4 h-0.5 bg-emerald-500 rounded-full mt-0.5" />}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
 
 
           {/* Toggles Cuadrícula / Lista en Móvil */}
@@ -923,51 +1170,64 @@ export default function WhatsAppCatalog({
                   <div 
                     key={product.id}
                     className={cn(
-                      "group bg-white border border-zinc-200 rounded-xl overflow-hidden p-3 flex flex-col justify-between h-full shadow-none",
+                      "group bg-white border border-zinc-150 rounded-2xl overflow-hidden p-3.5 flex flex-col justify-between h-full select-none shadow-[0_2px_8px_rgba(0,0,0,0.01)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-300",
                       viewMode === 'list' && "flex-row gap-4 items-center"
                     )}
                   >
-                    <div className={cn(viewMode === 'list' && "flex gap-4 items-center flex-1")}>
+                    <div className={cn("flex flex-col h-full justify-between w-full", viewMode === 'list' && "flex-row gap-4 items-center flex-1")}>
+                      
+                      {/* Image Container with Category Badge */}
                       <div 
-                        className={cn("relative rounded-lg overflow-hidden bg-zinc-50 shrink-0 cursor-pointer", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-16 h-16")}
+                        className={cn("relative rounded-xl overflow-hidden bg-zinc-50 shrink-0 cursor-pointer border border-zinc-100", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-16 h-16")}
                         onClick={() => setSelectedProduct(product)}
                       >
+                        {/* Categoría Badge Overlay */}
+                        <span className="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 bg-[#EEF2F0] rounded-md text-[8px] font-bold text-emerald-700 uppercase tracking-wide select-none">
+                          {product.category || 'General'}
+                        </span>
+
                         {product.imageUrl ? (
-                          <img src={product.imageUrl.split(',')[0]} alt="" className="w-full h-full object-cover" />
+                          <img src={product.imageUrl.split(',')[0]} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-zinc-200"><ShoppingBag className="w-6 h-6" /></div>
                         )}
                       </div>
-                      <div className="flex-1 space-y-0.5 text-left cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                        <h4 className="font-bold text-[11px] text-zinc-900 leading-snug line-clamp-2">{product.name}</h4>
-                        <p className="font-black text-[11px] text-zinc-950">${product.price.toLocaleString('es-CO')}</p>
-                      </div>
-                    </div>
 
-                    <div className={cn("flex items-center justify-between pt-2 border-t border-zinc-50 mt-2", viewMode === 'list' && "flex-col items-end border-t-0 mt-0 gap-2 shrink-0")}>
-                      <span className="text-[8px] font-bold text-emerald-600">Stock: {product.stock}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          const parsedOpts = product.options
-                            ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
-                            : []
-                          if (Array.isArray(parsedOpts) && parsedOpts.length > 0) {
-                            setSelectedProduct(product)
-                          } else {
-                            changeQtyByKey(product.id, 1)
-                          }
-                        }}
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 border-0 shadow-sm",
-                          isItemInCart 
-                            ? "bg-emerald-700 text-white font-extrabold"
-                            : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                        )}
-                      >
-                        {isItemInCart ? <span className="text-[10px] tabular-nums">{productCartQty}</span> : <ShoppingCart className="w-3.5 h-3.5" />}
-                      </button>
+                      {/* Title and price row (no bottom stock dot or divider line) */}
+                      <div className="flex-1 flex flex-col justify-between mt-1 select-none text-left">
+                        <h4 className="font-bold text-[11px] text-zinc-900 leading-snug line-clamp-2 cursor-pointer hover:text-zinc-950 transition-colors" onClick={() => setSelectedProduct(product)}>
+                          {product.name}
+                        </h4>
+                        
+                        <div className="flex items-center justify-between mt-2.5">
+                          <span className="font-extrabold text-[11px] text-zinc-900 leading-none select-none" suppressHydrationWarning={true}>
+                            ${product.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                          </span>
+                          
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const parsedOpts = product.options
+                                ? (typeof product.options === 'string' ? JSON.parse(product.options) : product.options)
+                                : []
+                              if (Array.isArray(parsedOpts) && parsedOpts.length > 0) {
+                                setSelectedProduct(product)
+                              } else {
+                                changeQtyByKey(product.id, 1)
+                              }
+                            }}
+                            disabled={product.stock <= 0}
+                            className={cn(
+                              "w-8 h-8 rounded-full border border-zinc-200 hover:border-zinc-300 bg-white hover:bg-zinc-50/50 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95",
+                              isItemInCart && "border-emerald-500 bg-emerald-50/20"
+                            )}
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5 text-emerald-600 font-extrabold" />
+                          </button>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 )
@@ -978,7 +1238,10 @@ export default function WhatsAppCatalog({
         </main>
 
         {/* 5. BOTTOM NAVIGATION BAR FOR MOBILE (Mockup Móvil) */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-zinc-150 h-16 flex items-center justify-around shadow-none px-4 select-none">
+        <div className={cn(
+          (device === 'tablet' || device === 'movil') ? "absolute" : "fixed",
+          "bottom-0 left-0 right-0 z-40 bg-white border-t border-zinc-150 h-16 flex items-center justify-around shadow-none px-4 select-none"
+        )}>
           <button 
             onClick={() => handleMobileTabClick('inicio')}
             className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
@@ -1026,7 +1289,7 @@ export default function WhatsAppCatalog({
       {/* 4. MODAL / DRAWER DE CARRITO & CHECKOUT (COMPARTIDO) */}
       {/* ========================================================================= */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center animate-in fade-in duration-300">
+        <div className={cn("inset-0 z-[100] flex items-end sm:items-center justify-center animate-in fade-in duration-300", !!device ? "absolute" : "fixed")}>
           <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsCartOpen(false)} />
           
           <div className="relative w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
@@ -1180,7 +1443,7 @@ export default function WhatsAppCatalog({
       {/* 3. SIMULATOR DRAWER PARA DETALLE EN MÓVILES (COMPARTIDO) */}
       {/* ========================================================================= */}
       {selectedProduct && (
-        <div className="lg:hidden fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-300">
+        <div className={cn("lg:hidden inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-300", !!device ? "absolute" : "fixed")}>
           <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onClick={() => setSelectedProduct(null)} />
           
           <div className="relative w-full bg-white rounded-t-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
@@ -1284,11 +1547,11 @@ export default function WhatsAppCatalog({
 
       {/* Drawer: Menú Lateral Móvil (Categorías & Enlaces) */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
+        <div className={cn("inset-0 z-50 flex lg:hidden", !!device ? "absolute" : "fixed")}>
           {/* Backdrop */}
           <div 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            className={cn("inset-0 bg-black/40 backdrop-blur-sm transition-opacity", !!device ? "absolute" : "fixed")}
           />
           {/* Menu Panel */}
           <div className="relative flex w-full max-w-[280px] flex-col bg-white h-full shadow-2xl animate-in slide-in-from-left duration-200">
@@ -1363,6 +1626,40 @@ export default function WhatsAppCatalog({
                   <span>Comprar por WhatsApp</span>
                 </a>
               </div>
+
+              {/* Schedule Info (Mobile menu) */}
+              {schedule?.enabled && (
+                <div className="space-y-2 pt-4 border-t border-zinc-100 text-left">
+                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Horario de atención</h4>
+                  <div className="px-3 py-1.5 bg-zinc-50 border border-zinc-150 rounded-lg text-zinc-700 text-[11px] font-semibold">
+                    {schedule.alwaysOpen ? 'Abierto las 24 horas (Siempre abierto)' : schedule.text}
+                  </div>
+                </div>
+              )}
+
+              {/* Socials Links (Mobile menu) */}
+              {socialsShowInCatalog && (store.aiSettings?.socials?.instagram || store.aiSettings?.socials?.facebook || store.aiSettings?.socials?.twitter) && (
+                <div className="space-y-2 pt-4 border-t border-zinc-100 text-left">
+                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Redes sociales</h4>
+                  <div className="flex gap-2 px-1">
+                    {store.aiSettings.socials.instagram && (
+                      <a href={store.aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[10px] font-bold text-zinc-700 hover:bg-zinc-100">
+                        Instagram
+                      </a>
+                    )}
+                    {store.aiSettings.socials.facebook && (
+                      <a href={store.aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[10px] font-bold text-zinc-700 hover:bg-zinc-100">
+                        Facebook
+                      </a>
+                    )}
+                    {store.aiSettings.socials.twitter && (
+                      <a href={store.aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[10px] font-bold text-zinc-700 hover:bg-zinc-100">
+                        X / Twitter
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1370,11 +1667,11 @@ export default function WhatsAppCatalog({
 
       {/* Drawer: Filtros / Ordenación Bottom Sheet */}
       {isFilterOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center lg:hidden">
+        <div className={cn("inset-0 z-50 flex items-end justify-center lg:hidden", !!device ? "absolute" : "fixed")}>
           {/* Backdrop */}
           <div 
             onClick={() => setIsFilterOpen(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            className={cn("inset-0 bg-black/40 backdrop-blur-sm transition-opacity", !!device ? "absolute" : "fixed")}
           />
           {/* Sheet Panel */}
           <div className="relative w-full max-w-lg bg-white rounded-t-2xl shadow-2xl p-6 space-y-6 animate-in slide-in-from-bottom duration-200">
