@@ -201,8 +201,68 @@ export default function NovaChatClient({
     }
   }, [inputText])
 
+  const mapMessageProperties = (m: any) => {
+    if (m.sender !== 'bot' || !m.action || m.action.type === 'NONE') {
+      return m
+    }
+
+    const { type, payload } = m.action
+    const newMsg = { ...m }
+
+    if (type === 'search_products' && payload?.products) {
+      newMsg.type = 'products_list'
+      newMsg.products = payload.products.map((p: any) => ({
+        name: p.name,
+        sales: `Stock: ${p.stock} | Cat: ${p.category} | ${p.active ? 'Activo' : 'Inactivo'}`,
+        price: `$${p.price.toLocaleString('es-CO')}`
+      }))
+    }
+    else if (type === 'create_product' && payload?.product) {
+      newMsg.type = 'product_created_card'
+      newMsg.productDetail = {
+        name: payload.product.name,
+        price: `$${payload.product.price.toLocaleString('es-CO')}`,
+        stock: `Stock: ${payload.product.stock}`,
+        category: payload.product.category || 'General',
+        description: payload.product.description || '',
+        image: payload.product.imageUrl || '/placeholder-product.png',
+        status: 'Creado'
+      }
+    }
+    else if (type === 'create_coupon' && payload?.coupon) {
+      newMsg.type = 'discount_card'
+      newMsg.coupon = {
+        code: payload.coupon.code,
+        desc: payload.coupon.desc,
+        validity: `Válido hasta: ${payload.coupon.validoHasta || payload.coupon.validity || ''}`,
+        active: true
+      }
+    }
+    else if (type === 'update_product' && payload?.product) {
+      newMsg.type = 'product_updated'
+    }
+    else if (type === 'update_order_status' && payload?.order) {
+      newMsg.type = 'order_status_updated'
+    }
+    else if (type === 'list_orders' && payload?.orders) {
+      newMsg.type = 'orders_list'
+    }
+    else if (type === 'get_sales_metrics' && payload?.metrics) {
+      newMsg.type = 'sales_metrics'
+    }
+    else if (type === 'get_customer_chat' && payload?.customerName) {
+      newMsg.type = 'customer_chat'
+    }
+
+    return newMsg
+  }
+
   const [sessions, setSessions] = useState<any[]>(() => {
-    return initialSessions.length > 0 ? initialSessions : DEMO_SESSIONS
+    const list = initialSessions.length > 0 ? initialSessions : DEMO_SESSIONS
+    return list.map(session => ({
+      ...session,
+      messages: session.messages.map((m: any) => mapMessageProperties(m))
+    }))
   })
   
   const [activeSessionId, setActiveSessionId] = useState<string | null>(() => {
@@ -211,7 +271,7 @@ export default function NovaChatClient({
 
   const [messages, setMessages] = useState<Message[]>(() => {
     if (sessions.length > 0) {
-      return sessions[0].messages
+      return sessions[0].messages.map((m: any) => mapMessageProperties(m))
     }
     return []
   })
@@ -233,7 +293,7 @@ export default function NovaChatClient({
     const sess = sessions.find(s => s.id === sessionId)
     if (sess) {
       setActiveSessionId(sessionId)
-      setMessages(sess.messages)
+      setMessages(sess.messages.map((m: any) => mapMessageProperties(m)))
     }
   }
 
@@ -315,45 +375,9 @@ export default function NovaChatClient({
         action: data.action
       }
 
-      // Mapear los resultados de la acción para renderizado específico
-      if (data.action && data.action.type !== 'NONE') {
-        const { type, payload } = data.action
-        
-        if (type === 'search_products' && payload.products) {
-          botMsg.type = 'products_list'
-          botMsg.products = payload.products.map((p: any) => ({
-            name: p.name,
-            sales: `Stock: ${p.stock} | Cat: ${p.category} | ${p.active ? 'Activo' : 'Inactivo'}`,
-            price: `$${p.price.toLocaleString('es-CO')}`
-          }))
-        }
-        else if (type === 'create_coupon' && payload.coupon) {
-          botMsg.type = 'discount_card'
-          botMsg.coupon = {
-            code: payload.coupon.code,
-            desc: payload.coupon.desc,
-            validity: `Válido hasta: ${payload.coupon.validoHasta}`,
-            active: true
-          }
-        }
-        else if (type === 'update_product' && payload.product) {
-          botMsg.type = 'product_updated'
-        }
-        else if (type === 'update_order_status' && payload.order) {
-          botMsg.type = 'order_status_updated'
-        }
-        else if (type === 'list_orders' && payload.orders) {
-          botMsg.type = 'orders_list'
-        }
-        else if (type === 'get_sales_metrics' && payload.metrics) {
-          botMsg.type = 'sales_metrics'
-        }
-        else if (type === 'get_customer_chat' && payload.customerName) {
-          botMsg.type = 'customer_chat'
-        }
-      }
+      const botMsgMapped = mapMessageProperties(botMsg)
 
-      setMessages(prev => [...prev, botMsg])
+      setMessages(prev => [...prev, botMsgMapped])
 
       const isDemo = activeSessionId?.startsWith('demo-')
       if ((!activeSessionId || isDemo) && data.sessionId) {
@@ -361,7 +385,7 @@ export default function NovaChatClient({
         const newSess = {
           id: data.sessionId,
           title: textToSend.slice(0, 35) || 'Nuevo Chat',
-          messages: [userMsg, botMsg],
+          messages: [userMsg, botMsgMapped],
           updatedAt: new Date().toISOString()
         }
         setSessions(prev => [newSess, ...prev].filter(s => !s.id.startsWith('demo-')))
@@ -370,7 +394,7 @@ export default function NovaChatClient({
           if (s.id === activeSessionId) {
             return {
               ...s,
-              messages: [...s.messages, userMsg, botMsg],
+              messages: [...s.messages, userMsg, botMsgMapped],
               updatedAt: new Date().toISOString()
             }
           }
@@ -459,7 +483,7 @@ export default function NovaChatClient({
                           {s.title}
                         </span>
                         {formattedTime && (
-                          <span className="block text-[10px] font-semibold text-zinc-400 mt-1.5 leading-none">
+                          <span suppressHydrationWarning className="block text-[10px] font-semibold text-zinc-400 mt-1.5 leading-none">
                             {formattedTime}
                           </span>
                         )}
@@ -658,7 +682,7 @@ export default function NovaChatClient({
                               <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                 <h5 className="font-bold text-zinc-900 text-xs xl:text-sm">
-                                  Producto Actualizado: {m.action.payload.product.name}
+                                  Producto Actualizado: {m.action.payload.product.name || ''}
                                 </h5>
                               </div>
                               
@@ -668,12 +692,12 @@ export default function NovaChatClient({
                                   <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
                                     {m.action.payload.product.oldPrice !== m.action.payload.product.newPrice ? (
                                       <>
-                                        <span className="line-through text-zinc-400 font-semibold">${m.action.payload.product.oldPrice.toLocaleString('es-CO')}</span>
+                                        <span className="line-through text-zinc-400 font-semibold">${m.action.payload.product.oldPrice?.toLocaleString('es-CO') ?? '0'}</span>
                                         <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-                                        <span className="text-emerald-700 font-extrabold">${m.action.payload.product.newPrice.toLocaleString('es-CO')}</span>
+                                        <span className="text-emerald-700 font-extrabold">${m.action.payload.product.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
                                       </>
                                     ) : (
-                                      <span>${m.action.payload.product.newPrice.toLocaleString('es-CO')}</span>
+                                      <span>${m.action.payload.product.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
                                     )}
                                   </span>
                                 </div>
@@ -682,12 +706,12 @@ export default function NovaChatClient({
                                   <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
                                     {m.action.payload.product.oldStock !== m.action.payload.product.newStock ? (
                                       <>
-                                        <span className="line-through text-zinc-400 font-semibold">{m.action.payload.product.oldStock}</span>
+                                        <span className="line-through text-zinc-400 font-semibold">{m.action.payload.product.oldStock ?? '0'}</span>
                                         <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-                                        <span className="text-blue-700 font-extrabold">{m.action.payload.product.newStock} uds</span>
+                                        <span className="text-blue-700 font-extrabold">{m.action.payload.product.newStock ?? '0'} uds</span>
                                       </>
                                     ) : (
-                                      <span>{m.action.payload.product.newStock} uds</span>
+                                      <span>{m.action.payload.product.newStock ?? '0'} uds</span>
                                     )}
                                   </span>
                                 </div>
@@ -907,18 +931,18 @@ export default function NovaChatClient({
                 )
               })}
               {isTyping && (
-                <div className="flex gap-4 items-start w-full text-left animate-pulse">
+                <div className="flex gap-4 items-start w-full text-left animate-in fade-in duration-300 py-2">
                   <div className="shrink-0 select-none mt-0.5">
-                    <div className="w-8 h-8 rounded-full bg-[#10B981] flex items-center justify-center text-white shadow-sm">
-                      <Bot className="w-4.5 h-4.5" />
+                    <div className="w-8 h-8 rounded-full bg-zinc-100/80 border border-zinc-200/50 flex items-center justify-center text-zinc-500 shadow-sm">
+                      <Bot className="w-4.5 h-4.5 stroke-[2px]" />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <div className="p-3 bg-zinc-50 border border-zinc-200/50 rounded-2xl shadow-none text-zinc-400 flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 bg-zinc-450 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                      <div className="w-1.5 h-1.5 bg-zinc-450 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                      <div className="w-1.5 h-1.5 bg-zinc-450 rounded-full animate-bounce" />
-                    </div>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {/* Minimalist Spinner */}
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-zinc-200 border-t-zinc-500 animate-spin shrink-0" />
+                    <span className="text-xs font-semibold text-zinc-400 select-none animate-pulse">
+                      Nova está pensando...
+                    </span>
                   </div>
                 </div>
               )}

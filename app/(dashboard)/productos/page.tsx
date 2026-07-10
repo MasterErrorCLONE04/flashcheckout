@@ -5,13 +5,13 @@ import { checkSubscription } from '@/lib/subscription'
 import ProductManager from '@/components/ProductManager'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 
+import { getActiveStore } from '@/lib/store-context'
+
 export default async function ProductosPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const store = await prisma.store.findFirst({
-    where: { userId },
-  })
+  const store = await getActiveStore(userId)
 
   if (!store) return <StoreCreationWizard />
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
+import { getActiveStore } from '@/lib/store-context'
 
 export const dynamic = 'force-dynamic'
 // Re-evaluating Prisma types for marketplace integration
@@ -12,9 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
-  const store = await prisma.store.findFirst({
-    where: { userId },
-  })
+  const store = await getActiveStore(userId)
 
   if (!store) {
     return NextResponse.json({ products: [] })
@@ -45,10 +44,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-      include: { products: true }
-    })
+    const store = await getActiveStore(userId, { products: true })
 
     if (!store) {
       return NextResponse.json({ error: 'Store required' }, { status: 400 })

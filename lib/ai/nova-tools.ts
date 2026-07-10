@@ -33,16 +33,38 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'update_product',
-      description: 'Actualiza el precio, stock o estado activo/inactivo de un producto específico.',
+      description: 'Actualiza el nombre, descripción, categoría, precio, stock o estado activo/inactivo de un producto específico.',
       parameters: {
         type: 'object',
         properties: {
           productId: { type: 'string', description: 'ID único del producto.' },
+          name: { type: 'string', description: 'Nuevo nombre del producto (opcional).' },
+          description: { type: 'string', description: 'Nueva descripción detallada del producto (opcional).' },
+          category: { type: 'string', description: 'Nueva categoría del producto (opcional).' },
           price: { type: 'number', description: 'Nuevo precio del producto (opcional).' },
           stock: { type: 'number', description: 'Nueva cantidad disponible en stock (opcional).' },
           active: { type: 'boolean', description: 'Estado activo o inactivo del producto (opcional).' }
         },
         required: ['productId']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_product',
+      description: 'Crea un nuevo producto en el catálogo de la tienda.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Nombre del producto.' },
+          price: { type: 'number', description: 'Precio del producto.' },
+          stock: { type: 'number', description: 'Cantidad inicial de stock (opcional, por defecto 10).' },
+          category: { type: 'string', description: 'Categoría del producto (opcional, por defecto "General").' },
+          description: { type: 'string', description: 'Descripción detallada del producto (opcional).' },
+          imageUrl: { type: 'string', description: 'URL de la imagen del producto (opcional).' }
+        },
+        required: ['name', 'price']
       }
     }
   },
@@ -224,8 +246,37 @@ export async function executeNovaTool(
         }
       }
 
+      case 'create_product': {
+        const { name, price, stock = 10, category = 'General', description = '', imageUrl = '' } = args
+
+        const newProduct = await (prisma.product as any).create({
+          data: {
+            name,
+            price: Math.round(Number(price)),
+            stock: Number(stock),
+            category,
+            description,
+            imageUrl: imageUrl || null,
+            storeId
+          }
+        })
+
+        return {
+          message: 'Producto creado exitosamente.',
+          product: {
+            id: newProduct.id,
+            name: newProduct.name,
+            price: newProduct.price,
+            stock: newProduct.stock,
+            category: newProduct.category,
+            description: newProduct.description,
+            imageUrl: newProduct.imageUrl
+          }
+        }
+      }
+
       case 'update_product': {
-        const { productId, price, stock, active } = args
+        const { productId, name, description, category, price, stock, active } = args
         
         // Verificar pertenencia del producto a la tienda
         const existing = await prisma.product.findFirst({
@@ -237,6 +288,9 @@ export async function executeNovaTool(
         }
 
         const updateData: any = {}
+        if (name !== undefined) updateData.name = name
+        if (description !== undefined) updateData.description = description
+        if (category !== undefined) updateData.category = category
         if (price !== undefined) updateData.price = Number(price)
         if (stock !== undefined) updateData.stock = Number(stock)
         if (active !== undefined) updateData.active = Boolean(active)

@@ -40,6 +40,8 @@ import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
+import { getActiveStore } from '@/lib/store-context'
+
 export default async function DashboardPage(props: {
   searchParams: Promise<{ days?: string }>
 }) {
@@ -49,12 +51,9 @@ export default async function DashboardPage(props: {
   const searchParams = await props.searchParams
   const daysRange = searchParams.days === '30' ? 30 : 7
 
-  const store = await prisma.store.findFirst({
-    where: { userId },
-    include: {
-      _count: {
-        select: { products: true, orders: true },
-      },
+  const store = await getActiveStore(userId, {
+    _count: {
+      select: { products: true, orders: true },
     },
   })
 

@@ -14,7 +14,8 @@ import {
   Bot, 
   Tag, 
   Store, 
-  Link2 
+  Link2,
+  Building
 } from 'lucide-react'
 
 const getNavItems = (conversationsCount: number, ordersCount: number) => [
@@ -27,6 +28,7 @@ const getNavItems = (conversationsCount: number, ordersCount: number) => [
   { href: "/automatizaciones", icon: Bot, label: "Automatizaciones" },
   { href: "/descuentos", icon: Tag, label: "Descuentos" },
   { href: "/tienda", icon: Store, label: "Tienda" },
+  { href: "/dashboard/the-office", icon: Building, label: "The Office" },
   { href: "/integraciones", icon: Link2, label: "Integraciones" },
   { href: "/configuracion", icon: Settings, label: "Configuración" },
 ]

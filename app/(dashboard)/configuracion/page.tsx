@@ -7,13 +7,13 @@ import StoreSettingsManager from '@/components/StoreSettingsManager'
 
 export const dynamic = 'force-dynamic'
 
+import { getActiveStore } from '@/lib/store-context'
+
 export default async function SettingsPage() {
   const { userId } = await auth()
   if (!userId) redirect('/login')
 
-  const store = await prisma.store.findFirst({
-    where: { userId }
-  })
+  const store = await getActiveStore(userId)
 
   if (!store) return <StoreCreationWizard />
 

@@ -7,14 +7,14 @@ import NovaChatClient from '@/components/NovaChatClient'
 
 export const dynamic = 'force-dynamic'
 
+import { getActiveStore } from '@/lib/store-context'
+
 export default async function HablarConNovaPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  // 1. Obtener la tienda del usuario
-  const store = await prisma.store.findFirst({
-    where: { userId }
-  })
+  // 1. Obtener la tienda del usuario activa
+  const store = await getActiveStore(userId)
 
   if (!store) return <StoreCreationWizard />
 

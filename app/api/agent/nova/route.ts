@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { generateOpenRouterCompletion, ChatMessage } from '@/lib/ai/openrouter'
 import { executeNovaTool, NOVA_TOOLS_DEFINITIONS } from '@/lib/ai/nova-tools'
@@ -13,9 +14,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    })
+    const cookieStore = await cookies()
+    const activeStoreId = cookieStore.get('active_store_id')?.value
+
+    let store = null
+    if (activeStoreId) {
+      store = await prisma.store.findFirst({
+        where: { id: activeStoreId, userId }
+      })
+    }
+
+    if (!store) {
+      store = await prisma.store.findFirst({
+        where: { userId }
+      })
+    }
 
     if (!store) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
@@ -145,6 +158,7 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
           payload: toolResult
         }
         
+        if (functionName === 'create_product') overrideType = 'product_created_card'
         if (functionName === 'search_products') overrideType = 'products_list'
         if (functionName === 'update_product') overrideType = 'product_updated'
         if (functionName === 'update_order_status') overrideType = 'order_status_updated'
@@ -170,26 +184,33 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
     try {
       let cleanedText = finalContent.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim()
       
-      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        cleanedText = jsonMatch[0]
-      }
-      
-      cleanedText = cleanedText
-        .replace(/```json/gi, '')
-        .replace(/```/g, '')
-        .trim()
+      const isJsonLike = cleanedText.includes('{') && cleanedText.includes('}')
+      if (isJsonLike) {
+        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          cleanedText = jsonMatch[0]
+        }
+        
+        cleanedText = cleanedText
+          .replace(/```json/gi, '')
+          .replace(/```/g, '')
+          .trim()
 
-      jsonResponse = JSON.parse(cleanedText)
-      
-      if ((!jsonResponse.action || jsonResponse.action.type === 'NONE') && executedAction.type !== 'NONE') {
-        jsonResponse.action = executedAction
+        jsonResponse = JSON.parse(cleanedText)
+        
+        if ((!jsonResponse.action || jsonResponse.action.type === 'NONE') && executedAction.type !== 'NONE') {
+          jsonResponse.action = executedAction
+        }
+        if (overrideType && (!jsonResponse.type || jsonResponse.type === 'text')) {
+          jsonResponse.type = overrideType
+        }
+      } else {
+        throw new Error("Plain text response")
       }
-      if (overrideType && (!jsonResponse.type || jsonResponse.type === 'text')) {
-        jsonResponse.type = overrideType
+    } catch (e: any) {
+      if (e.message !== "Plain text response") {
+        console.warn('[Nova Agent Route JSON Parse failed] Text was:', finalContent)
       }
-    } catch (e) {
-      console.warn('[Nova Agent Route JSON Parse failed] Text was:', finalContent)
       
       const cleanFallbackText = finalContent
         .replace(/<think>[\s\S]*?(<\/think>|$)/gi, '')
@@ -277,11 +298,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
+    const userStores = await prisma.store.findMany({
+      where: { userId },
+      select: { id: true }
     })
+    const userStoreIds = userStores.map(s => s.id)
 
-    if (!store || session.storeId !== store.id) {
+    if (!userStoreIds.includes(session.storeId)) {
       return NextResponse.json({ error: 'Unauthorized session delete' }, { status: 401 })
     }
 

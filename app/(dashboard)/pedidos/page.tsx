@@ -4,13 +4,13 @@ import { prisma } from '@/lib/prisma'
 import OrderList from '@/components/OrderList'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 
+import { getActiveStore } from '@/lib/store-context'
+
 export default async function PedidosPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const store = await prisma.store.findFirst({
-    where: { userId },
-  })
+  const store = await getActiveStore(userId)
 
   if (!store) return <StoreCreationWizard />
 
