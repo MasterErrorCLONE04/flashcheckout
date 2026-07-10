@@ -1,6 +1,9 @@
 export type ChatMessage = {
-  role: 'system' | 'user' | 'assistant'
-  content: string
+  role: 'system' | 'user' | 'assistant' | 'tool'
+  content: string | null
+  name?: string
+  tool_calls?: any[]
+  tool_call_id?: string
 }
 
 export interface AIGatewayConfig {
@@ -10,7 +13,7 @@ export interface AIGatewayConfig {
 }
 
 const GATEWAY_CONFIG: AIGatewayConfig = {
-  maxHistoryMessages: 10,
+  maxHistoryMessages: 15, // Aumentado ligeramente para acomodar ciclos de tools
   temperature: 0.5,
   maxTokens: 4096
 }
@@ -20,8 +23,9 @@ const GATEWAY_CONFIG: AIGatewayConfig = {
  */
 export async function generateGroqCompletion(
   messages: ChatMessage[],
-  systemPrompt?: string
-): Promise<string> {
+  systemPrompt?: string,
+  tools?: any[]
+): Promise<any> {
   const apiKey = process.env.GROQ_API_KEY
   const model = process.env.GROQ_MODEL || 'qwen/qwen3.6-27b'
   const apiUrl = process.env.GROQ_API_URL || 'https://api.groq.com/openai/v1'
@@ -43,7 +47,11 @@ export async function generateGroqCompletion(
   // 4. Fallback de Redundancia: Si no hay API key o es de prueba
   if (!apiKey || apiKey.includes('placeholder')) {
     console.log('[Groq Gateway] Conexión principal inactiva (sin API key). Derivando a Simulador Fallback...')
-    return generateFallbackAIResponse(apiMessages)
+    const fallbackText = generateFallbackAIResponse(apiMessages)
+    if (tools && tools.length > 0) {
+      return { role: 'assistant', content: fallbackText }
+    }
+    return fallbackText
   }
 
   // 5. Conector de Red (Groq API Call)
@@ -58,24 +66,41 @@ export async function generateGroqCompletion(
         model: model,
         messages: apiMessages.map(m => ({
           role: m.role,
-          content: m.content
+          content: m.content,
+          ...(m.tool_calls && { tool_calls: m.tool_calls }),
+          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
+          ...(m.name && { name: m.name })
         })),
         temperature: GATEWAY_CONFIG.temperature,
-        max_tokens: GATEWAY_CONFIG.maxTokens
+        max_tokens: GATEWAY_CONFIG.maxTokens,
+        ...(tools && tools.length > 0 && { tools })
       })
     })
 
     if (!res.ok) {
       const errorText = await res.text()
       console.warn(`[Groq Gateway Warning - Status ${res.status}]: ${errorText}`)
-      return generateFallbackAIResponse(apiMessages)
+      const fallbackText = generateFallbackAIResponse(apiMessages)
+      if (tools && tools.length > 0) {
+        return { role: 'assistant', content: fallbackText }
+      }
+      return fallbackText
     }
 
     const data = await res.json()
-    return data.choices?.[0]?.message?.content || ''
+    const responseMessage = data.choices?.[0]?.message
+
+    if (tools && tools.length > 0) {
+      return responseMessage || { role: 'assistant', content: '' }
+    }
+    return responseMessage?.content || ''
   } catch (err) {
     console.error('[Groq Gateway Network Exception]', err)
-    return generateFallbackAIResponse(apiMessages)
+    const fallbackText = generateFallbackAIResponse(apiMessages)
+    if (tools && tools.length > 0) {
+      return { role: 'assistant', content: fallbackText }
+    }
+    return fallbackText
   }
 }
 
@@ -89,6 +114,9 @@ function pruneConversationHistory(messages: ChatMessage[], maxLimit: number): Ch
 function applySecurityGuardrails(messages: ChatMessage[]): ChatMessage[] {
   return messages.map(m => {
     let cleanContent = m.content
+    if (typeof cleanContent !== 'string') {
+      return m
+    }
 
     const injectionPatterns = [
       /ignore previous instructions/gi,
@@ -99,9 +127,9 @@ function applySecurityGuardrails(messages: ChatMessage[]): ChatMessage[] {
     ]
 
     injectionPatterns.forEach(pattern => {
-      if (pattern.test(cleanContent)) {
+      if (pattern.test(cleanContent!)) {
         console.warn('[Groq Gateway Guardrails] Intento de inyección de prompt detectado y mitigado.')
-        cleanContent = cleanContent.replace(pattern, '[Mensaje Filtrado por Seguridad]')
+        cleanContent = cleanContent!.replace(pattern, '[Mensaje Filtrado por Seguridad]')
       }
     })
 

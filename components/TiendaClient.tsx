@@ -57,7 +57,7 @@ interface TiendaClientProps {
 
 export default function TiendaClient({ initialStore, products }: TiendaClientProps) {
   // Navigation Tabs state
-  const [activeTab, setActiveTab] = useState<'apariencia' | 'info' | 'dominios' | 'seo' | 'redes' | 'politicas'>('apariencia')
+  const [activeTab, setActiveTab] = useState<'apariencia' | 'premium' | 'info' | 'dominios' | 'seo' | 'redes' | 'politicas'>('apariencia')
   
   // Device Preview selection
   const [device, setDevice] = useState<'escritorio' | 'tablet' | 'movil'>('escritorio')
@@ -90,7 +90,90 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
     categorias: parsedSettings.sections?.categorias !== false,
     beneficios: parsedSettings.sections?.beneficios !== false,
     testimonios: parsedSettings.sections?.testimonios !== false,
-    newsletter: parsedSettings.sections?.newsletter !== false
+    newsletter: parsedSettings.sections?.newsletter !== false,
+    bentoHighlights: parsedSettings.sections?.bentoHighlights === true,
+    accordionSpecs: parsedSettings.sections?.accordionSpecs === true,
+    brandStory: parsedSettings.sections?.brandStory === true,
+    visualCategories: parsedSettings.sections?.visualCategories === true,
+    processTimeline: parsedSettings.sections?.processTimeline === true,
+    lifestyleGallery: parsedSettings.sections?.lifestyleGallery === true,
+    newsletterWidget: parsedSettings.sections?.newsletterWidget === true
+  })
+
+  // Bento Highlights custom items (style Chocodate: Date, Almond, Chocolate...)
+  const [bentoHighlights, setBentoHighlights] = useState({
+    title: parsedSettings.bentoHighlights?.title || 'Nuestros Ingredientes Premium',
+    items: parsedSettings.bentoHighlights?.items || [
+      { emoji: '🌴', title: 'Dátiles de Faraón', desc: 'Dulces, carnosos y naturales' },
+      { emoji: '🥜', title: 'Almendras Tostadas', desc: 'Crujientes y seleccionadas a mano' },
+      { emoji: '🍫', title: 'Chocolate Belga', desc: 'Cobertura suave de cacao puro' }
+    ]
+  })
+
+  // Categorías Visuales (Visual PDP Grid)
+  const [visualCategories, setVisualCategories] = useState<Array<{ category: string; imageUrl: string }>>(() => {
+    return parsedSettings.visualCategories || [
+      { category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
+      { category: 'Accesorios', imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300&auto=format&fit=crop' },
+      { category: 'Combos', imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=300&auto=format&fit=crop' }
+    ]
+  })
+
+  // Proceso Paso a Paso (Timeline)
+  const [processTimeline, setProcessTimeline] = useState({
+    title: parsedSettings.processTimeline?.title || '¿Cómo Comprar en FlashCheckout?',
+    items: parsedSettings.processTimeline?.items || [
+      { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catálogo y agrégalos al carrito.' },
+      { step: '2', title: 'Datos de Envío', desc: 'Ingresa tu dirección de entrega y ubícate en el mapa interactivo.' },
+      { step: '3', title: 'Completa en WhatsApp', desc: 'Finaliza el pedido enviando el mensaje estructurado de WhatsApp al vendedor.' }
+    ]
+  })
+
+  // Galería de fotos reales de estilo de vida (Lifestyle)
+  const [lifestyleGallery, setLifestyleGallery] = useState<string[]>(() => {
+    return parsedSettings.lifestyleGallery || [
+      'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?q=80&w=400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=400&auto=format&fit=crop'
+    ]
+  })
+
+  // Newsletter Widget Premium
+  const [newsletterWidget, setNewsletterWidget] = useState({
+    title: parsedSettings.newsletterWidget?.title || 'Únete a Nuestro Club Gourmet',
+    subtitle: parsedSettings.newsletterWidget?.subtitle || 'Entérate antes que nadie de nuestros lanzamientos, descuentos exclusivos y recetas especiales.',
+    placeholder: parsedSettings.newsletterWidget?.placeholder || 'Ingresa tu correo electrónico',
+    btnText: parsedSettings.newsletterWidget?.btnText || 'Suscribirme',
+    bgColor: parsedSettings.newsletterWidget?.bgColor || '#111827',
+    textColor: parsedSettings.newsletterWidget?.textColor || '#FFFFFF'
+  })
+
+  // Menú de navegación superior (Navbar links)
+  const [navbarLinks, setNavbarLinks] = useState<Array<{ label: string; action: 'scroll-banner' | 'scroll-products' | 'scroll-story' | 'whatsapp' | 'link'; link: string }>>(() => {
+    return parsedSettings.navbarLinks || [
+      { label: 'Inicio', action: 'scroll-banner', link: '' },
+      { label: 'Productos', action: 'scroll-products', link: '' },
+      { label: 'Historia', action: 'scroll-story', link: '' },
+      { label: 'Contacto', action: 'whatsapp', link: '' }
+    ]
+  })
+
+  // Accordion Specs (Ficha técnica, nutricional, etc.)
+  const [accordionSpecs, setAccordionSpecs] = useState<Array<{ title: string; content: string }>>(() => {
+    return parsedSettings.accordionSpecs?.tabs || [
+      { title: 'Ficha Nutricional', content: 'Calorías: 140 kcal | Grasas: 4g | Carbohidratos: 22g | Proteínas: 2g por porción.' },
+      { title: 'Método de Envío', content: 'Empacado con tecnología térmica para conservar el chocolate fresco hasta tu puerta.' }
+    ]
+  })
+
+  // Brand Story narrative section
+  const [brandStory, setBrandStory] = useState({
+    title: parsedSettings.brandStory?.title || 'Nuestra Historia de Sabor',
+    desc: parsedSettings.brandStory?.desc || 'Fundada con la visión de combinar frutos del desierto y chocolate fino, creamos una experiencia única de confitería artesanal.',
+    bgUrl: parsedSettings.brandStory?.bgUrl || 'https://images.unsplash.com/photo-1549007994-cb92ca71450a?q=80&w=800&auto=format&fit=crop',
+    btnText: parsedSettings.brandStory?.btnText || 'Saber más',
+    btnLink: parsedSettings.brandStory?.btnLink || ''
   })
 
   // Logo & Banner State
@@ -280,8 +363,18 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             },
             info: {
               address: storeInfo.address
-            }
-          }
+            },
+             bentoHighlights,
+             accordionSpecs: {
+               tabs: accordionSpecs
+             },
+             brandStory,
+             visualCategories,
+             processTimeline,
+             lifestyleGallery,
+             newsletterWidget,
+             navbarLinks
+           }
         })
       })
 
@@ -352,6 +445,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
       <div className="flex border-b border-zinc-200 overflow-x-auto scrollbar-none whitespace-nowrap gap-6 select-none">
         {[
           { id: 'apariencia', label: 'Apariencia' },
+          { id: 'premium', label: 'Secciones Premium (PDP)' },
           { id: 'info', label: 'Información de la tienda' },
           { id: 'dominios', label: 'Dominios' },
           { id: 'seo', label: 'SEO' },
@@ -757,6 +851,577 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     <Type className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Cambiar tipografía</span>
                   </button>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 1.5: SECCIONES PREMIUM (PDP) */}
+          {activeTab === 'premium' && (
+            <div className="space-y-6">
+              
+              {/* Bento Grid Highlights Config */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Bento Grid de Destacados</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Destaca características o ingredientes clave con tarjetas.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('bentoHighlights')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.bentoHighlights ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.bentoHighlights && (
+                  <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de la sección</label>
+                      <input 
+                        type="text"
+                        value={bentoHighlights.title}
+                        onChange={e => setBentoHighlights(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Ej: Ingredientes de Especialidad"
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+
+                    <div className="space-y-3.5 border-t border-zinc-100 pt-3">
+                      {bentoHighlights.items.map((item, idx) => (
+                        <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+                          <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Elemento #{idx + 1}</span>
+                          
+                          <div className="grid grid-cols-12 gap-2">
+                            <div className="col-span-3 space-y-1">
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Emoji</label>
+                              <input 
+                                type="text"
+                                value={item.emoji}
+                                onChange={e => {
+                                  const newItems = [...bentoHighlights.items]
+                                  newItems[idx] = { ...item, emoji: e.target.value }
+                                  setBentoHighlights(prev => ({ ...prev, items: newItems }))
+                                }}
+                                className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-center text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                              />
+                            </div>
+                            <div className="col-span-9 space-y-1">
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                              <input 
+                                type="text"
+                                value={item.title}
+                                onChange={e => {
+                                  const newItems = [...bentoHighlights.items]
+                                  newItems[idx] = { ...item, title: e.target.value }
+                                  setBentoHighlights(prev => ({ ...prev, items: newItems }))
+                                }}
+                                className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción corta</label>
+                            <input 
+                              type="text"
+                              value={item.desc}
+                              onChange={e => {
+                                  const newItems = [...bentoHighlights.items]
+                                  newItems[idx] = { ...item, desc: e.target.value }
+                                  setBentoHighlights(prev => ({ ...prev, items: newItems }))
+                              }}
+                              className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-755 focus:outline-none focus:border-zinc-950"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion Specs Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Acordeones de Ficha / Specs</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Pestañas desplegables para alérgenos, envíos o garantías.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('accordionSpecs')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.accordionSpecs ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.accordionSpecs && (
+                  <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
+                    {accordionSpecs.map((tab, idx) => (
+                      <div key={idx} className="p-3.5 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5 relative">
+                        <button
+                          onClick={() => {
+                            setAccordionSpecs(prev => prev.filter((_, i) => i !== idx))
+                          }}
+                          className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-red-500 p-1 rounded hover:bg-zinc-200/50 transition-colors cursor-pointer border-0 bg-transparent"
+                          title="Eliminar pestaña"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Pestaña #{idx + 1}</span>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                          <input 
+                            type="text"
+                            value={tab.title}
+                            onChange={e => {
+                              const newTabs = [...accordionSpecs]
+                              newTabs[idx] = { ...tab, title: e.target.value }
+                              setAccordionSpecs(newTabs)
+                            }}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950 pr-8"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Contenido</label>
+                          <textarea 
+                            value={tab.content}
+                            onChange={e => {
+                              const newTabs = [...accordionSpecs]
+                              newTabs[idx] = { ...tab, content: e.target.value }
+                              setAccordionSpecs(newTabs)
+                            }}
+                            rows={3}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 focus:outline-none focus:border-zinc-950 resize-none font-sans"
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      onClick={() => setAccordionSpecs(prev => [...prev, { title: 'Nueva Pestaña', content: 'Detalles...' }])}
+                      className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none"
+                    >
+                      <span>+ Añadir Pestaña</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Brand Story Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Historia de Marca / Storytelling</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Franja de ancho completo para contar tu pasión al comprador.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('brandStory')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.brandStory ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.brandStory && (
+                  <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título del banner</label>
+                      <input 
+                        type="text"
+                        value={brandStory.title}
+                        onChange={e => setBrandStory(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Descripción narrativa</label>
+                      <textarea 
+                        value={brandStory.desc}
+                        onChange={e => setBrandStory(prev => ({ ...prev, desc: e.target.value }))}
+                        rows={3}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950 resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">URL imagen de fondo</label>
+                      <input 
+                        type="text"
+                        value={brandStory.bgUrl}
+                        onChange={e => setBrandStory(prev => ({ ...prev, bgUrl: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Texto botón</label>
+                        <input 
+                          type="text"
+                          value={brandStory.btnText}
+                          onChange={e => setBrandStory(prev => ({ ...prev, btnText: e.target.value }))}
+                          className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Enlace botón (Opcional)</label>
+                        <input 
+                          type="text"
+                          value={brandStory.btnLink}
+                          onChange={e => setBrandStory(prev => ({ ...prev, btnLink: e.target.value }))}
+                          className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Categorías Visuales Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Categorías Visuales (PDP Grid)</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra una cuadrícula de imágenes para navegar categorías.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('visualCategories')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.visualCategories ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.visualCategories && (
+                  <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
+                    {visualCategories.map((catItem, idx) => (
+                      <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2 relative">
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Categoría #{idx + 1}</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Nombre</label>
+                            <input 
+                              type="text"
+                              value={catItem.category}
+                              onChange={e => {
+                                const newCats = [...visualCategories]
+                                newCats[idx] = { ...catItem, category: e.target.value }
+                                setVisualCategories(newCats)
+                              }}
+                              className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">URL Imagen</label>
+                            <input 
+                              type="text"
+                              value={catItem.imageUrl}
+                              onChange={e => {
+                                const newCats = [...visualCategories]
+                                newCats[idx] = { ...catItem, imageUrl: e.target.value }
+                                setVisualCategories(newCats)
+                              }}
+                              className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Proceso Timeline Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Línea de Proceso (Paso a Paso)</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra los pasos de compra o elaboración de tu producto.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('processTimeline')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.processTimeline ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.processTimeline && (
+                  <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de la sección</label>
+                      <input 
+                        type="text"
+                        value={processTimeline.title}
+                        onChange={e => setProcessTimeline(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-3.5 border-t border-zinc-100 pt-3">
+                      {processTimeline.items.map((stepItem, idx) => (
+                        <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+                          <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Paso #{idx + 1}</span>
+                          
+                          <div className="grid grid-cols-12 gap-2">
+                            <div className="col-span-3 space-y-1">
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Número</label>
+                              <input 
+                                type="text"
+                                value={stepItem.step}
+                                onChange={e => {
+                                  const newItems = [...processTimeline.items]
+                                  newItems[idx] = { ...stepItem, step: e.target.value }
+                                  setProcessTimeline(prev => ({ ...prev, items: newItems }))
+                                }}
+                                className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-center text-xs font-bold text-zinc-800 focus:outline-none"
+                              />
+                            </div>
+                            <div className="col-span-9 space-y-1">
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título del Paso</label>
+                              <input 
+                                type="text"
+                                value={stepItem.title}
+                                onChange={e => {
+                                  const newItems = [...processTimeline.items]
+                                  newItems[idx] = { ...stepItem, title: e.target.value }
+                                  setProcessTimeline(prev => ({ ...prev, items: newItems }))
+                                }}
+                                className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción del Paso</label>
+                            <input 
+                              type="text"
+                              value={stepItem.desc}
+                              onChange={e => {
+                                const newItems = [...processTimeline.items]
+                                newItems[idx] = { ...stepItem, desc: e.target.value }
+                                setProcessTimeline(prev => ({ ...prev, items: newItems }))
+                              }}
+                              className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Lifestyle Gallery Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Galería de Estilo de Vida</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra hasta 4 fotos reales (estilo Instagram) de tu marca.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('lifestyleGallery')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.lifestyleGallery ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.lifestyleGallery && (
+                  <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
+                    {lifestyleGallery.map((imgUrl, idx) => (
+                      <div key={idx} className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block select-none">Imagen #{idx + 1} (URL)</label>
+                        <input 
+                          type="text"
+                          value={imgUrl}
+                          onChange={e => {
+                            const newG = [...lifestyleGallery]
+                            newG[idx] = e.target.value
+                            setLifestyleGallery(newG)
+                          }}
+                          className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-zinc-800 focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Newsletter Widget Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Newsletter Banner (Club)</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Atrae suscriptores ofreciendo ofertas o novedades.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('newsletterWidget')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.newsletterWidget ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.newsletterWidget && (
+                  <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título del newsletter</label>
+                      <input 
+                        type="text"
+                        value={newsletterWidget.title}
+                        onChange={e => setNewsletterWidget(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Subtítulo descriptivo</label>
+                      <textarea 
+                        value={newsletterWidget.subtitle}
+                        onChange={e => setNewsletterWidget(prev => ({ ...prev, subtitle: e.target.value }))}
+                        rows={2}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5 flex flex-col items-center select-none">
+                        <input 
+                          type="color" 
+                          value={newsletterWidget.bgColor}
+                          onChange={e => setNewsletterWidget(prev => ({ ...prev, bgColor: e.target.value }))}
+                          className="w-10 h-10 rounded-lg border border-zinc-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                        />
+                        <span className="text-[9px] font-bold text-zinc-500 uppercase mt-1">Fondo</span>
+                      </div>
+
+                      <div className="space-y-1.5 flex flex-col items-center select-none">
+                        <input 
+                          type="color" 
+                          value={newsletterWidget.textColor}
+                          onChange={e => setNewsletterWidget(prev => ({ ...prev, textColor: e.target.value }))}
+                          className="w-10 h-10 rounded-lg border border-zinc-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0"
+                        />
+                        <span className="text-[9px] font-bold text-zinc-500 uppercase mt-1">Texto</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Menú de Navegación del Encabezado Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="text-left space-y-0.5">
+                  <h3 className="text-sm font-black text-zinc-900 leading-none">Menú de Navegación de Cabecera</h3>
+                  <p className="text-[11px] font-semibold text-zinc-400">Personaliza hasta 5 enlaces rápidos en la barra superior de tu catálogo.</p>
+                </div>
+
+                <div className="space-y-4 pt-1 text-left">
+                  {navbarLinks.map((item, idx) => (
+                    <div key={idx} className="p-3.5 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5 relative">
+                      <button
+                        onClick={() => {
+                          setNavbarLinks(prev => prev.filter((_, i) => i !== idx))
+                        }}
+                        className="absolute right-2 top-2 text-zinc-400 hover:text-red-500 p-1 rounded hover:bg-zinc-200/50 transition-colors cursor-pointer border-0 bg-transparent"
+                        title="Eliminar enlace"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Enlace #{idx + 1}</span>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Etiqueta</label>
+                          <input 
+                            type="text"
+                            value={item.label}
+                            onChange={e => {
+                              const newLinks = [...navbarLinks]
+                              newLinks[idx] = { ...item, label: e.target.value }
+                              setNavbarLinks(newLinks)
+                            }}
+                            placeholder="Ej: Tienda"
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Acción</label>
+                          <select 
+                            value={item.action}
+                            onChange={e => {
+                              const newLinks = [...navbarLinks]
+                              newLinks[idx] = { ...item, action: e.target.value as any }
+                              setNavbarLinks(newLinks)
+                            }}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
+                          >
+                            <option value="scroll-banner">Scroll a Portada</option>
+                            <option value="scroll-products">Scroll a Catálogo</option>
+                            <option value="scroll-story">Scroll a Historia</option>
+                            <option value="whatsapp">Abrir WhatsApp</option>
+                            <option value="link">Enlace Externo</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {item.action === 'link' && (
+                        <div className="space-y-1 animate-in fade-in duration-300">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">URL Enlace Externo</label>
+                          <input 
+                            type="text"
+                            value={item.link}
+                            onChange={e => {
+                              const newLinks = [...navbarLinks]
+                              newLinks[idx] = { ...item, link: e.target.value }
+                              setNavbarLinks(newLinks)
+                            }}
+                            placeholder="Ej: https://instagram.com/mi-tienda"
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {navbarLinks.length < 5 && (
+                    <button
+                      onClick={() => setNavbarLinks(prev => [...prev, { label: 'Nuevo Enlace', action: 'scroll-products', link: '' }])}
+                      className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none"
+                    >
+                      <span>+ Añadir Enlace</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1234,8 +1899,18 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         typography,
                         info: {
                           address: storeInfo.address
+                        },
+                         bentoHighlights,
+                         accordionSpecs: {
+                           tabs: accordionSpecs
+                         },
+                         brandStory,
+                         visualCategories,
+                         processTimeline,
+                         lifestyleGallery,
+                         newsletterWidget,
+                         navbarLinks
                         }
-                      }
                     } as any}
                     device={device}
                   />

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
-import { generateGroqCompletion } from '@/lib/ai/groq'
+import { generateGroqCompletion, ChatMessage } from '@/lib/ai/groq'
+import { executeNovaTool, NOVA_TOOLS_DEFINITIONS } from '@/lib/ai/nova-tools'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,89 +22,13 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { message, history, sessionId } = body
+    const { message, sessionId } = body
 
     if (!message) {
       return NextResponse.json({ error: 'Missing message' }, { status: 400 })
     }
 
-    // 1. Fetch store info
-    const storeProducts = await prisma.product.findMany({
-      where: { storeId: store.id },
-      take: 20
-    })
-
-    const storeOrders = await prisma.order.findMany({
-      where: { storeId: store.id },
-      orderBy: { createdAt: 'desc' },
-      take: 10
-    })
-
-    // 2. Prepare Context Description
-    const productsContext = storeProducts.length > 0
-      ? storeProducts.map(p => `- ${p.name}: Price: $${p.price.toLocaleString('es-CO')} (${p.active ? 'Activo' : 'Inactivo'})`).join('\n')
-      : 'No hay productos creados.'
-
-    const ordersContext = storeOrders.length > 0
-      ? storeOrders.map(o => `- Orden #${o.id.slice(-6)} - Total: $${o.total.toLocaleString('es-CO')} - Estado: ${o.status || o.paymentStatus || 'Pendiente'}`).join('\n')
-      : 'No hay pedidos recientes.'
-
-    // 3. Build System Prompt for DeepSeek
-    const systemPrompt = `Eres Nova, el copiloto inteligente y guía de la plataforma FlashCheckout para la tienda "${store.name}".
-Tu propósito principal es guiar y asistir al usuario (comerciante) dentro de la plataforma, ayudándole a navegar por el panel de control, configurar su tienda, gestionar productos, configurar pasarelas de pago, crear cupones de descuento, activar automatizaciones y resolver dudas operativas sobre el uso de la plataforma. Recuerda que tú no vendes directamente a los compradores finales (de eso se encarga el chatbot de WhatsApp y el link de checkout), sino que eres la guía y soporte del comerciante dentro del panel.
-
-Información actual de la tienda en tiempo real:
-- Nombre: ${store.name}
-- Slug: ${store.slug}
-- Categoría: ${store.category || 'Ventas'}
-- WhatsApp: ${store.whatsappConnected ? 'Conectado' : 'Desconectado'} (${store.whatsapp || 'Sin asignar'})
-- Mercado Pago: ${store.mpConnected ? 'Conectado' : 'Desconectado'}
-
-Productos en catálogo:
-${productsContext}
-
-Pedidos recientes:
-${ordersContext}
-
-DEBES responder con un formato JSON estructurado que contenga los siguientes campos obligatorios:
-{
-  "text": "Tu respuesta descriptiva en texto para el comerciante en español (usa un tono profesional, entusiasta, experto en e-commerce y servicial). Puedes sugerir acciones.",
-  "type": "text | products_list | discount_card",
-  "products": [
-    { "name": "Nombre del producto", "sales": "Descripción de ventas (Ej: 12 unidades vendidas esta semana o stock)", "price": "$Precio formateado" }
-  ],
-  "coupon": {
-    "code": "CÓDIGO_CUPÓN",
-    "desc": "Descripción del descuento",
-    "validity": "Válido hasta: fecha",
-    "active": true
-  },
-  "action": {
-    "type": "CREATE_PRODUCT | CREATE_COUPON | NONE",
-    "payload": {
-      "name": "Nombre del producto",
-      "price": 12000,
-      "stock": 10,
-      "description": "Breve descripción",
-      "code": "CÓDIGO_CUPÓN",
-      "desc": "Descripción",
-      "valor": "15%",
-      "tipo": "Código",
-      "tipoDesc": "Porcentaje",
-      "validoHasta": "fecha o texto"
-    }
-  }
-}
-
-Reglas para definir "type" y "action":
-- Si el usuario te pregunta por los productos más vendidos, stock o catálogo general, usa "products_list" y llena la propiedad "products".
-- Si el usuario te pide crear un descuento, cupón o promoción, usa "discount_card", llena la propiedad "coupon" y define la acción CREATE_COUPON en "action" con los datos correspondientes.
-- Si el usuario te pide explícitamente crear un producto, usa "products_list", llena la propiedad "products" con el producto que se creará y define la acción CREATE_PRODUCT en "action" con los datos correspondientes.
-- Si no hay ninguna base de datos o cambio que realizar (conversación normal), usa "text" para "type" y pon "action": null o {"type": "NONE", "payload": {}}.
-
-IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento (<think>) extremadamente corto (máximo 2 o 3 líneas). Luego del razonamiento, debes responder únicamente con el objeto JSON válido. No uses bloques de código markdown como \`\`\`json ni texto explicativo adicional fuera del JSON. Devuelve ÚNICAMENTE el objeto JSON válido.`
-
-    // 4. Fetch session history or use new
+    // 1. Obtener historial de la sesión
     let dbSession = null
     let dbHistory: any[] = []
     if (sessionId) {
@@ -115,19 +40,129 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
       }
     }
 
-    const apiMessages = dbHistory.slice(-10).map((h: any) => ({
-      role: h.sender === 'bot' ? 'assistant' : 'user',
-      content: h.text
-    }))
+    // 2. Mapear historial al formato de ChatMessage
+    const apiMessages: ChatMessage[] = []
+    
+    // Solo tomamos los últimos 12 mensajes del historial para no saturar contexto
+    const recentDbHistory = dbHistory.slice(-12)
+    for (const h of recentDbHistory) {
+      if (h.sender === 'bot') {
+        apiMessages.push({
+          role: 'assistant',
+          content: h.text || 'Entendido.'
+        })
+      } else {
+        apiMessages.push({
+          role: 'user',
+          content: h.text
+        })
+      }
+    }
+
+    // Añadimos el nuevo mensaje del usuario
     apiMessages.push({ role: 'user', content: message })
 
-    // 5. Invoke Groq
-    const aiReplyText = await generateGroqCompletion(apiMessages, systemPrompt)
+    // 3. System Prompt para Nova en modo Tool Calling
+    const systemPrompt = `Eres Nova, el copiloto inteligente de administración de la plataforma FlashCheckout para la tienda "${store.name}".
+Tu propósito es ayudar al comerciante a gestionar su negocio desde el panel de control.
+Tienes acceso a herramientas (functions) para interactuar con la base de datos de la tienda. Utilízalas de forma proactiva cuando el comerciante te pida buscar o actualizar productos, ver pedidos, cupones, métricas o cambiar configuraciones del bot.
 
-    // 6. Parse reply safely
-    let jsonResponse: any
+Información general de la tienda en tiempo real:
+- Nombre: ${store.name}
+- Slug: ${store.slug}
+- Categoría comercial: ${store.category || 'Ventas'}
+- WhatsApp conectado: ${store.whatsappConnected ? 'SÍ' : 'NO'} (${store.whatsapp || 'Sin asignar'})
+- Mercado Pago conectado: ${store.mpConnected ? 'SÍ' : 'NO'}
+
+REGLAS DE RESPUESTA:
+- Cuando el comerciante te pida hacer algo que requiera una de tus herramientas, DEBES llamar a la herramienta. No inventes datos ni simules la acción; invoca la herramienta real.
+- Una vez ejecutadas las herramientas necesarias (o si la consulta es una conversación de texto normal), DEBES responder obligatoriamente con un formato JSON estructurado que contenga los siguientes campos:
+{
+  "text": "Tu respuesta descriptiva y atenta al comerciante en español. Resume lo que hiciste o responde la duda.",
+  "type": "text | products_list | product_updated | discount_card | order_status_updated | sales_metrics | customer_chat",
+  "action": {
+    "type": "NONE | search_products | update_product | list_orders | update_order_status | create_coupon | get_sales_metrics | get_customer_chat | toggle_whatsapp_bot",
+    "payload": { ...objeto con los datos resultantes devueltos por la herramienta o acción... }
+  }
+}
+
+Tipos ("type") y su correspondencia:
+- Si buscaste productos, usa "products_list" e introduce el resultado en "action.payload".
+- Si actualizaste un producto, usa "product_updated" e introduce el resultado en "action.payload".
+- Si listaste órdenes, usa "order_status_updated" y pon el listado en "action.payload".
+- Si cambiaste el estado de un pedido, usa "order_status_updated" e introduce el resultado en "action.payload".
+- Si creaste un cupón, usa "discount_card" e introduce el resultado del cupón en "action.payload".
+- Si consultaste métricas de ventas, usa "sales_metrics" e introduce el resultado en "action.payload".
+- Si consultaste el chat de un cliente, usa "customer_chat" e introduce la información y chatHistory en "action.payload".
+- Si activaste/desactivaste el bot, usa "text" e introduce el resultado en "action.payload".
+- Si fue una conversación casual sin herramientas, usa "text" para el tipo y "action": {"type": "NONE", "payload": {}}.
+
+IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento (<think>) extremadamente corto. Luego responde únicamente con el objeto JSON válido. No uses bloques de código markdown ni texto adicional fuera del JSON.`
+
+    // 4. Bucle del Agente (Tool Calling Loop)
+    let aiResponse = null
+    let loopCount = 0
+    const maxLoops = 4
+    let executedAction: any = { type: 'NONE', payload: {} }
+    let overrideType: string | null = null
+
+    while (loopCount < maxLoops) {
+      loopCount++
+      aiResponse = await generateGroqCompletion(apiMessages, systemPrompt, NOVA_TOOLS_DEFINITIONS)
+
+      if (!aiResponse || typeof aiResponse !== 'object' || !aiResponse.tool_calls || aiResponse.tool_calls.length === 0) {
+        break
+      }
+
+      const toolCalls = aiResponse.tool_calls
+      
+      apiMessages.push({
+        role: 'assistant',
+        content: aiResponse.content || null,
+        tool_calls: toolCalls
+      })
+
+      for (const call of toolCalls) {
+        const functionName = call.function.name
+        let functionArgs = {}
+        try {
+          functionArgs = typeof call.function.arguments === 'string' 
+            ? JSON.parse(call.function.arguments) 
+            : call.function.arguments
+        } catch (e) {
+          console.warn('[Nova Route] Failed to parse function args:', call.function.arguments)
+        }
+
+        console.log(`[Nova Agent Tool Call] Tienda: ${store.name} | Ejecutando: ${functionName}`, functionArgs)
+
+        const toolResult = await executeNovaTool(store.id, functionName, functionArgs)
+
+        executedAction = {
+          type: functionName,
+          payload: toolResult
+        }
+        
+        if (functionName === 'search_products') overrideType = 'products_list'
+        if (functionName === 'update_product') overrideType = 'product_updated'
+        if (functionName === 'update_order_status') overrideType = 'order_status_updated'
+        if (functionName === 'create_coupon') overrideType = 'discount_card'
+        if (functionName === 'get_sales_metrics') overrideType = 'sales_metrics'
+        if (functionName === 'get_customer_chat') overrideType = 'customer_chat'
+
+        apiMessages.push({
+          role: 'tool',
+          content: JSON.stringify(toolResult),
+          tool_call_id: call.id,
+          name: functionName
+        })
+      }
+    }
+
+    const finalContent = typeof aiResponse === 'object' ? (aiResponse.content || '') : (aiResponse || '')
+    let jsonResponse: any = {}
+
     try {
-      let cleanedText = aiReplyText.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim()
+      let cleanedText = finalContent.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim()
       
       const jsonMatch = cleanedText.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
@@ -140,92 +175,33 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
         .trim()
 
       jsonResponse = JSON.parse(cleanedText)
-
-      // -- EJECUTAR ACCIONES EN LA BASE DE DATOS --
-      if (jsonResponse.action && jsonResponse.action.type && jsonResponse.action.type !== 'NONE') {
-        const { type, payload } = jsonResponse.action
-        
-        if (type === 'CREATE_PRODUCT' && payload) {
-          const newProd = await prisma.product.create({
-            data: {
-              name: payload.name || 'Nuevo Producto',
-              price: Number(payload.price || 0),
-              stock: Number(payload.stock || 0),
-              description: payload.description || '',
-              storeId: store.id,
-              active: true
-            }
-          })
-          
-          jsonResponse.products = [
-            {
-              name: newProd.name,
-              sales: `Stock: ${newProd.stock}`,
-              price: `$${newProd.price.toLocaleString('es-CO')}`
-            }
-          ]
-          jsonResponse.type = 'products_list'
-        }
-        
-        else if (type === 'CREATE_COUPON' && payload) {
-          const newCoupon = await prisma.coupon.create({
-            data: {
-              code: String(payload.code || 'PROMO').toUpperCase().trim(),
-              desc: payload.desc || 'Descuento creado por Nova',
-              tipo: payload.tipo || 'Código',
-              tipoDesc: payload.tipoDesc || 'Porcentaje',
-              valor: String(payload.valor || '10%'),
-              validoHasta: payload.validoHasta || 'Sin fecha límite',
-              estado: 'Activo',
-              storeId: store.id
-            }
-          })
-          
-          jsonResponse.coupon = {
-            code: newCoupon.code,
-            desc: newCoupon.desc,
-            validity: newCoupon.validoHasta,
-            active: true
-          }
-          jsonResponse.type = 'discount_card'
-        }
+      
+      if ((!jsonResponse.action || jsonResponse.action.type === 'NONE') && executedAction.type !== 'NONE') {
+        jsonResponse.action = executedAction
+      }
+      if (overrideType && (!jsonResponse.type || jsonResponse.type === 'text')) {
+        jsonResponse.type = overrideType
       }
     } catch (e) {
-      console.warn('[Nova Agent Route JSON Parse failed] Text was:', aiReplyText)
+      console.warn('[Nova Agent Route JSON Parse failed] Text was:', finalContent)
       
-      // Intentar limpiar el texto para el fallback quitando el bloque <think> de forma robusta
-      const cleanFallbackText = aiReplyText
+      const cleanFallbackText = finalContent
         .replace(/<think>[\s\S]*?(<\/think>|$)/gi, '')
         .replace(/```json/gi, '')
         .replace(/```/g, '')
         .trim()
 
-      // Si parece un JSON pero falló el parseo (por ejemplo, si está truncado),
-      // intentar extraer solo el contenido del campo "text"
-      let textContent = cleanFallbackText
-      if (cleanFallbackText.includes('"text"')) {
-        const textMatch = cleanFallbackText.match(/"text"\s*:\s*"([\s\S]*?)"/)
-        if (textMatch) {
-          textContent = textMatch[1]
-        } else {
-          const partialMatch = cleanFallbackText.match(/"text"\s*:\s*"([\s\S]*)/)
-          if (partialMatch) {
-            // Limpiar comillas, comas o llaves de cierre rotas al final si quedó truncado
-            textContent = partialMatch[1]
-              .replace(/",?\s*$/, '')
-              .replace(/}\s*$/, '')
-              .trim()
-          }
-        }
-      }
-
       jsonResponse = {
-        text: textContent || 'Disculpa, ocurrió un problema al procesar la respuesta de la IA. ¿Me lo puedes repetir?',
-        type: 'text'
+        text: cleanFallbackText || 'He procesado tu solicitud correctamente.',
+        type: overrideType || 'text',
+        action: executedAction
       }
     }
-    
-    // 7. Guardar historial de conversación en la base de datos
+
+    if (!jsonResponse.action) {
+      jsonResponse.action = { type: 'NONE', payload: {} }
+    }
+
     const userMessageObj = {
       id: Math.random().toString(),
       sender: 'user',
@@ -233,15 +209,14 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       type: 'text'
     }
-    
+
     const botMessageObj = {
       id: Math.random().toString(),
       sender: 'bot',
       text: jsonResponse.text || 'Entendido.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       type: jsonResponse.type || 'text',
-      products: jsonResponse.products,
-      coupon: jsonResponse.coupon
+      action: jsonResponse.action
     }
 
     if (dbSession) {
@@ -273,5 +248,44 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
   } catch (error: any) {
     console.error('Nova Agent API Error:', error)
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const body = await req.json()
+    const { sessionId } = body
+    if (!sessionId) {
+      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
+    }
+
+    const session = await prisma.novaChatSession.findUnique({
+      where: { id: sessionId }
+    })
+
+    if (!session) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+
+    const store = await prisma.store.findFirst({
+      where: { userId }
+    })
+
+    if (!store || session.storeId !== store.id) {
+      return NextResponse.json({ error: 'Unauthorized session delete' }, { status: 401 })
+    }
+
+    await prisma.novaChatSession.delete({
+      where: { id: sessionId }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Error deleting chat session:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

@@ -184,6 +184,91 @@ export default function WhatsAppCatalog({
     alwaysOpen: true
   }
 
+  // Bento Highlights config (Chocodate Style)
+  const bentoHighlights = aiSettings.bentoHighlights || {
+    title: 'Nuestros Ingredientes Premium',
+    items: [
+      { emoji: '🌴', title: 'Dátiles de Faraón', desc: 'Dulces, carnosos y naturales' },
+      { emoji: '🥜', title: 'Almendras Tostadas', desc: 'Crujientes y seleccionadas a mano' },
+      { emoji: '🍫', title: 'Chocolate Belga', desc: 'Cobertura suave de cacao puro' }
+    ]
+  }
+
+  // Accordion Specs config
+  const accordionSpecs = aiSettings.accordionSpecs?.tabs || [
+    { title: 'Ficha Nutricional', content: 'Calorías: 140 kcal | Grasas: 4g | Carbohidratos: 22g | Proteínas: 2g por porción.' },
+    { title: 'Método de Envío', content: 'Empacado con tecnología térmica para conservar el chocolate fresco hasta tu puerta.' }
+  ]
+
+  // Brand Story config
+  const brandStory = aiSettings.brandStory || {
+    title: 'Nuestra Historia de Sabor',
+    desc: 'Fundada con la visión de combinar frutos del desierto y chocolate fino, creamos una experiencia única de confitería artesanal.',
+    bgUrl: 'https://images.unsplash.com/photo-1549007994-cb92ca71450a?q=80&w=800&auto=format&fit=crop',
+    btnText: 'Saber más',
+    btnLink: ''
+  }
+
+  // Categorías Visuales config
+  const visualCategories = aiSettings.visualCategories || [
+    { category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
+    { category: 'Accesorios', imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300&auto=format&fit=crop' },
+    { category: 'Combos', imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=300&auto=format&fit=crop' }
+  ]
+
+  // Proceso Timeline config
+  const processTimeline = aiSettings.processTimeline || {
+    title: '¿Cómo Comprar en FlashCheckout?',
+    items: [
+      { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catálogo y agrégalos al carrito.' },
+      { step: '2', title: 'Datos de Envío', desc: 'Ingresa tu dirección de entrega y ubícate en el mapa interactivo.' },
+      { step: '3', title: 'Completa en WhatsApp', desc: 'Finaliza el pedido enviando el mensaje estructurado de WhatsApp al vendedor.' }
+    ]
+  }
+
+  // Galería de fotos reales de estilo de vida (Lifestyle)
+  const lifestyleGallery = aiSettings.lifestyleGallery || [
+    'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?q=80&w=400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=400&auto=format&fit=crop'
+  ]
+
+  // Newsletter Widget Premium config
+  const newsletterWidget = aiSettings.newsletterWidget || {
+    title: 'Únete a Nuestro Club Gourmet',
+    subtitle: 'Entérate antes que nadie de nuestros lanzamientos, descuentos exclusivos y recetas especiales.',
+    placeholder: 'Ingresa tu correo electrónico',
+    btnText: 'Suscribirme',
+    bgColor: '#111827',
+    textColor: '#FFFFFF'
+  }
+
+  // Menú de navegación superior (Navbar links)
+  const navbarLinks = aiSettings.navbarLinks || [
+    { label: 'Inicio', action: 'scroll-banner', link: '' },
+    { label: 'Productos', action: 'scroll-products', link: '' },
+    { label: 'Historia', action: 'scroll-story', link: '' },
+    { label: 'Contacto', action: 'whatsapp', link: '' }
+  ]
+
+  const handleNavbarLinkClick = (item: any) => {
+    if (item.action === 'scroll-banner') {
+      const el = document.getElementById('catalog-banner') || document.getElementById('catalog-banner-mobile')
+      el?.scrollIntoView({ behavior: 'smooth' })
+    } else if (item.action === 'scroll-products') {
+      const el = document.getElementById('catalog-products')
+      el?.scrollIntoView({ behavior: 'smooth' })
+    } else if (item.action === 'scroll-story') {
+      const el = document.getElementById('brand-story-section') || document.getElementById('brand-story-section-mobile')
+      el?.scrollIntoView({ behavior: 'smooth' })
+    } else if (item.action === 'whatsapp') {
+      window.open(`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Hola! Me gustaría hacer una consulta.`, '_blank')
+    } else if (item.action === 'link' && item.link) {
+      window.open(item.link, '_blank')
+    }
+  }
+
   const IconMap: Record<string, any> = {
     Truck,
     ShieldCheck,
@@ -205,11 +290,18 @@ export default function WhatsAppCatalog({
     }
   }
 
-  const sections = aiSettings.sections || {
-    banner: true,
-    destacados: true,
-    categorias: true,
-    beneficios: true
+  const sections = {
+    banner: aiSettings.sections?.banner !== false,
+    destacados: aiSettings.sections?.destacados !== false,
+    categorias: aiSettings.sections?.categorias !== false,
+    beneficios: aiSettings.sections?.beneficios !== false,
+    bentoHighlights: aiSettings.sections?.bentoHighlights === true,
+    accordionSpecs: aiSettings.sections?.accordionSpecs === true,
+    brandStory: aiSettings.sections?.brandStory === true,
+    visualCategories: aiSettings.sections?.visualCategories === true,
+    processTimeline: aiSettings.sections?.processTimeline === true,
+    lifestyleGallery: aiSettings.sections?.lifestyleGallery === true,
+    newsletterWidget: aiSettings.sections?.newsletterWidget === true
   }
 
   const formattedStoreName = store.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -603,18 +695,21 @@ export default function WhatsAppCatalog({
 
             {/* Enlaces de Navegación del Rediseño */}
             <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-zinc-500">
-              {['Inicio', 'Tienda', 'Sobre nosotros', 'Contacto'].map((tab) => {
-                const isActive = activeNavTab === tab;
+              {navbarLinks.map((item: any, idx: number) => {
+                const isActive = activeNavTab === item.label;
                 return (
                   <span
-                    key={tab}
-                    onClick={() => setActiveNavTab(tab)}
+                    key={idx}
+                    onClick={() => {
+                      setActiveNavTab(item.label)
+                      handleNavbarLinkClick(item)
+                    }}
                     className={cn(
                       "cursor-pointer hover:text-zinc-900 transition-all pb-1 relative",
                       isActive ? "text-zinc-950 border-b-2 border-emerald-600 font-extrabold" : "text-zinc-500"
                     )}
                   >
-                    {tab}
+                    {item.label}
                   </span>
                 )
               })}
@@ -700,7 +795,7 @@ export default function WhatsAppCatalog({
 
         {/* Banner principal (Desktop) */}
         {sections.banner && bannerUrl && (
-          <div className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0">
+          <div id="catalog-banner" className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0">
             <div className="relative h-[340px] w-full bg-zinc-900 rounded-3xl overflow-hidden flex items-center px-12 text-left select-none shadow-sm">
               <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent z-0 pointer-events-none" />
@@ -742,6 +837,51 @@ export default function WhatsAppCatalog({
                   </div>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Categorías Visuales (Desktop) */}
+        {sections.visualCategories && visualCategories?.length > 0 && (
+          <div className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0 select-none">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {visualCategories.map((catItem: any, idx: number) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedCategory(catItem.category)}
+                  className={cn(
+                    "bg-white border rounded-2xl p-4 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:border-zinc-350 hover:shadow-md active:scale-[0.98]",
+                    selectedCategory === catItem.category ? "border-emerald-600 ring-2 ring-emerald-500/10" : "border-zinc-150"
+                  )}
+                >
+                  <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-zinc-50 border border-zinc-100 flex items-center justify-center shrink-0">
+                    {catItem.imageUrl ? (
+                      <img src={catItem.imageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Tag className="w-6 h-6 text-zinc-400" />
+                    )}
+                  </div>
+                  <span className="text-xs font-black text-zinc-800 tracking-tight leading-tight">{catItem.category}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Bento Grid Highlights (Desktop) */}
+        {sections.bentoHighlights && bentoHighlights?.items?.length > 0 && (
+          <div className="max-w-[1300px] mx-auto w-full px-6 pt-4 pb-2 shrink-0">
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider text-left mb-3">{bentoHighlights.title}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {bentoHighlights.items.map((item: any, idx: number) => (
+                <div key={idx} className="bg-white border border-zinc-150 rounded-2xl p-5 text-left flex flex-col justify-between hover:border-zinc-300 transition-all select-none">
+                  <div className="text-3xl mb-3">{item.emoji || '✨'}</div>
+                  <div>
+                    <h4 className="font-extrabold text-sm text-zinc-900 leading-snug">{item.title}</h4>
+                    <p className="text-xs font-semibold text-zinc-500 mt-2 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -985,6 +1125,128 @@ export default function WhatsAppCatalog({
               </div>
             )}
           </div>
+
+          {/* Accordion Specs (Desktop) */}
+          {sections.accordionSpecs && accordionSpecs?.length > 0 && (
+            <div className="mt-12 border-t border-zinc-150 pt-8 w-full">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider text-left mb-6">Especificaciones</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                {accordionSpecs.map((tab: any, idx: number) => (
+                  <details key={idx} className="group border border-zinc-150 rounded-xl bg-white overflow-hidden" open={idx === 0}>
+                    <summary className="w-full px-5 py-4 flex items-center justify-between font-bold text-xs bg-zinc-50/50 hover:bg-zinc-50 transition-colors cursor-pointer text-zinc-900 list-none [&::-webkit-details-marker]:hidden">
+                      <span>{tab.title}</span>
+                      <ChevronRight className="w-4 h-4 text-zinc-400 transition-transform group-open:rotate-90" />
+                    </summary>
+                    <div className="px-5 py-4 border-t border-zinc-150 text-xs font-semibold leading-relaxed text-zinc-600 whitespace-pre-wrap">
+                      {tab.content}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Brand Story (Desktop) */}
+          {sections.brandStory && brandStory && (
+            <div id="brand-story-section" className="w-full pt-10 shrink-0 select-none">
+              <div className="relative h-[280px] w-full bg-zinc-900 rounded-3xl flex items-center justify-center text-center p-8 overflow-hidden">
+                {brandStory.bgUrl && (
+                  <img src={brandStory.bgUrl} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-35 z-0" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20 z-0" />
+                <div className="relative z-10 space-y-4 max-w-xl text-white">
+                  <h2 className="text-xl xl:text-2xl font-black tracking-tight">{brandStory.title}</h2>
+                  <p className="text-xs font-semibold text-zinc-200 leading-relaxed">{brandStory.desc}</p>
+                  {brandStory.btnText && (
+                    <button
+                      onClick={() => {
+                        if (brandStory.btnLink) window.open(brandStory.btnLink, '_blank')
+                      }}
+                      className="px-6 py-2.5 rounded-xl font-bold text-xs border-0 cursor-pointer shadow-md hover:shadow-lg transition-all"
+                      style={{ backgroundColor: colors.primario, color: '#FFFFFF' }}
+                    >
+                      {brandStory.btnText}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Proceso Timeline (Desktop) */}
+          {sections.processTimeline && processTimeline?.items?.length > 0 && (
+            <div className="mt-12 border-t border-zinc-150 pt-8 w-full select-none text-left">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-6">{processTimeline.title}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                {processTimeline.items.map((stepItem: any, idx: number) => (
+                  <div key={idx} className="flex gap-4 items-start relative z-10 bg-white p-2">
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                      style={{ backgroundColor: `${colors.primario}12`, color: colors.primario }}
+                    >
+                      {stepItem.step}
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-extrabold text-xs text-zinc-900 leading-snug">{stepItem.title}</h4>
+                      <p className="text-[11px] font-semibold text-zinc-500 leading-normal">{stepItem.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Lifestyle Gallery (Desktop) */}
+          {sections.lifestyleGallery && lifestyleGallery?.length > 0 && (
+            <div className="mt-12 border-t border-zinc-150 pt-8 w-full select-none text-left">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-6">Estilo de Vida</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {lifestyleGallery.map((imgUrl: string, idx: number) => (
+                  <div key={idx} className="relative aspect-square w-full rounded-2xl overflow-hidden bg-zinc-100 group border border-zinc-200/50">
+                    <img src={imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Newsletter Banner Widget (Desktop) */}
+          {sections.newsletterWidget && newsletterWidget && (
+            <div className="mt-12 w-full select-none rounded-3xl overflow-hidden relative">
+              <div 
+                className="p-10 text-center flex flex-col items-center justify-center space-y-4"
+                style={{ backgroundColor: newsletterWidget.bgColor, color: newsletterWidget.textColor }}
+              >
+                <div className="max-w-xl space-y-2">
+                  <h2 className="text-lg font-black tracking-tight">{newsletterWidget.title}</h2>
+                  <p className="text-xs opacity-85 leading-relaxed font-semibold">{newsletterWidget.subtitle}</p>
+                </div>
+                
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    toast.success("¡Te has unido al club correctamente! 🎁 Recibirás noticias pronto.")
+                  }}
+                  className="flex gap-2 max-w-md w-full pt-1"
+                >
+                  <input 
+                    type="email"
+                    required
+                    placeholder={newsletterWidget.placeholder}
+                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-xs font-semibold text-white outline-none focus:border-white focus:bg-white/15 placeholder:text-white/40"
+                  />
+                  <button 
+                    type="submit"
+                    className="px-5 py-2.5 bg-white hover:bg-zinc-100 text-zinc-950 font-extrabold text-xs rounded-xl transition-all cursor-pointer border-0 shrink-0 shadow-sm"
+                  >
+                    {newsletterWidget.btnText}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
 
@@ -1059,7 +1321,7 @@ export default function WhatsAppCatalog({
           
           {/* Banner principal (Mobile) */}
           {sections.banner && bannerUrl && (
-            <div className="relative h-[190px] w-full bg-zinc-900 overflow-hidden flex items-center px-6 rounded-2xl text-left select-none shrink-0 shadow-sm">
+            <div id="catalog-banner-mobile" className="relative h-[190px] w-full bg-zinc-900 overflow-hidden flex items-center px-6 rounded-2xl text-left select-none shrink-0 shadow-sm">
               <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent z-0 pointer-events-none" />
               
@@ -1098,6 +1360,52 @@ export default function WhatsAppCatalog({
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {/* Categorías Visuales (Mobile) */}
+          {sections.visualCategories && visualCategories?.length > 0 && (
+            <div className="space-y-2.5 shrink-0 text-left">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categorías</h3>
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap">
+                {visualCategories.map((catItem: any, idx: number) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => setSelectedCategory(catItem.category)}
+                    className={cn(
+                      "bg-white border rounded-xl p-2.5 flex items-center gap-2.5 cursor-pointer shrink-0 transition-all",
+                      selectedCategory === catItem.category ? "border-emerald-600 ring-2 ring-emerald-500/10" : "border-zinc-150"
+                    )}
+                  >
+                    <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-50 border border-zinc-100 flex items-center justify-center shrink-0">
+                      {catItem.imageUrl ? (
+                        <img src={catItem.imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <Tag className="w-4 h-4 text-zinc-400" />
+                      )}
+                    </div>
+                    <span className="text-[10px] font-extrabold text-zinc-800 tracking-tight leading-tight pr-1.5">{catItem.category}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Bento Grid Highlights (Mobile) */}
+          {sections.bentoHighlights && bentoHighlights?.items?.length > 0 && (
+            <div className="space-y-2.5 shrink-0 text-left">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">{bentoHighlights.title}</h3>
+              <div className="grid grid-cols-1 gap-2.5">
+                {bentoHighlights.items.map((item: any, idx: number) => (
+                  <div key={idx} className="bg-white border border-zinc-150 rounded-xl p-3 flex items-center gap-3 shadow-none">
+                    <span className="text-xl shrink-0 select-none">{item.emoji || '✨'}</span>
+                    <div>
+                      <h4 className="font-extrabold text-[11px] text-zinc-900 leading-none">{item.title}</h4>
+                      <p className="text-[9px] font-semibold text-zinc-500 mt-1 leading-normal">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           
@@ -1234,6 +1542,126 @@ export default function WhatsAppCatalog({
               })}
             </div>
           </div>
+
+          {/* Accordion Specs (Mobile) */}
+          {sections.accordionSpecs && accordionSpecs?.length > 0 && (
+            <div className="space-y-2.5 pt-4 border-t border-zinc-150 shrink-0 text-left pb-2">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Especificaciones</h3>
+              <div className="space-y-2">
+                {accordionSpecs.map((tab: any, idx: number) => (
+                  <details key={idx} className="group border border-zinc-150 rounded-xl bg-white overflow-hidden" open={idx === 0}>
+                    <summary className="w-full px-4 py-3 flex items-center justify-between font-bold text-xs bg-zinc-50/50 hover:bg-zinc-50 transition-colors cursor-pointer text-zinc-900 list-none [&::-webkit-details-marker]:hidden">
+                      <span>{tab.title}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-zinc-400 transition-transform group-open:rotate-90" />
+                    </summary>
+                    <div className="px-4 py-3 border-t border-zinc-150 text-[11px] font-semibold leading-relaxed text-zinc-600 whitespace-pre-wrap">
+                      {tab.content}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Brand Story (Mobile) */}
+          {sections.brandStory && brandStory && (
+            <div id="brand-story-section-mobile" className="w-full shrink-0 select-none rounded-2xl overflow-hidden relative">
+              <div className="relative h-[200px] w-full bg-zinc-900 flex items-center justify-center text-center p-6">
+                {brandStory.bgUrl && (
+                  <img src={brandStory.bgUrl} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-35 z-0" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-black/10 z-0" />
+                <div className="relative z-10 space-y-3 text-white">
+                  <h2 className="text-xs font-black tracking-tight">{brandStory.title}</h2>
+                  <p className="text-[9px] font-semibold text-zinc-200 leading-normal">{brandStory.desc}</p>
+                  {brandStory.btnText && (
+                    <button
+                      onClick={() => {
+                        if (brandStory.btnLink) window.open(brandStory.btnLink, '_blank')
+                      }}
+                      className="px-4 py-1.5 rounded-lg font-bold text-[9px] border-0 cursor-pointer shadow-md"
+                      style={{ backgroundColor: colors.primario, color: '#FFFFFF' }}
+                    >
+                      {brandStory.btnText}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Proceso Timeline (Mobile) */}
+          {sections.processTimeline && processTimeline?.items?.length > 0 && (
+            <div className="space-y-2.5 pt-4 border-t border-zinc-150 shrink-0 text-left">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">{processTimeline.title}</h3>
+              <div className="space-y-3">
+                {processTimeline.items.map((stepItem: any, idx: number) => (
+                  <div key={idx} className="flex gap-3 items-start bg-white p-2.5 border border-zinc-100 rounded-xl">
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-black"
+                      style={{ backgroundColor: `${colors.primario}12`, color: colors.primario }}
+                    >
+                      {stepItem.step}
+                    </div>
+                    <div className="space-y-0.5 leading-none">
+                      <h4 className="font-extrabold text-[11px] text-zinc-900 leading-snug">{stepItem.title}</h4>
+                      <p className="text-[9px] font-semibold text-zinc-500 mt-1 leading-normal">{stepItem.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Lifestyle Gallery (Mobile) */}
+          {sections.lifestyleGallery && lifestyleGallery?.length > 0 && (
+            <div className="space-y-2.5 pt-4 border-t border-zinc-150 shrink-0 text-left">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Estilo de Vida</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {lifestyleGallery.map((imgUrl: string, idx: number) => (
+                  <div key={idx} className="relative aspect-square w-full rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200/50">
+                    <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Newsletter Banner Widget (Mobile) */}
+          {sections.newsletterWidget && newsletterWidget && (
+            <div className="w-full shrink-0 select-none rounded-2xl overflow-hidden mt-4">
+              <div 
+                className="p-6 text-center flex flex-col items-center justify-center space-y-3"
+                style={{ backgroundColor: newsletterWidget.bgColor, color: newsletterWidget.textColor }}
+              >
+                <div className="space-y-1">
+                  <h2 className="text-sm font-black tracking-tight">{newsletterWidget.title}</h2>
+                  <p className="text-[9px] opacity-85 leading-relaxed font-semibold">{newsletterWidget.subtitle}</p>
+                </div>
+                
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    toast.success("¡Te has unido al club correctamente! 🎁 Recibirás noticias pronto.")
+                  }}
+                  className="flex flex-col gap-2 w-full pt-1"
+                >
+                  <input 
+                    type="email"
+                    required
+                    placeholder={newsletterWidget.placeholder}
+                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-[10px] font-semibold text-white outline-none focus:border-white focus:bg-white/15 placeholder:text-white/35"
+                  />
+                  <button 
+                    type="submit"
+                    className="w-full py-2 bg-white hover:bg-zinc-100 text-zinc-950 font-extrabold text-[10px] rounded-lg transition-all cursor-pointer border-0 shadow-sm"
+                  >
+                    {newsletterWidget.btnText}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
 
         </main>
 
@@ -1611,6 +2039,26 @@ export default function WhatsAppCatalog({
                       </button>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Dynamic Navbar Links (Mobile menu) */}
+              <div className="space-y-3 pt-4 border-t border-zinc-100">
+                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Navegación</h4>
+                <div className="space-y-1">
+                  {navbarLinks.map((item: any, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        handleNavbarLinkClick(item)
+                      }}
+                      className="w-full flex items-center gap-2 py-2 px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-50 rounded-lg text-left cursor-pointer border-0 bg-transparent"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
