@@ -716,9 +716,9 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
 - Mantén las respuestas amigables, cortas y concisas (máximo 2 a 3 oraciones), ideales para leer en pantallas móviles de WhatsApp.
 - No uses Markdown complejo. Usa negrita de WhatsApp (*texto*) si es necesario.`;
 
-            // 4. Call Groq (Qwen 3.6 27B)
-            const { generateGroqCompletion } = await import('@/lib/ai/groq');
-            const aiReply = await generateGroqCompletion(chatMessages, systemPrompt);
+            // 4. Call OpenRouter (Free Model)
+            const { generateOpenRouterCompletion } = await import('@/lib/ai/openrouter');
+            const aiReply = await generateOpenRouterCompletion(chatMessages, systemPrompt);
 
             if (aiReply) {
               await waClient.sendText(from, aiReply);

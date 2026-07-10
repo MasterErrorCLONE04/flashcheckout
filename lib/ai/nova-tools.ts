@@ -133,6 +133,54 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
         required: ['active']
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_business_profile',
+      description: 'Obtiene la memoria del negocio (nicho, público objetivo, propuesta de valor, tono de marca) para contextualizar las respuestas.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_current_builder_layout',
+      description: 'Obtiene el estado y los textos actuales del constructor de páginas (secciones activas, textos del banner, historia de marca, bento highlights, etc.).',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'update_builder_layout',
+      description: 'Actualiza el layout, colores o textos en el constructor de páginas. Permite configurar o habilitar/deshabilitar secciones (ej. bannerTitle, brandStory, colors, etc.).',
+      parameters: {
+        type: 'object',
+        properties: {
+          bannerTitle: { type: 'string', description: 'Título principal del banner (opcional).' },
+          bannerSubtitle: { type: 'string', description: 'Subtítulo del banner (opcional).' },
+          heroType: { type: 'string', description: 'Tipo de banner ("image" o "video", opcional).' },
+          heroVideoUrl: { type: 'string', description: 'URL del video loop del banner (opcional).' },
+          brandStoryTitle: { type: 'string', description: 'Título de la historia de marca (opcional).' },
+          brandStoryDesc: { type: 'string', description: 'Texto narrativo de la historia de marca (opcional).' },
+          brandStoryBgUrl: { type: 'string', description: 'Imagen de fondo de la historia de marca (opcional).' },
+          primaryColor: { type: 'string', description: 'Color primario de la marca en formato HEX (opcional).' },
+          secondaryColor: { type: 'string', description: 'Color secundario en formato HEX (opcional).' },
+          freeShippingThreshold: { type: 'number', description: 'Monto mínimo para activar envío gratuito (opcional).' },
+          toggleSections: { 
+            type: 'object', 
+            description: 'Objeto para activar/desactivar secciones, ej. {"banner": true, "ingredientsSection": false} (opcional).' 
+          }
+        }
+      }
+    }
   }
 ]
 
@@ -399,6 +447,88 @@ export async function executeNovaTool(
         return {
           message: `El bot inteligente de WhatsApp ha sido ${updated.aiActive ? 'ACTIVADO' : 'DESACTIVADO (PAUSADO)'} correctamente.`,
           aiActive: updated.aiActive
+        }
+      }
+
+      case 'get_business_profile': {
+        const store = await prisma.store.findUnique({
+          where: { id: storeId }
+        })
+        if (!store) return { error: 'Tienda no encontrada.' }
+        const settings: any = store.settings || {}
+        return {
+          businessProfile: settings.businessProfile || {
+            niche: 'Sin especificar',
+            targetAudience: 'Sin especificar',
+            brandTone: 'Sofisticado y elegante',
+            coreProposition: 'Sin especificar'
+          }
+        }
+      }
+
+      case 'get_current_builder_layout': {
+        const store = await prisma.store.findUnique({
+          where: { id: storeId }
+        })
+        if (!store) return { error: 'Tienda no encontrada.' }
+        const aiSettings: any = store.aiSettings || {}
+        return {
+          heroType: aiSettings.heroType || 'image',
+          heroVideoUrl: aiSettings.heroVideoUrl || '',
+          bannerTitle: aiSettings.bannerTitle || '',
+          bannerSubtitle: aiSettings.bannerSubtitle || '',
+          sections: aiSettings.sections || {},
+          colors: aiSettings.colors || {},
+          brandStory: aiSettings.brandStory || {},
+          ingredientsSection: aiSettings.ingredientsSection || {},
+          freeShipping: aiSettings.freeShipping || {}
+        }
+      }
+
+      case 'update_builder_layout': {
+        const store = await prisma.store.findUnique({
+          where: { id: storeId }
+        })
+        if (!store) return { error: 'Tienda no encontrada.' }
+
+        const aiSettings: any = store.aiSettings && typeof store.aiSettings === 'object' ? store.aiSettings : {}
+        
+        // Actualizaciones individuales
+        if (args.bannerTitle !== undefined) aiSettings.bannerTitle = args.bannerTitle
+        if (args.bannerSubtitle !== undefined) aiSettings.bannerSubtitle = args.bannerSubtitle
+        if (args.heroType !== undefined) aiSettings.heroType = args.heroType
+        if (args.heroVideoUrl !== undefined) aiSettings.heroVideoUrl = args.heroVideoUrl
+
+        if (!aiSettings.brandStory) aiSettings.brandStory = {}
+        if (args.brandStoryTitle !== undefined) aiSettings.brandStory.title = args.brandStoryTitle
+        if (args.brandStoryDesc !== undefined) aiSettings.brandStory.desc = args.brandStoryDesc
+        if (args.brandStoryBgUrl !== undefined) aiSettings.brandStory.bgUrl = args.brandStoryBgUrl
+
+        if (!aiSettings.colors) aiSettings.colors = {}
+        if (args.primaryColor !== undefined) aiSettings.colors.primario = args.primaryColor
+        if (args.secondaryColor !== undefined) aiSettings.colors.secundario = args.secondaryColor
+
+        if (!aiSettings.freeShipping) aiSettings.freeShipping = { enabled: false, threshold: 100000 }
+        if (args.freeShippingThreshold !== undefined) {
+          aiSettings.freeShipping.threshold = Number(args.freeShippingThreshold)
+          aiSettings.freeShipping.enabled = true
+        }
+
+        if (args.toggleSections !== undefined && typeof args.toggleSections === 'object') {
+          aiSettings.sections = {
+            ...(aiSettings.sections || {}),
+            ...args.toggleSections
+          }
+        }
+
+        const updated = await prisma.store.update({
+          where: { id: storeId },
+          data: { aiSettings }
+        })
+
+        return {
+          message: 'Diseño del constructor de páginas actualizado exitosamente.',
+          aiSettings: updated.aiSettings
         }
       }
 

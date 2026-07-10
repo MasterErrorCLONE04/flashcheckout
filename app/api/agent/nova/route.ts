@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
-import { generateGroqCompletion, ChatMessage } from '@/lib/ai/groq'
+import { generateOpenRouterCompletion, ChatMessage } from '@/lib/ai/openrouter'
 import { executeNovaTool, NOVA_TOOLS_DEFINITIONS } from '@/lib/ai/nova-tools'
 
 export const dynamic = 'force-dynamic'
@@ -64,8 +64,10 @@ export async function POST(req: Request) {
 
     // 3. System Prompt para Nova en modo Tool Calling
     const systemPrompt = `Eres Nova, el copiloto inteligente de administración de la plataforma FlashCheckout para la tienda "${store.name}".
-Tu propósito es ayudar al comerciante a gestionar su negocio desde el panel de control.
-Tienes acceso a herramientas (functions) para interactuar con la base de datos de la tienda. Utilízalas de forma proactiva cuando el comerciante te pida buscar o actualizar productos, ver pedidos, cupones, métricas o cambiar configuraciones del bot.
+Tu propósito es ayudar al comerciante a gestionar su negocio y a personalizar/diseñar su tienda online desde el panel de control.
+Tienes acceso a herramientas (functions) para interactuar con la base de datos de la tienda y su constructor de páginas. Utilízalas de forma proactiva cuando el comerciante te pida buscar o actualizar productos, ver pedidos, cupones, métricas, cambiar configuraciones del bot, o consultar y cambiar el diseño de la tienda.
+
+Si el comerciante te pide ayuda con el diseño o textos de la tienda, utiliza obligatoriamente la herramienta "get_business_profile" para entender su memoria de negocio, "get_current_builder_layout" para conocer la estructura actual de su tienda, y "update_builder_layout" si te pide realizar cambios directos en el banner, colores, secciones o envío gratis.
 
 Información general de la tienda en tiempo real:
 - Nombre: ${store.name}
@@ -81,7 +83,7 @@ REGLAS DE RESPUESTA:
   "text": "Tu respuesta descriptiva y atenta al comerciante en español. Resume lo que hiciste o responde la duda.",
   "type": "text | products_list | product_updated | discount_card | order_status_updated | sales_metrics | customer_chat",
   "action": {
-    "type": "NONE | search_products | update_product | list_orders | update_order_status | create_coupon | get_sales_metrics | get_customer_chat | toggle_whatsapp_bot",
+    "type": "NONE | search_products | update_product | list_orders | update_order_status | create_coupon | get_sales_metrics | get_customer_chat | toggle_whatsapp_bot | get_business_profile | get_current_builder_layout | update_builder_layout",
     "payload": { ...objeto con los datos resultantes devueltos por la herramienta o acción... }
   }
 }
@@ -94,7 +96,8 @@ Tipos ("type") y su correspondencia:
 - Si creaste un cupón, usa "discount_card" e introduce el resultado del cupón en "action.payload".
 - Si consultaste métricas de ventas, usa "sales_metrics" e introduce el resultado en "action.payload".
 - Si consultaste el chat de un cliente, usa "customer_chat" e introduce la información y chatHistory en "action.payload".
-- Si activaste/desactivaste el bot, usa "text" e introduce el resultado en "action.payload".
+- Si consultaste el perfil de negocio o el layout, usa "text" con la acción respectiva.
+- Si actualizaste el diseño del constructor de páginas, usa "text" con la acción "update_builder_layout" e introduce el resultado en "action.payload".
 - Si fue una conversación casual sin herramientas, usa "text" para el tipo y "action": {"type": "NONE", "payload": {}}.
 
 IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento (<think>) extremadamente corto. Luego responde únicamente con el objeto JSON válido. No uses bloques de código markdown ni texto adicional fuera del JSON.`
@@ -108,7 +111,7 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
 
     while (loopCount < maxLoops) {
       loopCount++
-      aiResponse = await generateGroqCompletion(apiMessages, systemPrompt, NOVA_TOOLS_DEFINITIONS)
+      aiResponse = await generateOpenRouterCompletion(apiMessages, systemPrompt, NOVA_TOOLS_DEFINITIONS)
 
       if (!aiResponse || typeof aiResponse !== 'object' || !aiResponse.tool_calls || aiResponse.tool_calls.length === 0) {
         break
@@ -148,6 +151,9 @@ IMPORTANTE: Si eres un modelo de razonamiento, mantén tu bloque de razonamiento
         if (functionName === 'create_coupon') overrideType = 'discount_card'
         if (functionName === 'get_sales_metrics') overrideType = 'sales_metrics'
         if (functionName === 'get_customer_chat') overrideType = 'customer_chat'
+        if (functionName === 'get_business_profile') overrideType = 'text'
+        if (functionName === 'get_current_builder_layout') overrideType = 'text'
+        if (functionName === 'update_builder_layout') overrideType = 'text'
 
         apiMessages.push({
           role: 'tool',

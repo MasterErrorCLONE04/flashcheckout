@@ -99,6 +99,14 @@ export default function StoreCreationWizard() {
     themeColor: 'emerald'
   })
 
+  // Business Profile for Nova Memory (Chocodate Style Onboarding)
+  const [businessProfile, setBusinessProfile] = useState({
+    niche: '',
+    targetAudience: '',
+    brandTone: 'Sofisticado y elegante',
+    coreProposition: ''
+  })
+
   // Check database state on mount to prevent skipping and restore step context
   useEffect(() => {
     async function restoreOnboardingProgress() {
@@ -114,6 +122,18 @@ export default function StoreCreationWizard() {
               whatsapp: data.store.whatsapp,
               category: data.store.category || 'Moda',
             })
+
+            if (data.store.settings && typeof data.store.settings === 'object') {
+              const bp = (data.store.settings as any).businessProfile
+              if (bp) {
+                setBusinessProfile({
+                  niche: bp.niche || '',
+                  targetAudience: bp.targetAudience || '',
+                  brandTone: bp.brandTone || 'Sofisticado y elegante',
+                  coreProposition: bp.coreProposition || ''
+                })
+              }
+            }
             
             // Check connected WhatsApp status
             if (data.store.whatsappConnected) {
@@ -371,6 +391,9 @@ export default function StoreCreationWizard() {
             systemPrompt: preferences.systemPrompt,
             businessHours: preferences.businessHours,
             themeColor: preferences.themeColor,
+            settings: {
+              businessProfile
+            }
           })
         })
         if (!res.ok) {
@@ -1209,6 +1232,58 @@ export default function StoreCreationWizard() {
               </div>
 
               <div className="space-y-4">
+                {/* Memoria de Negocio Form Cards */}
+                <div className="bg-zinc-50 p-4 border border-zinc-150 rounded-xl space-y-3.5 select-none mb-3 text-left animate-in fade-in duration-300">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">🧠 Memoria del Negocio (Contexto para Nova)</span>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-500 block">¿Qué tipo de productos vendes? (Nicho)</label>
+                    <input 
+                      type="text"
+                      placeholder="Ej: Dátiles rellenos premium y chocolates artesanales"
+                      value={businessProfile.niche}
+                      onChange={e => setBusinessProfile(prev => ({ ...prev, niche: e.target.value }))}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-500 block">¿Quién es tu público objetivo?</label>
+                    <input 
+                      type="text"
+                      placeholder="Ej: Personas de 25-50 años que compran regalos gourmet"
+                      value={businessProfile.targetAudience}
+                      onChange={e => setBusinessProfile(prev => ({ ...prev, targetAudience: e.target.value }))}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-500 block">Propuesta de Valor / Historia</label>
+                    <textarea 
+                      placeholder="Ej: Fusionamos dátiles naturales con chocolate belga fino para crear confitería de lujo."
+                      value={businessProfile.coreProposition}
+                      onChange={e => setBusinessProfile(prev => ({ ...prev, coreProposition: e.target.value }))}
+                      rows={2}
+                      className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950 resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-500 block">Tono de voz de la marca</label>
+                    <select
+                      value={businessProfile.brandTone}
+                      onChange={e => setBusinessProfile(prev => ({ ...prev, brandTone: e.target.value }))}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-bold text-zinc-800 focus:outline-none cursor-pointer"
+                    >
+                      <option value="Sofisticado y elegante">Sofisticado y elegante (Estilo Chocodate)</option>
+                      <option value="Amigable y cercano">Amigable y cercano</option>
+                      <option value="Profesional y directo">Profesional y directo</option>
+                      <option value="Divertido e informal">Divertido e informal</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label htmlFor="welcomeMessage" className="text-[11px] font-bold text-zinc-500">Mensaje de bienvenida automático</label>
                   <textarea

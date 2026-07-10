@@ -184,6 +184,24 @@ export default function WhatsAppCatalog({
     alwaysOpen: true
   }
 
+  // Chocodate Premium configurations
+  const heroType = aiSettings.heroType || 'image'
+  const heroVideoUrl = aiSettings.heroVideoUrl || 'https://www.chocodate.com/assets/video/hero.mp4'
+
+  const ingredientsSection = aiSettings.ingredientsSection || {
+    title: 'Nuestros Ingredientes Premium',
+    leftTitle: 'Dátiles de Faraón',
+    leftDesc: 'Dulces, carnosos, naturales y recolectados en su punto de madurez.',
+    centerImageUrl: 'https://www.chocodate.com/assets/img/central-product.png',
+    rightTitle: 'Chocolate Belga Puro',
+    rightDesc: 'Exquisita cobertura de chocolate de primera calidad con textura suave.'
+  }
+
+  const freeShipping = aiSettings.freeShipping || {
+    enabled: false,
+    threshold: 100000
+  }
+
   // Bento Highlights config (Chocodate Style)
   const bentoHighlights = aiSettings.bentoHighlights || {
     title: 'Nuestros Ingredientes Premium',
@@ -301,7 +319,8 @@ export default function WhatsAppCatalog({
     visualCategories: aiSettings.sections?.visualCategories === true,
     processTimeline: aiSettings.sections?.processTimeline === true,
     lifestyleGallery: aiSettings.sections?.lifestyleGallery === true,
-    newsletterWidget: aiSettings.sections?.newsletterWidget === true
+    newsletterWidget: aiSettings.sections?.newsletterWidget === true,
+    ingredientsSection: aiSettings.sections?.ingredientsSection === true
   }
 
   const formattedStoreName = store.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -794,11 +813,22 @@ export default function WhatsAppCatalog({
         </header>
 
         {/* Banner principal (Desktop) */}
-        {sections.banner && bannerUrl && (
+        {sections.banner && (heroType === 'video' || bannerUrl) && (
           <div id="catalog-banner" className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0">
             <div className="relative h-[340px] w-full bg-zinc-900 rounded-3xl overflow-hidden flex items-center px-12 text-left select-none shadow-sm">
-              <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent z-0 pointer-events-none" />
+              {heroType === 'video' && heroVideoUrl ? (
+                <video 
+                  src={heroVideoUrl} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="absolute inset-0 w-full h-full object-cover opacity-100 z-0"
+                />
+              ) : (
+                <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
+              )}
+              <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none" />
               
               <div className="relative z-10 space-y-4 max-w-lg">
                 <h2 className="text-2xl xl:text-3xl font-black text-white leading-tight">{bannerTitle}</h2>
@@ -882,6 +912,35 @@ export default function WhatsAppCatalog({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3-Column Ingredients Storytelling (Desktop) */}
+        {sections.ingredientsSection && ingredientsSection && (
+          <div className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0 select-none text-center">
+            <div className="bg-white border border-zinc-150 rounded-2xl p-8 shadow-[0_2px_8px_rgba(0,0,0,0.01)] space-y-8">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{ingredientsSection.title}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                {/* Columna Izquierda */}
+                <div className="text-right space-y-3">
+                  <h4 className="font-extrabold text-sm text-zinc-900">{ingredientsSection.leftTitle}</h4>
+                  <p className="text-xs font-semibold text-zinc-500 leading-relaxed">{ingredientsSection.leftDesc}</p>
+                </div>
+                {/* Columna Central (Imagen) */}
+                <div className="flex justify-center">
+                  <img 
+                    src={ingredientsSection.centerImageUrl} 
+                    alt="Center Ingredients" 
+                    className="max-h-[220px] object-contain hover:rotate-3 transition-transform duration-500" 
+                  />
+                </div>
+                {/* Columna Derecha */}
+                <div className="text-left space-y-3">
+                  <h4 className="font-extrabold text-sm text-zinc-900">{ingredientsSection.rightTitle}</h4>
+                  <p className="text-xs font-semibold text-zinc-500 leading-relaxed">{ingredientsSection.rightDesc}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1320,10 +1379,21 @@ export default function WhatsAppCatalog({
         <main className="flex-1 px-4 py-4 space-y-6">
           
           {/* Banner principal (Mobile) */}
-          {sections.banner && bannerUrl && (
+          {sections.banner && (heroType === 'video' || bannerUrl) && (
             <div id="catalog-banner-mobile" className="relative h-[190px] w-full bg-zinc-900 overflow-hidden flex items-center px-6 rounded-2xl text-left select-none shrink-0 shadow-sm">
-              <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent z-0 pointer-events-none" />
+              {heroType === 'video' && heroVideoUrl ? (
+                <video 
+                  src={heroVideoUrl} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="absolute inset-0 w-full h-full object-cover opacity-100 z-0"
+                />
+              ) : (
+                <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-100 z-0" />
+              )}
+              <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none" />
               
               <div className="relative z-10 space-y-2 max-w-[220px]">
                 <h2 className="text-xs xl:text-sm font-black text-white leading-tight">{bannerTitle}</h2>
@@ -1563,6 +1633,30 @@ export default function WhatsAppCatalog({
             </div>
           )}
 
+          {/* 3-Column Ingredients Storytelling (Mobile) */}
+          {sections.ingredientsSection && ingredientsSection && (
+            <div className="space-y-4 pt-4 border-t border-zinc-150 shrink-0 text-center select-none bg-white p-4 rounded-2xl border border-zinc-150 text-left">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider text-center">{ingredientsSection.title}</h3>
+              <div className="flex justify-center my-3">
+                <img 
+                  src={ingredientsSection.centerImageUrl} 
+                  alt="Ingredients" 
+                  className="max-h-[140px] object-contain" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-left">
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-[11px] text-zinc-900 leading-snug">{ingredientsSection.leftTitle}</h4>
+                  <p className="text-[9px] font-semibold text-zinc-500 leading-normal">{ingredientsSection.leftDesc}</p>
+                </div>
+                <div className="space-y-1 border-l border-zinc-150 pl-4">
+                  <h4 className="font-extrabold text-[11px] text-zinc-900 leading-snug">{ingredientsSection.rightTitle}</h4>
+                  <p className="text-[9px] font-semibold text-zinc-500 leading-normal">{ingredientsSection.rightDesc}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Brand Story (Mobile) */}
           {sections.brandStory && brandStory && (
             <div id="brand-story-section-mobile" className="w-full shrink-0 select-none rounded-2xl overflow-hidden relative">
@@ -1739,6 +1833,34 @@ export default function WhatsAppCatalog({
             {/* Contenido Desplazable del Pedido */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
+              {/* Progreso Envío Gratis (Chocodate Style) */}
+              {freeShipping.enabled && cartProducts.length > 0 && (() => {
+                const threshold = freeShipping.threshold || 100000
+                const difference = threshold - total
+                const isFree = difference <= 0
+                const percent = Math.min((total / threshold) * 100, 100)
+                return (
+                  <div className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-3.5 space-y-2 text-left select-none animate-in fade-in duration-300">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🚚</span>
+                      <p className="text-[10px] font-bold text-zinc-700 leading-snug">
+                        {isFree ? (
+                          <span className="text-emerald-700 font-black">¡Felicidades! Tienes envío gratis.</span>
+                        ) : (
+                          <>Estás a <span className="font-extrabold text-emerald-600">${difference.toLocaleString('es-CO')}</span> de obtener envío gratis.</>
+                        )}
+                      </p>
+                    </div>
+                    <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-emerald-500 transition-all duration-500" 
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Listado de Productos en el Carrito */}
               <div className="space-y-4">
                 {cartProducts.length === 0 ? (

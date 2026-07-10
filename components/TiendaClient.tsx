@@ -97,7 +97,8 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
     visualCategories: parsedSettings.sections?.visualCategories === true,
     processTimeline: parsedSettings.sections?.processTimeline === true,
     lifestyleGallery: parsedSettings.sections?.lifestyleGallery === true,
-    newsletterWidget: parsedSettings.sections?.newsletterWidget === true
+    newsletterWidget: parsedSettings.sections?.newsletterWidget === true,
+    ingredientsSection: parsedSettings.sections?.ingredientsSection === true
   })
 
   // Bento Highlights custom items (style Chocodate: Date, Almond, Chocolate...)
@@ -187,6 +188,28 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   const [bannerSubtitle, setBannerSubtitle] = useState(
     parsedSettings.bannerSubtitle || 'Descubre nuestros productos de especialidad cultivados con amor y tostados frescos.'
   )
+
+  // Hero Banner type and video URL (Chocodate Style)
+  const [heroType, setHeroType] = useState<'image' | 'video'>(parsedSettings.heroType || 'image')
+  const [heroVideoUrl, setHeroVideoUrl] = useState<string>(
+    parsedSettings.heroVideoUrl || 'https://www.chocodate.com/assets/video/hero.mp4'
+  )
+
+  // 3-Column Ingredients section state (Chocodate Style)
+  const [ingredientsSection, setIngredientsSection] = useState({
+    title: parsedSettings.ingredientsSection?.title || 'Nuestros Ingredientes Premium',
+    leftTitle: parsedSettings.ingredientsSection?.leftTitle || 'Dátiles de Faraón',
+    leftDesc: parsedSettings.ingredientsSection?.leftDesc || 'Dulces, carnosos, naturales y recolectados en su punto de madurez.',
+    centerImageUrl: parsedSettings.ingredientsSection?.centerImageUrl || 'https://www.chocodate.com/assets/img/central-product.png',
+    rightTitle: parsedSettings.ingredientsSection?.rightTitle || 'Chocolate Belga Puro',
+    rightDesc: parsedSettings.ingredientsSection?.rightDesc || 'Exquisita cobertura de chocolate de primera calidad con textura suave.'
+  })
+
+  // Free Shipping configuration (Chocodate Style)
+  const [freeShipping, setFreeShipping] = useState({
+    enabled: parsedSettings.freeShipping?.enabled || false,
+    threshold: parsedSettings.freeShipping?.threshold || 100000
+  })
 
   // Announcement Bar state
   const [announcement, setAnnouncement] = useState({
@@ -373,7 +396,11 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
              processTimeline,
              lifestyleGallery,
              newsletterWidget,
-             navbarLinks
+             navbarLinks,
+             heroType,
+             heroVideoUrl,
+             ingredientsSection,
+             freeShipping
            }
         })
       })
@@ -536,8 +563,51 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="text-left space-y-0.5">
                   <h3 className="text-sm font-black text-zinc-900 leading-none">Banner principal</h3>
-                  <p className="text-[11px] font-semibold text-zinc-400">Imagen destacada que verán tus clientes en la portada.</p>
+                  <p className="text-[11px] font-semibold text-zinc-400">Imagen o Video loop destacado en la portada de tu tienda.</p>
                 </div>
+
+                {/* Banner Type Selection */}
+                <div className="grid grid-cols-2 gap-2 pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setHeroType('image')}
+                    className={cn(
+                      "py-2 px-3 text-xs font-bold rounded-lg border text-center transition-all cursor-pointer",
+                      heroType === 'image' 
+                        ? "bg-zinc-950 border-zinc-950 text-white" 
+                        : "bg-white border-zinc-200 hover:bg-zinc-50 text-zinc-800"
+                    )}
+                  >
+                    Imagen de Fondo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroType('video')}
+                    className={cn(
+                      "py-2 px-3 text-xs font-bold rounded-lg border text-center transition-all cursor-pointer",
+                      heroType === 'video' 
+                        ? "bg-zinc-950 border-zinc-950 text-white" 
+                        : "bg-white border-zinc-200 hover:bg-zinc-50 text-zinc-800"
+                    )}
+                  >
+                    Video Loop
+                  </button>
+                </div>
+
+                {heroType === 'video' ? (
+                  <div className="space-y-2.5">
+                    <div className="space-y-1 text-left">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">URL de Video (MP4)</label>
+                      <input 
+                        type="text"
+                        value={heroVideoUrl}
+                        onChange={e => setHeroVideoUrl(e.target.value)}
+                        placeholder="Ej: https://mi-servidor.com/mi-video.mp4"
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="border border-zinc-150 rounded-lg overflow-hidden h-28 relative bg-zinc-100 flex items-center justify-center">
                   {bannerUrl ? (
@@ -1425,6 +1495,128 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 </div>
               </div>
 
+              {/* 3-Column Ingredients storytelling Section (Chocodate Style) */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Ingredientes Premium (3 Columnas)</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Layout simétrico con imagen en medio y características explicativas a los lados.</p>
+                  </div>
+                  <button
+                    onClick={() => handleSectionToggle('ingredientsSection')}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      sections.ingredientsSection ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {sections.ingredientsSection && (
+                  <div className="space-y-3.5 pt-1 text-left animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de Sección</label>
+                      <input 
+                        type="text"
+                        value={ingredientsSection.title}
+                        onChange={e => setIngredientsSection(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1.5">
+                      <div className="space-y-1.5 p-3 bg-zinc-50 rounded-lg">
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Columna Izquierda</span>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                          <input 
+                            type="text"
+                            value={ingredientsSection.leftTitle}
+                            onChange={e => setIngredientsSection(prev => ({ ...prev, leftTitle: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
+                          <textarea 
+                            value={ingredientsSection.leftDesc}
+                            onChange={e => setIngredientsSection(prev => ({ ...prev, leftDesc: e.target.value }))}
+                            rows={2}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 focus:outline-none resize-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 p-3 bg-zinc-50 rounded-lg">
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Columna Derecha</span>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                          <input 
+                            type="text"
+                            value={ingredientsSection.rightTitle}
+                            onChange={e => setIngredientsSection(prev => ({ ...prev, rightTitle: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
+                          <textarea 
+                            value={ingredientsSection.rightDesc}
+                            onChange={e => setIngredientsSection(prev => ({ ...prev, rightDesc: e.target.value }))}
+                            rows={2}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 focus:outline-none resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">URL Imagen Central</label>
+                      <input 
+                        type="text"
+                        value={ingredientsSection.centerImageUrl}
+                        onChange={e => setIngredientsSection(prev => ({ ...prev, centerImageUrl: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Free Shipping Progress bar Config */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Progreso de Envío Gratis</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra una barra dinámica en el carrito incentivando más compras.</p>
+                  </div>
+                  <button
+                    onClick={() => setFreeShipping(prev => ({ ...prev, enabled: !prev.enabled }))}
+                    className={cn(
+                      "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
+                      freeShipping.enabled ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {freeShipping.enabled && (
+                  <div className="space-y-3.5 pt-1 text-left animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Monto mínimo para Envío Gratis</label>
+                      <input 
+                        type="number"
+                        value={freeShipping.threshold}
+                        onChange={e => setFreeShipping(prev => ({ ...prev, threshold: Number(e.target.value) }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
 
@@ -1909,7 +2101,11 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                          processTimeline,
                          lifestyleGallery,
                          newsletterWidget,
-                         navbarLinks
+                         navbarLinks,
+                         heroType,
+                         heroVideoUrl,
+                         ingredientsSection,
+                         freeShipping
                         }
                     } as any}
                     device={device}
