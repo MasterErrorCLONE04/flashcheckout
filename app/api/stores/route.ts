@@ -59,15 +59,27 @@ export async function POST(req: Request) {
       )
     }
 
-    // Check if user already has a store
-    const userStore = await prisma.store.findFirst({
+    // Check user's store limit based on active subscriptions
+    const existingStores = await prisma.store.findMany({
       where: { userId },
+      select: { stripePriceId: true }
     })
 
-    if (userStore) {
+    const activeStoresCount = existingStores.length
+    let maxLimit = 1 // Default Free limit
+    const proPriceId = process.env.STRIPE_PRO_PRICE_ID
+
+    for (const store of existingStores) {
+      if (store.stripePriceId && proPriceId && store.stripePriceId === proPriceId) {
+        maxLimit = 3 // Pro limit
+        break
+      }
+    }
+
+    if (activeStoresCount >= maxLimit) {
       return NextResponse.json(
-        { error: 'Ya tienes una tienda. Edítala en vez de crear otra.' },
-        { status: 409 }
+        { error: `Has alcanzado el límite de tu plan (${maxLimit} tienda${maxLimit > 1 ? 's' : ''}). Por favor actualiza a un plan superior para crear otra.` },
+        { status: 403 }
       )
     }
 

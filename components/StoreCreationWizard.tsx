@@ -51,7 +51,7 @@ const STEPS: StepType[] = [
   { num: 8, label: '¡Listo!', desc: 'Paso 8 de 8' }
 ]
 
-export default function StoreCreationWizard() {
+export default function StoreCreationWizard({ isNewStore = false }: { isNewStore?: boolean }) {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   
@@ -109,6 +109,12 @@ export default function StoreCreationWizard() {
 
   // Check database state on mount to prevent skipping and restore step context
   useEffect(() => {
+    if (isNewStore) {
+      setCurrentStep(1)
+      setInitializing(false)
+      return
+    }
+
     async function restoreOnboardingProgress() {
       try {
         const res = await fetch('/api/stores')
@@ -435,10 +441,14 @@ export default function StoreCreationWizard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: true })
       })
-      router.push('/dashboard')
+      if (createdStore?.id) {
+        document.cookie = `active_store_id=${createdStore.id}; path=/; max-age=31536000`
+      }
+      document.cookie = `create_new_store=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC`
+      window.location.href = '/dashboard'
     } catch (e) {
       console.error(e)
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } finally {
       setLoading(false)
     }

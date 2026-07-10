@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { cookies } from 'next/headers'
 import CustomUserMenu from '@/components/dashboard/CustomUserMenu'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -10,6 +11,7 @@ import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import SidebarNav from '@/components/dashboard/SidebarNav'
 import { checkSubscription } from '@/lib/subscription'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
+import StoreSwitcher from '@/components/dashboard/StoreSwitcher'
 
 export default async function DashboardLayout({
   children,
@@ -20,10 +22,28 @@ export default async function DashboardLayout({
   const user = await currentUser()
   if (!userId) redirect('/sign-in')
 
-  const store = await prisma.store.findFirst({
+  const cookieStore = await cookies()
+  const activeStoreId = cookieStore.get('active_store_id')?.value
+  const createNewStoreFlag = cookieStore.get('create_new_store')?.value === 'true'
+
+  // Fetch all user stores to populate switcher
+  const stores = await prisma.store.findMany({
     where: { userId },
-    select: { id: true, slug: true, name: true, welcomeMessage: true },
+    select: { id: true, slug: true, name: true },
   })
+
+  let store = null
+  if (activeStoreId) {
+    store = await prisma.store.findFirst({
+      where: { id: activeStoreId, userId },
+      select: { id: true, slug: true, name: true, welcomeMessage: true },
+    })
+  }
+
+  // Fallback to first store
+  if (!store && stores.length > 0) {
+    store = stores[0]
+  }
 
   const isPro = await checkSubscription()
   let productCount = 0
@@ -41,12 +61,12 @@ export default async function DashboardLayout({
     })
   }
 
-  const onboardingCompleted = store && store.welcomeMessage && productCount > 0
+  const onboardingCompleted = !createNewStoreFlag && store && store.welcomeMessage && productCount > 0
 
-  if (!store || !onboardingCompleted) {
+  if (stores.length === 0 || createNewStoreFlag || !onboardingCompleted) {
     return (
       <div className="w-full h-screen overflow-hidden bg-white z-50 relative font-sans">
-        <StoreCreationWizard />
+        <StoreCreationWizard isNewStore={createNewStoreFlag} />
       </div>
     )
   }
@@ -65,39 +85,11 @@ export default async function DashboardLayout({
           
           <span className="hidden size-6 place-content-center justify-center text-center font-medium text-muted-foreground/30 md:inline-flex">/</span>
           
-          {/* Workspace Breadcrumb */}
-          <div className="flex items-center gap-1">
-            <Link 
-              href="/dashboard" 
-              className="flex max-w-[150px] items-center justify-start gap-1 rounded-md px-0 font-medium text-foreground text-sm transition-colors hover:bg-transparent md:max-w-[200px]"
-            >
-              <span className="truncate">{user?.firstName || 'Dashboard'}'s workspace</span>
-            </Link>
-            <button className="flex items-center justify-center h-5 p-0.5 rounded-md transition-all duration-200 hover:bg-muted/50 text-foreground">
-              <ChevronsUpDown className="size-3.5 shrink-0 stroke-3 text-muted-foreground opacity-50" />
-            </button>
-          </div>
-
-          <span className="inline-flex size-6 place-content-center justify-center text-center font-medium text-muted-foreground/30">/</span>
-
-          {/* Agent/Store Breadcrumb */}
-          <div className="flex items-center gap-1">
-            <Link 
-              href={`/tienda/${store?.slug}`} 
-              target="_blank"
-              className="flex max-w-[120px] items-center justify-start gap-1 rounded-md px-0 font-medium text-foreground text-sm transition-colors hover:bg-transparent md:max-w-[200px]"
-            >
-              <span className="truncate group items-center flex gap-1.5">
-                {store?.name || 'Mi Tienda'}
-                <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-primary transition-colors" />
-              </span>
-              <span className="w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-lg border bg-orange-50 font-medium text-[10px] px-1.5 py-px hidden select-none text-orange-600 border-orange-200 md:inline-flex">
-                Agent
-              </span>
-            </Link>
-            <button className="flex items-center justify-center h-5 p-0.5 rounded-md transition-all duration-200 hover:bg-muted/50 text-foreground">
-              <ChevronsUpDown className="size-3.5 shrink-0 stroke-3 text-muted-foreground opacity-50" />
-            </button>
+          {/* Workspace & Store Switcher */}
+          <div className="flex items-center gap-2">
+            <span className="hidden text-xs font-bold text-zinc-400 md:inline-flex">{user?.firstName || 'Dashboard'}'s Workspaces</span>
+            <span className="hidden text-zinc-300 font-light md:inline-flex">/</span>
+            <StoreSwitcher stores={stores} activeStore={store as any} />
           </div>
         </div>
 

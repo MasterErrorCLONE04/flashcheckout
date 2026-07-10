@@ -716,9 +716,10 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
 - Mantén las respuestas amigables, cortas y concisas (máximo 2 a 3 oraciones), ideales para leer en pantallas móviles de WhatsApp.
 - No uses Markdown complejo. Usa negrita de WhatsApp (*texto*) si es necesario.`;
 
-            // 4. Call OpenRouter (Free Model)
+            // 4. Call OpenRouter (Free Model with optional SalesBot model override)
             const { generateOpenRouterCompletion } = await import('@/lib/ai/openrouter');
-            const aiReply = await generateOpenRouterCompletion(chatMessages, systemPrompt);
+            const salesModel = process.env.SALES_BOT_MODEL || 'openrouter/free';
+            const aiReply = await generateOpenRouterCompletion(chatMessages, systemPrompt, undefined, salesModel);
 
             if (aiReply) {
               await waClient.sendText(from, aiReply);
