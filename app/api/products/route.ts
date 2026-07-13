@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     // 🔴 Seguridad: Verificar límites Freemium 
     const isPro = await checkSubscription()
-    if (!isPro && store.products.length >= 10) {
+    if (!isPro && (store as any).products.length >= 10) {
       return NextResponse.json(
         { error: 'Límite de productos gratuitos alcanzado' },
         { status: 403 }

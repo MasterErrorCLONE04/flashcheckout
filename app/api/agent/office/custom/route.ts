@@ -37,6 +37,20 @@ export async function POST(req: Request) {
     // Assign next free desk position slot
     const nextSlot = DESK_SLOTS[customAgents.length]
 
+    let spriteUrl = '/images/sprite_nova.png'
+    let color = 'emerald'
+
+    if (avatarEmoji === '🧙' || avatarEmoji === '👩‍🎨') {
+      spriteUrl = '/images/sprite_growth.png'
+      color = 'amber'
+    } else if (avatarEmoji === '🧑‍💻' || avatarEmoji === '👽') {
+      spriteUrl = '/images/sprite_logistics.png'
+      color = 'blue'
+    } else if (avatarEmoji === '🦁') {
+      spriteUrl = '/images/sprite_sales.png'
+      color = 'teal'
+    }
+
     const newAgent = {
       id: `Custom_${Date.now()}`,
       name,
@@ -46,7 +60,8 @@ export async function POST(req: Request) {
       systemPrompt,
       tools: tools || [],
       avatarEmoji: avatarEmoji || '🕵️',
-      spriteUrl: '/images/sprite_nova.png', // Default sprite base, we make it transparent as well
+      spriteUrl,
+      color,
       deskPosition: nextSlot,
       tokensUsed: 0,
       accuracy: '95.0%',

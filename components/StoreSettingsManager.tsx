@@ -702,16 +702,16 @@ export default function StoreSettingsManager({
                   </button>
                 </div>
                 <div className="divide-y divide-zinc-100">
-                  {schedule.map((day, idx) => (
+                  {schedule.map((day: any, idx: number) => (
                     <div key={day.key} className="flex items-center justify-between px-6 py-3">
-                      <span className="text-xs font-semibold text-zinc-700 w-24 shrink-0">{day.label}</span>
-                      <span className="text-xs font-semibold text-zinc-500 flex-1">
-                        {day.enabled ? `${day.from} - ${day.to}` : <span className="text-zinc-300">Cerrado</span>}
-                      </span>
-                      <Toggle
-                        checked={day.enabled}
-                        onChange={(v) => setSchedule(prev => prev.map((d, i) => i === idx ? { ...d, enabled: v } : d))}
-                      />
+                       <span className="text-xs font-semibold text-zinc-700 w-24 shrink-0">{day.label}</span>
+                       <span className="text-xs font-semibold text-zinc-500 flex-1">
+                         {day.enabled ? `${day.from} - ${day.to}` : <span className="text-zinc-300">Cerrado</span>}
+                       </span>
+                       <Toggle
+                         checked={day.enabled}
+                         onChange={(v: boolean) => setSchedule((prev: any[]) => prev.map((d: any, i: number) => i === idx ? { ...d, enabled: v } : d))}
+                       />
                     </div>
                   ))}
                 </div>

@@ -29,7 +29,7 @@ export default async function DashboardLayout({
   // Fetch all user stores to populate switcher
   const stores = await prisma.store.findMany({
     where: { userId },
-    select: { id: true, slug: true, name: true },
+    select: { id: true, slug: true, name: true, welcomeMessage: true },
   })
 
   let store = null
@@ -66,7 +66,7 @@ export default async function DashboardLayout({
   if (stores.length === 0 || createNewStoreFlag || !onboardingCompleted) {
     return (
       <div className="w-full h-screen overflow-hidden bg-white z-50 relative font-sans">
-        <StoreCreationWizard isNewStore={createNewStoreFlag} />
+        <StoreCreationWizard isNewStore={createNewStoreFlag} isPro={isPro} hasExistingStores={stores.length > 0} />
       </div>
     )
   }
@@ -89,7 +89,7 @@ export default async function DashboardLayout({
           <div className="flex items-center gap-2">
             <span className="hidden text-xs font-bold text-zinc-400 md:inline-flex">{user?.firstName || 'Dashboard'}'s Workspaces</span>
             <span className="hidden text-zinc-300 font-light md:inline-flex">/</span>
-            <StoreSwitcher stores={stores} activeStore={store as any} />
+            <StoreSwitcher stores={stores} activeStore={store as any} isPro={isPro} />
           </div>
         </div>
 
@@ -124,8 +124,8 @@ export default async function DashboardLayout({
 
       <div className="w-full flex flex-col lg:flex-row items-stretch min-h-[calc(100vh-61px)]">
         {/* Sidebar: Collapsible hover logic */}
-        <aside className="hidden lg:flex flex-col justify-between w-[72px] hover:w-64 group flex-shrink-0 border-r border-zinc-200/60 sticky top-[53px] h-[calc(100vh-53px)] pt-2 pb-6 transition-[width] duration-300 ease-in-out bg-[#FAFAFA] z-20">
-          <div className="flex flex-col gap-8 w-full overflow-hidden">
+        <aside className="hidden lg:flex flex-col justify-between w-[72px] hover:w-64 group flex-shrink-0 border-r border-zinc-200/60 sticky top-[53px] h-[calc(100vh-53px)] pt-2 pb-6 transition-[width] duration-300 ease-in-out bg-[#FAFAFA] z-20 overflow-y-auto scrollbar-none">
+          <div className="flex flex-col gap-4 w-full overflow-hidden">
             <SidebarNav 
               conversationsCount={conversationsCount} 
               ordersCount={ordersCount} 

@@ -118,14 +118,18 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
     }
 
-    const { automationId, active } = await req.json()
+    const { automationId, active, customTemplate } = await req.json()
     if (!automationId) {
       return NextResponse.json({ error: 'Missing automationId' }, { status: 400 })
     }
 
+    const updateData: any = {}
+    if (active !== undefined) updateData.active = active
+    if (customTemplate !== undefined) updateData.customTemplate = customTemplate
+
     const updated = await prisma.automation.update({
       where: { id: automationId, storeId: store.id },
-      data: { active }
+      data: updateData
     })
 
     return NextResponse.json({ success: true, automation: updated })
@@ -150,7 +154,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
     }
 
-    const { name, description, icon, channels } = await req.json()
+    const { name, description, icon, channels, customTemplate } = await req.json()
     if (!name || !description) {
       return NextResponse.json({ error: 'Missing name or description' }, { status: 400 })
     }
@@ -166,8 +170,9 @@ export async function POST(req: Request) {
         active: true,
         sentToday: 0,
         rate: '0%',
-        rateLabel: 'Tasa de apertura'
-      }
+        rateLabel: 'Tasa de apertura',
+        customTemplate: customTemplate || null
+      } as any
     })
 
     return NextResponse.json({ success: true, automation: created })

@@ -12,6 +12,8 @@ import {
 import { ChevronsUpDown, Store, Plus, Check, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
+import { toast } from "sonner"
+
 type StoreItem = {
   id: string
   name: string
@@ -20,10 +22,12 @@ type StoreItem = {
 
 export default function StoreSwitcher({
   stores,
-  activeStore
+  activeStore,
+  isPro = false
 }: {
   stores: StoreItem[]
   activeStore: StoreItem
+  isPro?: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -35,6 +39,13 @@ export default function StoreSwitcher({
   }
 
   const handleCreateNew = () => {
+    if (!isPro) {
+      toast.error("Límite de tiendas alcanzado", {
+        description: "Actualiza tu plan a Pro para crear tiendas adicionales en tu workspace."
+      })
+      window.location.href = '/pricing'
+      return
+    }
     document.cookie = `create_new_store=true; path=/; max-age=3600` // 1 hour expiration
     window.location.reload()
   }

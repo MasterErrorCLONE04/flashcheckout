@@ -27,9 +27,11 @@ export default async function TheOfficePage() {
   }
 
   // Fetch some metrics to display inside agent profiles
-  const [productsCount, ordersCount] = await Promise.all([
+  const [productsCount, ordersCount, pendingOrdersCount, outOfStockCount] = await Promise.all([
     prisma.product.count({ where: { storeId: store.id } }),
-    prisma.order.count({ where: { storeId: store.id } })
+    prisma.order.count({ where: { storeId: store.id } }),
+    prisma.order.count({ where: { storeId: store.id, status: 'pending' } }),
+    prisma.product.count({ where: { storeId: store.id, stock: 0 } })
   ])
 
   return (
@@ -37,6 +39,8 @@ export default async function TheOfficePage() {
       store={storeData} 
       productsCount={productsCount}
       ordersCount={ordersCount}
+      pendingOrdersCount={pendingOrdersCount}
+      outOfStockCount={outOfStockCount}
     />
   )
 }

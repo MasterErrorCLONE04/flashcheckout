@@ -24,7 +24,9 @@ import {
   Search,
   Zap,
   Package,
-  Check
+  Check,
+  Loader2,
+  Wifi
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -76,6 +78,92 @@ export default function ChatHistoryViewer({
   whatsappConnected: boolean
 }) {
   const router = useRouter()
+  const [isConnected, setIsConnected] = useState(whatsappConnected)
+  const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null)
+  const [qrCodeText, setQrCodeText] = useState<string | null>(null)
+  const [loadingQr, setLoadingQr] = useState(false)
+  const [pollingStatus, setPollingStatus] = useState(false)
+
+  useEffect(() => {
+    if (isConnected) return
+
+    async function initWhatsAppConnection() {
+      setLoadingQr(true)
+      try {
+        const statusRes = await fetch('/api/whatsapp/instance')
+        if (statusRes.ok) {
+          const data = await statusRes.json()
+          if (data.status === 'CONNECTED') {
+            setIsConnected(true)
+            toast.success("¡WhatsApp conectado!")
+            return
+          } else if (data.status === 'QRCODE') {
+            setQrCodeBase64(data.base64 || null)
+            setQrCodeText(data.code || null)
+            setPollingStatus(true)
+            setLoadingQr(false)
+            return
+          }
+        }
+
+        const connectRes = await fetch('/api/whatsapp/instance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'connect' })
+        })
+        if (connectRes.ok) {
+          const data = await connectRes.json()
+          if (data.status === 'CONNECTED') {
+            setIsConnected(true)
+          } else {
+            setQrCodeBase64(data.base64 || null)
+            setQrCodeText(data.code || null)
+            setPollingStatus(true)
+          }
+        }
+      } catch (err) {
+        console.error("Error checking/generating WhatsApp connection QR:", err)
+      } finally {
+        setLoadingQr(false)
+      }
+    }
+
+    initWhatsAppConnection()
+  }, [isConnected])
+
+  useEffect(() => {
+    let intervalId: any
+    if (pollingStatus && !isConnected) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch('/api/whatsapp/instance')
+          if (res.ok) {
+            const data = await res.json()
+            if (data.status === 'CONNECTED') {
+              setIsConnected(true)
+              setQrCodeBase64(null)
+              setPollingStatus(false)
+              toast.success("¡WhatsApp enlazado con éxito! ✅", {
+                description: "Tu número celular ahora está vinculado a FlashCheckout y respondiendo de forma automática."
+              })
+              router.refresh()
+            } else if (data.status === 'QRCODE') {
+              if (data.base64 && data.base64 !== qrCodeBase64) {
+                setQrCodeBase64(data.base64)
+                setQrCodeText(data.code)
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error polling WhatsApp QR connection status:", err)
+        }
+      }, 3000)
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [pollingStatus, isConnected, qrCodeBase64, router])
+
   const [sessions, setSessions] = useState<ChatSessionExtended[]>(() =>
     initialSessions.map((s) => ({
       ...s,
@@ -91,6 +179,34 @@ export default function ChatHistoryViewer({
     sessions.length > 0 ? sessions[0].id : null
   )
   const [takeoverText, setTakeoverText] = useState('')
+  const [disconnecting, setDisconnecting] = useState(false)
+
+  const handleDisconnect = async () => {
+    if (!confirm('¿Estás seguro de que deseas desconectar WhatsApp? Se detendrán las respuestas automáticas del bot.')) {
+      return
+    }
+
+    setDisconnecting(true)
+    const loadToast = toast.loading('Desconectando WhatsApp...')
+    try {
+      const res = await fetch('/api/whatsapp/instance', {
+        method: 'DELETE'
+      })
+
+      if (!res.ok) throw new Error('Fallo al desconectar')
+      
+      setIsConnected(false)
+      setQrCodeBase64(null)
+      setPollingStatus(false)
+      toast.success('WhatsApp desconectado correctamente', { id: loadToast })
+      router.refresh()
+    } catch (err: any) {
+      toast.error(err.message || 'Error al desconectar WhatsApp', { id: loadToast })
+    } finally {
+      setDisconnecting(false)
+    }
+  }
+
   const [sending, setSending] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'assigned' | 'unassigned'>('all')
@@ -418,6 +534,127 @@ export default function ChatHistoryViewer({
     )
   }
 
+  if (!isConnected) {
+    return (
+      <div className="space-y-6 pb-12 font-sans text-left">
+        {/* HEADER SECTION */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Conversaciones</h1>
+            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Esperando conexión de WhatsApp...
+            </div>
+          </div>
+        </div>
+
+        {/* CONNECTION CARD */}
+        <div className="max-w-2xl mx-auto bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.02)] mt-8 select-none">
+          <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            
+            {/* Left side: QR Code container */}
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-center text-center">
+              <div className="relative aspect-square w-64 bg-zinc-50 border border-zinc-200/80 rounded-2xl flex items-center justify-center p-6 shadow-inner">
+                {loadingQr ? (
+                  <div className="flex flex-col items-center gap-2.5">
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                    <span className="text-[10px] text-zinc-400 font-extrabold uppercase tracking-wider">Generando QR...</span>
+                  </div>
+                ) : qrCodeBase64 ? (
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <img 
+                      src={qrCodeBase64} 
+                      alt="WhatsApp QR Code" 
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                    <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] rounded-xl pointer-events-none" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2.5">
+                    <Wifi className="w-8 h-8 text-zinc-350 animate-pulse" />
+                    <span className="text-[10px] text-zinc-400 font-extrabold uppercase tracking-wider">Sin señal de QR</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-zinc-400">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>Actualización automática en tiempo real</span>
+              </div>
+            </div>
+
+            {/* Right side: Instructions */}
+            <div className="w-full md:w-1/2 space-y-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-bold text-emerald-700 uppercase tracking-wide">
+                  <Zap className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600 animate-bounce" />
+                  Conexión Requerida
+                </div>
+                <h2 className="text-xl font-extrabold text-zinc-900 leading-tight">Vincular tu cuenta de WhatsApp</h2>
+                <p className="text-xs font-medium text-zinc-500 leading-relaxed">
+                  Para visualizar, gestionar y responder las conversaciones de tus clientes mediante Inteligencia Artificial o de forma manual, vincula tu número telefónico.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { step: "1", text: "Abre WhatsApp en tu teléfono celular." },
+                  { step: "2", text: "Toca Dispositivos vinculados en el menú de Configuración." },
+                  { step: "3", text: "Selecciona Vincular un dispositivo y escanea el código QR de la izquierda." }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex gap-3.5 items-start">
+                    <div className="w-6 h-6 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-black text-zinc-700 shrink-0">
+                      {item.step}
+                    </div>
+                    <p className="text-xs font-bold text-zinc-650 pt-0.5 leading-normal">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-zinc-100 flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-zinc-400">
+                  ¿Problemas con el código? Si tarda en cargar, intenta regenerar.
+                </p>
+                <button
+                  onClick={async () => {
+                    setLoadingQr(true)
+                    try {
+                      await fetch('/api/whatsapp/instance', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'connect' })
+                      })
+                      const res = await fetch('/api/whatsapp/instance')
+                      const data = await res.json()
+                      if (data.status === 'CONNECTED') {
+                        setIsConnected(true)
+                      } else {
+                        setQrCodeBase64(data.base64 || null)
+                        setQrCodeText(data.code || null)
+                        setPollingStatus(true)
+                      }
+                    } catch (e) {
+                      toast.error("Error al regenerar código QR")
+                    } finally {
+                      setLoadingQr(false)
+                    }
+                  }}
+                  className="w-full h-9 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  Regenerar Código QR
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 pb-12 font-sans text-left">
       
@@ -431,13 +668,24 @@ export default function ChatHistoryViewer({
           </div>
         </div>
 
-        <button
-          onClick={exportChats}
-          className="flex items-center justify-center gap-2 h-9 px-4 bg-white border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-xs font-semibold text-zinc-755 transition-all cursor-pointer select-none"
-        >
-          <Download className="w-3.5 h-3.5 text-zinc-400" />
-          <span>Exportar conversaciones</span>
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            onClick={exportChats}
+            className="flex items-center justify-center gap-2 h-9 px-4 bg-white border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-xs font-semibold text-zinc-755 transition-all cursor-pointer select-none"
+          >
+            <Download className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Exportar conversaciones</span>
+          </button>
+
+          <button
+            onClick={handleDisconnect}
+            disabled={disconnecting}
+            className="flex items-center justify-center gap-2 h-9 px-4 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-350 rounded-lg text-xs font-bold text-rose-600 transition-all cursor-pointer select-none disabled:opacity-50 active:scale-95"
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>Desconectar WhatsApp</span>
+          </button>
+        </div>
       </div>
 
       {/* THREE-COLUMN WORKSPACE GRID */}

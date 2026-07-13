@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from "@/lib/utils"
 import { 
   Store, 
@@ -61,6 +61,26 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   
   // Device Preview selection
   const [device, setDevice] = useState<'escritorio' | 'tablet' | 'movil'>('escritorio')
+
+  // Prevent double scrollbar by locking the body and html overflow when editor is open
+  useEffect(() => {
+    const origHtmlOverflow = document.documentElement.style.overflow
+    const origHtmlHeight = document.documentElement.style.height
+    const origBodyOverflow = document.body.style.overflow
+    const origBodyHeight = document.body.style.height
+
+    document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.height = '100%'
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100%'
+
+    return () => {
+      document.documentElement.style.overflow = origHtmlOverflow
+      document.documentElement.style.height = origHtmlHeight
+      document.body.style.overflow = origBodyOverflow
+      document.body.style.height = origBodyHeight
+    }
+  }, [])
 
   // Parse initial settings
   const parsedSettings = initialStore.aiSettings && typeof initialStore.aiSettings === 'object' 
@@ -429,7 +449,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   }
 
   return (
-    <div className="h-[calc(100vh-140px)] min-h-[500px] flex flex-col overflow-hidden animate-in duration-300 font-sans text-left pb-2">
+    <div className="h-[calc(100vh-120px)] lg:h-[calc(100vh-130px)] min-h-[500px] flex flex-col overflow-hidden animate-in duration-300 font-sans text-left pb-2">
       
       {/* Header Panel matching screenshot */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 select-none pb-2">
@@ -497,7 +517,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-stretch overflow-hidden mt-6">
         
         {/* LEFT COLUMN: Customized Widgets based on selected tab (4/12) */}
-        <div className="lg:col-span-4 h-full overflow-y-auto pr-2 scrollbar-none pb-12 select-none space-y-6">
+        <div className="lg:col-span-4 h-full overflow-y-auto pr-1 pb-20 select-none space-y-6">
           
           {/* TAB 1: APARIENCIA */}
           {activeTab === 'apariencia' && (
@@ -963,7 +983,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     </div>
 
                     <div className="space-y-3.5 border-t border-zinc-100 pt-3">
-                      {bentoHighlights.items.map((item, idx) => (
+                      {bentoHighlights.items.map((item: any, idx: number) => (
                         <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
                           <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Elemento #{idx + 1}</span>
                           
@@ -1251,7 +1271,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     </div>
 
                     <div className="space-y-3.5 border-t border-zinc-100 pt-3">
-                      {processTimeline.items.map((stepItem, idx) => (
+                      {processTimeline.items.map((stepItem: any, idx: number) => (
                         <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
                           <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Paso #{idx + 1}</span>
                           
@@ -2045,7 +2065,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
              {/* LIVE CANVAS WEB PREVIEW */}
              <div className={cn(
                "w-full flex-1 flex justify-center overflow-hidden relative select-none min-h-0 bg-zinc-50 border border-zinc-150 border-dashed rounded-lg p-4 mt-4",
-               device === 'escritorio' ? "bg-white p-0 border-0 mt-4 items-start" : "items-center"
+               device === 'escritorio' ? "bg-white p-0 border-0 mt-4 items-stretch" : "items-center"
              )}>
                 <div 
                   className={cn(

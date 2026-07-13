@@ -70,12 +70,33 @@ export async function POST(req: Request) {
         console.error('[MP Webhook] Error resolving dynamic waClient:', err);
       }
 
-      if (order.source === 'WHATSAPP' && order.customerWhatsAppId && newStatus === 'PAID') {
+      if (newStatus === 'PAID') {
         try {
-          await clientToUse.sendText(
-            order.customerWhatsAppId,
-            `¡Pago confirmado! 🎉\n\nTu pedido *#${order.id.slice(-6)}* por un total de $${order.total.toLocaleString()} ha sido procesado exitosamente.\n\n¡Gracias por usar StoreFCheckout! 🚀`
-          )
+          const aut = await prisma.automation.findFirst({
+            where: {
+              storeId: order.storeId,
+              name: { equals: "Pedido pagado", mode: 'insensitive' },
+              active: true
+            }
+          }) as any
+
+          const recipient = order.customerPhone || order.customerWhatsAppId
+          if (aut && recipient) {
+            const defaultMsg = `¡Pago confirmado! 🎉\n\nTu pedido *#{{pedido_id}}* por un total de \${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra! 🚀`
+            const template = (aut as any).customTemplate || defaultMsg
+            const formattedMsg = template
+              .replace(/{{cliente}}/g, order.customerName || 'Cliente')
+              .replace(/{{pedido_id}}/g, order.id.slice(-6).toUpperCase())
+              .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
+              .replace(/{{tienda}}/g, store?.name || 'Tienda')
+
+            await clientToUse.sendText(recipient, formattedMsg)
+            await prisma.automation.update({
+              where: { id: aut.id },
+              data: { sentToday: { increment: 1 } }
+            })
+          }
+
           // Enviar factura electrónica por WhatsApp
           await sendInvoiceToWhatsApp(orderId)
         } catch (error) {

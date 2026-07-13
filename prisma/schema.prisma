@@ -151,6 +151,7 @@ model Automation {
   icon        String   @default("👋")
   iconColor   String   @default("bg-amber-100 text-amber-600")
   channels    String[] @default(["WhatsApp"])
+  customTemplate String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

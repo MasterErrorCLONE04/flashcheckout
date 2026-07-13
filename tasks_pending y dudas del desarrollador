@@ -1,0 +1,23 @@
+Tareas pendientes con Flashcheckouts
+
+1. En la pagina de conversaciones cuando la sesión de whatsapp no este abierta, no se debe ver ningún chat, solo se debe ver un componente que diga esteticamente conectar whatsapp y aparezca para scannear y conectarlo
+
+2. Mejorar la vista de pedidos, porque no se pueden ver mayúsculas y que el componente vaya mas centrado.
+
+3. hay que mejorar las funcionalidades de Automatizaciones y ofrecer mas herramientas
+
+4. En tienda hay que mejorar el estilo premium de los componentes y dejar que se puedan poner diferentes banners que vayan como en carrusel lop, añadir los logos de Facebook y demás redes sociales originales 
+
+5. The Office debe de mejorarse y optimizarse las vistas y los botones junto con los componentes para que sigan ese estilo que se lleva en la plataforma de cero Mayúsculas sostenida y la curvatura de las puntas de los componentes y la creación junto con la personalización de los agentes y los modelos además de las herramientas y tareas que podrán desempeñar los agentes de IA.
+
+6. Mejorar el Onboarding a uno mas minimalista y premium siguiendo nuestro estilo de marca y pagina
+
+7. Analizar a que cuenta recibir el pago de las suscripciones.
+
+8. en http://localhost:3000/hablar-con-nova donde dice Nova, Necesitamos que se pueda cambiar el agente para que el usuario pueda hablar con todos los agentes y saber de cada uno 
+
+9. Mejoara la vista de http://localhost:3000/work/doc porque ese fue el primer diseño que se realizo y hemos cambiado mucho el diseño y también se han añadido demasiadas nuevas funcionalidades.
+
+10. El programa de Afiliados debe ser funcional y con ello http://localhost:3000/affiliate
+
+11. El registro de Cambios debe ser documentado con todas las nuevas funcionalidades en http://localhost:3000/changelog

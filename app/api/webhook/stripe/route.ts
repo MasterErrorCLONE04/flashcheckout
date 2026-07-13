@@ -88,6 +88,52 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
     })
   })
 
+  // Trigger "Pedido pagado" Automation
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { store: true }
+    })
+    
+    if (order && order.storeId) {
+      const aut = await prisma.automation.findFirst({
+        where: {
+          storeId: order.storeId,
+          name: { equals: "Pedido pagado", mode: 'insensitive' },
+          active: true
+        }
+      }) as any
+
+      const recipient = order.customerPhone || order.customerWhatsAppId
+      if (aut && recipient) {
+        const defaultMsg = `¡Pago confirmado! 🎉\n\nTu pedido *#{{pedido_id}}* por un total de \${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra! 🚀`
+        const template = (aut as any).customTemplate || defaultMsg
+        const formattedMsg = template
+          .replace(/{{cliente}}/g, order.customerName || 'Cliente')
+          .replace(/{{pedido_id}}/g, order.id.slice(-6).toUpperCase())
+          .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
+          .replace(/{{tienda}}/g, order.store.name)
+
+        let clientToUse: any = waClient
+        const store = order.store
+        if (store && store.whatsappInstanceName && store.whatsappConnected) {
+          const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+          clientToUse = {
+            sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName!, to, msg)
+          }
+        }
+
+        await clientToUse.sendText(recipient, formattedMsg)
+        await prisma.automation.update({
+          where: { id: aut.id },
+          data: { sentToday: { increment: 1 } }
+        })
+      }
+    }
+  } catch (error) {
+    console.error('[Stripe Webhook] Failed to send WhatsApp payment confirmation text', error)
+  }
+
   // Enviar factura electrónica por WhatsApp
   try {
     await sendInvoiceToWhatsApp(orderId)

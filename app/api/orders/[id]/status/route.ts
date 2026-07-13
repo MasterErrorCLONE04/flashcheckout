@@ -49,6 +49,62 @@ export async function PATCH(
         console.error('[Delivery Broadcast Web Error]', deliveryErr)
       }
     }
+    // Triggers de Automatizaciones de Pedidos al cambiar estado
+    if (status !== undefined) {
+      try {
+        let automationName = ""
+        let defaultMsg = ""
+        
+        if (status === 'confirmed' || status === 'shipped') {
+          automationName = "Pedido listo para retiro / envío"
+          defaultMsg = `¡Hola {{cliente}}! 👋 Tu pedido #{{pedido_id}} en {{tienda}} está listo para ser enviado o retirado. Valor total: \${{total}}. ¡Gracias por tu compra!`
+        } else if (status === 'delivered') {
+          automationName = "Calificar servicio"
+          defaultMsg = `¡Hola {{cliente}}! 👋 Tu pedido #{{pedido_id}} ha sido entregado con éxito por {{tienda}}. ¿Cómo calificarías nuestro servicio hoy? ⭐⭐⭐⭐⭐`
+        }
+
+        if (automationName) {
+          const aut = await prisma.automation.findFirst({
+            where: {
+              storeId: updatedOrder.storeId,
+              name: { equals: automationName, mode: 'insensitive' },
+              active: true
+            }
+          }) as any
+
+          const recipient = updatedOrder.customerPhone || updatedOrder.customerWhatsAppId
+          if (aut && recipient) {
+            const template = (aut as any).customTemplate || defaultMsg
+            const formattedMsg = template
+              .replace(/{{cliente}}/g, updatedOrder.customerName || 'Cliente')
+              .replace(/{{pedido_id}}/g, updatedOrder.id.slice(-6).toUpperCase())
+              .replace(/{{total}}/g, updatedOrder.total.toLocaleString('es-CO'))
+              .replace(/{{tienda}}/g, updatedOrder.store.name)
+
+            let clientToUse: any = waClient
+            const store = updatedOrder.store
+            if (store && store.whatsappInstanceName && store.whatsappConnected) {
+              const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+              clientToUse = {
+                sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName!, to, msg)
+              }
+            }
+
+            try {
+              await clientToUse.sendText(recipient, formattedMsg)
+              await prisma.automation.update({
+                where: { id: aut.id },
+                data: { sentToday: { increment: 1 } }
+              })
+            } catch (err: any) {
+              console.error(`[Automation WhatsApp trigger failed]`, err.message)
+            }
+          }
+        }
+      } catch (autErr: any) {
+        console.error('[Automation status webhook error]', autErr.message)
+      }
+    }
 
     return NextResponse.json({ success: true, order: updatedOrder })
   } catch (error: any) {

@@ -29,6 +29,7 @@ type Automation = {
   icon: string
   iconColor: string
   channels: string[]
+  customTemplate?: string | null
 }
 
 export default function AutomatizacionesPage() {
@@ -44,6 +45,40 @@ export default function AutomatizacionesPage() {
   const [newIcon, setNewIcon] = useState('👋')
   const [newChannels, setNewChannels] = useState<string[]>(['WhatsApp'])
   const [saving, setSaving] = useState(false)
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [selectedAutomation, setSelectedAutomation] = useState<Automation | null>(null)
+  const [customTemplateText, setCustomTemplateText] = useState('')
+  const [updatingTemplate, setUpdatingTemplate] = useState(false)
+
+  const handleSaveTemplate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedAutomation) return
+
+    setUpdatingTemplate(true)
+    try {
+      const res = await fetch('/api/automation', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          automationId: selectedAutomation.id,
+          customTemplate: customTemplateText
+        })
+      })
+
+      if (!res.ok) throw new Error('Fallo al guardar la plantilla')
+      
+      setAutomations(prev =>
+        prev.map(a => (a.id === selectedAutomation.id ? { ...a, customTemplate: customTemplateText } : a))
+      )
+      toast.success('Plantilla guardada con éxito')
+      setShowConfigModal(false)
+      setSelectedAutomation(null)
+    } catch (err: any) {
+      toast.error(err.message || 'Error al guardar la plantilla')
+    } finally {
+      setUpdatingTemplate(false)
+    }
+  }
 
   // Fetch automations on mount
   useEffect(() => {
@@ -343,9 +378,16 @@ export default function AutomatizacionesPage() {
                     </div>
                   </div>
 
-                  {/* Action Menu */}
-                  <button onClick={() => toast.info('Acción disponible en producción')} className="text-zinc-400 hover:text-zinc-600 shrink-0 cursor-pointer">
-                    <MoreHorizontal className="w-4 h-4" />
+                  {/* Action Menu: Configurar */}
+                  <button 
+                    onClick={() => {
+                      setSelectedAutomation(item)
+                      setCustomTemplateText(item.customTemplate || '')
+                      setShowConfigModal(true)
+                    }} 
+                    className="h-8 px-2.5 border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-950 text-[10px] font-bold text-zinc-650 rounded-lg shrink-0 cursor-pointer select-none transition-all active:scale-95 flex items-center justify-center gap-1"
+                  >
+                    <span>Configurar</span>
                   </button>
 
                 </div>
@@ -574,6 +616,97 @@ export default function AutomatizacionesPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
+                  className="px-4 py-2.5 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+      {/* TEMPLATE CUSTOMIZATION MODAL */}
+      {showConfigModal && selectedAutomation && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-zinc-200 rounded-2xl w-full max-w-lg p-6 md:p-8 space-y-5 animate-in zoom-in duration-200 shadow-xl text-left select-none">
+            <div className="flex justify-between items-center select-none">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">{selectedAutomation.icon}</span>
+                <div>
+                  <h3 className="font-extrabold text-sm text-zinc-900 leading-tight">Configurar Plantilla</h3>
+                  <p className="text-[10px] text-zinc-400 font-bold tracking-wide mt-0.5">{selectedAutomation.name}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowConfigModal(false)
+                  setSelectedAutomation(null)
+                }} 
+                className="text-zinc-400 hover:text-zinc-650 cursor-pointer p-1 rounded-full hover:bg-zinc-50 transition-colors border-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTemplate} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-zinc-400 block uppercase tracking-wider">
+                  Mensaje de WhatsApp Personalizado
+                </label>
+                <textarea
+                  placeholder="Escribe el mensaje que se enviará automáticamente..."
+                  value={customTemplateText}
+                  onChange={e => setCustomTemplateText(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-zinc-800 outline-none transition-all h-32 resize-y"
+                  required
+                />
+              </div>
+
+              {/* Dynamic placeholders helper legend */}
+              <div className="bg-zinc-50 border border-zinc-150 rounded-xl p-4 space-y-2">
+                <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest block">
+                  Etiquetas dinámicas permitidas
+                </span>
+                <p className="text-[10px] text-zinc-500 font-semibold leading-relaxed">
+                  Puedes incluir estas etiquetas en tu mensaje. El sistema las reemplazará automáticamente con la información real de la venta antes de enviar el mensaje:
+                </p>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {[
+                    { tag: "{{cliente}}", label: "Nombre del cliente" },
+                    { tag: "{{pedido_id}}", label: "Identificador del pedido" },
+                    { tag: "{{total}}", label: "Total del pedido formateado" },
+                    { tag: "{{tienda}}", label: "Nombre de tu tienda" }
+                  ].map((place, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => {
+                        setCustomTemplateText(prev => prev + " " + place.tag)
+                      }}
+                      className="p-1.5 px-2 bg-white border border-zinc-205 rounded-lg hover:border-zinc-300 cursor-pointer flex items-center justify-between text-[10px] font-bold text-zinc-800 active:scale-95 transition-all"
+                    >
+                      <code className="text-emerald-600 font-mono font-extrabold">{place.tag}</code>
+                      <span className="text-[8px] text-zinc-400 font-bold">{place.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 select-none">
+                <button
+                  type="submit"
+                  disabled={updatingTemplate}
+                  className="flex-grow py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 border-0"
+                >
+                  {updatingTemplate && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Guardar Plantilla</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowConfigModal(false)
+                    setSelectedAutomation(null)
+                  }}
                   className="px-4 py-2.5 border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
                 >
                   Cancelar

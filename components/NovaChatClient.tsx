@@ -15,6 +15,7 @@ import {
   ShieldCheck, 
   ArrowRight,
   X,
+  TrendingUp,
   Loader2,
   Brain,
   ChevronDown,

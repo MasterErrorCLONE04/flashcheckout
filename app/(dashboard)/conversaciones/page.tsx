@@ -75,7 +75,7 @@ export default async function ConversacionesPage() {
   return (
     <ChatHistoryViewer 
       initialSessions={formattedSessions} 
-      whatsappConnected={true}
+      whatsappConnected={!!store.whatsappConnected}
     />
   )
 }

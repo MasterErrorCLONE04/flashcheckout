@@ -542,7 +542,7 @@ export default async function DashboardPage(props: {
       insights={insights}
       initialWhatsappConnected={store.whatsappConnected}
       aiActive={store.aiActive}
-      productsCount={store._count.products}
+      productsCount={(store as any)._count.products}
       isSubscribed={!!store.stripePriceId && !!store.stripeCurrentPeriodEnd && new Date(store.stripeCurrentPeriodEnd) > new Date()}
       stats={{
         revenueToday,

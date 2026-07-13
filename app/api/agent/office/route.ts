@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { agentType, instruction } = body
+    const { agentType, instruction, history } = body
 
     if (!agentType || !instruction) {
       return NextResponse.json({ error: 'Missing agentType or instruction' }, { status: 400 })
@@ -73,8 +73,13 @@ export async function POST(req: Request) {
     }
 
     // Call LLM through OpenRouter
+    const parsedHistory = Array.isArray(history) ? history : []
     const apiMessages: ChatMessage[] = [
-      { role: 'user', content: instruction }
+      ...parsedHistory.map((h: any) => ({
+        role: (h.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
+        content: typeof h.content === 'string' ? h.content : ''
+      })),
+      { role: 'user' as const, content: instruction }
     ]
 
     let loopCount = 0

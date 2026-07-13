@@ -31,42 +31,32 @@ El diseño técnico de FlashCheckout responde de manera directa a la realidad co
 
 ## 03. Qué Falta para estar Listo para Producción (Gap Analysis)
 
-Para realizar el despliegue a producción y recibir a los primeros clientes reales, es necesario completar los siguientes pendientes críticos de seguridad, infraestructura y automatización anti-fraude:
+Para realizar el despliegue a producción y recibir a los primeros clientes reales, es necesario completar los siguientes pendientes críticos de seguridad, infraestructura y automatización:
 
 ```mermaid
 graph TD
     A[Lanzamiento a Producción] --> B{Requisitos Críticos}
-    B --> C[1. OCR de Comprobantes]
-    B --> D[2. Servidor Evolution API Estable]
-    B --> E[3. Webhook con HTTPS Público]
-    B --> F[4. Políticas de Supabase Storage]
+    B --> D[1. Servidor Evolution API Estable]
+    B --> E[2. Webhook con HTTPS Público]
+    B --> F[3. Políticas de Supabase Storage]
     
-    C --> G[Evita estafas con capturas falsas de Nequi/Daviplata mediante lectura automática de datos]
     D --> H[Despliegue del contenedor de WhatsApp en un VPS dedicado para evitar caídas]
     E --> I[Configuración de túnel SSL permanente o Proxy reverso para webhooks de WhatsApp]
     F --> J[Restringir acceso de lectura a los comprobantes de pago subidos por compradores]
 ```
 
-### 1. Sistema de Validación OCR para Comprobantes de Pago
-*   **La Brecha:** En Colombia y otros países de LATAM, el fraude con comprobantes de transferencia falsificados (editados en Photoshop) es sumamente común. Actualmente, la validación en el panel `/verificaciones` es 100% visual y depende del criterio del comerciante.
-*   **Acción Requerida:** Implementar un validador automatizado usando **OCR (como Tesseract.js o Google Cloud Vision API)** al recibir la imagen del comprobante. El sistema debe extraer automáticamente:
-    1. El número de transacción/referencia.
-    2. El monto transferido.
-    3. La fecha y hora.
-    Si estos datos no coinciden con la orden creada o el número de transacción ya fue usado anteriormente en otra orden (prevención de doble gasto), el pedido debe ser marcado automáticamente como *"Sospechoso"* o *"Rechazado"*.
-
-### 2. Infraestructura y Despliegue de Evolution API
+### 1. Infraestructura y Despliegue de Evolution API
 *   **La Brecha:** Actualmente la Evolution API corre en un contenedor local de Docker (`evoapicloud/evolution-api:latest`) usando el puerto `8080` y una base de datos local compartida. Esta configuración es ideal para desarrollo pero inviable para producción.
 *   **Acción Requerida:** 
     - Desplegar la Evolution API en un servidor **VPS dedicado** (como AWS, DigitalOcean o VPS local con IP pública).
     - Montar un balanceador de carga y configurar almacenamiento persistente dedicado (PostgreSQL) para evitar la pérdida de sesiones y credenciales de WhatsApp cuando el contenedor se reinicie.
     - Asegurar que la comunicación viaje cifrada bajo HTTPS.
 
-### 3. Exposición y Estabilidad del Webhook (Túneles Estables)
+### 2. Exposición y Estabilidad del Webhook (Túneles Estables)
 *   **La Brecha:** Las notificaciones entrantes de mensajes de clientes necesitan una IP o dominio público para llegar al backend de Next.js (`/api/whatsapp/webhook`). En desarrollo, esto depende de túneles temporales de Cloudflare o ngrok que expiran constantemente.
 *   **Acción Requerida:** Configurar un subdominio de producción dedicado (ej. `api.flashcheckout.com/api/whatsapp/webhook`) y mapearlo a través de un proxy reverso (Nginx) o un **Cloudflare Tunnel permanente configurado como servicio del sistema**, garantizando que el bot nunca pierda conexión con WhatsApp por expiración de URLs.
 
-### 4. Políticas de Seguridad de Supabase Storage (Privacidad de Comprobantes)
+### 3. Políticas de Seguridad de Supabase Storage (Privacidad de Comprobantes)
 *   **La Brecha:** Las imágenes del comprobante de pago cargadas por los clientes se guardan en Supabase Storage. Si el bucket es público, cualquier usuario con la URL podría acceder a datos bancarios e información personal de otros compradores.
 *   **Acción Requerida:** 
     - El bucket para las fotos de productos debe permanecer **público** para renderizado del catálogo.

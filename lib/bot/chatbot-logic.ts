@@ -125,6 +125,65 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     }
   };
 
+  // --- FILTRO DE SEGURIDAD PARA CUENTAS PERSONALES / HEURÍSTICA DE NEGOCIO ---
+  const isSystemAction = 
+    text.startsWith('store_') || 
+    text.startsWith('view_list_') || 
+    text.startsWith('select_') || 
+    text.startsWith('confirm_') || 
+    text === 'cancel' || 
+    text === 'view_stores' || 
+    text === 'search_now' ||
+    text === 'clear_cart' ||
+    text.startsWith('flow_response_') ||
+    text.startsWith('accept_delivery_')
+
+  const isInProgress = session.step !== 'START' && session.step !== 'IDLE'
+
+  if (!isSystemAction && !isInProgress && session.storeId && session.storeId !== 'global') {
+    // 1. Verificar si tiene pedidos anteriores en esta tienda
+    const hasPastOrder = await prisma.order.findFirst({
+      where: {
+        storeId: session.storeId,
+        OR: [
+          { customerPhone: from },
+          { customerWhatsAppId: from }
+        ]
+      }
+    })
+
+    if (!hasPastOrder) {
+      // 2. Verificar si contiene palabras clave comerciales o de negocio
+      const businessKeywords = [
+        'precio', 'valor', 'costo', 'cuesta', 'comprar', 'pedido', 'compra', 
+        'catalogo', 'catálogo', 'menú', 'menu', 'productos', 'tienda', 'venden', 
+        'disponible', 'quiero', 'pagar', 'carrito', 'orden', 'factura', 'domicilio', 
+        'envio', 'envío', 'delivery', 'comprobante', 'pago', 'cuenta', 'nequi', 'daviplata',
+        'info', 'informacion', 'información', 'servicio', 'contacto'
+      ]
+      
+      const lowerText = text.toLowerCase().trim()
+      const matchesKeyword = businessKeywords.some(kw => lowerText.includes(kw))
+
+      if (!matchesKeyword) {
+        // 3. Verificar si contiene el nombre de algún producto de la tienda
+        const storeProducts = await prisma.product.findMany({
+          where: { storeId: session.storeId, active: true },
+          select: { name: true }
+        })
+
+        const matchesProduct = storeProducts.some(p => 
+          lowerText.includes(p.name.toLowerCase().trim())
+        )
+
+        if (!matchesProduct) {
+          console.log(`[Bot Filter] Ignorando mensaje de contacto personal (${from}): "${text}"`);
+          return; // Detener flujo completamente para no responder ni disparar llamadas de IA
+        }
+      }
+    }
+  }
+
   const intent = await parseIntent(text);
 
   // Verificar si la tienda de la sesión está activa
@@ -1018,7 +1077,7 @@ export async function handleWhatsAppImage(
   });
 
   if (!session || session.step !== 'AWAITING_CONFIRMATION') {
-    await waClient.sendText(from, 'Lo siento, no estoy esperando un comprobante de pago en este momento. Si deseas realizar un pedido, escribe "Ver tiendas".');
+    console.log(`[Bot Filter] Ignorando imagen no relacionada con comprobante de pago de (${from})`);
     return;
   }
 
