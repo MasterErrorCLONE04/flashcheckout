@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: string, storeName: string }) {
   const [copied, setCopied] = useState(false)
-  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://flashcheckout.co'
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://flashcheckouts.com'
   const affiliateUrl = `${appUrl}/sign-up?ref=${storeSlug}`
 
   function copyToClipboard() {
@@ -40,7 +40,7 @@ export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: s
       {/* Main Link card */}
       <div className="premium-card p-8 md:p-10 bg-white border border-zinc-200 mb-10 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-96 h-96 bg-zinc-50/50 rounded-full blur-[100px] pointer-events-none -mr-20 -mt-20" />
-        
+
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-lg bg-zinc-950 flex items-center justify-center text-white">
@@ -60,8 +60,8 @@ export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: s
               onClick={copyToClipboard}
               className={cn(
                 "h-14 px-8 rounded-xl font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-sm border",
-                copied 
-                  ? "bg-zinc-950 text-white border-zinc-950" 
+                copied
+                  ? "bg-zinc-950 text-white border-zinc-950"
                   : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
               )}
             >
@@ -147,17 +147,17 @@ export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: s
               Los balances se cortan los días viernes. Si tienes comisiones acumuladas por transferir, nuestro equipo te escribirá directamente a tu WhatsApp configurado para realizarte el depósito sin cargos administrativos.
             </p>
           </div>
-          
+
           <div className="pt-6 border-t border-zinc-100 flex items-center gap-3">
-             <span className="text-[10px] font-bold text-zinc-400 uppercase">¿Tienes dudas?</span>
-             <a 
-               href="https://wa.me/573001234567?text=Tengo%20una%20duda%20sobre%20el%20programa%20de%20afiliados%20de%20FlashCheckout" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               className="text-xs font-bold text-zinc-900 hover:text-zinc-500 flex items-center gap-1 cursor-pointer"
-             >
-               Escríbenos <ArrowUpRight className="w-3.5 h-3.5" />
-             </a>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase">¿Tienes dudas?</span>
+            <a
+              href="https://wa.me/573001234567?text=Tengo%20una%20duda%20sobre%20el%20programa%20de%20afiliados%20de%20FlashCheckout"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold text-zinc-900 hover:text-zinc-500 flex items-center gap-1 cursor-pointer"
+            >
+              Escríbenos <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
       </div>

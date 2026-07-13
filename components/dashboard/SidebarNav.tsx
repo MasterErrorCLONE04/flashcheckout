@@ -3,17 +3,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Settings, 
-  MessageSquare, 
-  Users, 
-  CreditCard, 
-  Bot, 
-  Tag, 
-  Store, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Settings,
+  MessageSquare,
+  Users,
+  CreditCard,
+  Bot,
+  Tag,
+  Store,
   Link2,
   Building
 } from 'lucide-react'
@@ -49,7 +49,7 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || (pathname?.startsWith(`${item.href}/`) && item.href !== "/dashboard");
-          
+
           return (
             <Link
               key={item.href}
@@ -64,14 +64,14 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
             >
               {/* Centered Icon Wrapper */}
               <div className="absolute left-0 w-12 h-10 flex items-center justify-center shrink-0">
-                <Icon 
+                <Icon
                   className={cn(
                     "w-[18px] h-[18px] transition-colors",
                     isActive ? "text-zinc-950 stroke-[2.5px]" : "text-zinc-400 stroke-[2px] group-hover/item:text-zinc-600"
-                  )} 
+                  )}
                 />
               </div>
-              
+
               <div className="pl-12 pr-3 flex items-center justify-between w-full transition-opacity duration-300 opacity-0 group-hover:opacity-100">
                 <span className="whitespace-nowrap">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
@@ -112,13 +112,12 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
             <div className="min-w-0 text-left">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs xl:text-sm font-extrabold text-zinc-900 truncate">Nova</span>
-                <span className="text-[9px] xl:text-[10px] font-bold text-emerald-650 uppercase tracking-wider shrink-0">• En línea</span>
               </div>
               <div className="text-[10px] xl:text-xs font-semibold text-zinc-400 truncate">Copiloto de la plataforma</div>
             </div>
           </div>
 
-          <Link 
+          <Link
             href="/hablar-con-nova"
             className="w-full bg-[#10B981] hover:bg-emerald-650 text-white font-extrabold text-xs rounded-lg py-2.5 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-100 hover:shadow-md hover:shadow-emerald-200/50 active:scale-[0.98] transition-all text-center select-none cursor-pointer"
           >

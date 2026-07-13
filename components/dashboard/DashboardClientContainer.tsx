@@ -45,6 +45,7 @@ import {
   MiniSparkline,
   BotStatusCircle
 } from '@/components/DashboardCharts'
+import Modal from '@/components/ui/Modal'
 
 
 
@@ -139,6 +140,7 @@ export default function DashboardClientContainer({
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(false)
   const [showSuggestionBanner, setShowSuggestionBanner] = useState(true)
+  const [showAllAlertsModal, setShowAllAlertsModal] = useState(false)
   
   // Smart Inbox Alerts, Chats & Activities
   const [alerts, setAlerts] = useState<SmartInboxAlert[]>(initialAlerts)
@@ -198,6 +200,51 @@ export default function DashboardClientContainer({
     toast.success('¡Enlace copiado al portapapeles!')
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const renderAlertItem = (alert: SmartInboxAlert) => (
+    <div key={alert.id} className={cn(
+      "flex flex-col gap-2 p-3 rounded-lg border bg-zinc-50/20 text-left",
+      alert.type === 'whatsapp_disconnected' ? "border-rose-200 bg-rose-50/15" : "border-zinc-200"
+    )}>
+      <div className="flex items-start gap-2.5">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border bg-zinc-50 border-zinc-200 text-zinc-500">
+          {alert.type === 'payment_approval' && <AlertTriangle className="w-4 h-4" />}
+          {alert.type === 'waiting_response' && <MessageSquare className="w-4 h-4" />}
+          {alert.type === 'ready_to_ship' && <Truck className="w-4 h-4" />}
+          {alert.type === 'low_stock' && <Package className="w-4 h-4" />}
+          {alert.type === 'whatsapp_disconnected' && <img src="/whatsapp.svg" className="w-4 h-4" alt="WhatsApp" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-zinc-900 leading-snug">{alert.title}</p>
+          <p className="text-[10px] font-medium text-zinc-500 truncate mt-0.5 leading-none">
+            {alert.subtitle} {alert.type === 'whatsapp_disconnected' && <span className="text-rose-500 font-bold uppercase text-[9px] ml-1">Crítico</span>}
+          </p>
+          <span className={cn(
+            "text-[9px] font-semibold block mt-1",
+            alert.type === 'whatsapp_disconnected' ? "text-rose-500" : "text-zinc-400"
+          )}>{alert.timeText}</span>
+        </div>
+      </div>
+      {alert.type === 'whatsapp_disconnected' ? (
+        <button
+          onClick={() => {
+            setShowWhatsAppModal(true)
+            handleConnectWhatsApp()
+          }}
+          className="w-full h-7 border border-rose-250 hover:bg-rose-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+        >
+          {alert.actionText || 'Reconectar'}
+        </button>
+      ) : (
+        <Link 
+          href={alert.href || '#'} 
+          className="w-full h-7 border border-zinc-250 hover:bg-zinc-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-zinc-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all"
+        >
+          {alert.actionText || 'Ver'}
+        </Link>
+      )}
+    </div>
+  )
 
   // Connect WhatsApp and fetch QR code
   async function handleConnectWhatsApp() {
@@ -698,50 +745,17 @@ export default function DashboardClientContainer({
               </div>
             ) : (
               <div className="space-y-3.5">
-                {activeAlerts.map((alert) => (
-                  <div key={alert.id} className={cn(
-                    "flex flex-col gap-2 p-3 rounded-lg border bg-zinc-50/20",
-                    alert.type === 'whatsapp_disconnected' ? "border-rose-200 bg-rose-50/15" : "border-zinc-200"
-                  )}>
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border bg-zinc-50 border-zinc-200 text-zinc-500">
-                        {alert.type === 'payment_approval' && <AlertTriangle className="w-4 h-4" />}
-                        {alert.type === 'waiting_response' && <MessageSquare className="w-4 h-4" />}
-                        {alert.type === 'ready_to_ship' && <Truck className="w-4 h-4" />}
-                        {alert.type === 'low_stock' && <Package className="w-4 h-4" />}
-                        {alert.type === 'whatsapp_disconnected' && <img src="/whatsapp.svg" className="w-4 h-4" alt="WhatsApp" />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-zinc-900 leading-snug">{alert.title}</p>
-                        <p className="text-[10px] font-medium text-zinc-500 truncate mt-0.5 leading-none">
-                          {alert.subtitle} {alert.type === 'whatsapp_disconnected' && <span className="text-rose-500 font-bold uppercase text-[9px] ml-1">Crítico</span>}
-                        </p>
-                        <span className={cn(
-                          "text-[9px] font-semibold block mt-1",
-                          alert.type === 'whatsapp_disconnected' ? "text-rose-500" : "text-zinc-400"
-                        )}>{alert.timeText}</span>
-                      </div>
-                    </div>
-                    {alert.type === 'whatsapp_disconnected' ? (
-                      <button
-                        onClick={() => {
-                          setShowWhatsAppModal(true)
-                          handleConnectWhatsApp()
-                        }}
-                        className="w-full h-7 border border-rose-250 hover:bg-rose-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all cursor-pointer"
-                      >
-                        {alert.actionText || 'Reconectar'}
-                      </button>
-                    ) : (
-                      <Link 
-                        href={alert.href || '#'} 
-                        className="w-full h-7 border border-zinc-250 hover:bg-zinc-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-zinc-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all"
-                      >
-                        {alert.actionText || 'Ver'}
-                      </Link>
-                    )}
-                  </div>
-                ))}
+                <div className="space-y-3.5">
+                  {activeAlerts.slice(0, 3).map((alert) => renderAlertItem(alert))}
+                </div>
+                {activeAlerts.length > 3 && (
+                  <button
+                    onClick={() => setShowAllAlertsModal(true)}
+                    className="w-full mt-2 py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all text-center select-none cursor-pointer"
+                  >
+                    Mostrar más
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -942,6 +956,17 @@ export default function DashboardClientContainer({
           </div>
         </div>
       )}
+
+      {/* Reusable Modal for Bandeja Inteligente */}
+      <Modal
+        isOpen={showAllAlertsModal}
+        onClose={() => setShowAllAlertsModal(false)}
+        title={`Bandeja Inteligente (${activeAlerts.length})`}
+      >
+        <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
+          {activeAlerts.map((alert) => renderAlertItem(alert))}
+        </div>
+      </Modal>
     </div>
   )
 }

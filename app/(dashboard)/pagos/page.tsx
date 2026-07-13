@@ -358,7 +358,7 @@ export default function PagosPage() {
   const rotateFallido = 360 * (pctExitoso + pctPendiente)
 
   return (
-    <div className="space-y-6 pb-6 animate-in duration-300 font-sans text-left">
+    <div className="space-y-6 pb-6 animate-in duration-300 text-left">
       
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -377,7 +377,7 @@ export default function PagosPage() {
         
         {/* Volumen total */}
         <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
-          <div className="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-white shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <DollarSign className="w-5 h-5" />
           </div>
           <div className="space-y-1">
@@ -395,7 +395,7 @@ export default function PagosPage() {
 
         {/* Pagos exitosos */}
         <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div className="space-y-1">
@@ -413,7 +413,7 @@ export default function PagosPage() {
 
         {/* Pagos pendientes */}
         <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
-          <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div className="space-y-1">
@@ -431,7 +431,7 @@ export default function PagosPage() {
 
         {/* Pagos fallidos */}
         <div className="bg-white border border-zinc-200/80 rounded-lg p-4 flex items-start gap-3.5 transition-all">
-          <div className="w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-red-650 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
           <div className="space-y-1">
@@ -519,7 +519,7 @@ export default function PagosPage() {
 
             {/* TRANSACTIONS TABLE */}
             <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
-              <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm font-sans">
+              <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm">
                 <thead>
                   <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
                     <th className="py-3 px-2.5 xl:px-4">Pago</th>
@@ -826,7 +826,7 @@ export default function PagosPage() {
                       />
                     )}
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center font-sans">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-sm font-bold text-zinc-900 leading-none">{totalCount}</span>
                     <span className="text-[9px] font-semibold text-zinc-400 mt-1 tracking-tight">Total</span>
                   </div>
@@ -919,7 +919,7 @@ export default function PagosPage() {
 
       {/* Detail Drawer Modal */}
       {selectedPayment && (
-        <div className="fixed inset-0 z-50 overflow-hidden font-sans">
+        <div className="fixed inset-0 z-50 overflow-hidden">
           {/* Backdrop overlay */}
           <div 
             className="absolute inset-0 bg-zinc-950/20 backdrop-blur-xs transition-opacity duration-300" 

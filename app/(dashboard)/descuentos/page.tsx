@@ -255,7 +255,7 @@ export default function DescuentosPage() {
 
   return (
     <>
-      <div className="space-y-6 pb-6 animate-in duration-300 font-sans text-left">
+      <div className="space-y-6 pb-6 animate-in duration-300 text-left">
       
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
@@ -335,7 +335,7 @@ export default function DescuentosPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* Total Coupons */}
         <div className="bg-white border border-zinc-200 rounded-lg p-4 flex items-start gap-3.5 hover:shadow-none transition-all">
-          <div className="w-10 h-10 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <Ticket className="w-5 h-5" />
           </div>
           <div>
@@ -347,7 +347,7 @@ export default function DescuentosPage() {
 
         {/* Active Coupons */}
         <div className="bg-white border border-zinc-200 rounded-lg p-4 flex items-start gap-3.5 hover:shadow-none transition-all">
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
@@ -361,7 +361,7 @@ export default function DescuentosPage() {
 
         {/* Scheduled Coupons */}
         <div className="bg-white border border-zinc-200 rounded-lg p-4 flex items-start gap-3.5 hover:shadow-none transition-all">
-          <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
@@ -375,7 +375,7 @@ export default function DescuentosPage() {
 
         {/* Inactive Coupons */}
         <div className="bg-white border border-zinc-200 rounded-lg p-4 flex items-start gap-3.5 hover:shadow-none transition-all">
-          <div className="w-10 h-10 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
@@ -389,7 +389,7 @@ export default function DescuentosPage() {
 
         {/* Total Uses */}
         <div className="bg-white border border-zinc-200 rounded-lg p-4 flex items-start gap-3.5 hover:shadow-none transition-all col-span-2 md:col-span-1">
-          <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-500 shrink-0">
             <RotateCcw className="w-5 h-5" />
           </div>
           <div>
@@ -483,7 +483,7 @@ export default function DescuentosPage() {
 
           {/* TABLE CONTAINER */}
           <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
-            <table className="w-full text-left border-collapse text-xs xl:text-sm font-sans">
+            <table className="w-full text-left border-collapse text-xs xl:text-sm">
               <thead>
                 <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-black  text-zinc-500 select-none">
                   <th className="py-3 px-4">Descuento</th>
@@ -731,7 +731,7 @@ export default function DescuentosPage() {
                   </svg>
                   
                   {/* Central Text inside Doughnut */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center font-sans">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span className="text-sm font-black text-zinc-955 tracking-tight leading-none">{totalUses}</span>
                     <span className="text-[9px] font-semibold text-zinc-400 mt-1  tracking-tight">Total</span>
                   </div>

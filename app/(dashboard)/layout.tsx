@@ -154,35 +154,29 @@ export default async function DashboardLayout({
                 </div>
 
                 {/* Expanded state (full detailed card) */}
-                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-zinc-200/80 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300">
-                  <div className="flex justify-between items-center text-xs font-bold text-zinc-800">
-                    <span>Productos</span>
-                    <span className="tabular-nums">{productCount} / 10</span>
-                  </div>
-                  
-                  {/* Progress bar */}
-                  <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-                    <div 
-                      className={cn(
-                        "h-full rounded-full transition-all duration-500",
-                        productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-emerald-500"
-                      )} 
-                      style={{ width: `${Math.min((productCount / 10) * 100, 100)}%` }}
-                    />
-                  </div>
+                <Link href="/pricing" className="hidden group-hover:block">
+                  <div className="flex flex-col gap-3 bg-white border border-zinc-200/80 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300 hover:border-zinc-300 hover:shadow-xs transition-all cursor-pointer text-left select-none">
+                    <div className="flex justify-between items-center text-xs font-bold text-zinc-800">
+                      <span>Productos</span>
+                      <span className="tabular-nums">{productCount} / 10</span>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                      <div 
+                        className={cn(
+                          "h-full rounded-full transition-all duration-500",
+                          productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-emerald-500"
+                        )} 
+                        style={{ width: `${Math.min((productCount / 10) * 100, 100)}%` }}
+                      />
+                    </div>
 
-                  <span className="text-[9px] font-bold text-zinc-400 tracking-wider block text-left">
-                    {productCount >= 10 ? 'Límite alcanzado' : 'Límite del plan Gratuito'}
-                  </span>
-
-                  {/* Upgrade Button */}
-                  <Link href="/pricing" className="contents">
-                    <button className="flex items-center justify-center gap-2 h-9 w-full rounded-lg text-xs font-bold bg-zinc-950 text-white hover:bg-zinc-900 transition-all border border-zinc-800 active:scale-[0.98] shadow-sm mt-1">
-                      <ArrowUp className="w-3.5 h-3.5 text-white" />
-                      Actualizar Plan
-                    </button>
-                  </Link>
-                </div>
+                    <span className="text-[9px] font-bold text-zinc-400 tracking-wider block text-left">
+                      {productCount >= 10 ? 'Límite alcanzado' : 'Límite del plan Gratuito'}
+                    </span>
+                  </div>
+                </Link>
               </>
             ) : (
               <>

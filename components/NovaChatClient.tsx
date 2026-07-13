@@ -155,6 +155,45 @@ const DEMO_SESSIONS = [
   }
 ]
 
+const AGENTS = [
+  {
+    id: 'nova',
+    name: 'Nova',
+    role: 'Copiloto de la plataforma',
+    description: 'Ayuda a gestionar productos, ver métricas, configurar integraciones y responder preguntas generales sobre tu negocio.',
+    colorClass: 'bg-emerald-50 border-emerald-100 text-emerald-650',
+    avatarBg: 'bg-emerald-500',
+    iconColor: 'text-[#10B981]'
+  },
+  {
+    id: 'stella',
+    name: 'Stella',
+    role: 'Especialista en Marketing',
+    description: 'Te ayuda a crear cupones de descuento, diseñar ofertas atractivas, analizar comportamiento de clientes y proponer estrategias de venta.',
+    colorClass: 'bg-pink-50 border-pink-100 text-pink-650',
+    avatarBg: 'bg-pink-500',
+    iconColor: 'text-pink-505'
+  },
+  {
+    id: 'atlas',
+    name: 'Atlas',
+    role: 'Analista de Operaciones',
+    description: 'Monitorea tus pedidos, despachos, conductores y stock. Genera reportes de inventario y te alerta sobre productos agotados o críticos.',
+    colorClass: 'bg-blue-50 border-blue-100 text-blue-650',
+    avatarBg: 'bg-blue-500',
+    iconColor: 'text-blue-505'
+  },
+  {
+    id: 'orion',
+    name: 'Orion',
+    role: 'Ingeniero de Integraciones',
+    description: 'Te ayuda con la conexión de tu bot de WhatsApp, pasarelas de pago (Mercado Pago, Stripe), dominios y configuraciones técnicas.',
+    colorClass: 'bg-purple-50 border-purple-100 text-purple-650',
+    avatarBg: 'bg-purple-500',
+    iconColor: 'text-purple-505'
+  }
+]
+
 export default function NovaChatClient({
   merchantName,
   store,
@@ -169,6 +208,8 @@ export default function NovaChatClient({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [showSlashCommands, setShowSlashCommands] = useState(false)
+  const [selectedAgent, setSelectedAgent] = useState(AGENTS[0])
+  const [showAgentDropdown, setShowAgentDropdown] = useState(false)
 
   // Toggle slash commands popover
   useEffect(() => {
@@ -360,7 +401,8 @@ export default function NovaChatClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: textToSend,
-          sessionId: activeSessionId?.startsWith('demo-') ? null : activeSessionId
+          sessionId: activeSessionId?.startsWith('demo-') ? null : activeSessionId,
+          agent: selectedAgent.id
         })
       })
 
@@ -403,7 +445,7 @@ export default function NovaChatClient({
         }))
       }
     } catch {
-      toast.error('Error al comunicarse con Nova')
+      toast.error(`Error al comunicarse con ${selectedAgent.name}`)
       const errorMsg: Message = {
         id: Math.random().toString(),
         sender: 'bot',
@@ -516,15 +558,52 @@ export default function NovaChatClient({
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 bg-white h-full relative">
-        <header className="flex items-center justify-between px-6 py-2.5 bg-white shrink-0 border-b border-zinc-100">
-          <div className="flex flex-col text-left">
-            <div className="flex items-center gap-1 text-base font-bold text-zinc-900 cursor-pointer hover:bg-zinc-50 px-2 py-0.5 rounded transition-colors group">
-              <span>Nova</span>
+        <header className="flex items-center justify-between px-6 py-2.5 bg-white shrink-0 border-b border-zinc-100 relative z-30">
+          <div className="flex flex-col text-left relative">
+            <div 
+              onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+              className="flex items-center gap-1 text-base font-bold text-zinc-900 cursor-pointer hover:bg-zinc-50 px-2 py-0.5 rounded transition-colors group select-none"
+            >
+              <span>{selectedAgent.name}</span>
               <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
+
+            {showAgentDropdown && (
+              <div className="absolute left-0 mt-8 w-80 bg-white border border-zinc-200 rounded-xl shadow-lg py-2.5 z-50 animate-in fade-in slide-in-from-top-1 duration-200 select-none">
+                <span className="block px-4 pb-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-100">Seleccionar Agente</span>
+                <div className="max-h-80 overflow-y-auto">
+                  {AGENTS.map((agent) => (
+                    <button
+                      key={agent.id}
+                      onClick={() => {
+                        setSelectedAgent(agent)
+                        setShowAgentDropdown(false)
+                        toast.success(`Agente cambiado a ${agent.name}`)
+                      }}
+                      className={cn(
+                        "w-full flex items-start gap-3 px-4 py-2.5 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-50 last:border-b-0",
+                        selectedAgent.id === agent.id && "bg-zinc-50"
+                      )}
+                    >
+                      <div className={cn("w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 border", agent.colorClass)}>
+                        <Bot className="w-4.5 h-4.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs xl:text-sm text-zinc-905">{agent.name}</span>
+                          <span className="text-[10px] text-zinc-400 font-bold font-sans">({agent.role})</span>
+                        </div>
+                        <p className="text-[10px] xl:text-[11px] font-semibold text-zinc-400 mt-1 leading-normal">{agent.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold text-[#10B981] select-none">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>En línea</span>
+              <span>En línea · <span className="text-zinc-400 font-semibold">{selectedAgent.role}</span></span>
             </div>
           </div>
           
@@ -548,12 +627,17 @@ export default function NovaChatClient({
         <div className="flex-1 overflow-y-auto w-full scrollbar-none flex flex-col items-center select-text">
           {messages.length === 0 ? (
             <div className="flex-1 w-full max-w-2xl mx-auto px-4 flex flex-col justify-center items-center text-center space-y-8 select-none py-12">
-              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shadow-sm">
+              <div className={cn("w-14 h-14 rounded-full border flex items-center justify-center shadow-sm", selectedAgent.colorClass)}>
                 <Bot className="w-8 h-8" />
               </div>
-              <h1 className="text-3xl font-medium text-zinc-800 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-300">
-                ¿Cómo puedo ayudarte, {firstName}?
-              </h1>
+              <div className="space-y-2 max-w-lg">
+                <h1 className="text-3xl font-medium text-zinc-800 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  ¿Cómo puedo ayudarte, {firstName}?
+                </h1>
+                <p className="text-xs xl:text-sm font-semibold text-zinc-400 animate-in fade-in duration-300">
+                  Hablas con <span className="font-bold text-zinc-900">{selectedAgent.name}</span> ({selectedAgent.role}). {selectedAgent.description}
+                </p>
+              </div>
               <div className="flex items-center gap-2 mt-4 flex-wrap justify-center w-full max-w-lg">
                 {[
                   { label: '🛍️ Crear producto', value: 'producto' },
@@ -579,7 +663,7 @@ export default function NovaChatClient({
                   <div key={m.id} className={cn("flex w-full gap-4 items-start animate-in fade-in duration-200", isBot ? "justify-start text-left" : "justify-end text-left")}>
                     {isBot && (
                       <div className="shrink-0 select-none mt-0.5">
-                        <div className="w-8 h-8 rounded-full bg-[#10B981] flex items-center justify-center text-white shadow-sm">
+                        <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm", selectedAgent.avatarBg)}>
                           <Bot className="w-4.5 h-4.5 stroke-[2.5px]" />
                         </div>
                       </div>

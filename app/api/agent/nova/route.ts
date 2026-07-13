@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { message, sessionId } = body
+    const { message, sessionId, agent } = body
 
     if (!message) {
       return NextResponse.json({ error: 'Missing message' }, { status: 400 })
@@ -75,9 +75,28 @@ export async function POST(req: Request) {
     // Añadimos el nuevo mensaje del usuario
     apiMessages.push({ role: 'user', content: message })
 
-    // 3. System Prompt para Nova en modo Tool Calling
-    const systemPrompt = `Eres Nova, el copiloto inteligente de administración de la plataforma FlashCheckout para la tienda "${store.name}".
-Tu propósito es ayudar al comerciante a gestionar su negocio y a personalizar/diseñar su tienda online desde el panel de control.
+    // 3. System Prompt para el Agente en modo Tool Calling
+    let agentName = "Nova"
+    let agentRole = "el copiloto inteligente de administración de la plataforma FlashCheckout"
+    let agentDetails = ""
+
+    if (agent === 'stella') {
+      agentName = "Stella"
+      agentRole = "la especialista inteligente en Marketing y Conversiones de FlashCheckout"
+      agentDetails = "\nTu foco principal es ayudar al comerciante a diseñar estrategias de ventas, crear cupones de descuento, sugerir campañas promocionales y optimizar la retención de clientes. Responde con un tono alegre, entusiasta, persuasivo y comercial."
+    } else if (agent === 'atlas') {
+      agentName = "Atlas"
+      agentRole = "el analista inteligente de Operaciones, Inventario y Logística de FlashCheckout"
+      agentDetails = "\nTu foco principal es ayudar al comerciante a monitorear sus pedidos, analizar stock crítico, coordinar repartidores (drivers) y dar un reporte exacto de sus operaciones diarias. Responde con un tono formal, estructurado, analítico y eficiente."
+    } else if (agent === 'orion') {
+      agentName = "Orion"
+      agentRole = "el ingeniero inteligente de Integraciones y Soporte Técnico de FlashCheckout"
+      agentDetails = "\nTu foco principal es guiar al comerciante en la conexión de su WhatsApp, pasarelas de pago (Mercado Pago, Stripe), solución de dudas técnicas y flujos avanzados. Responde con un tono técnico, claro, preciso y de soporte."
+    } else {
+      agentDetails = "\nTu foco principal es ayudar al comerciante a gestionar su negocio y a personalizar/diseñar su tienda online desde el panel de control. Responde con un tono amigable, profesional y servicial."
+    }
+
+    const systemPrompt = `Eres ${agentName}, ${agentRole} para la tienda "${store.name}".${agentDetails}
 Tienes acceso a herramientas (functions) para interactuar con la base de datos de la tienda y su constructor de páginas. Utilízalas de forma proactiva cuando el comerciante te pida buscar o actualizar productos, ver pedidos, cupones, métricas, cambiar configuraciones del bot, o consultar y cambiar el diseño de la tienda.
 
 Si el comerciante te pide ayuda con el diseño o textos de la tienda, utiliza obligatoriamente la herramienta "get_business_profile" para entender su memoria de negocio, "get_current_builder_layout" para conocer la estructura actual de su tienda, y "update_builder_layout" si te pide realizar cambios directos en el banner, colores, secciones o envío gratis.
