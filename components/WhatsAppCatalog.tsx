@@ -64,6 +64,7 @@ type Store = {
   cardPaymentsEnabled: boolean
   bio?: string | null
   aiSettings?: any
+  bannerUrl?: string | null
 }
 
 function getCartKey(productId: string, selectedOpts: Record<string, string>) {

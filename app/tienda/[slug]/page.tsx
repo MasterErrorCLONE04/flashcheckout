@@ -58,6 +58,7 @@ export default async function StorePage({ params, searchParams }: Props) {
 
   const cardPaymentsEnabled = true 
 
+  const aiSettings = store.aiSettings && typeof store.aiSettings === 'object' ? (store.aiSettings as any) : {}
   const storeData = {
     id: store.id,
     name: store.name,
@@ -75,7 +76,8 @@ export default async function StorePage({ params, searchParams }: Props) {
     logoUrl: store.logoUrl,
     bio: store.bio,
     cardPaymentsEnabled,
-    aiSettings: store.aiSettings
+    aiSettings: store.aiSettings,
+    bannerUrl: aiSettings.bannerUrl || null
   }
 
   // Intentar recuperar la sesión de WhatsApp para restaurar carrito y datos si existen
