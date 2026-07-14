@@ -41,6 +41,7 @@ import {
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { SiVisa, SiMastercard } from 'react-icons/si'
 
 const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
@@ -1820,10 +1821,17 @@ export default function WhatsAppCatalog({
             </div>
             <div className="space-y-4">
               <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">Métodos de Pago</h4>
-              <div className="flex gap-2 flex-wrap items-center">
-                <span className="bg-white/10 px-2.5 py-1 rounded text-[10px] text-white font-bold">VISA</span>
-                <span className="bg-white/10 px-2.5 py-1 rounded text-[10px] text-white font-bold">MASTERCARD</span>
-                <span className="bg-white/10 px-2.5 py-1 rounded text-[10px] text-white font-bold">CONTRAENTREGA</span>
+              <div className="flex gap-2.5 flex-wrap items-center">
+                <div className="bg-white px-2.5 py-1 rounded flex items-center justify-center h-7 shadow-sm">
+                  <SiVisa className="h-4.5 w-auto text-[#1A1F71]" style={{ minWidth: '28px' }} />
+                </div>
+                <div className="bg-white px-2.5 py-1 rounded flex items-center justify-center h-7 shadow-sm">
+                  <SiMastercard className="h-5 w-auto text-[#EB001B]" style={{ minWidth: '24px' }} />
+                </div>
+                <div className="bg-emerald-600/90 text-white border border-emerald-500/25 px-2.5 py-1 rounded flex items-center justify-center gap-1.5 h-7 text-[10px] font-bold shadow-sm">
+                  <Truck className="w-3.5 h-3.5" />
+                  <span>Contra Entrega</span>
+                </div>
               </div>
               
               {socialsShowInCatalog && (
@@ -2455,9 +2463,16 @@ export default function WhatsAppCatalog({
                   © {new Date().getFullYear()} {formattedStoreName}. Todos los derechos reservados.
                 </p>
                 <div className="flex gap-2 items-center">
-                  <span className="bg-zinc-100 px-2 py-0.5 rounded text-[8px] font-bold text-zinc-500">VISA</span>
-                  <span className="bg-zinc-100 px-2 py-0.5 rounded text-[8px] font-bold text-zinc-500">MASTERCARD</span>
-                  <span className="bg-zinc-100 px-2 py-0.5 rounded text-[8px] font-bold text-zinc-500">CONTRAENTREGA</span>
+                  <div className="bg-white px-2 py-0.5 rounded border border-zinc-200/80 flex items-center justify-center h-5.5 shadow-xs">
+                    <SiVisa className="h-3.5 w-auto text-[#1A1F71]" style={{ minWidth: '18px' }} />
+                  </div>
+                  <div className="bg-white px-2 py-0.5 rounded border border-zinc-200/80 flex items-center justify-center h-5.5 shadow-xs">
+                    <SiMastercard className="h-3.5 w-auto text-[#EB001B]" style={{ minWidth: '18px' }} />
+                  </div>
+                  <div className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded flex items-center justify-center gap-1 h-5.5 text-[8px] font-bold shadow-xs">
+                    <Truck className="w-2.5 h-2.5" />
+                    <span>Contra Entrega</span>
+                  </div>
                 </div>
               </div>
             </footer>
