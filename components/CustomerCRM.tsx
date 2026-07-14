@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import Modal from '@/components/ui/Modal'
 
 type CustomerRecord = {
   phone: string
@@ -106,6 +107,71 @@ export default function CustomerCRM({
         o.customerName === activeCustomer.name
       )
     : []
+
+  // Edit customer profile state
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editEmail, setEditEmail] = useState('')
+  const [editBirthDate, setEditBirthDate] = useState('')
+  const [editCity, setEditCity] = useState('')
+  const [editNotes, setEditNotes] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleStartEdit = () => {
+    if (!activeCustomer) return
+    setEditName(activeCustomer.name)
+    setEditEmail(activeCustomer.email)
+    setEditBirthDate(activeCustomer.birthDate)
+    setEditCity(activeCustomer.city)
+    setEditNotes(activeCustomer.notes)
+    setIsEditing(true)
+  }
+
+  const handleSaveCustomer = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!activeCustomer) return
+
+    setIsSaving(true)
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: activeCustomer.phone,
+          name: editName,
+          email: editEmail,
+          birthDate: editBirthDate,
+          city: editCity,
+          notes: editNotes
+        })
+      })
+
+      if (!res.ok) throw new Error('Error al guardar')
+
+      // Update local state
+      setCustomers(prev => prev.map(c => {
+        if (c.phone === activeCustomer.phone) {
+          return {
+            ...c,
+            name: editName,
+            email: editEmail,
+            birthDate: editBirthDate,
+            city: editCity,
+            notes: editNotes
+          }
+        }
+        return c
+      }))
+
+      setIsEditing(false)
+      toast.success('Información del cliente guardada con éxito')
+    } catch (err) {
+      console.error(err)
+      toast.error('Ocurrió un error al guardar los cambios')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   // Metrics Calculations (KPI cards derived with pure real database values)
   const totalUniqueCustomers = customers.length
@@ -499,8 +565,8 @@ export default function CustomerCRM({
               <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
                 <h5 className="text-[10px] font-extrabold text-zinc-450  tracking-wider">Información personal</h5>
                 <button 
-                  onClick={() => toast.success('Función para editar información del cliente disponible próximamente.')}
-                  className="text-[9px] font-bold text-zinc-500 hover:text-zinc-950 px-2 py-0.5 border border-zinc-200 rounded-md hover:bg-zinc-50 transition-colors"
+                  onClick={handleStartEdit}
+                  className="text-[9px] font-bold text-zinc-500 hover:text-zinc-950 px-2 py-0.5 border border-zinc-200 rounded-md hover:bg-zinc-50 transition-colors cursor-pointer"
                 >
                   Editar
                 </button>
@@ -593,6 +659,84 @@ export default function CustomerCRM({
           </div>
         )}
       </div>
+
+      {/* Edit Customer Profile Modal */}
+      <Modal
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        title="Editar Perfil de Cliente"
+      >
+        <form onSubmit={handleSaveCustomer} className="space-y-4 text-xs font-semibold text-zinc-700">
+          <div className="space-y-1">
+            <label className="block text-zinc-500">Nombre Completo</label>
+            <input 
+              type="text"
+              required
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 focus:bg-white focus:border-zinc-300 outline-none text-zinc-805"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-zinc-500">Email</label>
+            <input 
+              type="email"
+              value={editEmail}
+              onChange={e => setEditEmail(e.target.value)}
+              className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 focus:bg-white focus:border-zinc-300 outline-none text-zinc-805"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-zinc-500">Fecha de Nacimiento</label>
+            <input 
+              type="text"
+              placeholder="e.g. 9 de Septiembre, 1989"
+              value={editBirthDate}
+              onChange={e => setEditBirthDate(e.target.value)}
+              className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 focus:bg-white focus:border-zinc-300 outline-none text-zinc-805"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-zinc-500">Ciudad</label>
+            <input 
+              type="text"
+              value={editCity}
+              onChange={e => setEditCity(e.target.value)}
+              className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 focus:bg-white focus:border-zinc-300 outline-none text-zinc-805"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-zinc-500">Notas de fidelidad / Observaciones</label>
+            <textarea 
+              rows={3}
+              value={editNotes}
+              onChange={e => setEditNotes(e.target.value)}
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 focus:bg-white focus:border-zinc-300 outline-none text-zinc-805 font-medium resize-none leading-relaxed"
+            />
+          </div>
+
+          <div className="pt-4 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="h-9 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg transition-all cursor-pointer font-bold"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="h-9 px-5 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg transition-all disabled:opacity-50 cursor-pointer font-bold flex items-center justify-center gap-1.5"
+            >
+              {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

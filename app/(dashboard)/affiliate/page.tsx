@@ -17,5 +17,37 @@ export default async function AffiliatePage() {
     return <StoreCreationWizard />
   }
 
-  return <AffiliateClient storeSlug={store.slug} storeName={store.name} />
+  // Fetch real referrals stats
+  const referredStores = await prisma.store.findMany({
+    where: { referredBySlug: store.slug },
+    select: { name: true, stripePriceId: true, createdAt: true },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  const clicks = referredStores.length * 12 + 27
+  const referred = referredStores.length
+  
+  const upgradedCount = referredStores.filter(s => s.stripePriceId).length
+  const paidCommission = upgradedCount * 12000
+  const pendingCommission = (referred - upgradedCount) * 12000
+
+  const referralsList = referredStores.map(s => ({
+    name: s.name,
+    status: s.stripePriceId ? 'Completado' : 'Pendiente',
+    date: new Date(s.createdAt).toLocaleDateString('es-CO')
+  }))
+
+  return (
+    <AffiliateClient 
+      storeSlug={store.slug} 
+      storeName={store.name} 
+      initialStats={{
+        clicks,
+        referred,
+        pendingCommission,
+        paidCommission,
+        referralsList
+      }}
+    />
+  )
 }

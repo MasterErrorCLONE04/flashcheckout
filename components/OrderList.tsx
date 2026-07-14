@@ -201,7 +201,7 @@ export default function OrderList({
             <ShoppingBag className="w-8 h-8 text-zinc-350" />
           </div>
           <h3 className="text-base font-bold text-zinc-950 tracking-tight font-display">Sin pedidos</h3>
-          <p className="text-zinc-400 text-[10px] font-bold tracking-wider mt-2.5 leading-relaxed uppercase">
+          <p className="text-zinc-400 text-[10px] font-bold tracking-wider mt-2.5 leading-relaxed">
             Tus pedidos aparecerán aquí automáticamente en tiempo real
           </p>
         </div>
@@ -505,7 +505,7 @@ export default function OrderList({
                       href={`https://wa.me/${activeOrder.driver.phoneNumber.replace(/\D/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600 hover:text-zinc-950 transition-colors px-3 py-2 bg-white rounded-lg border border-gray-200 active:scale-95"
+                      className="flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-600 hover:text-zinc-950 transition-colors px-3 py-2 bg-white rounded-lg border border-gray-200 active:scale-95"
                     >
                       <MessageCircle className="w-3.5 h-3.5 text-emerald-500 fill-current" />
                       Contactar Repartidor

@@ -385,8 +385,8 @@ export default function ProductManager({
             
             <div className="flex items-center justify-between mb-8 relative z-10">
               <div>
-                <p className="text-[12px] font-bold tracking-[0.05em] uppercase text-emerald-600 mb-1">Editor de inventario</p>
-                <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight font-display">
+                <p className="text-[12px] font-bold tracking-[0.05em] text-emerald-600 mb-1">Editor de inventario</p>
+                <h3 className="text-2xl font-semibold text-zinc-955 tracking-tight font-display">
                   {editingId ? 'Modificar producto' : 'Nuevo registro'}
                 </h3>
               </div>
@@ -443,10 +443,19 @@ export default function ProductManager({
                         <option value="General">General</option>
                         <option value="Tecnología">Tecnología</option>
                         <option value="Moda">Moda</option>
+                        <option value="Calzado">Calzado</option>
+                        <option value="Accesorios y Joyas">Accesorios y Joyas</option>
+                        <option value="Belleza y Cuidado Personal">Belleza y Cuidado Personal</option>
                         <option value="Hogar">Hogar</option>
+                        <option value="Alimentos y Bebidas">Alimentos y Bebidas</option>
+                        <option value="Juguetes y Bebés">Juguetes y Bebés</option>
                         <option value="Mascotas">Mascotas</option>
                         <option value="Salud">Salud</option>
                         <option value="Deportes">Deportes</option>
+                        <option value="Libros y Papelería">Libros y Papelería</option>
+                        <option value="Herramientas y Ferretería">Herramientas y Ferretería</option>
+                        <option value="Regalos y Detalles">Regalos y Detalles</option>
+                        <option value="Otros">Otros</option>
                       </select>
                     </div>
                   </div>
@@ -654,7 +663,7 @@ export default function ProductManager({
                         <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm">
                           <Plus className="w-5 h-5 text-zinc-400 group-hover:text-emerald-600" />
                         </div>
-                        <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors uppercase text-center px-2">
+                        <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors text-center px-2">
                           Añadir imagen
                         </span>
                       </label>

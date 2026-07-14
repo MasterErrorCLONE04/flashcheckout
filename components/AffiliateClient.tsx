@@ -4,7 +4,27 @@ import { useState } from 'react'
 import { Gift, Copy, Check, ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: string, storeName: string }) {
+interface AffiliateStats {
+  clicks: number
+  referred: number
+  pendingCommission: number
+  paidCommission: number
+  referralsList: Array<{
+    name: string
+    status: string
+    date: string
+  }>
+}
+
+export default function AffiliateClient({ 
+  storeSlug, 
+  storeName,
+  initialStats
+}: { 
+  storeSlug: string
+  storeName: string
+  initialStats?: AffiliateStats
+}) {
   const [copied, setCopied] = useState(false)
   const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://flashcheckouts.com'
   const affiliateUrl = `${appUrl}/sign-up?ref=${storeSlug}`
@@ -15,12 +35,13 @@ export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: s
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Simulated metrics
-  const stats = {
-    clicks: 124,
-    referred: 3,
-    pendingCommission: 36000, // in COP
-    paidCommission: 12000, // in COP
+  // Real or fallback statistics
+  const stats = initialStats || {
+    clicks: 0,
+    referred: 0,
+    pendingCommission: 0,
+    paidCommission: 0,
+    referralsList: []
   }
 
   return (
@@ -154,12 +175,58 @@ export default function AffiliateClient({ storeSlug, storeName }: { storeSlug: s
               href="https://wa.me/573001234567?text=Tengo%20una%20duda%20sobre%20el%20programa%20de%20afiliados%20de%20FlashCheckout"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-bold text-zinc-900 hover:text-zinc-500 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#2563EB] hover:text-blue-700 flex items-center gap-1 cursor-pointer font-bold"
             >
               Escríbenos <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
+      </div>
+
+      {/* Referred Stores Table */}
+      <div className="premium-card p-6 md:p-8 bg-white border border-zinc-200 rounded-xl mt-10">
+        <h4 className="text-sm font-bold tracking-wider text-zinc-400 uppercase mb-4">Detalle de Referidos</h4>
+        {stats.referralsList && stats.referralsList.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-150 text-zinc-450 uppercase font-black tracking-wider">
+                  <th className="pb-3.5 pl-2">Tienda</th>
+                  <th className="pb-3.5">Fecha de Registro</th>
+                  <th className="pb-3.5">Estado de Pago</th>
+                  <th className="pb-3.5 text-right pr-2">Comisión</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 font-semibold text-zinc-700">
+                {stats.referralsList.map((refStore: any, index: number) => (
+                  <tr key={index} className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-3.5 pl-2 font-bold text-zinc-900">{refStore.name}</td>
+                    <td className="py-3.5 text-zinc-500">{refStore.date}</td>
+                    <td className="py-3.5">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border",
+                        refStore.status === 'Completado' 
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      )}>
+                        {refStore.status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 text-right pr-2 font-bold text-zinc-900">
+                      $12.000 COP
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-zinc-200 rounded-xl bg-zinc-50/20">
+            <Gift className="w-8 h-8 text-zinc-300 mb-2.5" />
+            <p className="text-xs font-bold text-zinc-900">Aún no tienes tiendas registradas</p>
+            <p className="text-[10px] text-zinc-400 mt-1 max-w-[280px] leading-relaxed">Comparte tu enlace único con otros comercios para empezar a verlos listados aquí.</p>
+          </div>
+        )}
       </div>
     </div>
   )

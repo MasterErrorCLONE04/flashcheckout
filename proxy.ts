@@ -18,6 +18,9 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, request) => {
+  const url = new URL(request.url);
+  const ref = url.searchParams.get("ref");
+
   if (!isPublicRoute(request)) {
     const { userId } = await auth();
     if (!userId) {
@@ -26,6 +29,16 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
       }
       await auth.protect();
     }
+  }
+
+  if (ref) {
+    const response = NextResponse.next();
+    response.cookies.set("referred_by_slug", ref, {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: "/",
+      httpOnly: false, // Must be accessible on client side
+    });
+    return response;
   }
 });
 

@@ -21,6 +21,18 @@ export default async function ClientesPage() {
     orderBy: { createdAt: 'desc' }
   })
 
+  const savedCustomers = await prisma.customer.findMany({
+    where: { storeId: store.id }
+  })
+
+  // Create a map of saved customers
+  const savedCustomerMap: Record<string, typeof savedCustomers[0]> = {}
+  savedCustomers.forEach(c => {
+    if (c.phone) {
+      savedCustomerMap[c.phone] = c
+    }
+  })
+
   // Group in memory by customerPhone or name
   const customerMap: Record<string, {
     phone: string
@@ -78,21 +90,27 @@ export default async function ClientesPage() {
 
     if (!customerMap[key]) {
       const cleanName = o.customerName || 'Cliente sin nombre'
-      const safeName = cleanName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '')
-      const mockEmail = `${safeName.slice(0, 10)}@gmail.com`
+      const saved = phone !== 'Desconocido' ? savedCustomerMap[phone] : null
+
+      const cleanNameFinal = saved?.name || cleanName
+      const safeName = cleanNameFinal.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '')
+      const emailFinal = saved?.email || `${safeName.slice(0, 10)}@gmail.com`
+      const cityFinal = saved?.city || o.city || 'Desconocido'
+      const birthDateFinal = saved?.birthDate || getDeterministicBirthDate(cleanNameFinal)
+      const notesFinal = saved?.notes || getDeterministicNotes(cleanNameFinal, 1)
 
       customerMap[key] = {
         phone: phone === 'Desconocido' ? '' : phone,
-        name: cleanName,
-        email: mockEmail,
+        name: cleanNameFinal,
+        email: emailFinal,
         totalOrders: 0,
         totalSpent: 0,
         lastOrderDate: o.createdAt.toISOString(),
         status: 'Inactivo', // Will be calculated after grouping
         segment: 'Nuevo',   // Will be calculated after grouping
-        city: o.city || 'Desconocido',
-        birthDate: getDeterministicBirthDate(cleanName),
-        notes: '' // Will be calculated after grouping
+        city: cityFinal,
+        birthDate: birthDateFinal,
+        notes: notesFinal
       }
     }
     
@@ -102,7 +120,6 @@ export default async function ClientesPage() {
     // Keep the latest order date
     if (new Date(o.createdAt).getTime() > new Date(customerMap[key].lastOrderDate).getTime()) {
       customerMap[key].lastOrderDate = o.createdAt.toISOString()
-      customerMap[key].city = o.city || customerMap[key].city
     }
   })
 
@@ -127,8 +144,7 @@ export default async function ClientesPage() {
     return {
       ...c,
       status,
-      segment,
-      notes: getDeterministicNotes(c.name, c.totalOrders)
+      segment
     }
   })
 

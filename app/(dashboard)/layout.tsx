@@ -61,7 +61,7 @@ export default async function DashboardLayout({
     })
   }
 
-  const onboardingCompleted = !createNewStoreFlag && store && store.welcomeMessage && productCount > 0
+  const onboardingCompleted = !createNewStoreFlag && !!store
 
   if (stores.length === 0 || createNewStoreFlag || !onboardingCompleted) {
     return (

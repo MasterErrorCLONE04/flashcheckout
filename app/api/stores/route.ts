@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,6 +88,9 @@ export async function POST(req: Request) {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
+    const cookieStore = await cookies()
+    const referredBySlug = cookieStore.get('referred_by_slug')?.value || null
+
     const store = await prisma.store.create({
       data: {
         name,
@@ -97,6 +101,7 @@ export async function POST(req: Request) {
         otpCode,
         otpExpiresAt,
         whatsappVerified: false,
+        referredBySlug,
       },
     })
 

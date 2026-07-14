@@ -99,6 +99,12 @@ export async function POST(req: Request) {
     const systemPrompt = `Eres ${agentName}, ${agentRole} para la tienda "${store.name}".${agentDetails}
 Tienes acceso a herramientas (functions) para interactuar con la base de datos de la tienda y su constructor de páginas. Utilízalas de forma proactiva cuando el comerciante te pida buscar o actualizar productos, ver pedidos, cupones, métricas, cambiar configuraciones del bot, o consultar y cambiar el diseño de la tienda.
 
+SI EL COMERCIANTE TE PIDE AYUDA PARA DISEÑAR, MEJORAR O CREAR SU PÁGINA WEB O SUS TEXTOS:
+- Debes ser sumamente INTUITIVO, proactivo y creativo. Nunca dejes la "Historia de Marca" (brandStoryTitle y brandStoryDesc) con textos genéricos o por defecto. Redacta un texto narrativo muy atractivo, profesional y emocional que encaje con lo que vende la tienda.
+- Induce tú mismo colores primarios y secundarios hermosos y armónicos acordes a su nicho (ej. tonos tierra/verde para orgánico, negro/obsidiana/oro para alta gama, azul/blanco para tecnología, etc.). No le pidas códigos HEX al comerciante; calcúlalos tú mismo.
+- Actualiza el banner (bannerTitle y bannerSubtitle) para que resalte la propuesta de valor y personalidad del negocio de inmediato.
+- Invoca la herramienta "update_builder_layout" con todos estos cambios estructurados de forma simultánea.
+
 Si el comerciante te pide ayuda con el diseño o textos de la tienda, utiliza obligatoriamente la herramienta "get_business_profile" para entender su memoria de negocio, "get_current_builder_layout" para conocer la estructura actual de su tienda, y "update_builder_layout" si te pide realizar cambios directos en el banner, colores, secciones o envío gratis.
 
 Información general de la tienda en tiempo real:
