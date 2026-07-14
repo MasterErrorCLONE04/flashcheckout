@@ -582,7 +582,7 @@ export async function executeNovaTool(
 
         return {
           message: 'Diseño del constructor de páginas actualizado exitosamente.',
-          aiSettings: updated.aiSettings
+          updatedFields: Object.keys(args)
         }
       }
 
