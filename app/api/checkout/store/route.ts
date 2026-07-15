@@ -4,7 +4,33 @@ import { MercadoPagoConfig, Preference } from 'mercadopago'
 
 export const dynamic = 'force-dynamic'
 
-type LineInput = { productId: string; qty: number; nameSuffix?: string }
+type LineInput = {
+  productId: string
+  qty: number
+  nameSuffix?: string
+}
+
+type PreferenceBody = {
+  items: Array<{
+    id: string
+    title: string
+    quantity: number
+    unit_price: number
+    currency_id: string
+  }>
+  external_reference: string
+  back_urls: {
+    success: string
+    failure: string
+    pending: string
+  }
+  metadata: {
+    orderId: string
+    storeId: string
+  }
+  notification_url?: string
+  auto_return?: 'approved'
+}
 
 export async function POST(req: Request) {
   try {
@@ -43,7 +69,6 @@ export async function POST(req: Request) {
         slug: true,
         name: true,
         mpAccessToken: true,
-        mpPublicKey: true,
       },
     })
 
@@ -62,7 +87,7 @@ export async function POST(req: Request) {
 
     if (products.length !== productIds.length) {
       return NextResponse.json(
-        { error: 'Hay productos inválidos o no disponibles' },
+        { error: 'Hay productos invalidos o no disponibles' },
         { status: 400 }
       )
     }
@@ -71,7 +96,6 @@ export async function POST(req: Request) {
     const normalized: { productId: string; name: string; qty: number; price: number }[] = []
     let total = 0
 
-    // Sum overall quantities per product to check stock limit
     const productTotalQty = new Map<string, number>()
     for (const line of items) {
       const q = Math.max(0, Math.floor(Number(line.qty)))
@@ -81,10 +105,12 @@ export async function POST(req: Request) {
 
     for (const [prodId, q] of productTotalQty) {
       const p = byId.get(prodId)
-      if (!p) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 400 })
+      if (!p) {
+        return NextResponse.json({ error: 'Producto no encontrado' }, { status: 400 })
+      }
       if (q > p.stock) {
         return NextResponse.json(
-          { error: `Stock insuficiente para «${p.name}». Disponible: ${p.stock}.` },
+          { error: `Stock insuficiente para "${p.name}". Disponible: ${p.stock}.` },
           { status: 400 }
         )
       }
@@ -105,12 +131,11 @@ export async function POST(req: Request) {
 
     if (!normalized.length || total <= 0) {
       return NextResponse.json(
-        { error: 'El carrito está vacío o el total no es válido' },
+        { error: 'El carrito esta vacio o el total no es valido' },
         { status: 400 }
       )
     }
 
-    // Guardar el pedido en la base de datos
     const order = await prisma.order.create({
       data: {
         storeId: store.id,
@@ -127,33 +152,29 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ||
       'http://localhost:3000'
 
-    // Crear la preferencia en Mercado Pago
-    const preferenceData: any = {
-      body: {
-        items: normalized.map(line => ({
-          id: line.productId,
-          title: `${line.name} (x${line.qty})`,
-          quantity: line.qty,
-          unit_price: line.price,
-          currency_id: 'COP',
-        })),
-        external_reference: order.id,
-        back_urls: {
-          success: `${base}/tienda/${store.slug}/exito`,
-          failure: `${base}/tienda/${store.slug}`,
-          pending: `${base}/tienda/${store.slug}`,
-        },
-        metadata: {
-          orderId: order.id,
-          storeId: store.id,
-        },
+    const preferenceData: PreferenceBody = {
+      items: normalized.map(line => ({
+        id: line.productId,
+        title: `${line.name} (x${line.qty})`,
+        quantity: line.qty,
+        unit_price: line.price,
+        currency_id: 'COP',
+      })),
+      external_reference: order.id,
+      back_urls: {
+        success: `${base}/tienda/${store.slug}/exito`,
+        failure: `${base}/tienda/${store.slug}`,
+        pending: `${base}/tienda/${store.slug}`,
+      },
+      metadata: {
+        orderId: order.id,
+        storeId: store.id,
       },
     }
 
-    // Mercado Pago requiere HTTPS para notification_url y auto_return en producción
     if (base.startsWith('https')) {
-      preferenceData.body.notification_url = `${base}/api/webhook/mp`
-      preferenceData.body.auto_return = 'approved'
+      preferenceData.notification_url = `${base}/api/webhook/mp`
+      preferenceData.auto_return = 'approved'
     }
 
     const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
@@ -171,36 +192,44 @@ export async function POST(req: Request) {
     })
     const dynamicMpPreference = new Preference(dynamicMpClient)
 
-    const preference = await dynamicMpPreference.create(preferenceData)
+    const preference = await dynamicMpPreference.create({ body: preferenceData })
 
     if (!preference.id) {
       return NextResponse.json(
-        { error: 'Mercado Pago no devolvió ID de preferencia' },
+        { error: 'Mercado Pago no devolvio ID de preferencia' },
         { status: 500 }
       )
     }
 
-    // Actualizar el pedido con el ID de la preferencia
     await prisma.order.update({
       where: { id: order.id },
       data: { mpPreferenceId: preference.id },
     })
 
-    // Devolver el init_point para redirección
-    return NextResponse.json({ 
-      url: preference.init_point, 
-      orderId: order.id 
+    return NextResponse.json({
+      url: preference.init_point,
+      orderId: order.id,
     })
-  } catch (e: any) {
+  } catch (error: unknown) {
+    const err = error as {
+      message?: string
+      stack?: string
+      cause?: unknown
+      response?: { data?: { message?: string } }
+      errors?: unknown
+    }
+
     console.error('CHECKOUT_STORE_MP_ERROR:', {
-      message: e.message,
-      stack: e.stack,
-      cause: e.cause,
-      // El SDK de Mercado Pago a veces pone el error detallado en e.response o e.errors
-      details: e.response?.data || e.errors || e
+      message: err.message,
+      stack: err.stack,
+      cause: err.cause,
+      details: err.response?.data || err.errors || err,
     })
-    
-    const errorMessage = e.response?.data?.message || e.message || 'Error al iniciar el pago con Mercado Pago'
+
+    const errorMessage =
+      err.response?.data?.message ||
+      err.message ||
+      'Error al iniciar el pago con Mercado Pago'
     return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { waClient as officialWaClient } from '@/lib/whatsapp/cloud-api';
 import { parseIntent } from './intent-engine';
@@ -5,51 +6,163 @@ import { searchGlobalProducts } from './search-service';
 import { mpPreference } from '@/lib/mercadopago';
 import { uploadProofImage } from '@/lib/supabase';
 
-export async function handleWhatsAppMessage(from: string, text: string, sessionOrStoreId: any = 'global') {
+type SessionRecord = NonNullable<Awaited<ReturnType<typeof prisma.whatsAppSession.findUnique>>>;
+type StoreRecord = NonNullable<Awaited<ReturnType<typeof prisma.store.findUnique>>>;
+type ChatMessage = { sender: 'user' | 'bot'; text: string; time: string; timestamp: number };
+type CartItem = { id: string; name: string; price: number; qty: number; storeId?: string };
+type CartState = { items: Record<string, CartItem> };
+type BotClient = {
+  sendText: (to: string, msg: string) => Promise<unknown>;
+  sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => Promise<unknown>;
+  sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => Promise<unknown>;
+  sendImage: (to: string, img: string, cap: string) => Promise<unknown>;
+  sendDocument: (to: string, doc: string, fn: string) => Promise<unknown>;
+  sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => Promise<unknown>;
+  sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: unknown, header?: string, body?: string) => Promise<unknown>;
+};
+
+function toChatMessages(value: unknown): ChatMessage[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is ChatMessage => {
+    return Boolean(
+      item &&
+      typeof item === 'object' &&
+      (item as ChatMessage).sender &&
+      typeof (item as ChatMessage).text === 'string' &&
+      typeof (item as ChatMessage).time === 'string' &&
+      typeof (item as ChatMessage).timestamp === 'number'
+    );
+  });
+}
+
+function toCartState(value: unknown): CartState {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return { items: {} };
+  const maybeCart = value as { items?: Record<string, unknown> };
+  if (!maybeCart.items || typeof maybeCart.items !== 'object') return { items: {} };
+
+  const items: Record<string, CartItem> = {};
+  for (const [key, raw] of Object.entries(maybeCart.items)) {
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+      const item = raw as Partial<CartItem>;
+      if (typeof item.id === 'string' && typeof item.name === 'string' && typeof item.price === 'number' && typeof item.qty === 'number') {
+        const normalizedItem: CartItem = {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          qty: item.qty,
+        };
+        if (typeof item.storeId === 'string') {
+          normalizedItem.storeId = item.storeId;
+        }
+        items[key] = normalizedItem;
+      }
+    }
+  }
+  return { items };
+}
+
+function toCartItems(cart: CartState): CartItem[] {
+  return Object.values(cart.items).filter((item): item is CartItem => {
+    return Boolean(
+      item &&
+      typeof item.id === 'string' &&
+      typeof item.name === 'string' &&
+      typeof item.price === 'number' &&
+      typeof item.qty === 'number'
+    );
+  });
+}
+
+async function getCartItemsForSession(session: SessionRecord): Promise<CartItem[]> {
+  const cart = toCartState(session.cart);
+  const items = toCartItems(cart);
+
+  if (items.length > 0) {
+    return items;
+  }
+
+  if (session.cart && typeof session.cart === 'object' && !Array.isArray(session.cart)) {
+    const legacyCart = session.cart as { productId?: string; storeId?: string }
+    if (typeof legacyCart.productId === 'string') {
+      const product = await prisma.product.findUnique({
+        where: { id: legacyCart.productId },
+      })
+
+      if (product) {
+        return [
+          {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            qty: 1,
+            storeId: legacyCart.storeId || product.storeId,
+          },
+        ]
+      }
+    }
+  }
+
+  return items
+}
+
+async function findWhatsAppSession(phoneNumber: string, storeId: string): Promise<SessionRecord | null> {
+  return prisma.whatsAppSession.findUnique({
+    where: {
+      phoneNumber_storeId: {
+        phoneNumber,
+        storeId,
+      },
+    },
+  });
+}
+
+async function createWhatsAppSession(phoneNumber: string, storeId: string, receivingPhoneId: string): Promise<SessionRecord> {
+  return prisma.whatsAppSession.create({
+    data: {
+      phoneNumber,
+      storeId,
+      receivingPhoneId,
+      step: 'START',
+    },
+  });
+}
+
+async function ensureWhatsAppSession(phoneNumber: string, storeId: string, receivingPhoneId: string): Promise<SessionRecord> {
+  return (await findWhatsAppSession(phoneNumber, storeId)) ?? createWhatsAppSession(phoneNumber, storeId, receivingPhoneId);
+}
+
+async function updateWhatsAppSession(id: string, data: Prisma.WhatsAppSessionUpdateInput): Promise<SessionRecord> {
+  return prisma.whatsAppSession.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function handleWhatsAppMessage(from: string, text: string, sessionOrStoreId: SessionRecord | string = 'global') {
   // 1. Obtener o crear sesión usando el índice compuesto
-  let session: any;
+  let session: SessionRecord;
   if (typeof sessionOrStoreId === 'object' && sessionOrStoreId !== null) {
     session = sessionOrStoreId;
   } else {
     const storeId = sessionOrStoreId || 'global';
-    session = await (prisma as any).whatsAppSession.findUnique({
-      where: {
-        phoneNumber_storeId: {
-          phoneNumber: from,
-          storeId: storeId
-        }
-      },
-    });
-
-    if (!session) {
-      session = await (prisma as any).whatsAppSession.create({
-        data: {
-          phoneNumber: from,
-          storeId: storeId,
-          receivingPhoneId: storeId === 'global' ? 'global' : `store_${storeId}`,
-          step: 'START'
-        },
-      });
-    }
+    session = await ensureWhatsAppSession(from, storeId, storeId === 'global' ? 'global' : `store_${storeId}`);
   }
 
   // 1.5 Resolver el cliente de envío dinámico (Meta Cloud API o Evolution API)
   const isGlobal = !session.storeId || session.storeId === 'global';
-  let client: any = officialWaClient; // Default to official Meta waClient
-  let isEvolution = false;
-  let store: any = null;
+  let client: BotClient = officialWaClient;
+  let store: StoreRecord | null = null;
 
   if (!isGlobal) {
     store = await prisma.store.findUnique({
       where: { id: session.storeId }
     });
     if (store && store.whatsappInstanceName && store.whatsappConnected) {
-      isEvolution = true;
       const { evolutionClient } = await import('@/lib/whatsapp/evolution');
       client = {
         sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName, to, msg),
-        sendButtons: (to: string, msg: string, btns: any[]) => evolutionClient.sendButtons(store.whatsappInstanceName, to, msg, btns),
-        sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: any[]) => evolutionClient.sendList(store.whatsappInstanceName, to, hdr, bdy, btnText, secs),
+        sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => evolutionClient.sendButtons(store.whatsappInstanceName, to, msg, btns),
+        sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => evolutionClient.sendList(store.whatsappInstanceName, to, hdr, bdy, btnText, secs),
         sendImage: (to: string, img: string, cap: string) => evolutionClient.sendImage(store.whatsappInstanceName, to, img, cap),
         sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(store.whatsappInstanceName, to, doc, fn),
         sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(store.whatsappInstanceName, to, bdy, btnText, url)
@@ -60,11 +173,11 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   // Helper to log bot outgoing messages in database
   const logBotOutgoing = async (text: string) => {
     try {
-      const currentSession = await (prisma as any).whatsAppSession.findUnique({
+      const currentSession = await prisma.whatsAppSession.findUnique({
         where: { id: session.id }
       });
       if (!currentSession) return;
-      const messages = Array.isArray(currentSession.messages) ? (currentSession.messages as any[]) : [];
+      const messages = toChatMessages(currentSession.messages);
       const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
       messages.push({
@@ -74,8 +187,8 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         timestamp: Date.now()
       });
 
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
+      await prisma.whatsAppSession.update({
+        where: { id: currentSession.id },
         data: { messages }
       });
     } catch (err) {
@@ -90,12 +203,12 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       await logBotOutgoing(msg);
       return res;
     },
-    sendButtons: async (to: string, msg: string, btns: any[]) => {
+    sendButtons: async (to: string, msg: string, btns: { id: string; title: string }[]) => {
       const res = await client.sendButtons(to, msg, btns);
       await logBotOutgoing(msg);
       return res;
     },
-    sendList: async (to: string, hdr: string, bdy: string, btnText: string, secs: any[]) => {
+    sendList: async (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => {
       const res = await client.sendList(to, hdr, bdy, btnText, secs);
       await logBotOutgoing(`${hdr}\n${bdy}`);
       return res;
@@ -115,7 +228,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       await logBotOutgoing(bdy);
       return res;
     },
-    sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: any, header?: string, body?: string) => {
+    sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: unknown, header?: string, body?: string) => {
       if (typeof client.sendFlow === 'function') {
         const res = await client.sendFlow(to, flowId, buttonText, flowToken, screen, data, header, body);
         await logBotOutgoing(body || `[Flujo: ${buttonText}]`);
@@ -193,9 +306,9 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     });
     if (activeStore && !activeStore.active) {
       const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-      session = await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { storeId: resetStoreId, cart: null }
+      session = await updateWhatsAppSession(session.id, {
+        storeId: resetStoreId,
+        cart: null,
       });
       await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕');
       return;
@@ -228,20 +341,14 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           },
         ]
       );
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { step: 'AWAITING_STORE_SELECTION' },
-      });
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_STORE_SELECTION' });
       return;
     }
   }
 
   if (text.toLowerCase().includes('inicio') || text.toLowerCase().includes('hola') || text === 'search_now') {
     const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-    await (prisma as any).whatsAppSession.update({
-      where: { id: session.id },
-      data: { step: 'IDLE', storeId: resetStoreId },
-    });
+    await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: resetStoreId });
     if (text === 'search_now') {
         await waClient.sendText(from, '¡Claro! Dime qué buscas (ej: "Pizza", "Zapatos").');
     } else {
@@ -258,13 +365,10 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   if (intent.intent === 'EXIT') {
     await waClient.sendText(from, '¡De nada! Ha sido un placer ayudarte. 😊\n\nSi necesitas algo más en el futuro, solo escribe "Hola". ¡Que tengas un gran día! 👋');
     const exitStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-    await (prisma as any).whatsAppSession.update({
-      where: { id: session.id },
-      data: { 
-        step: 'START', 
-        storeId: exitStoreId, 
-        cart: null 
-      },
+    await updateWhatsAppSession(session.id, {
+      step: 'START',
+      storeId: exitStoreId,
+      cart: null,
     });
     return;
   }
@@ -277,8 +381,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       // Estructura esperada del Flow de Catálogo: { selections: ["prod_1", "prod_2"] }
       // Nota: Para cantidades más complejas, el Flow devolvería un array de objetos.
       if (response.selections && Array.isArray(response.selections)) {
-        let currentCart = (session.cart as any) || { items: {} };
-        if (!currentCart.items) currentCart.items = {};
+        let currentCart = toCartState(session.cart);
 
         for (const prodId of response.selections) {
           const product = await prisma.product.findUnique({ where: { id: prodId } });
@@ -292,10 +395,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           }
         }
 
-        await (prisma as any).whatsAppSession.update({
-          where: { id: session.id },
-          data: { cart: currentCart, step: 'IDLE' },
-        });
+        session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' });
 
         // Trigger summary
         await handleWhatsAppMessage(from, 'view_cart_summary');
@@ -340,10 +440,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             store.systemPrompt || 'Selecciona todos los productos que desees pedir:'
           );
           
-          await (prisma as any).whatsAppSession.update({
-            where: { id: session.id },
-            data: { step: 'IDLE', storeId: store.id },
-          });
+          await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
           return;
         } catch (err) {
           console.warn('[WhatsApp Flow] Failed to send, falling back to List:', err);
@@ -363,10 +460,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         }
       ]);
 
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { step: 'IDLE', storeId: store.id },
-      });
+      await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
     }
     return;
   }
@@ -418,7 +512,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       });
 
       // 1. Buscar repartidores activos y disponibles
-      const drivers = await (prisma as any).driver.findMany({
+      const drivers = await prisma.driver.findMany({
         where: { active: true, available: true }
       });
 
@@ -467,7 +561,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     
     try {
       // 1. Verificar si es un repartidor activo
-      const driver = await (prisma as any).driver.findUnique({
+      const driver = await prisma.driver.findUnique({
         where: { phoneNumber: from, active: true }
       });
 
@@ -556,10 +650,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           },
         ]
       );
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { step: 'AWAITING_QUANTITY' },
-      });
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_QUANTITY' });
     } else {
       await waClient.sendText(from, 'Lo siento, este producto ya no está disponible. 😕');
     }
@@ -574,8 +665,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     const p = await prisma.product.findUnique({ where: { id: productId } });
 
     if (p) {
-      let currentCart = (session.cart as any) || { items: {} };
-      if (!currentCart.items) currentCart.items = {};
+      let currentCart = toCartState(session.cart);
       
       currentCart.items[p.id] = {
         id: p.id,
@@ -584,10 +674,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         qty: (currentCart.items[p.id]?.qty || 0) + qty
       };
 
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { cart: currentCart, step: 'IDLE' },
-      });
+      session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' });
 
       // MODO JELOU: Trigger Summary centralizado
       return await handleWhatsAppMessage(from, 'view_cart_summary');
@@ -598,11 +685,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   // Manejo de VER CARRITO
   // Manejo de RESUMEN DE CARRITO CENTRALIZADO (Modo Jelou Pro)
   if (text === 'view_cart_summary' || isViewCart) {
-    const cart = (session.cart as any) || { items: {} };
-    // Filter out items that are not objects or lack required fields to avoid NaN/undefined issues
-    const items = Object.values(cart.items || {}).filter(
-      (item: any) => item && typeof item === 'object' && 'price' in item && 'qty' in item
-    ) as any[];
+    const items = await getCartItemsForSession(session);
 
     if (items.length === 0) {
       await waClient.sendText(from, 'Tu carrito está vacío. 🛒\n\nPuedes buscar productos o "Ver tiendas" para empezar.');
@@ -629,38 +712,26 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL ---
   if (text === 'confirm_checkout') {
     if (!session.customerName) {
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { step: 'AWAITING_NAME' },
-      });
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_NAME' });
       await waClient.sendText(from, '¡Excelente elección! 🛍️\n\nPara agilizar tu despacho, ¿a nombre de quién anotamos el pedido? 👤');
       return;
     }
     
     if (!session.address) {
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { step: 'AWAITING_ADDRESS' },
-      });
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_ADDRESS' });
       await waClient.sendText(from, `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? Puedes escribir tu dirección (Ej: Calle 10 #20-30, Bogotá) o compartir tu ubicación actual de WhatsApp directamente en este chat. 🗺️`);
       return;
     }
 
     // Si tiene todo, saltamos a la confirmación final
-    await (prisma as any).whatsAppSession.update({
-      where: { id: session.id },
-      data: { step: 'AWAITING_CONFIRMATION' },
-    });
+    await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION' });
     // Forzamos el disparo de la confirmación
     await handleWhatsAppMessage(from, 'final_summary');
     return;
   }
 
   if (text === 'clear_cart') {
-      await (prisma as any).whatsAppSession.update({
-          where: { id: session.id },
-          data: { cart: null }
-      });
+      await updateWhatsAppSession(session.id, { cart: null });
       await waClient.sendText(from, 'Carrito vaciado. 🗑️ ¿En qué puedo ayudarte?');
       return;
   }
@@ -689,10 +760,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           { id: 'search_now', title: '🔍 Buscar algo' },
         ]);
       }
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { step: 'IDLE' },
-      });
+      await updateWhatsAppSession(session.id, { step: 'IDLE' });
       break;
 
     case 'IDLE':
@@ -710,9 +778,19 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             { id: `confirm_${p.id}`, title: '✅ Sí, confirmar' },
             { id: 'cancel', title: '❌ No, buscar otro' },
           ]);
-          await (prisma as any).whatsAppSession.update({
-            where: { id: session.id },
-            data: { step: 'AWAITING_CONFIRMATION', cart: { productId: p.id, storeId: p.storeId } },
+          await updateWhatsAppSession(session.id, {
+            step: 'AWAITING_CONFIRMATION',
+            cart: {
+              items: {
+                [p.id]: {
+                  id: p.id,
+                  name: p.name,
+                  price: p.price,
+                  qty: 1,
+                  storeId: p.storeId,
+                },
+              },
+            },
           });
         } else {
           await waClient.sendList(
@@ -731,10 +809,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
               },
             ]
           );
-          await (prisma as any).whatsAppSession.update({
-            where: { id: session.id },
-            data: { step: 'AWAITING_SELECTION' },
-          });
+          await updateWhatsAppSession(session.id, { step: 'AWAITING_SELECTION' });
         }
       } else {
         // AI Chatbot fallback using DeepSeek
@@ -749,7 +824,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             const productsListText = storeProducts.map(p => `- ${p.name}: $${p.price.toLocaleString('es-CO')}`).join('\n');
 
             // 2. Format chat history
-            const history = Array.isArray(session.messages) ? (session.messages as any[]) : [];
+            const history = toChatMessages(session.messages);
             const chatMessages = history.slice(-10).map(m => ({
               role: (m.sender === 'bot' ? 'assistant' : 'user') as 'system' | 'user' | 'assistant',
               content: m.text
@@ -796,7 +871,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
               const faqs = await prisma.faq.findMany({
                 where: { storeId: session.storeId }
               });
-              const match = faqs.find((f: any) => text.toLowerCase().includes(f.question.toLowerCase()));
+              const match = faqs.find((f) => text.toLowerCase().includes(f.question.toLowerCase()));
               if (match) {
                 faqResponse = match.answer;
               }
@@ -838,10 +913,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                 waUrl
               );
               // Clean up corporate session
-              await (prisma as any).whatsAppSession.update({
-                where: { id: session.id },
-                data: { step: 'START', storeId: 'global' },
-              });
+              await updateWhatsAppSession(session.id, { step: 'START', storeId: 'global' });
             } else {
               // Fallback: stay on global line
               const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
@@ -859,19 +931,13 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                 { id: `view_list_${store.id}`, title: '📜 Usar Chat' }
               ]);
 
-              await (prisma as any).whatsAppSession.update({
-                where: { id: session.id },
-                data: { step: 'IDLE', storeId: store.id },
-              });
+              await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
             }
           }
         }
       } else {
         // Si el usuario escribe algo en lugar de seleccionar, volvemos a IDLE
-        await (prisma as any).whatsAppSession.update({
-          where: { id: session.id },
-          data: { step: 'IDLE' },
-        });
+        await updateWhatsAppSession(session.id, { step: 'IDLE' });
         await handleWhatsAppMessage(from, text);
       }
       break;
@@ -881,33 +947,23 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       break;
 
     case 'AWAITING_NAME':
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { customerName: text, step: 'IDLE' },
-      });
+      await updateWhatsAppSession(session.id, { customerName: text, step: 'IDLE' });
       // Re-disparar el flujo de checkout
       await handleWhatsAppMessage(from, 'confirm_checkout');
       break;
 
     case 'AWAITING_ADDRESS':
-      await (prisma as any).whatsAppSession.update({
-        where: { id: session.id },
-        data: { address: text, step: 'IDLE' },
-      });
+      await updateWhatsAppSession(session.id, { address: text, step: 'IDLE' });
       // Re-disparar el flujo de checkout
       await handleWhatsAppMessage(from, 'confirm_checkout');
       break;
 
     case 'AWAITING_CONFIRMATION':
       if (text === 'final_summary' || text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
-        const cart = (session.cart as any) || { items: {} };
-        // Filter out items that are not objects or lack required fields to avoid NaN/undefined issues
-        const items = Object.values(cart.items || {}).filter(
-          (item: any) => item && typeof item === 'object' && 'price' in item && 'qty' in item
-        ) as any[];
+        const items = await getCartItemsForSession(session);
         
         if (items.length > 0) {
-            const storeId = session.storeId || (items[0] as any).storeId;
+            const storeId = session.storeId || items[0]?.storeId || 'global';
             const total = items.reduce((s, i) => s + (i.price * i.qty), 0);
             
             // MODO JELOU: Resumen de Pedido Nativo
@@ -920,7 +976,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
             });
             orderSummary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')}*`;
 
-            const order = await (prisma.order as any).create({
+            const order = await prisma.order.create({
               data: {
                 customerName: session.customerName || 'Cliente WhatsApp',
                 customerPhone: from,
@@ -953,10 +1009,19 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                     const dynamicMpPreference = new Preference(dynamicMpClient);
                     const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
 
-                    const preferenceData: any = {
+                    const preferenceData: {
+                      body: {
+                        items: Array<{ id: string; title: string; quantity: number; unit_price: number; currency_id: string }>;
+                        external_reference: string;
+                        back_urls: { success: string; failure: string; pending: string };
+                        metadata: { orderId: string; storeId: string };
+                        notification_url?: string;
+                        auto_return?: 'approved';
+                      }
+                    } = {
                       body: {
                         items: items.map(line => ({
-                          id: line.productId,
+                          id: line.id,
                           title: `${line.name} (x${line.qty})`,
                           quantity: line.qty,
                           unit_price: line.price,
@@ -1024,10 +1089,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                 );
               }
 
-              await (prisma as any).whatsAppSession.update({
-                where: { id: session.id },
-                data: { step: 'AWAITING_CONFIRMATION', cart: null },
-              });
+              await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION', cart: null });
             } catch (err) {
                console.error('[Chatbot checkout finalize error]', err);
                await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
@@ -1035,10 +1097,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
         }
       } else if (intent.intent === 'CANCEL' || text === 'cancel') {
         await waClient.sendText(from, 'Pedido cancelado. Carrito mantenido.');
-        await (prisma as any).whatsAppSession.update({
-          where: { id: session.id },
-          data: { step: 'IDLE' },
-        });
+        await updateWhatsAppSession(session.id, { step: 'IDLE' });
       }
       break;
   }
@@ -1046,19 +1105,22 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
 
 export async function handleWhatsAppImage(
   from: string,
-  mediaIdOrKey: any,
+  mediaIdOrKey: string | Record<string, unknown>,
   mimeType: string,
   storeId: string = 'global',
   instanceName?: string,
-  messagePayload?: any
+  messagePayload?: Record<string, unknown>
 ) {
   // Shadow client
-  let waClientInstance: any = officialWaClient;
+  let waClientInstance: typeof officialWaClient | {
+    sendText: (to: string, msg: string) => Promise<unknown>
+    downloadMedia: (id: string | Record<string, unknown>) => Promise<{ buffer: Buffer }>
+  } = officialWaClient;
   if (instanceName && instanceName !== 'global') {
     const { evolutionClient } = await import('@/lib/whatsapp/evolution');
     waClientInstance = {
       sendText: (to: string, msg: string) => evolutionClient.sendText(instanceName, to, msg),
-      downloadMedia: async (id: any) => {
+      downloadMedia: async (id: string | Record<string, unknown>) => {
         const buffer = await evolutionClient.downloadMedia(instanceName, id, messagePayload);
         return { buffer };
       }
@@ -1067,7 +1129,7 @@ export async function handleWhatsAppImage(
   const waClient = waClientInstance;
 
   // 1. Obtener sesión del bot usando compound key
-  const session = await (prisma as any).whatsAppSession.findUnique({
+  const session = await prisma.whatsAppSession.findUnique({
     where: {
       phoneNumber_storeId: {
         phoneNumber: from,
@@ -1119,7 +1181,7 @@ export async function handleWhatsAppImage(
     });
 
     // 6. Cambiar estado de la sesión a IDLE
-    await (prisma as any).whatsAppSession.update({
+    await prisma.whatsAppSession.update({
       where: { id: session.id },
       data: { step: 'IDLE' },
     });

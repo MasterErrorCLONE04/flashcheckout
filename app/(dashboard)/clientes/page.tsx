@@ -6,6 +6,29 @@ import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
 
+type CustomerRecord = {
+  phone: string
+  name: string
+  email: string
+  totalOrders: number
+  totalSpent: number
+  lastOrderDate: string
+  status: 'Activo' | 'Inactivo'
+  segment: 'Frecuente' | 'Ocasional' | 'Nuevo'
+  city: string
+  birthDate: string
+  notes: string
+}
+
+type SerializedOrder = {
+  id: string
+  customerName: string
+  customerPhone: string
+  total: number
+  status: string
+  createdAt: string
+}
+
 export default async function ClientesPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -82,7 +105,7 @@ export default async function ClientesPage() {
     return notesArray[index]
   }
 
-  orders.forEach((o: any) => {
+  orders.forEach((o) => {
     const phone = o.customerPhone || 'Desconocido'
     if (phone === 'Desconocido' && !o.customerName) return // Skip completely empty orders
 
@@ -124,7 +147,7 @@ export default async function ClientesPage() {
   })
 
   // Final adjustments for active states and segments
-  const customersList = Object.values(customerMap).map(c => {
+  const customersList: CustomerRecord[] = Object.values(customerMap).map(c => {
     // 30 days check
     const diffTime = Math.abs(new Date().getTime() - new Date(c.lastOrderDate).getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -149,7 +172,7 @@ export default async function ClientesPage() {
   })
 
   // Serialize orders list for past purchases timeline
-  const serializedOrders = orders.map((o: any) => ({
+  const serializedOrders: SerializedOrder[] = orders.map((o) => ({
     id: o.id,
     customerName: o.customerName,
     customerPhone: o.customerPhone || '',
@@ -172,7 +195,7 @@ export default async function ClientesPage() {
         </div>
       </div>
 
-      <CustomerCRM initialCustomers={customersList as any} initialOrders={serializedOrders} />
+      <CustomerCRM initialCustomers={customersList} initialOrders={serializedOrders} />
     </div>
   )
 }

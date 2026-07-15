@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getErrorMessage } from '@/lib/api/route-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,8 +30,8 @@ export async function GET(req: Request) {
       status: order.status
     })
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API Order Status GET Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 })
   }
 }

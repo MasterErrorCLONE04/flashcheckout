@@ -42,6 +42,20 @@ export const dynamic = 'force-dynamic'
 
 import { getActiveStore } from '@/lib/store-context'
 
+type DashboardAlert = {
+  id: string
+  type: string
+  title: string
+  subtitle: string
+  timeText: string
+  href?: string
+  actionText: string
+}
+
+type SessionMessage = {
+  text?: string
+}
+
 export default async function DashboardPage(props: {
   searchParams: Promise<{ days?: string }>
 }) {
@@ -439,7 +453,7 @@ export default async function DashboardPage(props: {
     take: 5
   })
 
-  const alerts: any[] = []
+  const alerts: DashboardAlert[] = []
 
   // 1. WhatsApp Disconnected
   if (!store.whatsappConnected) {
@@ -509,7 +523,7 @@ export default async function DashboardPage(props: {
   // Build the chats array for Sidebar Section 2
   const chats = activeSessions.map((session) => {
     const name = session.customerName || `Cliente +${session.phoneNumber.slice(-4)}`
-    const messages = Array.isArray(session.messages) ? (session.messages as any[]) : []
+    const messages = Array.isArray(session.messages) ? (session.messages as SessionMessage[]) : []
     const lastMsg = messages[messages.length - 1]?.text || 'Conversación iniciada'
     return {
       id: session.id,
@@ -542,7 +556,7 @@ export default async function DashboardPage(props: {
       insights={insights}
       initialWhatsappConnected={store.whatsappConnected}
       aiActive={store.aiActive}
-      productsCount={(store as any)._count.products}
+      productsCount={store._count?.products ?? 0}
       isSubscribed={!!store.stripePriceId && !!store.stripeCurrentPeriodEnd && new Date(store.stripeCurrentPeriodEnd) > new Date()}
       stats={{
         revenueToday,

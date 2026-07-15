@@ -6,6 +6,21 @@ import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
 
+type ProductPreview = {
+  id: string
+  name: string
+  price: number
+  active: boolean
+  aiRecommendation: boolean
+  aiDescription: string
+}
+
+type FaqPreview = {
+  id: string
+  question: string
+  answer: string
+}
+
 export default async function AgentePage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -34,16 +49,16 @@ export default async function AgentePage() {
   }
 
   // Format popular products list for preview/edit
-  const formattedProducts = products.map(p => ({
+  const formattedProducts: ProductPreview[] = products.map(p => ({
     id: p.id,
     name: p.name,
     price: p.price,
     active: p.active,
-    aiRecommendation: !!(p as any).aiRecommendation,
-    aiDescription: (p as any).aiDescription || ''
+    aiRecommendation: Boolean((p as { aiRecommendation?: boolean }).aiRecommendation),
+    aiDescription: (p as { aiDescription?: string }).aiDescription || ''
   }))
 
-  const formattedFaqs = faqs.map((f: any) => ({
+  const formattedFaqs: FaqPreview[] = faqs.map((f) => ({
     id: f.id,
     question: f.question,
     answer: f.answer

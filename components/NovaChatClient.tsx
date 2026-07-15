@@ -52,8 +52,62 @@ interface Message {
   }
   action?: {
     type: string
-    payload: any
+    payload: ActionPayload
   }
+}
+
+type ActionPayload = {
+  products?: Array<{ name: string; stock: number; category?: string; active?: boolean; price: number }>
+  product?: {
+    name: string
+    price: number
+    stock: number
+    oldStock?: number
+    newStock?: number
+    newActive?: boolean
+    category?: string
+    description?: string
+    imageUrl?: string
+  }
+  coupon?: {
+    code: string
+    desc: string
+    validoHasta?: string
+    validity?: string
+  }
+  order?: {
+    id: string
+    newStatus: string
+    customerName: string
+    total: number
+    adminComment?: string | null
+  }
+  orders?: Array<{
+    id: string
+    customerName: string
+    city: string
+    paymentStatus: string
+    total: number
+    status: string
+  }>
+  metrics?: {
+    totalSales: number
+    totalOrders: number
+    avgTicket: number
+    topProducts?: Array<{ name: string; qty: number; sales: number }>
+  }
+  customerName?: string
+  step?: string
+  assignedTo?: string
+  phoneNumber?: string
+  chatHistory?: Array<{ sender: 'user' | 'bot'; text: string }>
+}
+
+type ChatSessionItem = {
+  id: string
+  title: string
+  messages: Message[]
+  updatedAt: string
 }
 
 interface NovaChatClientProps {
@@ -243,7 +297,7 @@ export default function NovaChatClient({
     }
   }, [inputText])
 
-  const mapMessageProperties = (m: any) => {
+  const mapMessageProperties = (m: Message): Message => {
     if (m.sender !== 'bot' || !m.action || m.action.type === 'NONE') {
       return m
     }
@@ -253,7 +307,7 @@ export default function NovaChatClient({
 
     if (type === 'search_products' && payload?.products) {
       newMsg.type = 'products_list'
-      newMsg.products = payload.products.map((p: any) => ({
+      newMsg.products = payload.products.map((p) => ({
         name: p.name,
         sales: `Stock: ${p.stock} | Cat: ${p.category} | ${p.active ? 'Activo' : 'Inactivo'}`,
         price: `$${p.price.toLocaleString('es-CO')}`
@@ -299,11 +353,11 @@ export default function NovaChatClient({
     return newMsg
   }
 
-  const [sessions, setSessions] = useState<any[]>(() => {
+  const [sessions, setSessions] = useState<ChatSessionItem[]>(() => {
     const list = initialSessions.length > 0 ? initialSessions : DEMO_SESSIONS
     return list.map(session => ({
       ...session,
-      messages: session.messages.map((m: any) => mapMessageProperties(m))
+      messages: session.messages.map((m) => mapMessageProperties(m))
     }))
   })
   
@@ -313,7 +367,7 @@ export default function NovaChatClient({
 
   const [messages, setMessages] = useState<Message[]>(() => {
     if (sessions.length > 0) {
-      return sessions[0].messages.map((m: any) => mapMessageProperties(m))
+      return sessions[0].messages.map((m) => mapMessageProperties(m))
     }
     return []
   })
@@ -335,7 +389,7 @@ export default function NovaChatClient({
     const sess = sessions.find(s => s.id === sessionId)
     if (sess) {
       setActiveSessionId(sessionId)
-      setMessages(sess.messages.map((m: any) => mapMessageProperties(m)))
+      setMessages(sess.messages.map((m) => mapMessageProperties(m)))
     }
   }
 
@@ -862,7 +916,7 @@ export default function NovaChatClient({
                         {isBot && m.type === 'orders_list' && m.action?.payload?.orders && (
                           <div className="mt-4 space-y-2">
                             <div className="bg-[#FAFAFA] border border-zinc-200 rounded-xl p-1.5 space-y-1.5">
-                              {m.action.payload.orders.map((order: any, idx: number) => (
+                              {m.action.payload.orders.map((order, idx: number) => (
                                 <div key={order.id} className="p-3 flex items-center justify-between bg-white rounded-lg border border-zinc-100 shadow-sm">
                                   <div className="flex flex-col text-left min-w-0">
                                     <h5 className="font-bold text-zinc-900 truncate text-xs">
@@ -928,7 +982,7 @@ export default function NovaChatClient({
                               {m.action.payload.metrics.topProducts && m.action.payload.metrics.topProducts.length > 0 && (
                                 <div className="space-y-1.5 text-left border-t border-zinc-200/60 pt-3">
                                   <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider select-none">Productos más vendidos</span>
-                                  {m.action.payload.metrics.topProducts.map((p: any, idx: number) => (
+                                  {m.action.payload.metrics.topProducts.map((p, idx: number) => (
                                     <div key={idx} className="flex justify-between items-center text-xs font-semibold text-zinc-700 py-0.5">
                                       <span className="truncate pr-4">{idx+1}. {p.name}</span>
                                       <span className="shrink-0 text-zinc-500">{p.qty} uds (${p.sales.toLocaleString('es-CO')})</span>
@@ -962,7 +1016,7 @@ export default function NovaChatClient({
                               
                               <div className="border border-zinc-200 bg-white rounded-lg p-2.5 max-h-40 overflow-y-auto space-y-2 flex flex-col text-xs scrollbar-none mt-2 select-text">
                                 {m.action.payload.chatHistory && m.action.payload.chatHistory.length > 0 ? (
-                                  m.action.payload.chatHistory.map((chat: any, idx: number) => {
+                                  m.action.payload.chatHistory.map((chat, idx: number) => {
                                     const isCustomer = chat.sender === 'user'
                                     return (
                                       <div key={idx} className={cn(

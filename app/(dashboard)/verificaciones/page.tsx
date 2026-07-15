@@ -1,11 +1,27 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { getProofImageUrl } from '@/lib/supabase'
 import ManualVerificationPanel from '@/components/dashboard/ManualVerificationPanel'
 import StoreVerificationManager from '@/components/dashboard/StoreVerificationManager'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
+
+type OrderRow = {
+  id: string
+  customerName: string
+  customerPhone: string | null
+  address: string
+  city: string
+  items: { name: string; qty: number; price: number }[]
+  total: number
+  status: string
+  createdAt: Date
+  paymentStatus: string
+  proofImageUrl: string | null
+  adminComment: string | null
+}
 
 export default async function VerificacionesPage() {
   const { userId } = await auth()
@@ -25,7 +41,6 @@ export default async function VerificacionesPage() {
     orderBy: { createdAt: 'desc' },
   })
 
-  // Calular límites mensuales para tiendas Nivel 0
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const confirmedOrdersThisMonth = await prisma.order.findMany({
@@ -34,17 +49,20 @@ export default async function VerificacionesPage() {
       paymentStatus: 'CONFIRMED',
       createdAt: { gte: monthStart },
     },
-    select: { total: true }
+    select: { total: true },
   })
-  const currentVolume = confirmedOrdersThisMonth.reduce((sum, o) => sum + o.total, 0)
+
+  const currentVolume = confirmedOrdersThisMonth.reduce((sum, current) => sum + current.total, 0)
   const currentCount = confirmedOrdersThisMonth.length
 
-  // Serializar objetos para cliente (Json -> OrderItem[])
-  const serializedOrders = orders.map((o: any) => ({
-    ...o,
-    items: o.items as { name: string; qty: number; price: number }[],
-    createdAt: o.createdAt.toISOString(),
-  }))
+  const serializedOrders = await Promise.all(
+    (orders as OrderRow[]).map(async order => ({
+      ...order,
+      items: Array.isArray(order.items) ? order.items : [],
+      createdAt: order.createdAt.toISOString(),
+      proofImageUrl: await getProofImageUrl(order.proofImageUrl),
+    }))
+  )
 
   const serializedStore = {
     id: store.id,
@@ -55,7 +73,7 @@ export default async function VerificacionesPage() {
     whatsappVerified: store.whatsappVerified,
     pausedReason: store.pausedReason,
     idProofUrl: store.idProofUrl,
-    strikes: store.strikes
+    strikes: store.strikes,
   }
 
   return (
@@ -66,20 +84,20 @@ export default async function VerificacionesPage() {
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Verificar Pagos</h1>
             <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Validación manual — <span className="text-zinc-900 font-bold">{store.name}</span>
+              Validacion manual - <span className="text-zinc-900 font-bold">{store.name}</span>
             </div>
           </div>
         </div>
       </div>
-      
-      <StoreVerificationManager 
-        store={serializedStore} 
-        currentVolume={currentVolume} 
-        currentCount={currentCount} 
+
+      <StoreVerificationManager
+        store={serializedStore}
+        currentVolume={currentVolume}
+        currentCount={currentCount}
       />
 
       <div className="h-px w-full bg-zinc-100 my-6" />
-      
+
       <ManualVerificationPanel initialOrders={serializedOrders} />
     </div>
   )

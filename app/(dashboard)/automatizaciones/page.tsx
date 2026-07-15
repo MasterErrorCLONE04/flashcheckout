@@ -18,6 +18,10 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
+function getErrorMessage(error: unknown, fallback = 'Error desconocido') {
+  return error instanceof Error ? error.message : fallback
+}
+
 type Automation = {
   id: string
   name: string
@@ -73,8 +77,8 @@ export default function AutomatizacionesPage() {
       toast.success('Plantilla guardada con éxito')
       setShowConfigModal(false)
       setSelectedAutomation(null)
-    } catch (err: any) {
-      toast.error(err.message || 'Error al guardar la plantilla')
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, 'Error al guardar la plantilla'))
     } finally {
       setUpdatingTemplate(false)
     }
@@ -88,8 +92,8 @@ export default function AutomatizacionesPage() {
         if (!res.ok) throw new Error('Error al obtener automatizaciones')
         const data = await res.json()
         setAutomations(data.automations || [])
-      } catch (err: any) {
-        toast.error(err.message || 'Error al cargar las automatizaciones')
+      } catch (err: unknown) {
+        toast.error(getErrorMessage(err, 'Error al cargar las automatizaciones'))
       } finally {
         setLoading(false)
       }
@@ -149,8 +153,8 @@ export default function AutomatizacionesPage() {
       setNewDesc('')
       setNewIcon('👋')
       setNewChannels(['WhatsApp'])
-    } catch (err: any) {
-      toast.error(err.message || 'Error al crear automatización')
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, 'Error al crear automatización'))
     } finally {
       setSaving(false)
     }

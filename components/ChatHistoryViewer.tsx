@@ -37,6 +37,13 @@ type Message = {
   time: string
 }
 
+type SessionNote = {
+  id: string
+  text: string
+  createdAt: string
+  author: string
+}
+
 type ChatSession = {
   id: string
   phoneNumber: string
@@ -47,34 +54,55 @@ type ChatSession = {
   messages: Message[]
 }
 
-type InternalNote = {
-  id: string
-  text: string
-  createdAt: string
-  author: string
-}
-
 type ChatSessionExtended = ChatSession & {
   tags: string[]
-  notes: InternalNote[]
+  notes: SessionNote[]
   assignedTo: string
   isFavorite: boolean
   status: 'active' | 'closed'
 }
 
 type CustomerDetails = {
-  orders: any[]
+  orders: Array<{ id: string; total: number; status: string; createdAt: string }>
   totalSpent: number
   ordersCount: number
-  cartItems: any[]
+  cartItems: Array<{ name: string; qty: number; price: number }>
   firstInteractionDate: string
+}
+
+type ChatSessionInit = ChatSession & Partial<Pick<ChatSessionExtended, 'tags' | 'notes' | 'assignedTo' | 'isFavorite' | 'status'>>
+
+type SessionUpdateData = Partial<Pick<ChatSessionExtended, 'tags' | 'notes' | 'assignedTo' | 'isFavorite' | 'status'>>
+
+type SessionAction = {
+  type: string
+  payload?: {
+    products?: Array<{ name: string; stock: number; category?: string; active?: boolean; price: number }>
+    product?: {
+      name: string
+      price: number
+      stock: number
+      category?: string
+      description?: string
+      imageUrl?: string
+    }
+    coupon?: {
+      code: string
+      desc: string
+      validoHasta?: string
+      validity?: string
+    }
+    order?: unknown
+    metrics?: unknown
+    customerName?: string
+  }
 }
 
 export default function ChatHistoryViewer({
   initialSessions,
   whatsappConnected,
 }: {
-  initialSessions: ChatSession[]
+  initialSessions: ChatSessionInit[]
   whatsappConnected: boolean
 }) {
   const router = useRouter()
@@ -132,7 +160,7 @@ export default function ChatHistoryViewer({
   }, [isConnected])
 
   useEffect(() => {
-    let intervalId: any
+    let intervalId: ReturnType<typeof setInterval> | null = null
     if (pollingStatus && !isConnected) {
       intervalId = setInterval(async () => {
         try {
@@ -167,11 +195,11 @@ export default function ChatHistoryViewer({
   const [sessions, setSessions] = useState<ChatSessionExtended[]>(() =>
     initialSessions.map((s) => ({
       ...s,
-      tags: (s as any).tags || [],
-      notes: (s as any).notes || [],
-      assignedTo: (s as any).assignedTo || 'Tú',
-      isFavorite: !!(s as any).isFavorite,
-      status: (s as any).status || 'active'
+      tags: s.tags || [],
+      notes: s.notes || [],
+      assignedTo: s.assignedTo || 'Tú',
+      isFavorite: s.isFavorite ?? false,
+      status: s.status || 'active'
     }))
   )
 
@@ -200,8 +228,8 @@ export default function ChatHistoryViewer({
       setPollingStatus(false)
       toast.success('WhatsApp desconectado correctamente', { id: loadToast })
       router.refresh()
-    } catch (err: any) {
-      toast.error(err.message || 'Error al desconectar WhatsApp', { id: loadToast })
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error al desconectar WhatsApp', { id: loadToast })
     } finally {
       setDisconnecting(false)
     }
@@ -282,7 +310,7 @@ export default function ChatHistoryViewer({
   const totalPages = Math.max(Math.ceil(filteredSessions.length / itemsPerPage), 1)
   const currentSessions = filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  const persistSessionUpdate = async (sessionId: string, data: any) => {
+  const persistSessionUpdate = async (sessionId: string, data: SessionUpdateData) => {
     try {
       const res = await fetch('/api/whatsapp/session', {
         method: 'PATCH',
@@ -325,7 +353,7 @@ export default function ChatHistoryViewer({
     const text = newNoteText.trim()
     setNewNoteText('')
 
-    const newNote: InternalNote = {
+    const newNote: SessionNote = {
       id: Date.now().toString(),
       text,
       createdAt: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -455,11 +483,11 @@ export default function ChatHistoryViewer({
       
       // Update sidebar details and list
       const resDetails = await fetch(`/api/whatsapp/session?sessionId=${activeSessionId}`)
-      const detailsData = await resDetails.json()
+      const detailsData = (await resDetails.json()) as CustomerDetails
       setActiveDetails(detailsData)
       router.refresh()
-    } catch (e: any) {
-      toast.error(e.message || 'Error al enviar link de pago', { id: loadingToast })
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error al enviar link de pago', { id: loadingToast })
     }
   }
 

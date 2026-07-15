@@ -6,6 +6,27 @@ import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
 
+type ConversationMessage = {
+  sender: 'user' | 'bot'
+  text: string
+  time: string
+}
+
+type WhatsAppSessionRecord = {
+  id: string
+  phoneNumber: string
+  customerName: string | null
+  lastInteraction: Date
+  step: string
+  messages: unknown
+  tags: string[] | null
+  notes: unknown
+  assignedTo: string | null
+  isFavorite: boolean | null
+  status: string | null
+  avatarUrl: string | null
+}
+
 export default async function ConversacionesPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -16,7 +37,7 @@ export default async function ConversacionesPage() {
 
   if (!store) return <StoreCreationWizard />
 
-  const sessions = await (prisma as any).whatsAppSession.findMany({
+  const sessions = await prisma.whatsAppSession.findMany({
     where: { 
       storeId: store.id
     },
@@ -24,11 +45,11 @@ export default async function ConversacionesPage() {
   })
 
   // Format and generate realistic mock conversation dialogues based on the session's active step
-  const formattedSessions = sessions.map((s: any) => {
+  const formattedSessions = sessions.map((s: WhatsAppSessionRecord) => {
     const name = s.customerName || `Cliente +${s.phoneNumber.slice(-4)}`
     
     // Format and read actual conversation dialogues, or generate realistic mocks if empty
-    let messages = Array.isArray(s.messages) ? (s.messages as any[]) : []
+    let messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
     
     if (messages.length === 0) {
       messages = [
@@ -45,7 +66,7 @@ export default async function ConversacionesPage() {
         try {
           const fetchedUrl = await evolutionClient.fetchProfilePictureUrl(store.whatsappInstanceName!, s.phoneNumber)
           if (fetchedUrl) {
-            await (prisma as any).whatsAppSession.update({
+            await prisma.whatsAppSession.update({
               where: { id: s.id },
               data: { avatarUrl: fetchedUrl }
             })

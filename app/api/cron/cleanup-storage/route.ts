@@ -1,32 +1,38 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabase } from '@/lib/supabase'
+import {
+  resolveProofStorageLocation,
+  supabaseAdmin,
+} from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
   try {
-    // 1. Validar Token de Autorización Cron
     const authHeader = req.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
+    const cronSecret = process.env.CRON_SECRET?.trim()
 
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret) {
+      console.error('[Cron Cleanup] CRON_SECRET no configurado.')
+      return new NextResponse('Config error', { status: 500 })
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
       console.warn('[Cron Cleanup] Intent de acceso no autorizado.')
       return new Response('No autorizado', { status: 401 })
     }
 
     console.log('[Cron Cleanup] Iniciando job de limpieza de almacenamiento...')
 
-    // 2. Obtener órdenes RECHAZADAS que aún tienen enlace de comprobante
     const rejectedOrders = await prisma.order.findMany({
       where: {
         paymentStatus: 'REJECTED',
-        proofImageUrl: { not: null }
+        proofImageUrl: { not: null },
       },
       select: {
         id: true,
-        proofImageUrl: true
-      }
+        proofImageUrl: true,
+      },
     })
 
     if (rejectedOrders.length === 0) {
@@ -34,47 +40,43 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, message: 'No files to clean up' })
     }
 
-    const bucketName = 'products-images'
     const deletedFiles: string[] = []
     const failedFiles: string[] = []
 
     for (const order of rejectedOrders) {
-      if (!order.proofImageUrl) continue
+      const storageLocation = resolveProofStorageLocation(order.proofImageUrl)
+      if (!storageLocation) {
+        console.warn(`[Cron Cleanup] No se pudo parsear la url: ${order.proofImageUrl}`)
+        failedFiles.push(order.id)
+        continue
+      }
 
       try {
-        // Extraer la ruta relativa dentro del bucket (por ejemplo proofs/proof_xyz.png)
-        // La URL pública tiene el formato: https://[ref].supabase.co/storage/v1/object/public/products-images/[path]
-        const searchPattern = `/storage/v1/object/public/${bucketName}/`
-        const urlParts = order.proofImageUrl.split(searchPattern)
-        
-        if (urlParts.length > 1) {
-          const filePath = urlParts[1]
-          
-          console.log(`[Cron Cleanup] Eliminando archivo: ${filePath} del bucket ${bucketName}`)
-          
-          // Eliminar del almacenamiento de Supabase
-          const { error } = await supabase.storage
-            .from(bucketName)
-            .remove([filePath])
+        console.log(
+          `[Cron Cleanup] Eliminando archivo: ${storageLocation.path} del bucket ${storageLocation.bucket}`
+        )
 
-          if (error) {
-            console.error(`[Cron Cleanup] Error eliminando ${filePath} en storage:`, error)
-            failedFiles.push(order.id)
-            continue
-          }
+        const { error } = await supabaseAdmin.storage
+          .from(storageLocation.bucket)
+          .remove([storageLocation.path])
 
-          // Limpiar campo de la base de datos
-          await prisma.order.update({
-            where: { id: order.id },
-            data: { proofImageUrl: null }
-          })
-
-          deletedFiles.push(order.id)
-        } else {
-          console.warn(`[Cron Cleanup] No se pudo parsear la url: ${order.proofImageUrl}`)
+        if (error) {
+          console.error(
+            `[Cron Cleanup] Error eliminando ${storageLocation.path} en storage:`,
+            error
+          )
+          failedFiles.push(order.id)
+          continue
         }
+
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { proofImageUrl: null },
+        })
+
+        deletedFiles.push(order.id)
       } catch (err) {
-        console.error(`[Cron Cleanup] Excepción procesando orden ${order.id}:`, err)
+        console.error(`[Cron Cleanup] Excepcion procesando orden ${order.id}:`, err)
         failedFiles.push(order.id)
       }
     }
@@ -86,11 +88,11 @@ export async function GET(req: Request) {
       cleanedCount: deletedFiles.length,
       failedCount: failedFiles.length,
       deletedOrderIds: deletedFiles,
-      failedOrderIds: failedFiles
+      failedOrderIds: failedFiles,
     })
-
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Cron Cleanup] Error fatal en cron cleanup:', error)
-    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Error interno del servidor'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

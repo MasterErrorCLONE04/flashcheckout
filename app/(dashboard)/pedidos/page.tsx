@@ -35,7 +35,7 @@ export default async function PedidosPage() {
   })
 
   // Serialize to plain objects for client component (Json → OrderItem[])
-  const serializedOrders = orders.map((o: any) => ({
+  const serializedOrders = orders.map((o) => ({
     ...o,
     items: o.items as { name: string; qty: number; price: number }[],
     createdAt: o.createdAt.toISOString(),

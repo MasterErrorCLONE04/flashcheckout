@@ -13,6 +13,13 @@ import { checkSubscription } from '@/lib/subscription'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 import StoreSwitcher from '@/components/dashboard/StoreSwitcher'
 
+type SwitcherStore = {
+  id: string
+  slug: string
+  name: string
+  welcomeMessage: string | null
+}
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -32,7 +39,7 @@ export default async function DashboardLayout({
     select: { id: true, slug: true, name: true, welcomeMessage: true },
   })
 
-  let store = null
+  let store: SwitcherStore | null = null
   if (activeStoreId) {
     store = await prisma.store.findFirst({
       where: { id: activeStoreId, userId },
@@ -45,6 +52,8 @@ export default async function DashboardLayout({
     store = stores[0]
   }
 
+  const activeStore = store ?? stores[0]
+
   const isPro = await checkSubscription()
   let productCount = 0
   let conversationsCount = 0
@@ -53,7 +62,7 @@ export default async function DashboardLayout({
     productCount = await prisma.product.count({
       where: { storeId: store.id },
     })
-    conversationsCount = await (prisma as any).whatsAppSession.count({
+    conversationsCount = await prisma.whatsAppSession.count({
       where: { storeId: store.id },
     })
     ordersCount = await prisma.order.count({
@@ -89,7 +98,7 @@ export default async function DashboardLayout({
           <div className="flex items-center gap-2">
             <span className="hidden text-xs font-bold text-zinc-400 md:inline-flex">{user?.firstName || 'Dashboard'}'s Workspaces</span>
             <span className="hidden text-zinc-300 font-light md:inline-flex">/</span>
-            <StoreSwitcher stores={stores} activeStore={store as any} isPro={isPro} />
+            <StoreSwitcher stores={stores} activeStore={activeStore} isPro={isPro} />
           </div>
         </div>
 

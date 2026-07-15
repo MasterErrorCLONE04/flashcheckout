@@ -1,68 +1,74 @@
-import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import {
+  badRequest,
+  getErrorMessage,
+  internalServerError,
+  unauthorized,
+} from '@/lib/api/route-utils'
 
-export const dynamic = 'force-dynamic'
+type DriverBody = {
+  name?: string
+  phoneNumber?: string
+  id?: string
+}
 
 export async function POST(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    if (!userId) return unauthorized('No autorizado')
+
+    const body = (await req.json().catch(() => null)) as DriverBody | null
+    if (!body?.name || !body.phoneNumber) {
+      return badRequest('Faltan campos requeridos')
     }
 
-    const { name, phoneNumber } = await req.json()
-    if (!name || !phoneNumber) {
-      return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
-    }
+    const cleanPhone = body.phoneNumber.replace(/\D/g, '')
 
-    const cleanPhone = phoneNumber.replace(/\D/g, '')
-
-    // Check if phone number already exists
-    const existing = await (prisma as any).driver.findUnique({
-      where: { phoneNumber: cleanPhone }
+    const existing = await prisma.driver.findUnique({
+      where: { phoneNumber: cleanPhone },
     })
     if (existing) {
-      return NextResponse.json({ error: 'Ya existe un repartidor registrado con este teléfono' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'Ya existe un repartidor registrado con este telefono' },
+        { status: 409 }
+      )
     }
 
-    const driver = await (prisma as any).driver.create({
+    const driver = await prisma.driver.create({
       data: {
-        name,
+        name: body.name,
         phoneNumber: cleanPhone,
         active: true,
         available: true,
         rating: 5.0,
-        ordersDelivered: 0
-      }
+        ordersDelivered: 0,
+      },
     })
 
     return NextResponse.json({ success: true, driver })
-  } catch (err: any) {
-    console.error('[API Driver Post Error]', err)
-    return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500 })
+  } catch (error: unknown) {
+    console.error('[API Driver Post Error]', error)
+    return internalServerError(getErrorMessage(error, 'Error del servidor'))
   }
 }
 
 export async function DELETE(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-    }
+    if (!userId) return unauthorized('No autorizado')
 
-    const { id } = await req.json()
-    if (!id) {
-      return NextResponse.json({ error: 'Falta ID' }, { status: 400 })
-    }
+    const body = (await req.json().catch(() => null)) as DriverBody | null
+    if (!body?.id) return badRequest('Falta ID')
 
-    await (prisma as any).driver.delete({
-      where: { id }
+    await prisma.driver.delete({
+      where: { id: body.id },
     })
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    console.error('[API Driver Delete Error]', err)
-    return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500 })
+  } catch (error: unknown) {
+    console.error('[API Driver Delete Error]', error)
+    return internalServerError(getErrorMessage(error, 'Error del servidor'))
   }
 }

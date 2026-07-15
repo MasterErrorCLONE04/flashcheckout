@@ -1,29 +1,26 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { cartStateToLines } from '@/lib/whatsapp/session-state'
+import { badRequest, getErrorMessage, internalServerError, notFound, unauthorized, forbidden } from '@/lib/api/route-utils'
 
 export async function GET(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!userId) return unauthorized()
 
     const { searchParams } = new URL(req.url)
     const sessionId = searchParams.get('sessionId')
 
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
-    }
+    if (!sessionId) return badRequest('Missing sessionId')
 
     const store = await prisma.store.findFirst({
       where: { userId }
     })
     console.log('[API WhatsApp Session GET] userId:', userId, 'Store found:', store?.id)
 
-    if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    }
+    if (!store) return notFound('Store not found')
 
     // Handle mock demo session details
     if (sessionId === 'demo-session') {
@@ -36,20 +33,16 @@ export async function GET(req: Request) {
       })
     }
 
-    const session = await (prisma as any).whatsAppSession.findUnique({
+    const session = await prisma.whatsAppSession.findUnique({
       where: { id: sessionId }
     })
     console.log('[API WhatsApp Session GET] sessionId:', sessionId, 'Session found:', session?.id)
 
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
-    }
+    if (!session) return notFound('Session not found')
 
     console.log('[API WhatsApp Session GET] comparing storeId:', session.storeId, 'with store.id:', store.id)
 
-    if (session.storeId !== store.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    if (session.storeId !== store.id) return forbidden()
 
     // Fetch customer's orders history
     const orders = await prisma.order.findMany({
@@ -70,17 +63,7 @@ export async function GET(req: Request) {
       : new Date(session.lastInteraction).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })
 
     // Parse cart items
-    let cartItems: any[] = []
-    if (session.cart) {
-      try {
-        const cartObj = typeof session.cart === 'string' ? JSON.parse(session.cart) : session.cart
-        if (cartObj && cartObj.items) {
-          cartItems = Object.values(cartObj.items)
-        }
-      } catch (e) {
-        console.error('Error parsing cart:', e)
-      }
-    }
+    const cartItems = cartStateToLines(session.cart)
 
     return NextResponse.json({
       orders,
@@ -90,70 +73,71 @@ export async function GET(req: Request) {
       firstInteractionDate
     })
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('[API WhatsApp Session GET Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+    return internalServerError(getErrorMessage(err))
   }
 }
 
 export async function PATCH(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!userId) return unauthorized()
 
     const body = await req.json()
     const { sessionId, tags, notes, assignedTo, isFavorite, status } = body
 
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
-    }
+    if (!sessionId) return badRequest('Missing sessionId')
 
     // 1. Buscar la tienda del usuario
     const store = await prisma.store.findFirst({
       where: { userId }
     })
 
-    if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    }
+    if (!store) return notFound('Store not found')
 
     // 2. Buscar la sesión de WhatsApp (si es demo, omitir guardado de DB y retornar éxito)
-    if (sessionId === 'demo-session') {
-      return NextResponse.json({ success: true })
-    }
+    if (sessionId === 'demo-session') return NextResponse.json({ success: true })
 
-    const session = await (prisma as any).whatsAppSession.findUnique({
+    const session = await prisma.whatsAppSession.findUnique({
       where: { id: sessionId }
     })
 
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
-    }
+    if (!session) return notFound('Session not found')
 
     // 3. Validar que la sesión pertenece a la tienda
-    if (session.storeId !== store.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    if (session.storeId !== store.id) return forbidden()
 
     // 4. Construir objeto de actualización
-    const updateData: any = {}
-    if (tags !== undefined) updateData.tags = tags
-    if (notes !== undefined) updateData.notes = notes
-    if (assignedTo !== undefined) updateData.assignedTo = assignedTo
-    if (isFavorite !== undefined) updateData.isFavorite = isFavorite
-    if (status !== undefined) updateData.status = status
+    const updateData: Prisma.WhatsAppSessionUpdateInput = {}
 
-    const updated = await (prisma as any).whatsAppSession.update({
+    if (Array.isArray(tags)) {
+      updateData.tags = tags
+    }
+    if (Array.isArray(notes) || notes === null) {
+      updateData.notes = notes
+    }
+    if (typeof assignedTo === 'string') {
+      updateData.assignedTo = assignedTo
+    }
+    if (typeof isFavorite === 'boolean') {
+      updateData.isFavorite = isFavorite
+    }
+    if (typeof status === 'string') {
+      updateData.status = status
+    }
+
+    if (Object.keys(updateData).length === 0) return badRequest('No valid fields to update')
+
+    const updated = await prisma.whatsAppSession.update({
       where: { id: sessionId },
       data: updateData
     })
 
     return NextResponse.json({ success: true, session: updated })
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('[API WhatsApp Session Update Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+    return internalServerError(getErrorMessage(err))
   }
 }

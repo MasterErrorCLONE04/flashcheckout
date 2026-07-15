@@ -11,6 +11,12 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+type SalesChartTooltipProps = {
+  active?: boolean
+  payload?: Array<{ value?: number | string }>
+  label?: string | number
+}
+
 type SalesData = {
   date: string
   total: number
@@ -32,7 +38,7 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
   }
 
   // Personalización del tooltip: Estética Apple Glass
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: SalesChartTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white/80 backdrop-blur-2xl border border-gray-200 p-5 rounded-lg ring-1 ring-zinc-950/5">
@@ -40,7 +46,7 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <p className="text-zinc-950 font-medium text-2xl tracking-tighter tabular-nums font-display">
-              ${payload[0].value.toLocaleString('es-CO')}
+              ${Number(payload[0].value ?? 0).toLocaleString('es-CO')}
             </p>
           </div>
           <p className="text-[11px] font-medium text-zinc-300 tracking-tight mt-2">Sincronizado vía Flash</p>

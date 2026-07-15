@@ -1,11 +1,15 @@
 import { cookies } from 'next/headers'
+import { Prisma } from '@prisma/client'
 import { prisma } from './prisma'
 
-export async function getActiveStore(userId: string, include?: any) {
+export async function getActiveStore(
+  userId: string,
+  include?: Prisma.StoreFindFirstArgs['include']
+) {
   const cookieStore = await cookies()
   const activeStoreId = cookieStore.get('active_store_id')?.value
 
-  let store = null
+  let store: Prisma.Store | null = null
   if (activeStoreId) {
     store = await prisma.store.findFirst({
       where: { id: activeStoreId, userId },

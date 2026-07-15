@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
+    const debugEnabled = process.env.DEBUG_ROUTES_ENABLED === 'true' || process.env.NODE_ENV !== 'production'
+    if (!debugEnabled) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const stores = await prisma.store.findMany({
       include: {
         products: {
@@ -29,10 +40,11 @@ export async function GET() {
         products: s.products
       }))
     });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: message
     }, { status: 500 });
   }
 }

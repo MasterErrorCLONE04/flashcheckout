@@ -1,11 +1,10 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { stripe } from '@/lib/stripe'
 import { sendInvoiceToWhatsApp } from '@/lib/whatsapp/send-invoice'
 import { waClient } from '@/lib/whatsapp/cloud-api'
-
 
 type OrderItemJson = {
   productId: string
@@ -14,16 +13,32 @@ type OrderItemJson = {
   price: number
 }
 
+type AutomationTemplate = {
+  id: string
+  customTemplate: string | null
+}
+
+type WhatsAppNotifier = {
+  sendText: (to: string, message: string) => Promise<unknown>
+  sendButtons?: (
+    to: string,
+    message: string,
+    buttons: Array<{ id: string; title: string }>
+  ) => Promise<unknown>
+}
+
 function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   const fromParent = invoice.parent?.subscription_details?.subscription
   if (fromParent) {
     return typeof fromParent === 'string' ? fromParent : fromParent.id
   }
+
   const legacy = (
     invoice as Stripe.Invoice & {
       subscription?: string | Stripe.Subscription | null
     }
   ).subscription
+
   if (!legacy) return null
   return typeof legacy === 'string' ? legacy : legacy.id
 }
@@ -32,8 +47,8 @@ function subscriptionPeriodAndPrice(sub: Stripe.Subscription) {
   const item = sub.items.data[0]
   const periodEndSec = item?.current_period_end
   const price = item?.price
-  const priceId =
-    typeof price === 'string' ? price : price?.id ?? null
+  const priceId = typeof price === 'string' ? price : price?.id ?? null
+
   return {
     stripePriceId: priceId,
     stripeCurrentPeriodEnd:
@@ -71,7 +86,6 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
     }
 
     const items = order.items as OrderItemJson[]
-
     for (const line of items) {
       await tx.product.update({
         where: { id: line.productId },
@@ -88,45 +102,46 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
     })
   })
 
-  // Trigger "Pedido pagado" Automation
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { store: true }
+      include: { store: true },
     })
-    
-    if (order && order.storeId) {
-      const aut = await prisma.automation.findFirst({
+
+    if (order?.storeId) {
+      const aut = (await prisma.automation.findFirst({
         where: {
           storeId: order.storeId,
-          name: { equals: "Pedido pagado", mode: 'insensitive' },
-          active: true
-        }
-      }) as any
+          name: { equals: 'Pedido pagado', mode: 'insensitive' },
+          active: true,
+        },
+        select: { id: true, customTemplate: true },
+      })) as AutomationTemplate | null
 
       const recipient = order.customerPhone || order.customerWhatsAppId
       if (aut && recipient) {
-        const defaultMsg = `¡Pago confirmado! 🎉\n\nTu pedido *#{{pedido_id}}* por un total de \${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra! 🚀`
-        const template = (aut as any).customTemplate || defaultMsg
+        const defaultMsg = `¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!`
+        const template = aut.customTemplate || defaultMsg
         const formattedMsg = template
           .replace(/{{cliente}}/g, order.customerName || 'Cliente')
           .replace(/{{pedido_id}}/g, order.id.slice(-6).toUpperCase())
           .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
           .replace(/{{tienda}}/g, order.store.name)
 
-        let clientToUse: any = waClient
+        let clientToUse: WhatsAppNotifier = waClient
         const store = order.store
-        if (store && store.whatsappInstanceName && store.whatsappConnected) {
+        if (store.whatsappInstanceName && store.whatsappConnected) {
           const { evolutionClient } = await import('@/lib/whatsapp/evolution')
           clientToUse = {
-            sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName!, to, msg)
+            sendText: (to: string, message: string) =>
+              evolutionClient.sendText(store.whatsappInstanceName!, to, message),
           }
         }
 
         await clientToUse.sendText(recipient, formattedMsg)
         await prisma.automation.update({
           where: { id: aut.id },
-          data: { sentToday: { increment: 1 } }
+          data: { sentToday: { increment: 1 } },
         })
       }
     }
@@ -134,34 +149,32 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
     console.error('[Stripe Webhook] Failed to send WhatsApp payment confirmation text', error)
   }
 
-  // Enviar factura electrónica por WhatsApp
   try {
     await sendInvoiceToWhatsApp(orderId)
   } catch (error) {
     console.error('[Stripe Webhook] Failed to send WhatsApp confirmation / invoice', error)
   }
 
-  // Notificar al dueño de la tienda por WhatsApp sobre la nueva venta y sugerir domicilio
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
     })
-    if (order && order.storeId) {
+    if (order?.storeId) {
       const store = await prisma.store.findUnique({
         where: { id: order.storeId },
       })
-      if (store && store.whatsapp) {
+      if (store?.whatsapp) {
         await waClient.sendText(
           store.whatsapp,
-          `📦 *¡Nuevo pedido recibido!* 🎉\n\nHola, tienes una nueva venta en tu tienda *${store.name}*:\n\n*Detalles del pedido:*\n• *ID:* #${order.id.slice(-6)}\n• *Cliente:* ${order.customerName}\n• *Teléfono:* ${order.customerPhone || 'N/A'}\n• *Dirección de Entrega:* ${order.address}, ${order.city}\n• *Total:* $${order.total.toLocaleString('es-CO')}`
+          `Nuevo pedido recibido.\n\nTienes una nueva venta en tu tienda *${store.name}*:\n\n*Detalles del pedido:*\n- *ID:* #${order.id.slice(-6)}\n- *Cliente:* ${order.customerName}\n- *Telefono:* ${order.customerPhone || 'N/A'}\n- *Direccion de Entrega:* ${order.address}, ${order.city}\n- *Total:* $${order.total.toLocaleString('es-CO')}`
         )
 
         await waClient.sendButtons(
           store.whatsapp,
-          `🚚 *¿Te gustaría solicitar nuestro Servicio de Domicilio?*\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequeña cuota de *$5.000 COP* (se descontará del pago final de la orden).`,
+          `¿Te gustaria solicitar nuestro Servicio de Domicilio?\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequena cuota de $5.000 COP (se descontara del pago final de la orden).`,
           [
-            { id: `delivery_yes_${order.id}`, title: 'SÍ' },
-            { id: `delivery_no_${order.id}`, title: 'NO' }
+            { id: `delivery_yes_${order.id}`, title: 'SI' },
+            { id: `delivery_no_${order.id}`, title: 'NO' },
           ]
         )
       }
@@ -173,7 +186,6 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
 
 export async function POST(req: Request) {
   const body = await req.text()
-
   const headersList = await headers()
   const signature = headersList.get('Stripe-Signature') as string
 

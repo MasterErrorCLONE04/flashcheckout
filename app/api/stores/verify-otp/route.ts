@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { getErrorMessage } from '@/lib/api/route-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,8 +45,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ success: true, message: 'WhatsApp verificado correctamente' })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('VERIFY_OTP_ERROR:', error)
-    return NextResponse.json({ error: error.message || 'Error del servidor' }, { status: 500 })
+    return NextResponse.json({ error: getErrorMessage(error, 'Error del servidor') }, { status: 500 })
   }
 }

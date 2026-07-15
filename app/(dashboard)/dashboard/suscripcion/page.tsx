@@ -5,6 +5,7 @@ import { checkSubscription } from '@/lib/subscription'
 import SubscriptionButton from '@/components/SubscriptionButton'
 import { Sparkles, CheckCircle2, LayoutTemplate, Zap, ShieldCheck, BarChart3, Headphones, Package, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { ComponentType } from 'react'
 
 export default async function SuscripcionPage() {
   const { userId } = await auth()
@@ -221,7 +222,7 @@ export default async function SuscripcionPage() {
   )
 }
 
-function BenefitCard({ title, desc, icon: Icon }: { title: string, desc: string, icon: any }) {
+function BenefitCard({ title, desc, icon: Icon }: { title: string, desc: string, icon: ComponentType<{ className?: string }> }) {
   return (
     <div className="premium-card p-8 bg-white border-black/[0.03] group hover:border-primary/10 transition-all">
       <div className="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:text-primary transition-colors mb-6">

@@ -17,6 +17,17 @@ import {
 } from 'recharts'
 import { Zap } from 'lucide-react'
 
+type ChartTooltipEntry = {
+  name?: string
+  value?: number | string
+}
+
+type ChartTooltipProps = {
+  active?: boolean
+  payload?: ChartTooltipEntry[]
+  label?: string | number
+}
+
 // 1. STACKED BAR CHART (Actividad Comercial)
 type BarChartItem = {
   date: string
@@ -47,10 +58,10 @@ export function StackedBarChart({ data }: { data: BarChartItem[] }) {
     return `$${value}`
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
     if (active && payload && payload.length) {
-      const whatsapp = payload.find((p: any) => p.name === 'whatsappSales')?.value ?? 0
-      const web = payload.find((p: any) => p.name === 'webSales')?.value ?? 0
+      const whatsapp = Number(payload.find((p) => p.name === 'whatsappSales')?.value ?? 0)
+      const web = Number(payload.find((p) => p.name === 'webSales')?.value ?? 0)
       const total = whatsapp + web
 
       return (
@@ -177,7 +188,10 @@ export function SalesChannelDonut({ whatsappTotal, webTotal }: DonutProps) {
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: any) => [`$${value.toLocaleString('es-CO')}`, 'Monto']}
+            formatter={(value: number | string) => [
+              `$${Number(value).toLocaleString('es-CO')}`,
+              'Monto'
+            ]}
             contentStyle={{ background: '#FFF', borderRadius: '12px', border: '1px solid #E4E4E7', fontSize: '11px', fontWeight: 'bold' }}
           />
         </PieChart>
@@ -348,7 +362,10 @@ export function WeeklySalesAreaChart({ data }: { data: WeeklySalesItem[] }) {
             dx={-5}
           />
           <Tooltip 
-            formatter={(value: any) => [`$${value.toLocaleString('es-CO')}`, 'Ingresos']}
+            formatter={(value: number | string) => [
+              `$${Number(value).toLocaleString('es-CO')}`,
+              'Ingresos'
+            ]}
             contentStyle={{ background: '#FFF', borderRadius: '12px', border: '1px solid #E4E4E7', fontSize: '11px', fontWeight: 'bold' }}
           />
           <Area

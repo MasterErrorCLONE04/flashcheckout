@@ -7,6 +7,8 @@ import TheOfficeClient from '@/components/TheOfficeClient'
 
 export const dynamic = 'force-dynamic'
 
+type OfficeSettings = Record<string, unknown>
+
 export default async function TheOfficePage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -23,7 +25,7 @@ export default async function TheOfficePage() {
     whatsapp: store.whatsapp,
     whatsappConnected: store.whatsappConnected,
     mpConnected: store.mpConnected,
-    settings: (store.settings as any) || {}
+    settings: (store.settings as OfficeSettings) || {}
   }
 
   // Fetch some metrics to display inside agent profiles

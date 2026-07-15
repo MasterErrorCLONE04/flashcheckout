@@ -6,6 +6,12 @@ import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
 
+type AnalyticsItem = {
+  name?: string
+  qty?: number | string
+  price?: number | string
+}
+
 export default async function AnaliticaPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -26,8 +32,8 @@ export default async function AnaliticaPage() {
 
   // Calculate top products sold
   const productsMap: Record<string, { name: string; sold: number; revenue: number }> = {}
-  orders.forEach((o: any) => {
-    const items = o.items as any[]
+  orders.forEach((o) => {
+    const items = Array.isArray(o.items) ? (o.items as AnalyticsItem[]) : []
     if (Array.isArray(items)) {
       items.forEach(i => {
         const name = i.name || 'Producto'

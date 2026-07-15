@@ -1,63 +1,125 @@
-import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
+import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
+import {
+  cartStateToLines,
+  normalizeChatMessages,
+} from '@/lib/whatsapp/session-state'
+import {
+  badRequest,
+  getErrorMessage,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from '@/lib/api/route-utils'
+
+type SendPaymentLinkBody = {
+  sessionId?: string
+}
+
+type SessionWithStore = {
+  id: string
+  phoneNumber: string
+  customerName: string | null
+  address: string | null
+  storeId: string
+  cart: unknown
+  messages: unknown
+  step: string
+  store: {
+    id: string
+    slug: string
+    mpAccessToken: string | null
+    whatsappConnected: boolean
+    whatsappInstanceName: string | null
+  } | null
+}
+
+type CartLine = {
+  id: string
+  name: string
+  price: number
+  qty: number
+}
+
+function parseSessionBody(body: unknown): SendPaymentLinkBody | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  const record = body as Record<string, unknown>
+  return {
+    sessionId: typeof record.sessionId === 'string' ? record.sessionId : undefined,
+  }
+}
+
+function extractPaymentLines(cart: unknown): CartLine[] {
+  return cartStateToLines(cart).map(item => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    qty: item.qty,
+  }))
+}
+
+async function getStoreForUser(userId: string) {
+  return prisma.store.findFirst({
+    where: { userId },
+    select: {
+      id: true,
+      slug: true,
+      mpAccessToken: true,
+      whatsappConnected: true,
+      whatsappInstanceName: true,
+    },
+  })
+}
 
 export async function POST(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!userId) return unauthorized()
 
-    const body = await req.json()
-    const { sessionId } = body
+    const body = parseSessionBody(await req.json().catch(() => null))
+    if (!body?.sessionId) return badRequest('Missing sessionId')
 
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
-    }
+    const store = await getStoreForUser(userId)
+    if (!store) return notFound('Store not found')
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    })
-
-    if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    }
-
-    if (sessionId === 'demo-session') {
+    if (body.sessionId === 'demo-session') {
       return NextResponse.json({ success: true, paymentLink: '#' })
     }
 
-    const session = await (prisma as any).whatsAppSession.findUnique({
-      where: { id: sessionId }
-    })
+    const session = (await prisma.whatsAppSession.findFirst({
+      where: { id: body.sessionId, storeId: store.id },
+      select: {
+        id: true,
+        phoneNumber: true,
+        customerName: true,
+        address: true,
+        storeId: true,
+        cart: true,
+        messages: true,
+        step: true,
+        store: {
+          select: {
+            id: true,
+            slug: true,
+            mpAccessToken: true,
+            whatsappConnected: true,
+            whatsappInstanceName: true,
+          },
+        },
+      },
+    })) as SessionWithStore | null
 
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
-    }
+    if (!session) return notFound('Session not found')
 
-    // Parse cart items
-    let items: any[] = []
-    if (session.cart) {
-      try {
-        const cartObj = typeof session.cart === 'string' ? JSON.parse(session.cart) : session.cart
-        if (cartObj && cartObj.items) {
-          items = Object.values(cartObj.items)
-        }
-      } catch (e) {
-        console.error('Error parsing cart:', e)
-      }
-    }
-
+    const items = extractPaymentLines(session.cart)
     if (items.length === 0) {
-      return NextResponse.json({ error: 'El carrito está vacío' }, { status: 400 })
+      return badRequest('El carrito está vacío')
     }
 
-    const total = items.reduce((acc, item) => acc + (item.price * item.qty), 0)
-
-    // Create a real order in the database
+    const total = items.reduce((acc, item) => acc + item.price * item.qty, 0)
     const order = await prisma.order.create({
       data: {
         storeId: store.id,
@@ -66,24 +128,24 @@ export async function POST(req: Request) {
         customerWhatsAppId: session.phoneNumber,
         address: session.address || 'Pedido por Chat',
         city: 'Colombia',
-        items: items as any,
+        items,
         total,
         paymentStatus: 'PENDING',
-        source: 'WHATSAPP'
-      }
+        source: 'WHATSAPP',
+      },
     })
 
-    const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000'
+    const base =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000'
     let paymentLink = `${base}/tienda/${store.slug}/exito?orderId=${order.id}`
 
-    // Try to generate Mercado Pago Preference if configured
-    const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
+    const tokenToUse = session.store?.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
     if (tokenToUse) {
       try {
-        const preferenceData: any = {
+        const preferenceData = {
           body: {
             items: items.map(line => ({
-              id: line.id || line.productId,
+              id: line.id,
               title: `${line.name} (x${line.qty})`,
               quantity: line.qty,
               unit_price: line.price,
@@ -122,16 +184,18 @@ export async function POST(req: Request) {
       }
     }
 
-    // Send the payment link to the customer via WhatsApp
     try {
       const messageText = `🛒 *Tu pedido está listo* 📝\n\nHemos preparado tu link de pago por un total de *$${total.toLocaleString('es-CO')} COP*.\n\nPuedes pagar de forma segura haciendo clic aquí:\n🔗 ${paymentLink}`
-      
-      // If store is connected to Evolution, send via evolutionClient or cloud-api dynamically
+
       let sent = false
-      if (store.whatsappConnected && store.whatsappInstanceName) {
+      if (session.store?.whatsappConnected && session.store.whatsappInstanceName) {
         try {
           const { evolutionClient } = await import('@/lib/whatsapp/evolution')
-          await evolutionClient.sendText(store.whatsappInstanceName, session.phoneNumber, messageText)
+          await evolutionClient.sendText(
+            session.store.whatsappInstanceName,
+            session.phoneNumber,
+            messageText
+          )
           sent = true
         } catch (e) {
           console.error('Failed to send link via Evolution API:', e)
@@ -141,32 +205,30 @@ export async function POST(req: Request) {
       if (!sent) {
         await waClient.sendText(session.phoneNumber, messageText)
       }
-      
-      // Add system message to the chat history
-      const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      const messages = Array.isArray(session.messages) ? (session.messages as any[]) : []
+
+      const messages = normalizeChatMessages(session.messages)
       messages.push({
         sender: 'bot',
         text: `[Link de Pago Enviado]: $${total.toLocaleString('es-CO')} COP\n${paymentLink}`,
-        time: timeString,
-        timestamp: Date.now()
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now(),
       })
 
-      await (prisma as any).whatsAppSession.update({
+      await prisma.whatsAppSession.update({
         where: { id: session.id },
-        data: { 
+        data: {
           messages,
           step: 'AWAITING_CONFIRMATION',
-          cart: null // clear cart upon payment link generation
-        }
+          cart: null,
+        },
       })
-    } catch (waErr: any) {
-      console.error('WhatsApp send link error:', waErr.message)
+    } catch (waErr) {
+      console.error('WhatsApp send link error:', waErr)
     }
 
     return NextResponse.json({ success: true, paymentLink })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending payment link:', error)
-    return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 })
+    return internalServerError(getErrorMessage(error, 'Error interno'))
   }
 }

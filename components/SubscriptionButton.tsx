@@ -6,6 +6,10 @@ import { cn } from '@/lib/utils'
 
 import { toast } from 'sonner'
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Error desconocido'
+}
+
 export default function SubscriptionButton({ isPro }: { isPro: boolean }) {
   const [loading, setLoading] = useState(false)
 
@@ -23,9 +27,9 @@ export default function SubscriptionButton({ isPro }: { isPro: boolean }) {
         description: "Serás redirigido de forma segura al portal de facturación."
       })
       window.location.href = data.url
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Error financiero", {
-        description: `No pudimos conectar con la pasarela de pagos. Detalle: ${error.message}`
+        description: `No pudimos conectar con la pasarela de pagos. Detalle: ${getErrorMessage(error)}`
       })
       console.error('El Portal de Cobro falló', error)
     } finally {

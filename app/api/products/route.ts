@@ -1,157 +1,140 @@
-import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
 import { getActiveStore } from '@/lib/store-context'
+import {
+  badRequest,
+  forbidden,
+  getErrorMessage,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from '@/lib/api/route-utils'
 
 export const dynamic = 'force-dynamic'
-// Re-evaluating Prisma types for marketplace integration
+
+type ProductBody = {
+  id?: string
+  name?: string
+  price?: number
+  stock?: number
+  imageUrl?: string | null
+  category?: string | null
+  active?: boolean
+  description?: string | null
+  options?: unknown
+}
+
+type StoreWithProductCount = {
+  id: string
+  products: Array<{ id: string }>
+}
 
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  try {
+    const { userId } = await auth()
+    if (!userId) return unauthorized('No autorizado')
+
+    const store = await getActiveStore(userId)
+    if (!store) return NextResponse.json({ products: [] })
+
+    const products = await prisma.product.findMany({
+      where: { storeId: store.id },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json({ products })
+  } catch (error: unknown) {
+    console.error('Error fetching products:', error)
+    return internalServerError(getErrorMessage(error, 'Error al obtener productos'))
   }
-
-  const store = await getActiveStore(userId)
-
-  if (!store) {
-    return NextResponse.json({ products: [] })
-  }
-
-  const products = await prisma.product.findMany({
-    where: { storeId: store.id },
-    orderBy: { createdAt: 'desc' },
-  })
-
-  return NextResponse.json({ products })
 }
 
 export async function POST(req: Request) {
   const { userId } = await auth()
-  if (!userId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  }
+  if (!userId) return unauthorized('No autorizado')
 
   try {
-    const body = await req.json()
-    const { name, price, stock, imageUrl, category, description, options } = body
-
-    if (!name || price == null) {
-      return NextResponse.json(
-        { error: 'Faltan datos requeridos' },
-        { status: 400 }
-      )
+    const body = (await req.json().catch(() => null)) as ProductBody | null
+    if (!body?.name || body.price == null) {
+      return badRequest('Faltan datos requeridos')
     }
 
-    const store = await getActiveStore(userId, { products: true })
+    const store = (await getActiveStore(userId, { products: true })) as StoreWithProductCount | null
+    if (!store) return badRequest('Store required')
 
-    if (!store) {
-      return NextResponse.json({ error: 'Store required' }, { status: 400 })
-    }
-
-    // 🔴 Seguridad: Verificar límites Freemium 
     const isPro = await checkSubscription()
-    if (!isPro && (store as any).products.length >= 10) {
-      return NextResponse.json(
-        { error: 'Límite de productos gratuitos alcanzado' },
-        { status: 403 }
-      )
+    if (!isPro && store.products.length >= 10) {
+      return forbidden('Limite de productos gratuitos alcanzado')
     }
 
-    const product = await (prisma.product as any).create({
+    const product = await prisma.product.create({
       data: {
-        name,
-        price: Math.round(price),
-        stock: stock ?? 0,
-        imageUrl: imageUrl ?? null,
-        category: category ?? "General",
-        description: description ?? null,
-        options: options ?? null,
+        name: body.name,
+        price: Math.round(Number(body.price)),
+        stock: Number.isFinite(Number(body.stock)) ? Number(body.stock) : 0,
+        imageUrl: body.imageUrl ?? null,
+        category: body.category ?? 'General',
+        description: body.description ?? null,
+        options: body.options ?? null,
         storeId: store.id,
       },
     })
 
     return NextResponse.json({ product }, { status: 201 })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating product:', error)
-    return NextResponse.json(
-      { error: 'Error al crear el producto' },
-      { status: 500 }
-    )
+    return internalServerError(getErrorMessage(error, 'Error al crear el producto'))
   }
 }
 
 export async function PUT(req: Request) {
   const { userId } = await auth()
-  if (!userId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  }
+  if (!userId) return unauthorized('No autorizado')
 
   try {
-    const body = await req.json()
-    const { id, name, price, stock, imageUrl, category, active, description, options } = body
+    const body = (await req.json().catch(() => null)) as ProductBody | null
+    if (!body?.id) return badRequest('ID del producto requerido')
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'ID del producto requerido' },
-        { status: 400 }
-      )
-    }
-
-    // Verify the product belongs to this user's store
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: body.id },
       include: { store: { select: { userId: true } } },
     })
 
     if (!product || product.store.userId !== userId) {
-      return NextResponse.json(
-        { error: 'Producto no encontrado' },
-        { status: 404 }
-      )
+      return notFound('Producto no encontrado')
     }
 
-    const updated = await (prisma.product as any).update({
-      where: { id },
+    const updated = await prisma.product.update({
+      where: { id: body.id },
       data: {
-        ...(name !== undefined && { name }),
-        ...(price !== undefined && { price: Math.round(price) }),
-        ...(stock !== undefined && { stock }),
-        ...(imageUrl !== undefined && { imageUrl }),
-        ...(category !== undefined && { category }),
-        ...(active !== undefined && { active }),
-        ...(description !== undefined && { description }),
-        ...(options !== undefined && { options }),
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.price !== undefined && { price: Math.round(Number(body.price)) }),
+        ...(body.stock !== undefined && { stock: Math.max(0, Math.floor(Number(body.stock))) }),
+        ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
+        ...(body.category !== undefined && { category: body.category }),
+        ...(body.active !== undefined && { active: body.active }),
+        ...(body.description !== undefined && { description: body.description }),
+        ...(body.options !== undefined && { options: body.options }),
       },
     })
 
     return NextResponse.json({ product: updated })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating product:', error)
-    return NextResponse.json(
-      { error: 'Error al actualizar' },
-      { status: 500 }
-    )
+    return internalServerError(getErrorMessage(error, 'Error al actualizar'))
   }
 }
 
 export async function DELETE(req: Request) {
   const { userId } = await auth()
-  if (!userId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  }
+  if (!userId) return unauthorized('No autorizado')
 
   try {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'ID del producto requerido' },
-        { status: 400 }
-      )
-    }
+    if (!id) return badRequest('ID del producto requerido')
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -159,20 +142,13 @@ export async function DELETE(req: Request) {
     })
 
     if (!product || product.store.userId !== userId) {
-      return NextResponse.json(
-        { error: 'Producto no encontrado' },
-        { status: 404 }
-      )
+      return notFound('Producto no encontrado')
     }
 
     await prisma.product.delete({ where: { id } })
-
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error deleting product:', error)
-    return NextResponse.json(
-      { error: 'Error al eliminar' },
-      { status: 500 }
-    )
+    return internalServerError(getErrorMessage(error, 'Error al eliminar'))
   }
 }

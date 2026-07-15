@@ -6,6 +6,23 @@ import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
 
+type DriverRecord = {
+  name: string
+  phoneNumber: string
+  rating: number
+}
+
+type DispatchOrder = {
+  id: string
+  customerName: string
+  customerPhone: string | null
+  address: string
+  city: string
+  total: number
+  status: string
+  driver: DriverRecord | null
+}
+
 export default async function EnviosPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -16,7 +33,7 @@ export default async function EnviosPage() {
 
   if (!store) return <StoreCreationWizard />
 
-  const drivers = await (prisma as any).driver.findMany({
+  const drivers = await prisma.driver.findMany({
     orderBy: { name: 'asc' },
   })
 
@@ -30,7 +47,7 @@ export default async function EnviosPage() {
   })
 
   // Format dispatches list
-  const formattedDispatches = orders.map((o: any) => ({
+  const formattedDispatches = orders.map((o: DispatchOrder) => ({
     id: o.id,
     customerName: o.customerName,
     customerPhone: o.customerPhone || '',

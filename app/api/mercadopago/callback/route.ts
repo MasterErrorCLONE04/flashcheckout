@@ -1,8 +1,16 @@
-import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
+type MercadoPagoTokenResponse = {
+  access_token?: string
+  public_key?: string
+  user_id?: string | number
+}
+
+function redirectWithError(base: string, reason: string) {
+  return NextResponse.redirect(`${base}?mp_connected=error&error_reason=${reason}`)
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -12,45 +20,35 @@ export async function GET(req: Request) {
   const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000'
   const redirectUrl = `${base}/configuracion`
 
-  // 1. Verificar autenticación con Clerk
   const { userId } = await auth()
   if (!userId) {
     return NextResponse.redirect(`${base}/sign-in`)
   }
 
-  // 2. Si el usuario rechazó o hubo error
   if (error || !code) {
     console.error('[Mercado Pago OAuth Error] Error or missing code:', { error, code })
-    return NextResponse.redirect(`${redirectUrl}?mp_connected=error&error_reason=${error || 'no_code'}`)
+    return redirectWithError(redirectUrl, error || 'no_code')
   }
 
   try {
-    // 3. Buscar la tienda del usuario
     const store = await prisma.store.findFirst({
-      where: { userId }
+      where: { userId },
     })
 
     if (!store) {
       console.error('[Mercado Pago OAuth Error] Store not found for user:', userId)
-      return NextResponse.redirect(`${redirectUrl}?mp_connected=error&error_reason=no_store`)
+      return redirectWithError(redirectUrl, 'no_store')
     }
 
     const appId = process.env.NEXT_PUBLIC_MERCADOPAGO_APP_ID || ''
-    const clientSecret = process.env.MERCADOPAGO_CLIENT_SECRET || process.env.MERCADOPAGO_ACCESS_TOKEN || ''
-
-    console.log('[Mercado Pago OAuth Debug]', {
-      appId: appId,
-      appIdLength: appId.length,
-      clientSecretLength: clientSecret.length,
-      clientSecretPrefix: clientSecret ? `${clientSecret.substring(0, 10)}...` : 'undefined'
-    })
+    const clientSecret =
+      process.env.MERCADOPAGO_CLIENT_SECRET || process.env.MERCADOPAGO_ACCESS_TOKEN || ''
 
     if (!appId || !clientSecret) {
       console.error('[Mercado Pago OAuth Error] Missing app credentials in Env Variables')
-      return NextResponse.redirect(`${redirectUrl}?mp_connected=error&error_reason=missing_env`)
+      return redirectWithError(redirectUrl, 'missing_env')
     }
 
-    // 4. Intercambiar el código de autorización
     const params = new URLSearchParams()
     params.append('client_id', appId)
     params.append('client_secret', clientSecret)
@@ -62,35 +60,33 @@ export async function GET(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
-      body: params.toString()
+      body: params.toString(),
     })
 
     if (!tokenRes.ok) {
       const errBody = await tokenRes.text()
       console.error('[Mercado Pago OAuth Response Error] Failed to exchange code:', errBody)
-      return NextResponse.redirect(`${redirectUrl}?mp_connected=error&error_reason=exchange_failed`)
+      return redirectWithError(redirectUrl, 'exchange_failed')
     }
 
-    const data = await tokenRes.json()
+    const data = (await tokenRes.json()) as MercadoPagoTokenResponse
 
-    // 5. Guardar credenciales en la base de datos
     await prisma.store.update({
       where: { id: store.id },
       data: {
-        mpAccessToken: data.access_token,
-        mpPublicKey: data.public_key,
-        mpUserId: String(data.user_id),
-        mpConnected: true
-      }
+        mpAccessToken: data.access_token ?? null,
+        mpPublicKey: data.public_key ?? null,
+        mpUserId: data.user_id != null ? String(data.user_id) : null,
+        mpConnected: true,
+      },
     })
 
     console.log(`[Mercado Pago OAuth Success] Store ${store.slug} connected successfully. MP User ID: ${data.user_id}`)
     return NextResponse.redirect(`${redirectUrl}?mp_connected=success`)
-
-  } catch (err: any) {
-    console.error('[Mercado Pago OAuth Callback Exception]:', err)
-    return NextResponse.redirect(`${redirectUrl}?mp_connected=error&error_reason=exception`)
+  } catch (error: unknown) {
+    console.error('[Mercado Pago OAuth Callback Exception]:', error)
+    return redirectWithError(redirectUrl, 'exception')
   }
 }

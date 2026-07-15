@@ -33,11 +33,28 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { createPortal } from 'react-dom'
 
+type CouponEstado = 'Activo' | 'Programado' | 'Inactivo'
+type CouponTipo = 'Código' | 'Automático'
+type CouponTipoDesc = 'Porcentaje' | 'Envío gratis' | 'Monto fijo'
+type TabId = 'Todas' | 'Activas' | 'Programadas' | 'Inactivas'
+
+type Coupon = {
+  id: string
+  code: string
+  desc: string
+  tipo: CouponTipo
+  tipoDesc: CouponTipoDesc
+  valor: string
+  validoHasta: string
+  estado: CouponEstado
+  usos: number
+}
+
 export default function DescuentosPage() {
   const [mounted, setMounted] = useState(false)
-  const [coupons, setCoupons] = useState<any[]>([])
+  const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'Todas' | 'Activas' | 'Programadas' | 'Inactivas'>('Todas')
+  const [activeTab, setActiveTab] = useState<TabId>('Todas')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterEstado, setFilterEstado] = useState('Todos')
   const [filterTipo, setFilterTipo] = useState('Todos')
@@ -56,11 +73,11 @@ export default function DescuentosPage() {
   // Form Fields
   const [code, setCode] = useState('')
   const [desc, setDesc] = useState('')
-  const [tipo, setTipo] = useState<'Código' | 'Automático'>('Código')
-  const [tipoDesc, setTipoDesc] = useState<'Porcentaje' | 'Envío gratis' | 'Monto fijo'>('Porcentaje')
+  const [tipo, setTipo] = useState<CouponTipo>('Código')
+  const [tipoDesc, setTipoDesc] = useState<CouponTipoDesc>('Porcentaje')
   const [valorNum, setValorNum] = useState('')
   const [validoHasta, setValidoHasta] = useState('')
-  const [estado, setEstado] = useState<'Activo' | 'Programado' | 'Inactivo'>('Activo')
+  const [estado, setEstado] = useState<CouponEstado>('Activo')
 
   const fetchCoupons = async () => {
     try {
@@ -171,7 +188,7 @@ export default function DescuentosPage() {
     }
   }
 
-  const handleToggleStatus = async (coupon: any) => {
+  const handleToggleStatus = async (coupon: Coupon) => {
     const newEstado = coupon.estado === 'Activo' ? 'Inactivo' : 'Activo'
     try {
       const res = await fetch('/api/coupons', {
@@ -307,11 +324,11 @@ export default function DescuentosPage() {
           { id: 'Activas', label: 'Activas', count: activeCount },
           { id: 'Programadas', label: 'Programadas', count: scheduledCount },
           { id: 'Inactivas', label: 'Inactivas', count: inactiveCount },
-        ].map(tab => (
+        ] as const).map(tab => (
           <button
             key={tab.id}
             onClick={() => {
-              setActiveTab(tab.id as any)
+              setActiveTab(tab.id)
               setCurrentPage(1)
             }}
             className={`pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -909,7 +926,7 @@ export default function DescuentosPage() {
                   <label className="text-[10px] font-bold text-zinc-400  tracking-wider block">Tipo de aplicación</label>
                   <select 
                     value={tipo}
-                    onChange={e => setTipo(e.target.value as any)}
+                    onChange={e => setTipo(e.target.value as CouponTipo)}
                     className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                   >
                     <option value="Código">Código promocional</option>
@@ -921,7 +938,7 @@ export default function DescuentosPage() {
                   <label className="text-[10px] font-bold text-zinc-400  tracking-wider block">Tipo de descuento</label>
                   <select 
                     value={tipoDesc}
-                    onChange={e => setTipoDesc(e.target.value as any)}
+                    onChange={e => setTipoDesc(e.target.value as CouponTipoDesc)}
                     className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                   >
                     <option value="Porcentaje">Porcentaje %</option>
@@ -963,7 +980,7 @@ export default function DescuentosPage() {
                   <label className="text-[10px] font-bold text-zinc-400  tracking-wider block">Estado</label>
                   <select 
                     value={estado}
-                    onChange={e => setEstado(e.target.value as any)}
+                    onChange={e => setEstado(e.target.value as CouponEstado)}
                     className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                   >
                     <option value="Activo">Activo</option>

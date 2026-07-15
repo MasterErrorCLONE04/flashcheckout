@@ -2,8 +2,15 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { evolutionClient } from '@/lib/whatsapp/evolution';
+import { getErrorMessage } from '@/lib/api/route-utils';
 
 export const dynamic = 'force-dynamic';
+
+type WhatsAppStore = {
+  id: string;
+  whatsappInstanceName: string | null;
+  whatsappConnected: boolean;
+};
 
 // GET: Check connection status and get QR code if not connected
 export async function GET() {
@@ -46,14 +53,14 @@ export async function GET() {
         qr: qrData.base64,
         connected: false
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Instance GET status error]', err);
-      return NextResponse.json({ status: 'DISCONNECTED', error: err.message });
+      return NextResponse.json({ status: 'DISCONNECTED', error: getErrorMessage(err) });
     }
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API Instance GET Error]', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
 }
 
@@ -93,7 +100,7 @@ export async function POST(req: Request) {
     // 2. Register instance in Evolution API
     try {
       await evolutionClient.createInstance(instanceName);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If it already exists, that is fine, we continue
       console.log(`[Instance POST] Instance ${instanceName} may already exist, proceeding.`);
     }
@@ -101,7 +108,7 @@ export async function POST(req: Request) {
     // 3. Configure webhook
     try {
       await evolutionClient.setWebhook(instanceName);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Instance POST] Failed to set webhook', err);
     }
 
@@ -115,9 +122,9 @@ export async function POST(req: Request) {
       connected: qrData.status === 'CONNECTED'
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API Instance POST Error]', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
 }
 
@@ -139,13 +146,13 @@ export async function DELETE() {
 
     return disconnectStoreInstance(store);
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API Instance DELETE Error]', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
 }
 
-async function disconnectStoreInstance(store: any) {
+async function disconnectStoreInstance(store: WhatsAppStore) {
   // Update database immediately
   await prisma.store.update({
     where: { id: store.id },

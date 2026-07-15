@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import { cookies } from 'next/headers'
+import { getErrorMessage } from '@/lib/api/route-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -110,9 +111,9 @@ export async function POST(req: Request) {
         cleanWhatsapp,
         `¡Hola! Tu código de verificación para FlashCheckout es: *${otpCode}*. Ingrésalo en tu panel para verificar tu cuenta.`
       )
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error sending store OTP:', err)
-      const errMsg = err?.message || ''
+      const errMsg = getErrorMessage(err, '')
       if (errMsg.includes('131030') || errMsg.includes('allowed list')) {
         console.warn(`[WhatsApp Sandbox Mode Alert] Recipient phone number (+${cleanWhatsapp}) not in allowed list. OTP code generated is: ${otpCode}`)
       }
@@ -189,10 +190,10 @@ export async function PUT(req: Request) {
     })
 
     return NextResponse.json({ store: updated })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating store:', error)
     return NextResponse.json(
-      { error: `Error al actualizar: ${error?.message || String(error)}` },
+      { error: `Error al actualizar: ${getErrorMessage(error)}` },
       { status: 500 }
     )
   }

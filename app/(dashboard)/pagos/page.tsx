@@ -32,6 +32,7 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import type { ComponentType } from 'react'
 
 interface Payment {
   id: string
@@ -39,7 +40,7 @@ interface Payment {
   cliente: { name: string; phone: string; initials: string; bg: string }
   pedido: string
   prodCount: number
-  metodo: { label: string; icon: any; iconBg: string; iconColor: string }
+  metodo: { label: string; icon: ComponentType<{ className?: string }>; iconBg: string; iconColor: string }
   estado: 'Exitoso' | 'Pendiente' | 'Fallido'
   fecha: string
   monto: number
@@ -50,6 +51,21 @@ interface Refund {
   ref: string
   time: string
   monto: number
+}
+
+type PaymentOrder = {
+  id: string
+  customerName: string | null
+  customerPhone: string | null
+  status: string
+  paymentStatus: string
+  stripeCheckoutSessionId: string | null
+  mpPaymentId: string | null
+  mpPreferenceId: string | null
+  proofImageUrl: string | null
+  items: Array<{ qty?: number }>
+  createdAt: string
+  total: number
 }
 
 export default function PagosPage() {
@@ -92,7 +108,7 @@ export default function PagosPage() {
           'bg-rose-100 text-rose-750'
         ]
         
-        const mapped: Payment[] = data.map((order: any) => {
+        const mapped: Payment[] = (data as PaymentOrder[]).map((order) => {
           const initials = order.customerName
             ? order.customerName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
             : 'CL'
@@ -129,7 +145,7 @@ export default function PagosPage() {
 
           let prodCount = 1
           if (Array.isArray(order.items)) {
-            prodCount = order.items.reduce((acc: number, item: any) => acc + (item.qty || 1), 0)
+            prodCount = order.items.reduce((acc: number, item) => acc + (item.qty || 1), 0)
           }
 
           const dateObj = new Date(order.createdAt)

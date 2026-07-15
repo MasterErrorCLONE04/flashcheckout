@@ -43,10 +43,16 @@ export default async function HablarConNovaPage() {
     orderBy: { updatedAt: 'desc' }
   })
 
+  type NovaChatMessage = {
+    sender: 'user' | 'bot'
+    text: string
+    time?: string
+  }
+
   const initialSessions = chatSessions.map(s => ({
     id: s.id,
     title: s.title,
-    messages: Array.isArray(s.messages) ? (s.messages as any[]) : [],
+    messages: Array.isArray(s.messages) ? (s.messages as NovaChatMessage[]) : [],
     updatedAt: s.updatedAt.toISOString()
   }))
 

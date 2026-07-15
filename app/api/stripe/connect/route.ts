@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { ensureConnectAccount } from '@/lib/stripe-connect-account'
+import { getErrorMessage } from '@/lib/api/route-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,10 +61,10 @@ export async function GET() {
       detailsSubmitted,
       accountId: store.stripeConnectAccountId,
     })
-  } catch (e) {
-    console.error('STRIPE_CONNECT_GET', e)
+  } catch (error: unknown) {
+    console.error('STRIPE_CONNECT_GET', error)
     return NextResponse.json(
-      { error: 'Error al consultar Stripe' },
+      { error: getErrorMessage(error, 'Error al consultar Stripe') },
       { status: 500 }
     )
   }
@@ -125,17 +126,17 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ clientSecret: accountSession.client_secret })
-  } catch (e: any) {
-    console.error('STRIPE_CONNECT_POST', e)
+  } catch (error: unknown) {
+    console.error('STRIPE_CONNECT_POST', error)
+    const stripeError = error as { code?: string; message?: string }
     
     // Si el error es que Connect no está activado en el Dashboard de Stripe
-    if (e.code === 'authentication_error' && e.message?.includes('Connect')) {
+    if (stripeError.code === 'authentication_error' && stripeError.message?.includes('Connect')) {
       return NextResponse.json({ 
         error: 'Stripe Connect no está activado en tu cuenta de Stripe. Por favor, ve a tu Dashboard de Stripe (sección Connect) y haz clic en "Comenzar" para activarlo.' 
       }, { status: 403 })
     }
 
-    const message = e instanceof Error ? e.message : 'Error desconocido'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: getErrorMessage(error, 'Error desconocido') }, { status: 500 })
   }
 }

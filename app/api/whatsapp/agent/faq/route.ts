@@ -1,75 +1,76 @@
-import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import {
+  badRequest,
+  forbidden,
+  getErrorMessage,
+  internalServerError,
+  notFound,
+  unauthorized,
+} from '@/lib/api/route-utils'
+
+type FaqBody = {
+  question?: string
+  answer?: string
+  id?: string
+}
 
 export async function POST(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!userId) return unauthorized()
 
-    const { question, answer } = await req.json()
-    if (!question || !answer) {
-      return NextResponse.json({ error: 'Missing question or answer' }, { status: 400 })
+    const body = (await req.json().catch(() => null)) as FaqBody | null
+    if (!body?.question || !body.answer) {
+      return badRequest('Missing question or answer')
     }
 
     const store = await prisma.store.findFirst({
-      where: { userId }
+      where: { userId },
     })
-    if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    }
+    if (!store) return notFound('Store not found')
 
     const faq = await prisma.faq.create({
       data: {
-        question,
-        answer,
-        storeId: store.id
-      }
+        question: body.question,
+        answer: body.answer,
+        storeId: store.id,
+      },
     })
 
     return NextResponse.json({ success: true, faq })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API FAQ Post Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+    return internalServerError(getErrorMessage(err))
   }
 }
 
 export async function DELETE(req: Request) {
   try {
     const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!userId) return unauthorized()
 
-    const { id } = await req.json()
-    if (!id) {
-      return NextResponse.json({ error: 'Missing id' }, { status: 400 })
-    }
+    const body = (await req.json().catch(() => null)) as FaqBody | null
+    if (!body?.id) return badRequest('Missing id')
 
     const store = await prisma.store.findFirst({
-      where: { userId }
+      where: { userId },
     })
-    if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    }
+    if (!store) return notFound('Store not found')
 
-    // Verify ownership
     const faq = await prisma.faq.findUnique({
-      where: { id }
+      where: { id: body.id },
     })
-    if (!faq || faq.storeId !== store.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    if (!faq || faq.storeId !== store.id) return forbidden()
 
     await prisma.faq.delete({
-      where: { id }
+      where: { id: body.id },
     })
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API FAQ Delete Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+    return internalServerError(getErrorMessage(err))
   }
 }

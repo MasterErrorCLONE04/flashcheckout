@@ -9,6 +9,30 @@ export type InteractiveLink = {
   description?: string;
 };
 
+type WhatsAppPayload = {
+  to?: string
+  type?: string
+  text?: { body?: string }
+  interactive?: {
+    type?: string
+    body?: { text?: string }
+    header?: { text?: string }
+    footer?: { text?: string }
+    action?: {
+      buttons?: { reply?: { title?: string } }[]
+      button?: string
+      name?: string
+      parameters?: {
+        display_text?: string
+        url?: string
+        flow_cta?: string
+      }
+    }
+  }
+  image?: { caption?: string }
+  document?: { filename?: string }
+}
+
 export class WhatsAppCloudAPI {
   private url: string;
   private accessToken: string;
@@ -138,7 +162,7 @@ export class WhatsAppCloudAPI {
     });
   }
 
-  async sendFlow(to: string, flowId: string, flowCta: string, flowToken: string, screen: string, data: any, header?: string, body?: string, footer?: string) {
+  async sendFlow(to: string, flowId: string, flowCta: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string, footer?: string) {
     return this.send({
       messaging_product: 'whatsapp',
       to,
@@ -166,7 +190,7 @@ export class WhatsAppCloudAPI {
     });
   }
 
-  private async send(payload: any) {
+  private async send(payload: WhatsAppPayload) {
     const response = await fetch(this.url, {
       method: 'POST',
       headers: {
@@ -195,7 +219,7 @@ export class WhatsAppCloudAPI {
         text = interactive.body?.text || '';
         if (interactive.type === 'button') {
           const buttons = interactive.action?.buttons || [];
-          const buttonLabels = buttons.map((b: any) => `[${b.reply?.title || ''}]`).join(' ');
+          const buttonLabels = buttons.map((b: { reply?: { title?: string } }) => `[${b.reply?.title || ''}]`).join(' ');
           text = `${text}\n${buttonLabels}`;
         } else if (interactive.type === 'list') {
           text = `${interactive.header?.text || ''}\n${text}\n[Lista de opciones]`;
@@ -217,19 +241,35 @@ export class WhatsAppCloudAPI {
       try {
         const { prisma } = await import('@/lib/prisma');
         
-        const session = await (prisma as any).whatsAppSession.findFirst({
+        const session = await prisma.whatsAppSession.findFirst({
           where: { phoneNumber: to },
           orderBy: { lastInteraction: 'desc' }
         });
         if (session) {
-          const messages = Array.isArray(session.messages) ? (session.messages as any[]) : [];
+          const messages = Array.isArray(session.messages)
+            ? session.messages.filter((item): item is {
+                sender: 'user' | 'bot'
+                text: string
+                time: string
+                timestamp: number
+              } => {
+                return Boolean(
+                  item &&
+                  typeof item === 'object' &&
+                  (item as { sender?: unknown }).sender &&
+                  typeof (item as { text?: unknown }).text === 'string' &&
+                  typeof (item as { time?: unknown }).time === 'string' &&
+                  typeof (item as { timestamp?: unknown }).timestamp === 'number'
+                );
+              })
+            : [];
           messages.push({
             sender: 'bot',
             text,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             timestamp: Date.now()
           });
-          await (prisma as any).whatsAppSession.update({
+          await prisma.whatsAppSession.update({
             where: { id: session.id },
             data: { messages }
           });

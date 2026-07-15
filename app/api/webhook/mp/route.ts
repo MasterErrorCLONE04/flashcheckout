@@ -4,6 +4,27 @@ import { mpPayment } from '@/lib/mercadopago'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import { sendInvoiceToWhatsApp } from '@/lib/whatsapp/send-invoice'
 
+type WhatsAppNotifier = {
+  sendText: (to: string, message: string) => Promise<unknown>
+  sendButtons: (
+    to: string,
+    message: string,
+    buttons: Array<{ id: string; title: string }>
+  ) => Promise<unknown>
+}
+
+type AutomationTemplate = {
+  id: string
+  customTemplate: string | null
+}
+
+type StoreNotificationTarget = {
+  id: string
+  name: string
+  whatsapp: string
+  whatsappInstanceName: string | null
+  whatsappConnected: boolean
+}
 
 export async function POST(req: Request) {
   try {
@@ -13,124 +34,129 @@ export async function POST(req: Request) {
 
     console.log(`[MP Webhook] Received notification: type=${type}, id=${id}`)
 
-    // Solo procesamos notificaciones de pagos
-    if (type === 'payment' && id) {
-      // ✅ SIEMPRE verificamos el estado del pago consultando a la API de Mercado Pago
-      // Esto previene fraude o payloads falsos.
-      const payment = await mpPayment.get({ id })
-      
-      const orderId = payment.external_reference
-      const status = payment.status
+    if (type !== 'payment' || !id) {
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
 
-      if (!orderId) {
-        console.error('[MP Webhook] No external_reference found in payment', id)
-        return new Response('No order reference', { status: 400 })
-      }
+    const payment = await mpPayment.get({ id })
+    const orderId = payment.external_reference
+    const status = payment.status
 
-      console.log(`[MP Webhook] Processing Order ${orderId}: Status is ${status}`)
+    if (!orderId) {
+      console.error('[MP Webhook] No external_reference found in payment', id)
+      return new Response('No order reference', { status: 400 })
+    }
 
-      let newStatus: 'PAID' | 'FAILED' | 'PENDING' = 'PENDING'
-      let legacyStatus = 'pending_payment'
+    console.log(`[MP Webhook] Processing Order ${orderId}: Status is ${status}`)
 
-      if (status === 'approved') {
-        newStatus = 'PAID'
-        legacyStatus = 'paid'
-      } else if (['rejected', 'cancelled'].includes(status || '')) {
-        newStatus = 'FAILED'
-        legacyStatus = 'cancelled'
-      } else {
-        newStatus = 'PENDING'
-        legacyStatus = 'pending_payment'
-      }
+    let newStatus: 'PAID' | 'FAILED' | 'PENDING' = 'PENDING'
+    let legacyStatus = 'pending_payment'
 
-      const order = await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          paymentStatus: newStatus,
-          status: legacyStatus,
-          mpPaymentId: String(id),
+    if (status === 'approved') {
+      newStatus = 'PAID'
+      legacyStatus = 'paid'
+    } else if (['rejected', 'cancelled'].includes(status || '')) {
+      newStatus = 'FAILED'
+      legacyStatus = 'cancelled'
+    }
+
+    const order = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        paymentStatus: newStatus,
+        status: legacyStatus,
+        mpPaymentId: String(id),
+      },
+    })
+
+    let clientToUse: WhatsAppNotifier = waClient
+    let store: StoreNotificationTarget | null = null
+
+    try {
+      store = await prisma.store.findUnique({
+        where: { id: order.storeId },
+        select: {
+          id: true,
+          name: true,
+          whatsapp: true,
+          whatsappInstanceName: true,
+          whatsappConnected: true,
         },
       })
 
-      // Resolve dynamic waClient for notifications
-      let clientToUse: any = waClient;
-      let store: any = null;
+      if (store?.whatsappInstanceName && store.whatsappConnected) {
+        const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+        clientToUse = {
+          sendText: (to: string, message: string) =>
+            evolutionClient.sendText(store.whatsappInstanceName!, to, message),
+          sendButtons: (
+            to: string,
+            message: string,
+            buttons: Array<{ id: string; title: string }>
+          ) => evolutionClient.sendButtons(store.whatsappInstanceName!, to, message, buttons),
+        }
+      }
+    } catch (err) {
+      console.error('[MP Webhook] Error resolving dynamic waClient:', err)
+    }
+
+    if (newStatus === 'PAID') {
       try {
-        store = await prisma.store.findUnique({
-          where: { id: order.storeId },
-        });
-        if (store && store.whatsappInstanceName && store.whatsappConnected) {
-          const { evolutionClient } = await import('@/lib/whatsapp/evolution');
-          clientToUse = {
-            sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName!, to, msg),
-            sendButtons: (to: string, msg: string, btns: any[]) => evolutionClient.sendButtons(store.whatsappInstanceName!, to, msg, btns)
-          };
+        const aut = (await prisma.automation.findFirst({
+          where: {
+            storeId: order.storeId,
+            name: { equals: 'Pedido pagado', mode: 'insensitive' },
+            active: true,
+          },
+          select: { id: true, customTemplate: true },
+        })) as AutomationTemplate | null
+
+        const recipient = order.customerPhone || order.customerWhatsAppId
+        if (aut && recipient) {
+          const defaultMsg = `¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!`
+          const template = aut.customTemplate || defaultMsg
+          const formattedMsg = template
+            .replace(/{{cliente}}/g, order.customerName || 'Cliente')
+            .replace(/{{pedido_id}}/g, order.id.slice(-6).toUpperCase())
+            .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
+            .replace(/{{tienda}}/g, store?.name || 'Tienda')
+
+          await clientToUse.sendText(recipient, formattedMsg)
+          await prisma.automation.update({
+            where: { id: aut.id },
+            data: { sentToday: { increment: 1 } },
+          })
         }
-      } catch (err) {
-        console.error('[MP Webhook] Error resolving dynamic waClient:', err);
+
+        await sendInvoiceToWhatsApp(orderId)
+      } catch (error) {
+        console.error('[MP Webhook] Failed to send WhatsApp confirmation', error)
       }
+    }
 
-      if (newStatus === 'PAID') {
-        try {
-          const aut = await prisma.automation.findFirst({
-            where: {
-              storeId: order.storeId,
-              name: { equals: "Pedido pagado", mode: 'insensitive' },
-              active: true
-            }
-          }) as any
+    if (newStatus === 'PAID' && store?.whatsapp) {
+      try {
+        await clientToUse.sendText(
+          store.whatsapp,
+          `Nuevo pedido recibido.\n\nTienes una nueva venta en tu tienda *${store.name}*:\n\n*Detalles del pedido:*\n- *ID:* #${order.id.slice(-6)}\n- *Cliente:* ${order.customerName}\n- *Telefono:* ${order.customerPhone || 'N/A'}\n- *Direccion de Entrega:* ${order.address}, ${order.city}\n- *Total:* $${order.total.toLocaleString('es-CO')}`
+        )
 
-          const recipient = order.customerPhone || order.customerWhatsAppId
-          if (aut && recipient) {
-            const defaultMsg = `¡Pago confirmado! 🎉\n\nTu pedido *#{{pedido_id}}* por un total de \${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra! 🚀`
-            const template = (aut as any).customTemplate || defaultMsg
-            const formattedMsg = template
-              .replace(/{{cliente}}/g, order.customerName || 'Cliente')
-              .replace(/{{pedido_id}}/g, order.id.slice(-6).toUpperCase())
-              .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
-              .replace(/{{tienda}}/g, store?.name || 'Tienda')
-
-            await clientToUse.sendText(recipient, formattedMsg)
-            await prisma.automation.update({
-              where: { id: aut.id },
-              data: { sentToday: { increment: 1 } }
-            })
-          }
-
-          // Enviar factura electrónica por WhatsApp
-          await sendInvoiceToWhatsApp(orderId)
-        } catch (error) {
-          console.error('[MP Webhook] Failed to send WhatsApp confirmation', error)
-        }
-      }
-
-      // Notificar al dueño de la tienda por WhatsApp sobre la nueva venta y sugerir domicilio
-      if (newStatus === 'PAID') {
-        try {
-          if (store && store.whatsapp) {
-            await clientToUse.sendText(
-              store.whatsapp,
-              `📦 *¡Nuevo pedido recibido!* 🎉\n\nHola, tienes una nueva venta en tu tienda *${store.name}*:\n\n*Detalles del pedido:*\n• *ID:* #${order.id.slice(-6)}\n• *Cliente:* ${order.customerName}\n• *Teléfono:* ${order.customerPhone || 'N/A'}\n• *Dirección de Entrega:* ${order.address}, ${order.city}\n• *Total:* $${order.total.toLocaleString('es-CO')}`
-            )
-
-            await clientToUse.sendButtons(
-              store.whatsapp,
-              `🚚 *¿Te gustaría solicitar nuestro Servicio de Domicilio?*\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequeña cuota de *$5.000 COP* (se descontará del pago final de la orden).`,
-              [
-                { id: `delivery_yes_${order.id}`, title: 'SÍ' },
-                { id: `delivery_no_${order.id}`, title: 'NO' }
-              ]
-            )
-          }
-        } catch (error) {
-          console.error('[MP Webhook] Failed to notify store owner via WhatsApp', error)
-        }
+        await clientToUse.sendButtons(
+          store.whatsapp,
+          `¿Te gustaria solicitar nuestro Servicio de Domicilio?\n\nPodemos enviar a un repartidor oficial de la plataforma a recoger el producto por una pequena cuota de $5.000 COP (se descontara del pago final de la orden).`,
+          [
+            { id: `delivery_yes_${order.id}`, title: 'SI' },
+            { id: `delivery_no_${order.id}`, title: 'NO' },
+          ]
+        )
+      } catch (error) {
+        console.error('[MP Webhook] Failed to notify store owner via WhatsApp', error)
       }
     }
 
     return NextResponse.json({ received: true }, { status: 200 })
-  } catch (e) {
-    console.error('[MP Webhook Error]', e)
+  } catch (error) {
+    console.error('[MP Webhook Error]', error)
     return NextResponse.json({ error: 'Webhook failed' }, { status: 500 })
   }
 }

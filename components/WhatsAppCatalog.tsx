@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import type { ComponentType } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import {
@@ -45,6 +46,15 @@ import { SiVisa, SiMastercard } from 'react-icons/si'
 
 const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
+type CatalogSort = 'default' | 'price-asc' | 'price-desc' | 'name-asc'
+type CatalogIconName = 'Truck' | 'ShieldCheck' | 'Award' | 'Clock' | 'Gift' | 'Star'
+type CatalogNavAction = 'scroll-banner' | 'scroll-products' | 'scroll-story' | 'whatsapp' | 'link'
+
+type ProductOption = {
+  name: string
+  values: string[]
+}
+
 type Product = {
   id: string
   name: string
@@ -53,7 +63,85 @@ type Product = {
   imageUrl: string | null
   category?: string
   description?: string
-  options?: any
+  options?: ProductOption[] | string
+}
+
+type CatalogSettings = {
+  colors?: {
+    primario?: string
+    secundario?: string
+    acento?: string
+    fondo?: string
+    texto?: string
+  }
+  typography?: string
+  bannerUrl?: string
+  bannerTitle?: string
+  bannerSubtitle?: string
+  announcement?: {
+    enabled?: boolean
+    text?: string
+    bgColor?: string
+    textColor?: string
+  }
+  bannerButton?: {
+    text?: string
+    action?: 'scroll' | 'whatsapp' | 'link'
+    link?: string
+  }
+  benefits?: {
+    items?: Array<{ icon: CatalogIconName; label: string; desc: string }>
+  }
+  socialsShowInCatalog?: boolean
+  schedule?: {
+    enabled?: boolean
+    text?: string
+    alwaysOpen?: boolean
+  }
+  heroType?: string
+  heroVideoUrl?: string
+  ingredientsSection?: {
+    title?: string
+    leftTitle?: string
+    leftDesc?: string
+    centerImageUrl?: string
+    rightTitle?: string
+    rightDesc?: string
+  }
+  freeShipping?: {
+    enabled?: boolean
+    threshold?: number
+  }
+  bentoHighlights?: {
+    title?: string
+    items?: Array<{ emoji: string; title: string; desc: string }>
+  }
+  accordionSpecs?: {
+    tabs?: Array<{ title: string; content: string }>
+  }
+  brandStory?: {
+    title?: string
+    desc?: string
+    bgUrl?: string
+    btnText?: string
+    btnLink?: string
+  }
+  visualCategories?: Array<{ category: string; imageUrl: string }>
+  processTimeline?: {
+    title?: string
+    items?: Array<{ step: string; title: string; desc: string }>
+  }
+  lifestyleGallery?: string[]
+  newsletterWidget?: {
+    title?: string
+    subtitle?: string
+    placeholder?: string
+    btnText?: string
+    bgColor?: string
+    textColor?: string
+  }
+  navbarLinks?: Array<{ label: string; action: CatalogNavAction; link?: string }>
+  sections?: Record<string, boolean | undefined>
 }
 
 type Store = {
@@ -64,9 +152,17 @@ type Store = {
   logoUrl: string | null
   cardPaymentsEnabled: boolean
   bio?: string | null
-  aiSettings?: any
+  aiSettings?: CatalogSettings
   bannerUrl?: string | null
 }
+
+type NavLink = {
+  label: string
+  action: CatalogNavAction
+  link?: string
+}
+
+type CatalogIcon = ComponentType<{ className?: string }>
 
 function getCartKey(productId: string, selectedOpts: Record<string, string>) {
   const sortedKeys = Object.keys(selectedOpts).sort()
@@ -88,6 +184,28 @@ function parseCartKey(cartKey: string) {
     }
   })
   return { productId, variations }
+}
+
+function normalizeProductOptions(options: Product['options']): ProductOption[] {
+  if (!options) return []
+
+  const parsed = typeof options === 'string'
+    ? (() => {
+        try {
+          return JSON.parse(options)
+        } catch {
+          return null
+        }
+      })()
+    : options
+
+  if (!Array.isArray(parsed)) return []
+
+  return parsed.filter((opt): opt is ProductOption => (
+    !!opt &&
+    typeof opt.name === 'string' &&
+    Array.isArray(opt.values)
+  ))
 }
 
 
@@ -173,7 +291,7 @@ export default function WhatsAppCatalog({
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Configuración de apariencia dinámica proveniente del administrador
-  const aiSettings = store.aiSettings && typeof store.aiSettings === 'object' ? store.aiSettings : {}
+  const aiSettings: CatalogSettings = store.aiSettings || {}
   const colors = {
     primario: aiSettings.colors?.primario || '#059669', // Emerald 600 default
     secundario: aiSettings.colors?.secundario || '#D97706', // Amber 600 default
@@ -202,7 +320,7 @@ export default function WhatsAppCatalog({
   }
 
   // Benefits config
-  const benefits = aiSettings.benefits || {
+  const benefits: { items: Array<{ icon: CatalogIconName; label: string; desc: string }> } = aiSettings.benefits || {
     items: [
       { icon: 'Truck', label: 'Envíos rápidos', desc: 'A todo el país' },
       { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'Múltiples métodos' },
@@ -240,7 +358,7 @@ export default function WhatsAppCatalog({
   }
 
   // Bento Highlights config (Chocodate Style)
-  const bentoHighlights = aiSettings.bentoHighlights || {
+  const bentoHighlights: { title: string; items: Array<{ emoji: string; title: string; desc: string }> } = aiSettings.bentoHighlights || {
     title: 'Nuestros Ingredientes Premium',
     items: [
       { emoji: '🌴', title: 'Dátiles de Faraón', desc: 'Dulces, carnosos y naturales' },
@@ -250,7 +368,7 @@ export default function WhatsAppCatalog({
   }
 
   // Accordion Specs config
-  const accordionSpecs = aiSettings.accordionSpecs?.tabs || [
+  const accordionSpecs: Array<{ title: string; content: string }> = aiSettings.accordionSpecs?.tabs || [
     { title: 'Ficha Nutricional', content: 'Calorías: 140 kcal | Grasas: 4g | Carbohidratos: 22g | Proteínas: 2g por porción.' },
     { title: 'Método de Envío', content: 'Empacado con tecnología térmica para conservar el chocolate fresco hasta tu puerta.' }
   ]
@@ -265,14 +383,14 @@ export default function WhatsAppCatalog({
   }
 
   // Categorías Visuales config
-  const visualCategories = aiSettings.visualCategories || [
+  const visualCategories: Array<{ category: string; imageUrl: string }> = aiSettings.visualCategories || [
     { category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
     { category: 'Accesorios', imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300&auto=format&fit=crop' },
     { category: 'Combos', imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=300&auto=format&fit=crop' }
   ]
 
   // Proceso Timeline config
-  const processTimeline = aiSettings.processTimeline || {
+  const processTimeline: { title: string; items: Array<{ step: string; title: string; desc: string }> } = aiSettings.processTimeline || {
     title: '¿Cómo Comprar en FlashCheckout?',
     items: [
       { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catálogo y agrégalos al carrito.' },
@@ -300,14 +418,14 @@ export default function WhatsAppCatalog({
   }
 
   // Menú de navegación superior (Navbar links)
-  const navbarLinks = aiSettings.navbarLinks || [
+  const navbarLinks: NavLink[] = aiSettings.navbarLinks || [
     { label: 'Inicio', action: 'scroll-banner', link: '' },
     { label: 'Productos', action: 'scroll-products', link: '' },
     { label: 'Historia', action: 'scroll-story', link: '' },
     { label: 'Contacto', action: 'whatsapp', link: '' }
   ]
 
-  const handleNavbarLinkClick = (item: any) => {
+  const handleNavbarLinkClick = (item: NavLink) => {
     setSelectedProduct(null)
     if (item.action === 'scroll-banner') {
       setActiveNavTab('Inicio')
@@ -332,7 +450,7 @@ export default function WhatsAppCatalog({
     }
   }
 
-  const IconMap: Record<string, any> = {
+  const IconMap: Record<string, CatalogIcon> = {
     Truck,
     ShieldCheck,
     Award,
@@ -373,17 +491,13 @@ export default function WhatsAppCatalog({
   useEffect(() => {
     setActiveImageIdx(0)
     if (selectedProduct) {
-      const parsedOpts = selectedProduct.options
-        ? (typeof selectedProduct.options === 'string' ? JSON.parse(selectedProduct.options) : selectedProduct.options)
-        : []
+      const parsedOpts = normalizeProductOptions(selectedProduct.options)
       const defaults: Record<string, string> = {}
-      if (Array.isArray(parsedOpts)) {
-        parsedOpts.forEach((opt: any) => {
-          if (opt.name && Array.isArray(opt.values) && opt.values.length > 0) {
-            defaults[opt.name] = opt.values[0]
-          }
-        })
-      }
+      parsedOpts.forEach((opt) => {
+        if (opt.values.length > 0) {
+          defaults[opt.name] = opt.values[0]
+        }
+      })
       setSelectedOptions(defaults)
     } else {
       setSelectedOptions({})
@@ -765,7 +879,7 @@ export default function WhatsAppCatalog({
 
             {/* Enlaces de Navegación del Rediseño */}
             <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-zinc-500">
-              {navbarLinks.map((item: any, idx: number) => {
+              {navbarLinks.map((item, idx: number) => {
                 const isActive = activeNavTab === item.label;
                 return (
                   <span
@@ -956,7 +1070,7 @@ export default function WhatsAppCatalog({
         {activeNavTab === 'Inicio' && !selectedProduct && sections.beneficios && benefits?.items?.length > 0 && (
           <div className="max-w-[1300px] mx-auto w-full px-6 pt-4 pb-2 shrink-0">
             <div className="bg-white border border-zinc-150 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-2 md:grid-cols-4 gap-6 px-8 py-4">
-              {benefits.items.map((item: any, idx: number) => {
+              {benefits.items.map((item, idx: number) => {
                 const ItemIcon = IconMap[item.icon] || Award
                 return (
                   <div key={idx} className="flex items-center gap-3.5 p-1.5 text-left select-none">
@@ -981,7 +1095,7 @@ export default function WhatsAppCatalog({
         {activeNavTab === 'Inicio' && !selectedProduct && sections.visualCategories && visualCategories?.length > 0 && (
           <div className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0 select-none">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {visualCategories.map((catItem: any, idx: number) => (
+              {visualCategories.map((catItem, idx: number) => (
                 <div 
                   key={idx} 
                   onClick={() => setSelectedCategory(catItem.category)}
@@ -1009,7 +1123,7 @@ export default function WhatsAppCatalog({
           <div className="max-w-[1300px] mx-auto w-full px-6 pt-4 pb-2 shrink-0">
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider text-left mb-3">{bentoHighlights.title}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {bentoHighlights.items.map((item: any, idx: number) => (
+              {bentoHighlights.items.map((item, idx: number) => (
                 <div key={idx} className="bg-white border border-zinc-150 rounded-2xl p-5 text-left flex flex-col justify-between hover:border-zinc-300 transition-all select-none">
                   <div className="text-3xl mb-3">{item.emoji || '✨'}</div>
                   <div>
@@ -1192,7 +1306,7 @@ export default function WhatsAppCatalog({
                 <div className="mt-12 border-t border-zinc-150 pt-8 w-full">
                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider text-left mb-6">Especificaciones</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                    {accordionSpecs.map((tab: any, idx: number) => (
+                    {accordionSpecs.map((tab, idx: number) => (
                       <details key={idx} className="group border border-zinc-150 rounded-xl bg-white overflow-hidden" open={idx === 0}>
                         <summary className="w-full px-5 py-4 flex items-center justify-between font-bold text-xs bg-zinc-50/50 hover:bg-zinc-50 transition-colors cursor-pointer text-zinc-905 list-none [&::-webkit-details-marker]:hidden">
                           <span>{tab.title}</span>
@@ -1239,7 +1353,7 @@ export default function WhatsAppCatalog({
                 <div className="mt-12 border-t border-zinc-150 pt-8 w-full select-none text-left">
                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-6">{processTimeline.title}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                    {processTimeline.items.map((stepItem: any, idx: number) => (
+                    {processTimeline.items.map((stepItem, idx: number) => (
                       <div key={idx} className="flex gap-4 items-start relative z-10 bg-white p-2">
                         <div 
                           className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
@@ -1472,7 +1586,7 @@ export default function WhatsAppCatalog({
                   <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Ordenar por</h4>
                   <select
                     value={sortBy}
-                    onChange={e => setSortBy(e.target.value as any)}
+                    onChange={e => setSortBy(e.target.value as CatalogSort)}
                     className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                   >
                     <option value="default">Recomendados</option>
@@ -1682,16 +1796,13 @@ export default function WhatsAppCatalog({
 
                   {/* Dynamic Product Options Selectors */}
                   {(() => {
-                    const parsedOpts = selectedProduct.options
-                      ? (typeof selectedProduct.options === 'string' ? JSON.parse(selectedProduct.options) : selectedProduct.options)
-                      : [];
-                    if (!Array.isArray(parsedOpts) || parsedOpts.length === 0) return null;
-                    return (
-                      <div className="space-y-4 pt-1">
-                        {parsedOpts.map((opt: any) => {
-                          if (!opt.name || !Array.isArray(opt.values) || opt.values.length === 0) return null;
-                          const currentVal = selectedOptions[opt.name] || opt.values[0];
-                          return (
+      const parsedOpts = normalizeProductOptions(selectedProduct.options)
+      if (parsedOpts.length === 0) return null
+      return (
+        <div className="space-y-4 pt-1">
+          {parsedOpts.map((opt) => {
+            const currentVal = selectedOptions[opt.name] || opt.values[0];
+            return (
                             <div key={opt.name} className="space-y-1.5 text-left">
                               <span className="text-[10.5px] font-bold text-zinc-400 uppercase tracking-wide block">{opt.name}: {currentVal}</span>
                               <div className="flex flex-wrap gap-1.5">
@@ -2001,7 +2112,7 @@ export default function WhatsAppCatalog({
 {/* Barra de Beneficios (Mobile) */}
           {activeNavTab === 'Inicio' && sections.beneficios && benefits?.items?.length > 0 && (
             <div className="grid grid-cols-2 gap-2 bg-white rounded-xl p-3 border border-zinc-150 shrink-0">
-              {benefits.items.map((item: any, idx: number) => {
+              {benefits.items.map((item, idx: number) => {
                 const ItemIcon = IconMap[item.icon] || Award
                 return (
                   <div key={idx} className="flex items-center gap-1.5 p-1 text-left min-w-0">
@@ -2026,7 +2137,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-2.5 shrink-0 text-left">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categorías</h3>
               <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap">
-                {visualCategories.map((catItem: any, idx: number) => (
+                {visualCategories.map((catItem, idx: number) => (
                   <div 
                     key={idx} 
                     onClick={() => setSelectedCategory(catItem.category)}
@@ -2054,7 +2165,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-2.5 shrink-0 text-left">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">{bentoHighlights.title}</h3>
               <div className="grid grid-cols-1 gap-2.5">
-                {bentoHighlights.items.map((item: any, idx: number) => (
+                {bentoHighlights.items.map((item, idx: number) => (
                   <div key={idx} className="bg-white border border-zinc-150 rounded-xl p-3 flex items-center gap-3 shadow-none">
                     <span className="text-xl shrink-0 select-none">{item.emoji || '✨'}</span>
                     <div>
@@ -2209,7 +2320,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-2.5 pt-4 border-t border-zinc-150 shrink-0 text-left pb-2">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Especificaciones</h3>
               <div className="space-y-2">
-                {accordionSpecs.map((tab: any, idx: number) => (
+                {accordionSpecs.map((tab, idx: number) => (
                   <details key={idx} className="group border border-zinc-150 rounded-xl bg-white overflow-hidden" open={idx === 0}>
                     <summary className="w-full px-4 py-3 flex items-center justify-between font-bold text-xs bg-zinc-50/50 hover:bg-zinc-50 transition-colors cursor-pointer text-zinc-900 list-none [&::-webkit-details-marker]:hidden">
                       <span>{tab.title}</span>
@@ -2280,7 +2391,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-2.5 pt-4 border-t border-zinc-150 shrink-0 text-left">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">{processTimeline.title}</h3>
               <div className="space-y-3">
-                {processTimeline.items.map((stepItem: any, idx: number) => (
+                {processTimeline.items.map((stepItem, idx: number) => (
                   <div key={idx} className="flex gap-3 items-start bg-white p-2.5 border border-zinc-100 rounded-xl">
                     <div 
                       className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-black"
@@ -2746,14 +2857,11 @@ export default function WhatsAppCatalog({
 
                 {/* Dynamic Product Options Selectors */}
                 {(() => {
-                  const parsedOpts = selectedProduct.options
-                    ? (typeof selectedProduct.options === 'string' ? JSON.parse(selectedProduct.options) : selectedProduct.options)
-                    : []
-                  if (!Array.isArray(parsedOpts) || parsedOpts.length === 0) return null
+                  const parsedOpts = normalizeProductOptions(selectedProduct.options)
+                  if (parsedOpts.length === 0) return null
                   return (
                     <div className="space-y-4 pt-1">
-                      {parsedOpts.map((opt: any) => {
-                        if (!opt.name || !Array.isArray(opt.values) || opt.values.length === 0) return null
+                      {parsedOpts.map((opt) => {
                         const currentVal = selectedOptions[opt.name] || opt.values[0]
                         return (
                           <div key={opt.name} className="space-y-1.5 text-left">
@@ -2889,7 +2997,7 @@ export default function WhatsAppCatalog({
               <div className="space-y-3 pt-4 border-t border-zinc-100">
                 <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Navegación</h4>
                 <div className="space-y-1">
-                  {navbarLinks.map((item: any, idx: number) => (
+                  {navbarLinks.map((item, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => {
@@ -2994,7 +3102,7 @@ export default function WhatsAppCatalog({
                 ].map(opt => (
                   <button
                     key={opt.value}
-                    onClick={() => setSortBy(opt.value as any)}
+                    onClick={() => setSortBy(opt.value as CatalogSort)}
                     className={cn(
                       "py-2.5 px-3 rounded-xl border text-[11px] font-bold text-center cursor-pointer transition-all active:scale-[0.97]",
                       sortBy === opt.value
@@ -3044,4 +3152,3 @@ export default function WhatsAppCatalog({
     </div>
   )
 }
-

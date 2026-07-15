@@ -6,6 +6,28 @@ import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
 
+type ConversationMessage = {
+  sender: 'user' | 'bot'
+  text: string
+  time: string
+}
+
+type WhatsAppSessionRecord = {
+  id: string
+  phoneNumber: string
+  customerName: string | null
+  lastInteraction: Date
+  step: string
+  messages: unknown
+  tags: string[] | null
+  notes: unknown
+  assignedTo: string | null
+  isFavorite: boolean | null
+  status: string | null
+  avatarUrl?: string | null
+  address?: string | null
+}
+
 export default async function HistorialChatsPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -16,7 +38,7 @@ export default async function HistorialChatsPage() {
 
   if (!store) return <StoreCreationWizard />
 
-  const sessions = await (prisma as any).whatsAppSession.findMany({
+  const sessions = await prisma.whatsAppSession.findMany({
     where: { 
       storeId: store.id,
       receivingPhoneId: store.whatsappConnected && store.whatsappInstanceName
@@ -27,12 +49,12 @@ export default async function HistorialChatsPage() {
   })
 
   // Format and generate realistic mock conversation dialogues based on the session's active step
-  const formattedSessions = sessions.map((s: any) => {
+  const formattedSessions = sessions.map((s: WhatsAppSessionRecord) => {
     const name = s.customerName || `Cliente +${s.phoneNumber.slice(-4)}`
     const lastTime = s.lastInteraction.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     
     // Format and read actual conversation dialogues, or generate realistic mocks if empty
-    let messages = Array.isArray(s.messages) ? (s.messages as any[]) : []
+    let messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
     
     if (messages.length === 0) {
       messages = [

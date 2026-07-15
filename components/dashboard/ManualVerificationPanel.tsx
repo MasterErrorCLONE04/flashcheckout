@@ -19,6 +19,10 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
+function getErrorMessage(error: unknown, fallback = 'Ocurrió un error inesperado') {
+  return error instanceof Error ? error.message : fallback
+}
+
 type OrderItem = {
   name: string
   qty: number
@@ -100,9 +104,9 @@ export default function ManualVerificationPanel({
         setSelectedOrderId(null)
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      toast.error(err.message || 'Ocurrió un error inesperado')
+      toast.error(getErrorMessage(err, 'Ocurrió un error inesperado'))
     } finally {
       setLoading(null)
     }
