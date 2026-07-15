@@ -14,7 +14,9 @@ const isPublicRoute = createRouteMatcher([
   '/api/whatsapp/webhook(.*)',
   '/api/webhook/(.*)',
   '/api/checkout/(.*)',
-  '/api/cron/(.*)'
+  '/api/cron/(.*)',
+  '/api/agent/flashy(.*)',
+  '/legal(.*)'
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, request) => {

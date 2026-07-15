@@ -28,7 +28,7 @@ export async function GET() {
       return new NextResponse('Store not found', { status: 404 })
     }
 
-    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/suscripcion`
+    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`
 
     if (store.stripeCustomerId) {
       const stripeSession = await stripe.billingPortal.sessions.create({

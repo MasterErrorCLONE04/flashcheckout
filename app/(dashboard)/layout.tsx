@@ -191,7 +191,7 @@ export default async function DashboardLayout({
               <>
                 {/* Collapsed state (simplified small badge) */}
                 <div className="flex flex-col items-center justify-center gap-1 py-4 group-hover:hidden transition-all duration-200">
-                  <Link href="/dashboard/suscripcion" className="contents">
+                  <Link href="/configuracion" className="contents">
                     <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm cursor-pointer hover:bg-emerald-100 transition-colors" title={`Premium: Activo (${productCount} productos)`}>
                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                     </div>
@@ -213,7 +213,7 @@ export default async function DashboardLayout({
                   </span>
 
                   {/* Manage Link Button */}
-                  <Link href="/dashboard/suscripcion" className="contents">
+                  <Link href="/configuracion" className="contents">
                     <button className="flex items-center justify-center gap-2 h-9 w-full rounded-lg text-xs font-bold bg-white text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition-all border border-zinc-200 active:scale-[0.98] mt-1">
                       Gestionar Membresía
                     </button>

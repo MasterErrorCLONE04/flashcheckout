@@ -28,7 +28,7 @@ export async function generateOpenRouterCompletion(
   modelOverride?: string
 ): Promise<any> {
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY
-  const model = modelOverride || process.env.OPENROUTER_MODEL || 'google/gemma-2-9b-it:free'
+  const model = modelOverride || process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct:free'
   const apiUrl = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1'
 
   // 1. Guardrails: Filtro básico de seguridad y PII

@@ -53,6 +53,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import Footer from './Footer'
+import LandingChatbot from './LandingChatbot'
 
 interface LandingContentProps {
   userId: string | null
@@ -916,6 +917,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
         </div>
       </div>
       <Footer />
+      <LandingChatbot />
     </div>
   )
 }

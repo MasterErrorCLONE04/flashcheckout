@@ -669,7 +669,7 @@ export default function NovaChatClient({
               <Brain className="w-3.5 h-3.5 text-zinc-500" />
               <span>Mostrar memoria</span>
             </button>
-            <Link href="/dashboard/suscripcion">
+            <Link href="/pricing">
               <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm active:scale-95">
                 <Sparkles className="w-3.5 h-3.5 text-white fill-current animate-pulse" />
                 <span>Mejorar el plan</span>

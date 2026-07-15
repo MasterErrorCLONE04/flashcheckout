@@ -138,6 +138,30 @@ export default function DashboardClientContainer({
   const [copied, setCopied] = useState(false)
   const [showQrModal, setShowQrModal] = useState(false)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
+  const [loadingStripe, setLoadingStripe] = useState(false)
+
+  const handleStripeRedirect = async () => {
+    try {
+      setLoadingStripe(true)
+      const response = await fetch('/api/stripe')
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.details || data.error || 'Fallo al conectar con la pasarela de pagos.')
+      }
+
+      toast.info("Redirigiendo...", {
+        description: "Serás redirigido de forma segura al portal de facturación de Stripe."
+      })
+      window.location.href = data.url
+    } catch (error: any) {
+      toast.error("Error financiero", {
+        description: error.message || 'No pudimos conectar con Stripe.'
+      })
+    } finally {
+      setLoadingStripe(false)
+    }
+  }
   const [showQuickActions, setShowQuickActions] = useState(false)
   const [showSuggestionBanner, setShowSuggestionBanner] = useState(true)
   const [showAllAlertsModal, setShowAllAlertsModal] = useState(false)
@@ -635,22 +659,28 @@ export default function DashboardClientContainer({
                 </div>
               </div>
               
-              <Link
-                href="/dashboard/suscripcion"
-                className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-650 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer"
-              >
-                {isSubscribed ? (
-                  <>
+              {isSubscribed ? (
+                <button
+                  onClick={handleStripeRedirect}
+                  disabled={loadingStripe}
+                  className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-650 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {loadingStripe ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
                     <Settings className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Gestionar Suscripción</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Actualizar Plan</span>
-                  </>
-                )}
-              </Link>
+                  )}
+                  <span>Gestionar Suscripción</span>
+                </button>
+              ) : (
+                <Link
+                  href="/pricing"
+                  className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-650 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Actualizar Plan</span>
+                </Link>
+              )}
             </div>
           </div>
 
