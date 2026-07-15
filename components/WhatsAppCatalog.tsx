@@ -142,6 +142,29 @@ type CatalogSettings = {
   }
   navbarLinks?: Array<{ label: string; action: CatalogNavAction; link?: string }>
   sections?: Record<string, boolean | undefined>
+  socials?: {
+    instagram?: string
+    facebook?: string
+    tiktok?: string
+    twitter?: string
+    web?: string
+  }
+  brandStoryPage?: {
+    headerTrayectoria?: string
+    headerPerfil?: string
+    narrativeP1?: string
+    narrativeP2?: string
+    imageHeritage?: string
+    pillarsTitle?: string
+    pillar1Icon?: string
+    pillar1Title?: string
+    pillar1Desc?: string
+    pillar2Icon?: string
+    pillar2Title?: string
+    pillar2Desc?: string
+    leadership?: Array<{ name: string; role: string; icon: string }>
+    values?: Array<{ title: string; desc: string }>
+  }
 }
 
 type Store = {
@@ -320,7 +343,7 @@ export default function WhatsAppCatalog({
   }
 
   // Benefits config
-  const benefits: { items: Array<{ icon: CatalogIconName; label: string; desc: string }> } = aiSettings.benefits || {
+  const benefits: any = aiSettings.benefits || {
     items: [
       { icon: 'Truck', label: 'Envíos rápidos', desc: 'A todo el país' },
       { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'Múltiples métodos' },
@@ -358,7 +381,7 @@ export default function WhatsAppCatalog({
   }
 
   // Bento Highlights config (Chocodate Style)
-  const bentoHighlights: { title: string; items: Array<{ emoji: string; title: string; desc: string }> } = aiSettings.bentoHighlights || {
+  const bentoHighlights: any = aiSettings.bentoHighlights || {
     title: 'Nuestros Ingredientes Premium',
     items: [
       { emoji: '🌴', title: 'Dátiles de Faraón', desc: 'Dulces, carnosos y naturales' },
@@ -382,6 +405,33 @@ export default function WhatsAppCatalog({
     btnLink: ''
   }
 
+  // Brand Story page settings
+  const brandStoryPage = aiSettings.brandStoryPage || {
+    headerTrayectoria: 'Nuestra Trayectoria',
+    headerPerfil: 'Perfil de la Empresa',
+    narrativeP1: 'Fundada en 1992 por el visionario Fawaz Masri, Chocodate nació en el corazón de los Emiratos Árabes Unidos con una misión singular: elevar la humilde y nutritiva fruta del dátil de Arabia a una experiencia de confitería de clase mundial.',
+    narrativeP2: 'Al combinar el dulzor natural y la riqueza en fibra de los mejores dátiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prémium, creamos una golosina única que trasciende fronteras. Hoy en día, nuestros productos se disfrutan en más de 50 países alrededor del mundo.',
+    imageHeritage: 'https://images.unsplash.com/photo-1606312440799-b4f0c4013a21?q=80&w=800&auto=format&fit=crop',
+    pillarsTitle: 'Nuestras Dos Grandes Columnas',
+    pillar1Icon: '🏭',
+    pillar1Title: 'Fábrica La Ronda (Dubái, EAU)',
+    pillar1Desc: 'Nuestra planta principal con tecnología de punta dedicada exclusivamente al procesamiento de dátiles frescos, tostado de almendras y la formulación del chocolate belga. Cumple con las más estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).',
+    pillar2Icon: '🌴',
+    pillar2Title: 'Star Foods (KSA)',
+    pillar2Desc: 'Nuestra sucursal agrícola y de procesamiento ubicada en Arabia Saudita, encargada de la recolección y selección de los dátiles en su momento justo de maduración, garantizando una cadena de suministro sostenible y local.',
+    leadership: [
+      { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: '👨‍💼' },
+      { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: '👩‍💼' },
+      { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: '👨‍💻' },
+      { name: 'Hazem Al-Masri', role: 'Gerente General', icon: '👨‍🔧' }
+    ],
+    values: [
+      { title: 'Razón & Pasión', desc: 'Equilibramos la toma de decisiones basada en datos científicos con la pasión por la repostería fina.' },
+      { title: 'Tradición & Modernidad', desc: 'Respetamos el legado histórico del dátil del desierto mientras aplicamos tecnología de punta en empaque y producción.' },
+      { title: 'Familia & Comunidad', desc: 'Operamos como una empresa familiar que apoya a los agricultores locales y cuida de sus empleados.' }
+    ]
+  }
+
   // Categorías Visuales config
   const visualCategories: Array<{ category: string; imageUrl: string }> = aiSettings.visualCategories || [
     { category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
@@ -390,7 +440,7 @@ export default function WhatsAppCatalog({
   ]
 
   // Proceso Timeline config
-  const processTimeline: { title: string; items: Array<{ step: string; title: string; desc: string }> } = aiSettings.processTimeline || {
+  const processTimeline: any = aiSettings.processTimeline || {
     title: '¿Cómo Comprar en FlashCheckout?',
     items: [
       { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catálogo y agrégalos al carrito.' },
@@ -1070,7 +1120,7 @@ export default function WhatsAppCatalog({
         {activeNavTab === 'Inicio' && !selectedProduct && sections.beneficios && benefits?.items?.length > 0 && (
           <div className="max-w-[1300px] mx-auto w-full px-6 pt-4 pb-2 shrink-0">
             <div className="bg-white border border-zinc-150 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-2 md:grid-cols-4 gap-6 px-8 py-4">
-              {benefits.items.map((item, idx: number) => {
+              {benefits.items.map((item: any, idx: number) => {
                 const ItemIcon = IconMap[item.icon] || Award
                 return (
                   <div key={idx} className="flex items-center gap-3.5 p-1.5 text-left select-none">
@@ -1123,7 +1173,7 @@ export default function WhatsAppCatalog({
           <div className="max-w-[1300px] mx-auto w-full px-6 pt-4 pb-2 shrink-0">
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider text-left mb-3">{bentoHighlights.title}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {bentoHighlights.items.map((item, idx: number) => (
+              {bentoHighlights.items.map((item: any, idx: number) => (
                 <div key={idx} className="bg-white border border-zinc-150 rounded-2xl p-5 text-left flex flex-col justify-between hover:border-zinc-300 transition-all select-none">
                   <div className="text-3xl mb-3">{item.emoji || '✨'}</div>
                   <div>
@@ -1353,7 +1403,7 @@ export default function WhatsAppCatalog({
                 <div className="mt-12 border-t border-zinc-150 pt-8 w-full select-none text-left">
                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-6">{processTimeline.title}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                    {processTimeline.items.map((stepItem, idx: number) => (
+                    {processTimeline.items.map((stepItem: any, idx: number) => (
                       <div key={idx} className="flex gap-4 items-start relative z-10 bg-white p-2">
                         <div 
                           className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
@@ -1431,8 +1481,8 @@ export default function WhatsAppCatalog({
           <main className="max-w-[1200px] mx-auto w-full px-6 py-12 space-y-16 select-none text-left animate-in fade-in duration-500 flex-1">
             {/* Page Header */}
             <div className="space-y-4 text-center max-w-2xl mx-auto">
-              <span className="text-[10px] font-bold tracking-widest text-[#C5A880] uppercase block">Nuestra Trayectoria</span>
-              <h2 className="text-3xl font-black text-zinc-900 tracking-tight leading-none">Perfil de la Empresa</h2>
+              <span className="text-[10px] font-bold tracking-widest text-[#C5A880] uppercase block">{brandStoryPage.headerTrayectoria}</span>
+              <h2 className="text-3xl font-black text-zinc-900 tracking-tight leading-none">{brandStoryPage.headerPerfil}</h2>
               <div className="w-12 h-1 bg-[#C5A880] mx-auto rounded-full mt-2" />
             </div>
 
@@ -1440,39 +1490,41 @@ export default function WhatsAppCatalog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
                 <p className="text-base text-zinc-650 leading-relaxed font-medium">
-                  Fundada en <strong>1992</strong> por el visionario <em>Fawaz Masri</em>, Chocodate nació en el corazón de los Emiratos Árabes Unidos con una misión singular: elevar la humilde y nutritiva fruta del dátil de Arabia a una experiencia de confitería de clase mundial.
+                  {brandStoryPage.narrativeP1}
                 </p>
                 <p className="text-sm text-zinc-600 leading-relaxed font-semibold">
-                  Al combinar el dulzor natural y la riqueza en fibra de los mejores dátiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prémium, creamos una golosina única que trasciende fronteras. Hoy en día, nuestros productos se disfrutan en más de 50 países alrededor del mundo.
+                  {brandStoryPage.narrativeP2}
                 </p>
               </div>
               <div className="rounded-3xl overflow-hidden shadow-lg border border-zinc-150 h-[300px]">
-                <img 
-                  src="https://images.unsplash.com/photo-1606312440799-b4f0c4013a21?q=80&w=800&auto=format&fit=crop" 
-                  alt="Chocodate Factory" 
-                  className="w-full h-full object-cover"
-                />
+                {brandStoryPage.imageHeritage && (
+                  <img 
+                    src={brandStoryPage.imageHeritage} 
+                    alt="Heritage Factory" 
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </div>
 
             {/* Two Pillars Section */}
             <div className="space-y-8">
-              <h3 className="text-lg font-black text-zinc-900 tracking-tight text-center">Nuestras Dos Grandes Columnas</h3>
+              <h3 className="text-lg font-black text-zinc-900 tracking-tight text-center">{brandStoryPage.pillarsTitle}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Pillar 1 */}
                 <div className="bg-white border border-zinc-150 rounded-2xl p-6 space-y-4 hover:border-zinc-350 transition-all">
-                  <div className="w-12 h-12 rounded-xl bg-[#4A2E1B]/5 text-[#4A2E1B] flex items-center justify-center font-bold text-xl">🏭</div>
-                  <h4 className="font-extrabold text-base text-[#4A2E1B]">Fábrica La Ronda (Dubái, EAU)</h4>
+                  <div className="w-12 h-12 rounded-xl bg-[#4A2E1B]/5 text-[#4A2E1B] flex items-center justify-center font-bold text-xl">{brandStoryPage.pillar1Icon}</div>
+                  <h4 className="font-extrabold text-base text-[#4A2E1B]">{brandStoryPage.pillar1Title}</h4>
                   <p className="text-xs text-zinc-500 leading-relaxed font-semibold">
-                    Nuestra planta principal con tecnología de punta dedicada exclusivamente al procesamiento de dátiles frescos, tostado de almendras y la formulación del chocolate belga. Cumple con las más estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).
+                    {brandStoryPage.pillar1Desc}
                   </p>
                 </div>
                 {/* Pillar 2 */}
                 <div className="bg-white border border-zinc-150 rounded-2xl p-6 space-y-4 hover:border-zinc-350 transition-all">
-                  <div className="w-12 h-12 rounded-xl bg-[#C5A880]/5 text-[#C5A880] flex items-center justify-center font-bold text-xl">🌴</div>
-                  <h4 className="font-extrabold text-base text-[#C5A880]">Star Foods (KSA)</h4>
+                  <div className="w-12 h-12 rounded-xl bg-[#C5A880]/5 text-[#C5A880] flex items-center justify-center font-bold text-xl">{brandStoryPage.pillar2Icon}</div>
+                  <h4 className="font-extrabold text-base text-[#C5A880]">{brandStoryPage.pillar2Title}</h4>
                   <p className="text-xs text-zinc-500 leading-relaxed font-semibold">
-                    Nuestra sucursal agrícola y de procesamiento ubicada en Arabia Saudita, encargada de la recolección y selección de los dátiles en su momento justo de maduración, garantizando una cadena de suministro sostenible y local.
+                    {brandStoryPage.pillar2Desc}
                   </p>
                 </div>
               </div>
@@ -1480,14 +1532,9 @@ export default function WhatsAppCatalog({
 
             {/* Leadership Section */}
             <div className="space-y-8">
-              <h3 className="text-lg font-black text-zinc-900 tracking-tight text-center">Equipo de Liderazgo</h3>
+              <h3 className="text-lg font-black text-zinc-900 tracking-tight text-center font-bold">Equipo de Liderazgo</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {[
-                  { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: '👨‍💼' },
-                  { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: '👩‍💼' },
-                  { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: '👨‍💻' },
-                  { name: 'Hazem Al-Masri', role: 'Gerente General', icon: '👨‍🔧' }
-                ].map((member, idx) => (
+                {(brandStoryPage.leadership || []).map((member: any, idx: number) => (
                   <div key={idx} className="bg-zinc-50 border border-zinc-200/60 rounded-xl p-5 text-center space-y-2.5">
                     <div className="w-16 h-16 rounded-full bg-white border border-zinc-200/50 flex items-center justify-center text-2xl mx-auto shadow-sm">{member.icon}</div>
                     <div>
@@ -1503,11 +1550,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-8 pt-4">
               <h3 className="text-lg font-black text-zinc-900 tracking-tight text-center font-bold">Nuestros Valores</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { title: 'Razón & Pasión', desc: 'Equilibramos la toma de decisiones basada en datos científicos con la pasión por la repostería fina.' },
-                  { title: 'Tradición & Modernidad', desc: 'Respetamos el legado histórico del dátil del desierto mientras aplicamos tecnología de punta en empaque y producción.' },
-                  { title: 'Familia & Comunidad', desc: 'Operamos como una empresa familiar que apoya a los agricultores locales y cuida de sus empleados.' }
-                ].map((val, idx) => (
+                {(brandStoryPage.values || []).map((val: any, idx: number) => (
                   <div key={idx} className="p-5 border border-zinc-150 rounded-xl text-left bg-white space-y-2">
                     <h4 className="font-extrabold text-xs text-[#4A2E1B]">{val.title}</h4>
                     <p className="text-[11px] font-semibold text-zinc-500 leading-relaxed">{val.desc}</p>
@@ -2112,7 +2155,7 @@ export default function WhatsAppCatalog({
 {/* Barra de Beneficios (Mobile) */}
           {activeNavTab === 'Inicio' && sections.beneficios && benefits?.items?.length > 0 && (
             <div className="grid grid-cols-2 gap-2 bg-white rounded-xl p-3 border border-zinc-150 shrink-0">
-              {benefits.items.map((item, idx: number) => {
+              {benefits.items.map((item: any, idx: number) => {
                 const ItemIcon = IconMap[item.icon] || Award
                 return (
                   <div key={idx} className="flex items-center gap-1.5 p-1 text-left min-w-0">
@@ -2165,7 +2208,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-2.5 shrink-0 text-left">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">{bentoHighlights.title}</h3>
               <div className="grid grid-cols-1 gap-2.5">
-                {bentoHighlights.items.map((item, idx: number) => (
+                {bentoHighlights.items.map((item: any, idx: number) => (
                   <div key={idx} className="bg-white border border-zinc-150 rounded-xl p-3 flex items-center gap-3 shadow-none">
                     <span className="text-xl shrink-0 select-none">{item.emoji || '✨'}</span>
                     <div>
@@ -2391,7 +2434,7 @@ export default function WhatsAppCatalog({
             <div className="space-y-2.5 pt-4 border-t border-zinc-150 shrink-0 text-left">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">{processTimeline.title}</h3>
               <div className="space-y-3">
-                {processTimeline.items.map((stepItem, idx: number) => (
+                {processTimeline.items.map((stepItem: any, idx: number) => (
                   <div key={idx} className="flex gap-3 items-start bg-white p-2.5 border border-zinc-100 rounded-xl">
                     <div 
                       className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-black"
@@ -2466,35 +2509,37 @@ export default function WhatsAppCatalog({
             <div className="space-y-8 select-none text-left animate-in fade-in duration-500 pb-12">
               {/* Page Header */}
               <div className="space-y-2 text-center pb-2 border-b border-zinc-150">
-                <span className="text-[9px] font-bold tracking-widest text-[#C5A880] uppercase block">Nuestra Trayectoria</span>
-                <h2 className="text-xl font-black text-zinc-905 tracking-tight leading-none">Perfil de la Empresa</h2>
+                <span className="text-[9px] font-bold tracking-widest text-[#C5A880] uppercase block">{brandStoryPage.headerTrayectoria}</span>
+                <h2 className="text-xl font-black text-zinc-905 tracking-tight leading-none">{brandStoryPage.headerPerfil}</h2>
                 <div className="w-10 h-0.5 bg-[#C5A880] mx-auto rounded-full mt-1.5" />
               </div>
 
               {/* Narrative */}
               <div className="space-y-4">
                 <p className="text-xs text-zinc-650 leading-relaxed font-semibold">
-                  Fundada en <strong>1992</strong> por el visionario <em>Fawaz Masri</em>, Chocodate nació con la misión de fusionar el dátil de Arabia con el auténtico chocolate belga.
+                  {brandStoryPage.narrativeP1}
                 </p>
-                <div className="rounded-2xl overflow-hidden shadow-sm h-48 border border-zinc-150">
-                  <img src="https://images.unsplash.com/photo-1606312440799-b4f0c4013a21?q=80&w=800&auto=format&fit=crop" alt="Heritage" className="w-full h-full object-cover" />
-                </div>
+                {brandStoryPage.imageHeritage && (
+                  <div className="rounded-2xl overflow-hidden shadow-sm h-48 border border-zinc-150">
+                    <img src={brandStoryPage.imageHeritage} alt="Heritage" className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
-                  Al combinar el dulzor de los dátiles cosechados a mano con el toque crujiente de una almendra tostada en su interior y bañarlo en chocolate premium, creamos una experiencia gourmet única.
+                  {brandStoryPage.narrativeP2}
                 </p>
               </div>
 
               {/* Two Pillars */}
               <div className="space-y-4">
-                <h3 className="text-xs font-black text-zinc-905 tracking-tight uppercase">Instalaciones</h3>
+                <h3 className="text-xs font-black text-zinc-905 tracking-tight uppercase">{brandStoryPage.pillarsTitle}</h3>
                 <div className="space-y-3">
                   <div className="bg-white border border-zinc-150 rounded-xl p-4 space-y-2">
-                    <h4 className="font-extrabold text-xs text-[#4A2E1B]">La Ronda (Dubái, EAU)</h4>
-                    <p className="text-[10px] text-zinc-500 leading-relaxed font-semibold">Procesamiento higiénico del chocolate belga y dátil con certificaciones ISO 22000 y Halal.</p>
+                    <h4 className="font-extrabold text-xs text-[#4A2E1B]">{brandStoryPage.pillar1Title}</h4>
+                    <p className="text-[10px] text-zinc-500 leading-relaxed font-semibold">{brandStoryPage.pillar1Desc}</p>
                   </div>
                   <div className="bg-white border border-zinc-150 rounded-xl p-4 space-y-2">
-                    <h4 className="font-extrabold text-xs text-[#C5A880]">Star Foods (KSA)</h4>
-                    <p className="text-[10px] text-zinc-500 leading-relaxed font-semibold">Ubicada en Arabia Saudita, asegura el suministro y la selección de la mejor cosecha local.</p>
+                    <h4 className="font-extrabold text-xs text-[#C5A880]">{brandStoryPage.pillar2Title}</h4>
+                    <p className="text-[10px] text-zinc-500 leading-relaxed font-semibold">{brandStoryPage.pillar2Desc}</p>
                   </div>
                 </div>
               </div>
@@ -2503,12 +2548,7 @@ export default function WhatsAppCatalog({
               <div className="space-y-4">
                 <h3 className="text-xs font-black text-zinc-905 tracking-tight uppercase">Liderazgo</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { name: 'Fawaz Al-Masri', role: 'CEO', icon: '👨‍💼' },
-                    { name: 'Razan Al-Masri', role: 'CBDO', icon: '👩‍💼' },
-                    { name: 'Omar Al-Masri', role: 'COO', icon: '👨‍💻' },
-                    { name: 'Hazem Al-Masri', role: 'Gerente', icon: '👨‍🔧' }
-                  ].map((member, idx) => (
+                  {(brandStoryPage.leadership || []).map((member: any, idx: number) => (
                     <div key={idx} className="bg-zinc-50 border border-zinc-150 rounded-xl p-3 text-center space-y-1.5">
                       <div className="w-10 h-10 rounded-full bg-white border border-zinc-200/50 flex items-center justify-center text-lg mx-auto shadow-sm">{member.icon}</div>
                       <div>
@@ -2524,11 +2564,7 @@ export default function WhatsAppCatalog({
               <div className="space-y-4">
                 <h3 className="text-xs font-black text-zinc-905 tracking-tight uppercase">Valores</h3>
                 <div className="space-y-2.5">
-                  {[
-                    { title: 'Pasión & Razón', desc: 'Repostería fina y control de calidad científico.' },
-                    { title: 'Tradición & Modernidad', desc: 'Dátil árabe de herencia empacado con robótica.' },
-                    { title: 'Familia & Comunidad', desc: 'Apoyo constante a los agricultores de la región.' }
-                  ].map((val, idx) => (
+                  {(brandStoryPage.values || []).map((val: any, idx: number) => (
                     <div key={idx} className="p-3.5 border border-zinc-150 rounded-xl bg-white space-y-1 text-left">
                       <h4 className="font-extrabold text-[11px] text-[#4A2E1B]">{val.title}</h4>
                       <p className="text-[10px] text-zinc-500 leading-normal font-semibold">{val.desc}</p>

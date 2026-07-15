@@ -77,7 +77,7 @@ export async function POST(req: Request) {
         imageUrl: body.imageUrl ?? null,
         category: body.category ?? 'General',
         description: body.description ?? null,
-        options: body.options ?? null,
+        options: (body.options ?? null) as any,
         storeId: store.id,
       },
     })
@@ -116,7 +116,7 @@ export async function PUT(req: Request) {
         ...(body.category !== undefined && { category: body.category }),
         ...(body.active !== undefined && { active: body.active }),
         ...(body.description !== undefined && { description: body.description }),
-        ...(body.options !== undefined && { options: body.options }),
+        ...(body.options !== undefined && { options: body.options as any }),
       },
     })
 

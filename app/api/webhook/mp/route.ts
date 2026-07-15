@@ -85,15 +85,16 @@ export async function POST(req: Request) {
       })
 
       if (store?.whatsappInstanceName && store.whatsappConnected) {
+        const activeStore = store
         const { evolutionClient } = await import('@/lib/whatsapp/evolution')
         clientToUse = {
           sendText: (to: string, message: string) =>
-            evolutionClient.sendText(store.whatsappInstanceName!, to, message),
+            evolutionClient.sendText(activeStore.whatsappInstanceName!, to, message),
           sendButtons: (
             to: string,
             message: string,
             buttons: Array<{ id: string; title: string }>
-          ) => evolutionClient.sendButtons(store.whatsappInstanceName!, to, message, buttons),
+          ) => evolutionClient.sendButtons(activeStore.whatsappInstanceName!, to, message, buttons),
         }
       }
     } catch (err) {
@@ -113,7 +114,7 @@ export async function POST(req: Request) {
 
         const recipient = order.customerPhone || order.customerWhatsAppId
         if (aut && recipient) {
-          const defaultMsg = `¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!`
+          const defaultMsg = '¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!'
           const template = aut.customTemplate || defaultMsg
           const formattedMsg = template
             .replace(/{{cliente}}/g, order.customerName || 'Cliente')

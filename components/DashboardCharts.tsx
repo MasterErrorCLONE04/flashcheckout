@@ -188,7 +188,7 @@ export function SalesChannelDonut({ whatsappTotal, webTotal }: DonutProps) {
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: number | string) => [
+            formatter={(value: any) => [
               `$${Number(value).toLocaleString('es-CO')}`,
               'Monto'
             ]}
@@ -362,7 +362,7 @@ export function WeeklySalesAreaChart({ data }: { data: WeeklySalesItem[] }) {
             dx={-5}
           />
           <Tooltip 
-            formatter={(value: number | string) => [
+            formatter={(value: any) => [
               `$${Number(value).toLocaleString('es-CO')}`,
               'Ingresos'
             ]}

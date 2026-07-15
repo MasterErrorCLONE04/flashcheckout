@@ -815,64 +815,67 @@ export default function NovaChatClient({
                           </div>
                         )}
 
-                        {isBot && m.type === 'product_updated' && m.action?.payload?.product && (
-                          <div className="mt-4 space-y-2">
-                            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
-                              <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <h5 className="font-bold text-zinc-900 text-xs xl:text-sm">
-                                  Producto Actualizado: {m.action.payload.product.name || ''}
-                                </h5>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3 text-xs">
-                                <div className="bg-white border border-zinc-150 p-2.5 rounded-lg flex flex-col shadow-sm">
-                                  <span className="text-[10px] text-zinc-400 font-bold uppercase leading-none">Precio</span>
-                                  <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
-                                    {m.action.payload.product.oldPrice !== m.action.payload.product.newPrice ? (
-                                      <>
-                                        <span className="line-through text-zinc-400 font-semibold">${m.action.payload.product.oldPrice?.toLocaleString('es-CO') ?? '0'}</span>
-                                        <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-                                        <span className="text-emerald-700 font-extrabold">${m.action.payload.product.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
-                                      </>
-                                    ) : (
-                                      <span>${m.action.payload.product.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
-                                    )}
+                        {isBot && m.type === 'product_updated' && m.action?.payload?.product && (() => {
+                          const prod = m.action.payload.product as any
+                          return (
+                            <div className="mt-4 space-y-2">
+                              <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                  <h5 className="font-bold text-zinc-900 text-xs xl:text-sm">
+                                    Producto Actualizado: {prod.name || ''}
+                                  </h5>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                  <div className="bg-white border border-zinc-150 p-2.5 rounded-lg flex flex-col shadow-sm">
+                                    <span className="text-[10px] text-zinc-400 font-bold uppercase leading-none">Precio</span>
+                                    <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
+                                      {prod.oldPrice !== prod.newPrice ? (
+                                        <>
+                                          <span className="line-through text-zinc-400 font-semibold">${prod.oldPrice?.toLocaleString('es-CO') ?? '0'}</span>
+                                          <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+                                          <span className="text-emerald-700 font-extrabold">${prod.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
+                                        </>
+                                      ) : (
+                                        <span>${prod.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="bg-white border border-zinc-150 p-2.5 rounded-lg flex flex-col shadow-sm">
+                                    <span className="text-[10px] text-zinc-400 font-bold uppercase leading-none">Inventario</span>
+                                    <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
+                                      {prod.oldStock !== prod.newStock ? (
+                                        <>
+                                          <span className="line-through text-zinc-400 font-semibold">{prod.oldStock ?? '0'}</span>
+                                          <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+                                          <span className="text-blue-700 font-extrabold">{prod.newStock ?? '0'} uds</span>
+                                        </>
+                                      ) : (
+                                        <span>{prod.newStock ?? '0'} uds</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex justify-between items-center text-xs text-zinc-500 border-t border-zinc-200/60 pt-2.5 mt-1 select-none">
+                                  <span>Estado en la tienda:</span>
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                                    prod.newActive ? "bg-emerald-50 text-emerald-700 border border-emerald-250" : "bg-zinc-100 text-zinc-500 border border-zinc-200"
+                                  )}>
+                                    {prod.newActive ? 'Activo' : 'Inactivo'}
                                   </span>
                                 </div>
-                                <div className="bg-white border border-zinc-150 p-2.5 rounded-lg flex flex-col shadow-sm">
-                                  <span className="text-[10px] text-zinc-400 font-bold uppercase leading-none">Inventario</span>
-                                  <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
-                                    {m.action.payload.product.oldStock !== m.action.payload.product.newStock ? (
-                                      <>
-                                        <span className="line-through text-zinc-400 font-semibold">{m.action.payload.product.oldStock ?? '0'}</span>
-                                        <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-                                        <span className="text-blue-700 font-extrabold">{m.action.payload.product.newStock ?? '0'} uds</span>
-                                      </>
-                                    ) : (
-                                      <span>{m.action.payload.product.newStock ?? '0'} uds</span>
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <div className="flex justify-between items-center text-xs text-zinc-500 border-t border-zinc-200/60 pt-2.5 mt-1 select-none">
-                                <span>Estado en la tienda:</span>
-                                <span className={cn(
-                                  "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                                  m.action.payload.product.newActive ? "bg-emerald-50 text-emerald-700 border border-emerald-250" : "bg-zinc-100 text-zinc-500 border border-zinc-200"
-                                )}>
-                                  {m.action.payload.product.newActive ? 'Activo' : 'Inactivo'}
-                                </span>
-                              </div>
+                              <Link href="/productos" className="block w-full">
+                                <button className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer select-none">
+                                  <span>Gestionar en Catálogo</span>
+                                </button>
+                              </Link>
                             </div>
-                            <Link href="/productos" className="block w-full">
-                              <button className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer select-none">
-                                <span>Gestionar en Catálogo</span>
-                              </button>
-                            </Link>
                           </div>
-                        )}
+                        )
+                      })()}
 
                         {isBot && m.type === 'order_status_updated' && m.action?.payload?.order && (
                           <div className="mt-4 space-y-2">

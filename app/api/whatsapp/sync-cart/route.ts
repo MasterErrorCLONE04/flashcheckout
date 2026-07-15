@@ -79,14 +79,14 @@ export async function POST(req: Request) {
       },
       create: {
         phoneNumber: body.phoneNumber,
-        cart: enrichedCart,
+        cart: enrichedCart as any,
         storeId: resolvedStoreId,
         customerName: body.customerName,
         address: body.address,
         step: 'IDLE',
       },
       update: {
-        cart: enrichedCart,
+        cart: enrichedCart as any,
         customerName: body.customerName || undefined,
         address: body.address || undefined,
         lastInteraction: new Date(),

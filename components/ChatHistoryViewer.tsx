@@ -1307,7 +1307,7 @@ export default function ChatHistoryViewer({
                 {activeDetails && activeDetails.cartItems.length > 0 ? (
                   <div className="space-y-3">
                     <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
-                      {activeDetails.cartItems.map((item, idx) => (
+                      {activeDetails.cartItems.map((item: any, idx) => (
                         <div key={idx} className="flex gap-2.5 items-center text-xs font-semibold text-zinc-755 py-1.5 border-b border-zinc-50 last:border-none">
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.name} className="w-8.5 h-8.5 rounded border border-zinc-100 object-cover shrink-0" />
@@ -1369,7 +1369,7 @@ export default function ChatHistoryViewer({
 
                 {activeDetails && activeDetails.orders.length > 0 ? (
                   <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
-                    {activeDetails.orders.slice(0, 4).map((order, idx) => {
+                    {activeDetails.orders.slice(0, 4).map((order: any, idx) => {
                       const isPaid = order.status === 'paid' || order.paymentStatus === 'PAID'
                       const statusText = isPaid ? 'Pagado' : order.status === 'failed' ? 'Reembolsado' : 'Pendiente'
                       const statusColor = isPaid 

@@ -89,7 +89,7 @@ export default async function ConversacionesPage() {
       notes: Array.isArray(s.notes) ? s.notes : [],
       assignedTo: s.assignedTo || 'Tú',
       isFavorite: !!s.isFavorite,
-      status: s.status || 'active'
+      status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed'
     }
   })
 

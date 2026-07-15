@@ -319,7 +319,7 @@ export default function DescuentosPage() {
 
       {/* Tabs Menu */}
       <div className="flex border-b border-zinc-200 overflow-x-auto scrollbar-none whitespace-nowrap gap-6">
-        {[
+        {([
           { id: 'Todas', label: 'Todas', count: totalCount },
           { id: 'Activas', label: 'Activas', count: activeCount },
           { id: 'Programadas', label: 'Programadas', count: scheduledCount },

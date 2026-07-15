@@ -120,7 +120,7 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
 
       const recipient = order.customerPhone || order.customerWhatsAppId
       if (aut && recipient) {
-        const defaultMsg = `¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!`
+        const defaultMsg = '¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!'
         const template = aut.customTemplate || defaultMsg
         const formattedMsg = template
           .replace(/{{cliente}}/g, order.customerName || 'Cliente')
@@ -128,7 +128,7 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
           .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
           .replace(/{{tienda}}/g, order.store.name)
 
-        let clientToUse: WhatsAppNotifier = waClient
+        let clientToUse: any = waClient
         const store = order.store
         if (store.whatsappInstanceName && store.whatsappConnected) {
           const { evolutionClient } = await import('@/lib/whatsapp/evolution')

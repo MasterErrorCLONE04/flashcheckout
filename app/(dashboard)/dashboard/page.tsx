@@ -44,7 +44,7 @@ import { getActiveStore } from '@/lib/store-context'
 
 type DashboardAlert = {
   id: string
-  type: string
+  type: 'payment_approval' | 'waiting_response' | 'ready_to_ship' | 'low_stock' | 'whatsapp_disconnected'
   title: string
   subtitle: string
   timeText: string
@@ -556,7 +556,7 @@ export default async function DashboardPage(props: {
       insights={insights}
       initialWhatsappConnected={store.whatsappConnected}
       aiActive={store.aiActive}
-      productsCount={store._count?.products ?? 0}
+      productsCount={(store as any)._count?.products ?? 0}
       isSubscribed={!!store.stripePriceId && !!store.stripeCurrentPeriodEnd && new Date(store.stripeCurrentPeriodEnd) > new Date()}
       stats={{
         revenueToday,

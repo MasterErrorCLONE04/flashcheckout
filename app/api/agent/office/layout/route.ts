@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     await prisma.store.update({
       where: { id: store.id },
-      data: { settings: updatedSettings },
+      data: { settings: updatedSettings as any },
     })
 
     return NextResponse.json({ success: true, layoutItems: body.layoutItems })

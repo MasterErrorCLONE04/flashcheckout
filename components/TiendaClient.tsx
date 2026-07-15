@@ -197,6 +197,33 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
     btnLink: parsedSettings.brandStory?.btnLink || ''
   })
 
+  // Brand Story page settings
+  const [brandStoryPage, setBrandStoryPage] = useState({
+    headerTrayectoria: parsedSettings.brandStoryPage?.headerTrayectoria || 'Nuestra Trayectoria',
+    headerPerfil: parsedSettings.brandStoryPage?.headerPerfil || 'Perfil de la Empresa',
+    narrativeP1: parsedSettings.brandStoryPage?.narrativeP1 || 'Fundada en 1992 por el visionario Fawaz Masri, Chocodate nació en el corazón de los Emiratos Árabes Unidos con una misión singular: elevar la humilde y nutritiva fruta del dátil de Arabia a una experiencia de confitería de clase mundial.',
+    narrativeP2: parsedSettings.brandStoryPage?.narrativeP2 || 'Al combinar el dulzor natural y la riqueza en fibra de los mejores dátiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prémium, creamos una golosina única que trasciende fronteras. Hoy en día, nuestros productos se disfrutan en más de 50 países alrededor del mundo.',
+    imageHeritage: parsedSettings.brandStoryPage?.imageHeritage || 'https://images.unsplash.com/photo-1606312440799-b4f0c4013a21?q=80&w=800&auto=format&fit=crop',
+    pillarsTitle: parsedSettings.brandStoryPage?.pillarsTitle || 'Nuestras Dos Grandes Columnas',
+    pillar1Icon: parsedSettings.brandStoryPage?.pillar1Icon || '🏭',
+    pillar1Title: parsedSettings.brandStoryPage?.pillar1Title || 'Fábrica La Ronda (Dubái, EAU)',
+    pillar1Desc: parsedSettings.brandStoryPage?.pillar1Desc || 'Nuestra planta principal con tecnología de punta dedicada exclusivamente al procesamiento de dátiles frescos, tostado de almendras y la formulación del chocolate belga. Cumple con las más estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).',
+    pillar2Icon: parsedSettings.brandStoryPage?.pillar2Icon || '🌴',
+    pillar2Title: parsedSettings.brandStoryPage?.pillar2Title || 'Star Foods (KSA)',
+    pillar2Desc: parsedSettings.brandStoryPage?.pillar2Desc || 'Nuestra sucursal agrícola y de procesamiento ubicada en Arabia Saudita, encargada de la recolección y selección de los dátiles en su momento justo de maduración, garantizando una cadena de suministro sostenible y local.',
+    leadership: parsedSettings.brandStoryPage?.leadership || [
+      { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: '👨‍💼' },
+      { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: '👩‍💼' },
+      { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: '👨‍💻' },
+      { name: 'Hazem Al-Masri', role: 'Gerente General', icon: '👨‍🔧' }
+    ],
+    values: parsedSettings.brandStoryPage?.values || [
+      { title: 'Razón & Pasión', desc: 'Equilibramos la toma de decisiones basada en datos científicos con la pasión por la repostería fina.' },
+      { title: 'Tradición & Modernidad', desc: 'Respetamos el legado histórico del dátil del desierto mientras aplicamos tecnología de punta en empaque y producción.' },
+      { title: 'Familia & Comunidad', desc: 'Operamos como una empresa familiar que apoya a los agricultores locales y cuida de sus empleados.' }
+    ]
+  })
+
   // Logo & Banner State
   const [logoUrl, setLogoUrl] = useState<string>(initialStore.logoUrl || '')
   const [bannerUrl, setBannerUrl] = useState<string>(
@@ -412,6 +439,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                tabs: accordionSpecs
              },
              brandStory,
+             brandStoryPage,
              visualCategories,
              processTimeline,
              lifestyleGallery,
@@ -1181,6 +1209,240 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Página de Historia Completa Editor Card */}
+              <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
+                <div className="text-left space-y-0.5">
+                  <h3 className="text-sm font-black text-zinc-900 leading-none">Página de Historia Completa</h3>
+                  <p className="text-[11px] font-semibold text-zinc-400">Personaliza la sección de "Historia" (Nuestra trayectoria, perfil, pilares, equipo y valores).</p>
+                </div>
+
+                <div className="space-y-4 pt-1.5 text-left">
+                  {/* Títulos */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Etiqueta Superior</label>
+                      <input 
+                        type="text"
+                        value={brandStoryPage.headerTrayectoria}
+                        onChange={e => setBrandStoryPage(prev => ({ ...prev, headerTrayectoria: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título Principal</label>
+                      <input 
+                        type="text"
+                        value={brandStoryPage.headerPerfil}
+                        onChange={e => setBrandStoryPage(prev => ({ ...prev, headerPerfil: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Narrativas */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Párrafo Narrativo 1</label>
+                    <textarea 
+                      value={brandStoryPage.narrativeP1}
+                      onChange={e => setBrandStoryPage(prev => ({ ...prev, narrativeP1: e.target.value }))}
+                      rows={3}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950 resize-none font-sans"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Párrafo Narrativo 2</label>
+                    <textarea 
+                      value={brandStoryPage.narrativeP2}
+                      onChange={e => setBrandStoryPage(prev => ({ ...prev, narrativeP2: e.target.value }))}
+                      rows={3}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950 resize-none font-sans"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Imagen de la Historia (URL)</label>
+                    <input 
+                      type="text"
+                      value={brandStoryPage.imageHeritage}
+                      onChange={e => setBrandStoryPage(prev => ({ ...prev, imageHeritage: e.target.value }))}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                    />
+                  </div>
+
+                  {/* Pilares */}
+                  <div className="space-y-3.5 border-t border-zinc-100 pt-3">
+                    <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Pilares / Instalaciones</h4>
+                    
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título de la sección</label>
+                      <input 
+                        type="text"
+                        value={brandStoryPage.pillarsTitle}
+                        onChange={e => setBrandStoryPage(prev => ({ ...prev, pillarsTitle: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
+                      />
+                    </div>
+
+                    {/* Pilar 1 */}
+                    <div className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5">
+                      <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Pilar #1</span>
+                      <div className="grid grid-cols-12 gap-2">
+                        <div className="col-span-4 space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Icono</label>
+                          <input 
+                            type="text"
+                            value={brandStoryPage.pillar1Icon}
+                            onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar1Icon: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="col-span-8 space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                          <input 
+                            type="text"
+                            value={brandStoryPage.pillar1Title}
+                            onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar1Title: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
+                        <textarea 
+                          value={brandStoryPage.pillar1Desc}
+                          onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar1Desc: e.target.value }))}
+                          rows={2}
+                          className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-700 focus:outline-none resize-none font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pilar 2 */}
+                    <div className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5">
+                      <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Pilar #2</span>
+                      <div className="grid grid-cols-12 gap-2">
+                        <div className="col-span-4 space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Icono</label>
+                          <input 
+                            type="text"
+                            value={brandStoryPage.pillar2Icon}
+                            onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar2Icon: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="col-span-8 space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                          <input 
+                            type="text"
+                            value={brandStoryPage.pillar2Title}
+                            onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar2Title: e.target.value }))}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
+                        <textarea 
+                          value={brandStoryPage.pillar2Desc}
+                          onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar2Desc: e.target.value }))}
+                          rows={2}
+                          className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-700 focus:outline-none resize-none font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Equipo de Liderazgo */}
+                  <div className="space-y-3.5 border-t border-zinc-100 pt-3">
+                    <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Equipo de Liderazgo</h4>
+                    {brandStoryPage.leadership.map((member: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Miembro #{idx + 1}</span>
+                        <div className="grid grid-cols-12 gap-2">
+                          <div className="col-span-3 space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Icono</label>
+                            <input 
+                              type="text"
+                              value={member.icon}
+                              onChange={e => {
+                                const newLeader = [...brandStoryPage.leadership]
+                                newLeader[idx] = { ...member, icon: e.target.value }
+                                setBrandStoryPage(prev => ({ ...prev, leadership: newLeader }))
+                              }}
+                              className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-center text-xs font-bold text-zinc-800 focus:outline-none"
+                            />
+                          </div>
+                          <div className="col-span-9 space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Nombre</label>
+                            <input 
+                              type="text"
+                              value={member.name}
+                              onChange={e => {
+                                const newLeader = [...brandStoryPage.leadership]
+                                newLeader[idx] = { ...member, name: e.target.value }
+                                setBrandStoryPage(prev => ({ ...prev, leadership: newLeader }))
+                              }}
+                              className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Cargo / Rol</label>
+                          <input 
+                            type="text"
+                            value={member.role}
+                            onChange={e => {
+                              const newLeader = [...brandStoryPage.leadership]
+                              newLeader[idx] = { ...member, role: e.target.value }
+                              setBrandStoryPage(prev => ({ ...prev, leadership: newLeader }))
+                            }}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Valores Corporativos */}
+                  <div className="space-y-3.5 border-t border-zinc-100 pt-3">
+                    <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Nuestros Valores</h4>
+                    {brandStoryPage.values.map((val: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Valor #{idx + 1}</span>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
+                          <input 
+                            type="text"
+                            value={val.title}
+                            onChange={e => {
+                              const newVals = [...brandStoryPage.values]
+                              newVals[idx] = { ...val, title: e.target.value }
+                              setBrandStoryPage(prev => ({ ...prev, values: newVals }))
+                            }}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-bold text-zinc-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
+                          <textarea 
+                            value={val.desc}
+                            onChange={e => {
+                              const newVals = [...brandStoryPage.values]
+                              newVals[idx] = { ...val, desc: e.target.value }
+                              setBrandStoryPage(prev => ({ ...prev, values: newVals }))
+                            }}
+                            rows={2}
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-700 focus:outline-none resize-none font-sans"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
               </div>
 
               {/* Categorías Visuales Card */}
@@ -2116,8 +2378,9 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                          accordionSpecs: {
                            tabs: accordionSpecs
                          },
-                         brandStory,
-                         visualCategories,
+                          brandStory,
+                          brandStoryPage,
+                          visualCategories,
                          processTimeline,
                          lifestyleGallery,
                          newsletterWidget,

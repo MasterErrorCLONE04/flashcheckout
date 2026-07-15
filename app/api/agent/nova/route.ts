@@ -101,9 +101,21 @@ export async function POST(req: Request) {
 
     const body = await parseJsonBody<NovaRequestBody>(req)
     const message = body?.message?.trim() || ''
-    const agentType = body?.agent?.trim() || 'Nova'
+    let agentType = body?.agent?.trim() || 'Nova'
 
     if (!message) return badRequest('Missing message')
+
+    // Map lowercase client agent ids to API keys
+    const agentMapping: Record<string, string> = {
+      'nova': 'Nova',
+      'stella': 'Growth',
+      'atlas': 'Logistics',
+      'orion': 'Nova'
+    }
+
+    if (agentMapping[agentType.toLowerCase()]) {
+      agentType = agentMapping[agentType.toLowerCase()]
+    }
 
     const dbSession =
       body?.sessionId && typeof body.sessionId === 'string'
@@ -126,7 +138,7 @@ export async function POST(req: Request) {
       { role: 'user', content: message },
     ]
 
-    let systemPrompt = AGENT_SYSTEM_PROMPTS.Nova
+    let systemPrompt: string = AGENT_SYSTEM_PROMPTS.Nova
     let agentTools = NOVA_TOOLS_DEFINITIONS
     let overrideType: string | null = null
     let executedAction: { type: string; payload: ToolResult } = { type: 'NONE', payload: {} }
@@ -249,7 +261,10 @@ export async function POST(req: Request) {
             .replace(/```/g, '')
             .trim() || 'He procesado tu solicitud correctamente.',
         type: overrideType || 'text',
-        action: executedAction,
+        action: {
+          type: executedAction.type,
+          payload: executedAction.payload as Record<string, unknown>
+        },
       }
     }
 
@@ -277,7 +292,7 @@ export async function POST(req: Request) {
       await prisma.novaChatSession.update({
         where: { id: dbSession.id },
         data: {
-          messages: updatedHistory,
+          messages: updatedHistory as any,
           title: newTitle,
         },
       })
@@ -289,7 +304,7 @@ export async function POST(req: Request) {
       data: {
         title: message.slice(0, 35) || 'Nuevo Chat',
         storeId: store.id,
-        messages: [userMessageObj, botMessageObj],
+        messages: [userMessageObj, botMessageObj] as any,
       },
     })
 

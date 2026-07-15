@@ -28,13 +28,6 @@ type SessionWithStore = {
   cart: unknown
   messages: unknown
   step: string
-  store: {
-    id: string
-    slug: string
-    mpAccessToken: string | null
-    whatsappConnected: boolean
-    whatsappInstanceName: string | null
-  } | null
 }
 
 type CartLine = {
@@ -100,15 +93,6 @@ export async function POST(req: Request) {
         cart: true,
         messages: true,
         step: true,
-        store: {
-          select: {
-            id: true,
-            slug: true,
-            mpAccessToken: true,
-            whatsappConnected: true,
-            whatsappInstanceName: true,
-          },
-        },
       },
     })) as SessionWithStore | null
 
@@ -139,10 +123,10 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000'
     let paymentLink = `${base}/tienda/${store.slug}/exito?orderId=${order.id}`
 
-    const tokenToUse = session.store?.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
+    const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
     if (tokenToUse) {
       try {
-        const preferenceData = {
+        const preferenceData: any = {
           body: {
             items: items.map(line => ({
               id: line.id,
@@ -188,11 +172,11 @@ export async function POST(req: Request) {
       const messageText = `🛒 *Tu pedido está listo* 📝\n\nHemos preparado tu link de pago por un total de *$${total.toLocaleString('es-CO')} COP*.\n\nPuedes pagar de forma segura haciendo clic aquí:\n🔗 ${paymentLink}`
 
       let sent = false
-      if (session.store?.whatsappConnected && session.store.whatsappInstanceName) {
+      if (store.whatsappConnected && store.whatsappInstanceName) {
         try {
           const { evolutionClient } = await import('@/lib/whatsapp/evolution')
           await evolutionClient.sendText(
-            session.store.whatsappInstanceName,
+            store.whatsappInstanceName,
             session.phoneNumber,
             messageText
           )
@@ -217,9 +201,9 @@ export async function POST(req: Request) {
       await prisma.whatsAppSession.update({
         where: { id: session.id },
         data: {
-          messages,
+          messages: messages as any,
           step: 'AWAITING_CONFIRMATION',
-          cart: null,
+          cart: null as any,
         },
       })
     } catch (waErr) {

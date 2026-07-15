@@ -150,7 +150,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
 
   // 1.5 Resolver el cliente de envío dinámico (Meta Cloud API o Evolution API)
   const isGlobal = !session.storeId || session.storeId === 'global';
-  let client: BotClient = officialWaClient;
+  let client: any = officialWaClient;
   let store: StoreRecord | null = null;
 
   if (!isGlobal) {
@@ -158,14 +158,15 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       where: { id: session.storeId }
     });
     if (store && store.whatsappInstanceName && store.whatsappConnected) {
+      const activeStore = store;
       const { evolutionClient } = await import('@/lib/whatsapp/evolution');
       client = {
-        sendText: (to: string, msg: string) => evolutionClient.sendText(store.whatsappInstanceName, to, msg),
-        sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => evolutionClient.sendButtons(store.whatsappInstanceName, to, msg, btns),
-        sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => evolutionClient.sendList(store.whatsappInstanceName, to, hdr, bdy, btnText, secs),
-        sendImage: (to: string, img: string, cap: string) => evolutionClient.sendImage(store.whatsappInstanceName, to, img, cap),
-        sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(store.whatsappInstanceName, to, doc, fn),
-        sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(store.whatsappInstanceName, to, bdy, btnText, url)
+        sendText: (to: string, msg: string) => evolutionClient.sendText(activeStore.whatsappInstanceName!, to, msg),
+        sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => evolutionClient.sendButtons(activeStore.whatsappInstanceName!, to, msg, btns),
+        sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => evolutionClient.sendList(activeStore.whatsappInstanceName!, to, hdr, bdy, btnText, secs),
+        sendImage: (to: string, img: string, cap: string) => evolutionClient.sendImage(activeStore.whatsappInstanceName!, to, img, cap),
+        sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(activeStore.whatsappInstanceName!, to, doc, fn),
+        sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(activeStore.whatsappInstanceName!, to, bdy, btnText, url)
       };
     }
   }
@@ -308,7 +309,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
       session = await updateWhatsAppSession(session.id, {
         storeId: resetStoreId,
-        cart: null,
+        cart: null as any,
       });
       await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕');
       return;
@@ -368,7 +369,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     await updateWhatsAppSession(session.id, {
       step: 'START',
       storeId: exitStoreId,
-      cart: null,
+      cart: null as any,
     });
     return;
   }
@@ -731,7 +732,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   }
 
   if (text === 'clear_cart') {
-      await updateWhatsAppSession(session.id, { cart: null });
+       await updateWhatsAppSession(session.id, { cart: null as any });
       await waClient.sendText(from, 'Carrito vaciado. 🗑️ ¿En qué puedo ayudarte?');
       return;
   }
@@ -1089,7 +1090,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                 );
               }
 
-              await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION', cart: null });
+              await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION', cart: null as any });
             } catch (err) {
                console.error('[Chatbot checkout finalize error]', err);
                await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
@@ -1164,7 +1165,7 @@ export async function handleWhatsAppImage(
     await waClient.sendText(from, 'Procesando tu comprobante de pago... ⏳');
 
     // 3. Descargar comprobante de WhatsApp
-    const { buffer } = await waClient.downloadMedia(mediaIdOrKey);
+    const { buffer } = await waClient.downloadMedia(mediaIdOrKey as any);
 
     // 4. Subir a Supabase Storage
     const ext = mimeType.split('/')[1] || 'png';

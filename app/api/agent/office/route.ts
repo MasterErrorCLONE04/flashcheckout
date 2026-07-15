@@ -89,14 +89,26 @@ export async function POST(req: Request) {
     if (!store) return notFound('Store not found')
 
     const body = await parseJsonBody<OfficeRequest>(req)
-    const agentType = body?.agentType?.trim() || ''
+    let agentType = body?.agentType?.trim() || ''
     const instruction = body?.instruction?.trim() || ''
 
     if (!agentType || !instruction) {
       return badRequest('Missing agentType or instruction')
     }
 
-    let systemPrompt = AGENT_SYSTEM_PROMPTS[agentType as keyof typeof AGENT_SYSTEM_PROMPTS]
+    // Map lowercase client agent ids to API keys
+    const agentMapping: Record<string, string> = {
+      'nova': 'Nova',
+      'stella': 'Growth',
+      'atlas': 'Logistics',
+      'orion': 'Nova'
+    }
+
+    if (agentMapping[agentType.toLowerCase()]) {
+      agentType = agentMapping[agentType.toLowerCase()]
+    }
+
+    let systemPrompt: string | undefined = AGENT_SYSTEM_PROMPTS[agentType as keyof typeof AGENT_SYSTEM_PROMPTS]
     let agentTools = NOVA_TOOLS_DEFINITIONS
 
     if (!systemPrompt) {

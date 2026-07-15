@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { Prisma } from '@prisma/client'
+import { Prisma, Store } from '@prisma/client'
 import { prisma } from './prisma'
 
 export async function getActiveStore(
@@ -9,7 +9,7 @@ export async function getActiveStore(
   const cookieStore = await cookies()
   const activeStoreId = cookieStore.get('active_store_id')?.value
 
-  let store: Prisma.Store | null = null
+  let store: Store | null = null
   if (activeStoreId) {
     store = await prisma.store.findFirst({
       where: { id: activeStoreId, userId },

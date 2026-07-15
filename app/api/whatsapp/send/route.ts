@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
     await prisma.whatsAppSession.update({
       where: { id: session.id },
-      data: { messages },
+      data: { messages: messages as any },
     })
 
     return NextResponse.json({

@@ -70,10 +70,10 @@ export async function PATCH(
 
         if (body.status === 'confirmed' || body.status === 'shipped') {
           automationName = 'Pedido listo para retiro / envio'
-          defaultMsg = `¡Hola {{cliente}}! Tu pedido #{{pedido_id}} en {{tienda}} esta listo para ser enviado o retirado. Valor total: ${{total}}. ¡Gracias por tu compra!`
+          defaultMsg = '¡Hola {{cliente}}! Tu pedido #{{pedido_id}} en {{tienda}} esta listo para ser enviado o retirado. Valor total: ${{total}}. ¡Gracias por tu compra!'
         } else if (body.status === 'delivered') {
           automationName = 'Calificar servicio'
-          defaultMsg = `¡Hola {{cliente}}! Tu pedido #{{pedido_id}} ha sido entregado con exito por {{tienda}}. ¿Como calificarias nuestro servicio hoy?`
+          defaultMsg = '¡Hola {{cliente}}! Tu pedido #{{pedido_id}} ha sido entregado con exito por {{tienda}}. ¿Como calificarias nuestro servicio hoy?'
         }
 
         if (automationName) {
@@ -95,7 +95,7 @@ export async function PATCH(
               .replace(/{{total}}/g, updatedOrder.total.toLocaleString('es-CO'))
               .replace(/{{tienda}}/g, updatedOrder.store.name)
 
-            let clientToUse: WhatsAppNotifier = waClient
+            let clientToUse: any = waClient
             const store = updatedOrder.store
             if (store.whatsappInstanceName && store.whatsappConnected) {
               const { evolutionClient } = await import('@/lib/whatsapp/evolution')

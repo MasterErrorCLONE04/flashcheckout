@@ -112,7 +112,7 @@ export default function PagosPage() {
           const initials = order.customerName
             ? order.customerName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
             : 'CL'
-          const bg = colors[order.customerName.length % colors.length]
+          const bg = colors[(order.customerName || '').length % colors.length]
           
           let estado: 'Exitoso' | 'Pendiente' | 'Fallido' = 'Pendiente'
           if (order.status === 'paid' || order.paymentStatus === 'PAID') {

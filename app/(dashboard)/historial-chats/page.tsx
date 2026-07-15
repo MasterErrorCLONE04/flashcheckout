@@ -91,6 +91,7 @@ export default async function HistorialChatsPage() {
       id: s.id,
       phoneNumber: s.phoneNumber,
       customerName: name,
+      avatarUrl: s.avatarUrl || null,
       lastInteraction: s.lastInteraction.toISOString(),
       step: s.step,
       messages,
@@ -98,7 +99,7 @@ export default async function HistorialChatsPage() {
       notes: Array.isArray(s.notes) ? s.notes : [],
       assignedTo: s.assignedTo || 'Tú',
       isFavorite: !!s.isFavorite,
-      status: s.status || 'active'
+      status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed'
     }
   })
 
@@ -108,6 +109,7 @@ export default async function HistorialChatsPage() {
       id: 'demo-session',
       phoneNumber: '573001234567',
       customerName: 'Cliente Ejemplo (Demo)',
+      avatarUrl: null,
       lastInteraction: new Date().toISOString(),
       step: 'IDLE',
       messages: [
@@ -118,7 +120,7 @@ export default async function HistorialChatsPage() {
       notes: [],
       assignedTo: 'Tú',
       isFavorite: false,
-      status: 'active'
+      status: 'active' as 'active' | 'closed'
     })
   }
 

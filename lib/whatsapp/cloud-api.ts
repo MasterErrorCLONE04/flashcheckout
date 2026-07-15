@@ -9,29 +9,7 @@ export type InteractiveLink = {
   description?: string;
 };
 
-type WhatsAppPayload = {
-  to?: string
-  type?: string
-  text?: { body?: string }
-  interactive?: {
-    type?: string
-    body?: { text?: string }
-    header?: { text?: string }
-    footer?: { text?: string }
-    action?: {
-      buttons?: { reply?: { title?: string } }[]
-      button?: string
-      name?: string
-      parameters?: {
-        display_text?: string
-        url?: string
-        flow_cta?: string
-      }
-    }
-  }
-  image?: { caption?: string }
-  document?: { filename?: string }
-}
+type WhatsAppPayload = any
 
 export class WhatsAppCloudAPI {
   private url: string;

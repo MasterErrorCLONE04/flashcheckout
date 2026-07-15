@@ -56,7 +56,7 @@ export default async function VerificacionesPage() {
   const currentCount = confirmedOrdersThisMonth.length
 
   const serializedOrders = await Promise.all(
-    (orders as OrderRow[]).map(async order => ({
+    (orders as unknown as OrderRow[]).map(async order => ({
       ...order,
       items: Array.isArray(order.items) ? order.items : [],
       createdAt: order.createdAt.toISOString(),

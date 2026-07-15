@@ -76,7 +76,7 @@ export default async function StorePage({ params, searchParams }: Props) {
     logoUrl: store.logoUrl,
     bio: store.bio,
     cardPaymentsEnabled,
-    aiSettings: store.aiSettings,
+    aiSettings: store.aiSettings as any,
     bannerUrl: aiSettings.bannerUrl || null
   }
 

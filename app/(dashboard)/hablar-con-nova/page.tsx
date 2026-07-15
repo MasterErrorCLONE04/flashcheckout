@@ -52,7 +52,14 @@ export default async function HablarConNovaPage() {
   const initialSessions = chatSessions.map(s => ({
     id: s.id,
     title: s.title,
-    messages: Array.isArray(s.messages) ? (s.messages as NovaChatMessage[]) : [],
+    messages: Array.isArray(s.messages)
+      ? (s.messages as NovaChatMessage[]).map((msg, index) => ({
+          id: `${s.id}-msg-${index}`,
+          sender: msg.sender,
+          text: msg.text,
+          time: msg.time || ''
+        }))
+      : [],
     updatedAt: s.updatedAt.toISOString()
   }))
 
