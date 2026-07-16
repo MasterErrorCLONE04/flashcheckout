@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
-import SmartPayClient from '@/components/SmartPayClient'
+import SmartPayBrebClient from '@/components/SmartPayBrebClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +25,8 @@ export default async function SmartPayPage({
           logoUrl: true,
           whatsapp: true,
           mpAccessToken: true,
-          mpPublicKey: true
+          mpPublicKey: true,
+          settings: true
         }
       }
     }
@@ -50,7 +51,7 @@ export default async function SmartPayPage({
   const items = Array.isArray(order.items) ? (order.items as any[]) : []
 
   return (
-    <SmartPayClient
+    <SmartPayBrebClient
       order={{
         id: order.id,
         customerName: order.customerName,
@@ -66,6 +67,23 @@ export default async function SmartPayPage({
       }}
       items={items}
       paymentUrl={paymentUrl}
+      brebConfig={getBrebConfig(order.store.settings)}
     />
   )
+}
+
+function getBrebConfig(settings: unknown) {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null
+  const config = (settings as Record<string, unknown>).brebConfig
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null
+
+  const brebConfig = config as Record<string, unknown>
+  return {
+    enabled: Boolean(brebConfig.enabled),
+    keyValue: typeof brebConfig.keyValue === 'string' ? brebConfig.keyValue : '',
+    bankProvider: typeof brebConfig.bankProvider === 'string' ? brebConfig.bankProvider : '',
+    merchantDisplayName: typeof brebConfig.merchantDisplayName === 'string' ? brebConfig.merchantDisplayName : '',
+    participantId: typeof brebConfig.participantId === 'string' ? brebConfig.participantId : '',
+    keyTypeCode: typeof brebConfig.keyTypeCode === 'string' ? brebConfig.keyTypeCode : '',
+  }
 }

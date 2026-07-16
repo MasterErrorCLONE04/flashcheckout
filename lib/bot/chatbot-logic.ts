@@ -1029,11 +1029,13 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
             try {
               const store = await prisma.store.findUnique({ where: { id: storeId } });
               const bankDetails = store?.whatsapp ? `Nequi o Daviplata al celular ${store.whatsapp}` : '[Datos Cuenta]';
+              const brebConfig = getBrebPaymentConfig(store?.settings);
+              const shouldUseBreb = Boolean(brebConfig?.enabled && brebConfig.keyValue && brebConfig.participantId);
               
               let mpPreferenceId: string | null = null;
 
               // Check if Mercado Pago is active and connected
-              if (store && store.mpConnected) {
+              if (store && store.mpConnected && !shouldUseBreb) {
                 const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN;
                 if (tokenToUse) {
                   try {
@@ -1102,7 +1104,14 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
               const smartPayUrl = `${baseAppUrl}/pay/${order.id}`;
 
               // Send the link!
-              if (store && store.mpConnected && mpPreferenceId) {
+              if (shouldUseBreb) {
+                await waClient.sendUrlButton(
+                  from,
+                  `${orderSummary}\n\nTu tienda tiene Bre-B activo. Presiona el boton para escanear el QR, pagar el valor exacto y subir el comprobante de forma segura:`,
+                  'Pagar por Bre-B',
+                  smartPayUrl
+                );
+              } else if (store && store.mpConnected && mpPreferenceId) {
                 // If Mercado Pago is active, send the Smart Pay Link directly as a Payment Redirection
                 await waClient.sendUrlButton(
                   from,
@@ -1137,6 +1146,13 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       }
       break;
   }
+}
+
+function getBrebPaymentConfig(settings: unknown) {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null;
+  const config = (settings as Record<string, unknown>).brebConfig;
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  return config as { enabled?: boolean; keyValue?: string; participantId?: string | null };
 }
 
 export async function handleWhatsAppImage(

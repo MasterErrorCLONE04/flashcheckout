@@ -13,6 +13,7 @@ import {
 export const dynamic = 'force-dynamic'
 
 type CustomerBody = {
+  id?: string
   name?: string
   phone?: string
   email?: string
@@ -46,30 +47,68 @@ export async function POST(req: Request) {
     if (!store) return notFound('Tienda no encontrada')
 
     const body = (await req.json().catch(() => null)) as CustomerBody | null
-    if (!body?.name) return badRequest('Nombre es requerido')
+    if (!body) return badRequest('Datos del cliente invalidos')
 
-    const customer = await prisma.customer.upsert({
-      where: {
-        storeId_phone: {
-          storeId: store.id,
-          phone: body.phone || '',
+    const name = body.name?.trim()
+    if (!name) return badRequest('Nombre es requerido')
+
+    const normalizedPhone = body.phone?.replace(/\D/g, '') || null
+    const customerData = {
+      name,
+      phone: normalizedPhone,
+      email: body.email?.trim() || null,
+      birthDate: body.birthDate?.trim() || null,
+      notes: body.notes?.trim() || null,
+      city: body.city?.trim() || null,
+    }
+
+    const existingCustomer = body.id
+      ? await prisma.customer.findFirst({
+          where: { id: body.id, storeId: store.id },
+        })
+      : null
+
+    if (existingCustomer) {
+      if (normalizedPhone && normalizedPhone !== existingCustomer.phone) {
+        const phoneOwner = await prisma.customer.findFirst({
+          where: { storeId: store.id, phone: normalizedPhone },
+        })
+
+        if (phoneOwner && phoneOwner.id !== existingCustomer.id) {
+          return badRequest('Ya existe otro cliente con ese telefono')
+        }
+      }
+
+      const customer = await prisma.customer.update({
+        where: { id: existingCustomer.id },
+        data: customerData,
+      })
+
+      return NextResponse.json({ customer })
+    }
+
+    if (normalizedPhone) {
+      const customer = await prisma.customer.upsert({
+        where: {
+          storeId_phone: {
+            storeId: store.id,
+            phone: normalizedPhone,
+          },
         },
-      },
-      update: {
-        name: body.name,
-        email: body.email,
-        birthDate: body.birthDate,
-        notes: body.notes,
-        city: body.city,
-      },
-      create: {
+        update: customerData,
+        create: {
+          storeId: store.id,
+          ...customerData,
+        },
+      })
+
+      return NextResponse.json({ customer })
+    }
+
+    const customer = await prisma.customer.create({
+      data: {
         storeId: store.id,
-        phone: body.phone || '',
-        name: body.name,
-        email: body.email,
-        birthDate: body.birthDate,
-        notes: body.notes,
-        city: body.city,
+        ...customerData,
       },
     })
 

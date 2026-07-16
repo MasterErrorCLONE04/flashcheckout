@@ -1,34 +1,27 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { 
   Search, 
   User, 
   MessageCircle, 
-  ExternalLink, 
   Award, 
   DollarSign, 
   Calendar, 
   SlidersHorizontal, 
-  MoreVertical, 
   X, 
-  Phone, 
   Mail, 
   ChevronRight, 
   ChevronLeft, 
-  CalendarDays, 
-  MapPin, 
-  Notebook, 
-  ShoppingBag, 
-  TrendingUp, 
-  Sparkles, 
-  AlertTriangle 
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import Modal from '@/components/ui/Modal'
 
 type CustomerRecord = {
+  id: string | null
+  customerKey: string
   phone: string
   name: string
   email: string
@@ -44,6 +37,7 @@ type CustomerRecord = {
 
 type SerializedOrder = {
   id: string
+  customerKey: string
   customerName: string
   customerPhone: string
   total: number
@@ -65,20 +59,21 @@ export default function CustomerCRM({
   const [search, setSearch] = useState('')
   const [segmentFilter, setSegmentFilter] = useState('Todos')
   const [statusFilter, setStatusFilter] = useState('Todos')
+  const [showAllHistory, setShowAllHistory] = useState(false)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
 
   // Detail panel state
-  const [selectedPhone, setSelectedPhone] = useState<string | null>(null)
+  const [selectedCustomerKey, setSelectedCustomerKey] = useState<string | null>(null)
   
   // Set default selection to first customer if available on load (matching screenshot selection)
   useEffect(() => {
-    if (initialCustomers.length > 0 && !selectedPhone) {
-      setSelectedPhone(initialCustomers[0].phone || initialCustomers[0].name)
+    if (initialCustomers.length > 0 && !selectedCustomerKey) {
+      setSelectedCustomerKey(initialCustomers[0].customerKey)
     }
-  }, [initialCustomers])
+  }, [initialCustomers, selectedCustomerKey])
 
   // Filter logic
   const filteredCustomers = customers.filter(c => {
@@ -93,20 +88,37 @@ export default function CustomerCRM({
     return matchesSearch && matchesSegment && matchesStatus
   })
 
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, segmentFilter, statusFilter])
+
   // Pagination bounds
   const totalPages = Math.max(Math.ceil(filteredCustomers.length / itemsPerPage), 1)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage)
 
-  const activeCustomer = customers.find(c => (c.phone || c.name) === selectedPhone) || null
+  const activeCustomer = customers.find(c => c.customerKey === selectedCustomerKey) || null
 
   // Customer orders for purchase history
-  const activeCustomerOrders = activeCustomer 
-    ? orders.filter(o => 
-        (activeCustomer.phone && o.customerPhone === activeCustomer.phone) || 
-        o.customerName === activeCustomer.name
-      )
+  const activeCustomerOrders = activeCustomer
+    ? orders.filter(o => o.customerKey === activeCustomer.customerKey)
     : []
+  const visibleCustomerOrders = showAllHistory ? activeCustomerOrders : activeCustomerOrders.slice(0, 5)
+  const activeAverageTicket = activeCustomer && activeCustomer.totalOrders > 0
+    ? Math.round(activeCustomer.totalSpent / activeCustomer.totalOrders)
+    : 0
+  const hasActiveFilters = search.trim() !== '' || segmentFilter !== 'Todos' || statusFilter !== 'Todos'
+
+  const handleClearFilters = () => {
+    setSearch('')
+    setSegmentFilter('Todos')
+    setStatusFilter('Todos')
+    setCurrentPage(1)
+  }
+
+  useEffect(() => {
+    setShowAllHistory(false)
+  }, [selectedCustomerKey])
 
   // Edit customer profile state
   const [isEditing, setIsEditing] = useState(false)
@@ -137,6 +149,7 @@ export default function CustomerCRM({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: activeCustomer.id,
           phone: activeCustomer.phone,
           name: editName,
           email: editEmail,
@@ -147,12 +160,16 @@ export default function CustomerCRM({
       })
 
       if (!res.ok) throw new Error('Error al guardar')
+      const data = await res.json()
+      const savedCustomer = data.customer as { id?: string; phone?: string | null } | undefined
 
       // Update local state
       setCustomers(prev => prev.map(c => {
-        if (c.phone === activeCustomer.phone) {
+        if (c.customerKey === activeCustomer.customerKey) {
           return {
             ...c,
+            id: savedCustomer?.id || c.id,
+            phone: savedCustomer?.phone || c.phone,
             name: editName,
             email: editEmail,
             birthDate: editBirthDate,
@@ -188,9 +205,8 @@ export default function CustomerCRM({
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Clientes totales</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">{totalUniqueCustomers.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-              <span>▲ 12.5%</span>
-              <span className="text-zinc-400 font-medium">vs mes anterior</span>
+            <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
+              <span>Perfiles y compradores reales</span>
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400">
@@ -203,9 +219,8 @@ export default function CustomerCRM({
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Clientes activos (30 días)</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">{active30Days.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-              <span>▲ 8.3%</span>
-              <span className="text-zinc-400 font-medium">vs mes anterior</span>
+            <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
+              <span>Interaccion en los ultimos 30 dias</span>
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400">
@@ -218,9 +233,8 @@ export default function CustomerCRM({
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Ingresos de clientes</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">${totalLtvSum.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-              <span>▲ 15.7%</span>
-              <span className="text-zinc-400 font-medium">vs mes anterior</span>
+            <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
+              <span>Suma de pedidos guardados</span>
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400">
@@ -233,9 +247,8 @@ export default function CustomerCRM({
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold text-zinc-400 tracking-wider  block">Valor promedio por cliente</span>
             <h3 className="text-xl font-bold text-zinc-955 tracking-tight tabular-nums">${avgLtv.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-              <span>▲ 7.2%</span>
-              <span className="text-zinc-400 font-medium">vs mes anterior</span>
+            <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
+              <span>Ingresos divididos por cliente</span>
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400">
@@ -303,10 +316,13 @@ export default function CustomerCRM({
               </div>
             </div>
 
-            {/* Filter settings button */}
-            <button className="flex items-center justify-center gap-1.5 h-9 px-4 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg text-xs font-semibold text-zinc-700 transition-colors shadow-sm active:scale-95 cursor-pointer">
+            <button
+              onClick={handleClearFilters}
+              disabled={!hasActiveFilters}
+              className="flex items-center justify-center gap-1.5 h-9 px-4 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg text-xs font-semibold text-zinc-700 transition-colors shadow-sm active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
               <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Filtros</span>
+              <span>{hasActiveFilters ? 'Limpiar filtros' : 'Filtros'}</span>
             </button>
           </div>
 
@@ -334,11 +350,11 @@ export default function CustomerCRM({
                   </tr>
                 ) : (
                   paginatedCustomers.map((c, idx) => {
-                    const isSelected = selectedPhone === (c.phone || c.name)
+                    const isSelected = selectedCustomerKey === c.customerKey
                     return (
                       <tr 
-                        key={c.phone || `${c.name}-${idx}`}
-                        onClick={() => setSelectedPhone(c.phone || c.name)}
+                        key={c.customerKey || `${c.name}-${idx}`}
+                        onClick={() => setSelectedCustomerKey(c.customerKey)}
                         className={cn(
                           "hover:bg-zinc-50/50 transition-colors relative cursor-pointer group/row",
                           isSelected && "bg-zinc-50"
@@ -352,7 +368,7 @@ export default function CustomerCRM({
                             </div>
                             <div className="flex flex-col min-w-0">
                               <span className="text-zinc-955 font-bold truncate max-w-[140px] leading-tight">{c.name}</span>
-                              <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[140px] mt-0.5">{c.email}</span>
+                              <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[140px] mt-0.5">{c.email || 'Sin email registrado'}</span>
                             </div>
                           </div>
                         </td>
@@ -401,12 +417,7 @@ export default function CustomerCRM({
                           </span>
                         </td>
 
-                        {/* Actions */}
-                        <td className="py-4 px-4 text-center">
-                          <button className="w-7 h-7 rounded-lg hover:bg-zinc-150/40 text-zinc-400 hover:text-zinc-700 flex items-center justify-center transition-colors mx-auto">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </td>
+                        <td className="py-4 px-4 text-center" />
                       </tr>
                     )
                   })
@@ -435,7 +446,7 @@ export default function CustomerCRM({
                 {/* Page number indicators */}
                 {Array.from({ length: totalPages }).map((_, i) => {
                   const pageNum = i + 1
-                  // Display constraints to match mockup style "< 1 2 3 ... 156 >"
+                  // Keep long pagination compact on dense CRM tables.
                   if (totalPages > 4 && pageNum > 3 && pageNum < totalPages) {
                     if (pageNum === 4) {
                       return <span key="ellipsis" className="px-2 select-none text-zinc-350">...</span>
@@ -507,14 +518,14 @@ export default function CustomerCRM({
                   )}
                   <p className="text-[9px] text-zinc-400 mt-1 flex items-center gap-1 font-semibold">
                     <Mail className="w-2.5 h-2.5" />
-                    <span>{activeCustomer.email}</span>
+                    <span>{activeCustomer.email || 'Sin email registrado'}</span>
                   </p>
                 </div>
               </div>
 
               {/* Close Button */}
               <button 
-                onClick={() => setSelectedPhone(null)}
+                onClick={() => setSelectedCustomerKey(null)}
                 className="w-7 h-7 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 flex items-center justify-center transition-colors cursor-pointer border border-zinc-200 bg-white"
                 title="Cerrar panel"
               >
@@ -527,36 +538,21 @@ export default function CustomerCRM({
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
                 <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Pedidos</p>
                 <p className="text-xs font-black text-zinc-850 tabular-nums">{activeCustomer.totalOrders}</p>
-                <button 
-                  onClick={() => toast.info('Mostrando pedidos en la parte inferior')}
-                  className="text-[8px] font-extrabold text-zinc-400 hover:underline leading-none pt-1 block mx-auto cursor-pointer"
-                >
-                  Ver historial
-                </button>
+                <p className="text-[8px] font-extrabold text-zinc-400 leading-none pt-1">Historial real</p>
               </div>
 
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
                 <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Total gastado</p>
                 <p className="text-xs font-black text-zinc-850 truncate max-w-full tabular-nums">${activeCustomer.totalSpent.toLocaleString('es-CO')}</p>
-                <button 
-                  onClick={() => toast.info('Detalles financieros listos')}
-                  className="text-[8px] font-extrabold text-zinc-400 hover:underline leading-none pt-1 block mx-auto cursor-pointer"
-                >
-                  Ver detalles
-                </button>
+                <p className="text-[8px] font-extrabold text-zinc-400 leading-none pt-1">Pedidos sumados</p>
               </div>
 
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
                 <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Ticket prom.</p>
                 <p className="text-xs font-black text-zinc-850 tabular-nums">
-                  ${Math.round(activeCustomer.totalSpent / activeCustomer.totalOrders).toLocaleString('es-CO')}
+                  ${activeAverageTicket.toLocaleString('es-CO')}
                 </p>
-                <button 
-                  onClick={() => toast.info('Métricas calculadas en tiempo real')}
-                  className="text-[8px] font-extrabold text-zinc-400 hover:underline leading-none pt-1 block mx-auto cursor-pointer"
-                >
-                  Ver métricas
-                </button>
+                <p className="text-[8px] font-extrabold text-zinc-400 leading-none pt-1">Promedio real</p>
               </div>
             </div>
 
@@ -575,16 +571,16 @@ export default function CustomerCRM({
               <div className="space-y-3.5 text-[11px] font-semibold text-zinc-850">
                 <div className="grid grid-cols-2 py-1">
                   <span className="text-zinc-400 font-medium">Fecha de nacimiento</span>
-                  <span className="text-right">{activeCustomer.birthDate}</span>
+                    <span className="text-right">{activeCustomer.birthDate || 'Sin registrar'}</span>
                 </div>
                 <div className="grid grid-cols-2 py-1 border-t border-zinc-50">
                   <span className="text-zinc-400 font-medium">Ciudad</span>
-                  <span className="text-right">{activeCustomer.city}</span>
+                  <span className="text-right">{activeCustomer.city || 'Sin registrar'}</span>
                 </div>
                 <div className="flex flex-col gap-1.5 py-1 border-t border-zinc-50">
                   <span className="text-zinc-400 font-medium">Notas de fidelidad</span>
                   <p className="text-[10px] text-zinc-650 leading-relaxed font-medium bg-zinc-50 p-2.5 border border-zinc-200/50 rounded-lg">
-                    {activeCustomer.notes}
+                    {activeCustomer.notes || 'Sin notas registradas.'}
                   </p>
                 </div>
               </div>
@@ -594,19 +590,21 @@ export default function CustomerCRM({
             <div className="space-y-3.5">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
                 <h5 className="text-[10px] font-extrabold text-zinc-450  tracking-wider">Historial de compras</h5>
-                <button 
-                  onClick={() => toast.success('Todas las compras se cargaron en el listado.')}
-                  className="text-[9px] font-bold text-emerald-600 hover:underline"
-                >
-                  Ver todas
-                </button>
+                {activeCustomerOrders.length > 5 && (
+                  <button
+                    onClick={() => setShowAllHistory(value => !value)}
+                    className="text-[9px] font-bold text-emerald-600 hover:underline"
+                  >
+                    {showAllHistory ? 'Ver menos' : 'Ver todas'}
+                  </button>
+                )}
               </div>
 
               {activeCustomerOrders.length === 0 ? (
                 <p className="text-center text-[10px] font-medium text-zinc-400 py-3">No hay compras registradas</p>
               ) : (
                 <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
-                  {activeCustomerOrders.slice(0, 5).map((order) => {
+                  {visibleCustomerOrders.map((order) => {
                     const formattedDate = new Date(order.createdAt).toLocaleDateString('es-CO', {
                       day: '2-digit',
                       month: 'short',
@@ -645,17 +643,13 @@ export default function CustomerCRM({
             </div>
 
             {/* Complete history link button */}
-            <button 
-              onClick={() => {
-                toast.success('Abriendo el historial completo de ventas...');
-                // Smooth scroll to table page
-                window.scrollTo({ top: 400, behavior: 'smooth' });
-              }}
+            <Link
+              href="/pedidos"
               className="w-full h-10 border border-zinc-200 hover:border-zinc-300 text-zinc-700 hover:text-zinc-950 bg-white hover:bg-zinc-50 font-bold rounded-lg text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Ver historial completo</span>
               <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
         )}
       </div>

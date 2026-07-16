@@ -52,6 +52,8 @@ model Store {
   settings                    Json?     @default("{}")
   referredBySlug              String?
   customers                   Customer[]
+  brebConfig                  BrebPaymentConfig?
+  brebPaymentIntents          BrebPaymentIntent[]
 }
 
 model Customer {
@@ -121,6 +123,62 @@ model Order {
   store                   Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
   driverId                String?
   driver                  Driver?       @relation(fields: [driverId], references: [id])
+  brebPaymentIntent       BrebPaymentIntent?
+}
+
+model BrebPaymentConfig {
+  id                  String   @id @default(cuid())
+  storeId             String   @unique
+  store               Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  enabled             Boolean  @default(false)
+  keyType             String
+  keyValue            String
+  bankProvider        String
+  merchantDisplayName String
+  participantId       String?
+  verificationStatus  String   @default("PENDING")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model BrebPaymentIntent {
+  id             String             @id @default(cuid())
+  orderId        String             @unique
+  order          Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeId        String
+  store          Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  amount         Int
+  currency       String             @default("COP")
+  reference      String             @unique
+  emvPayload     String
+  status         String             @default("PENDING")
+  expiresAt      DateTime
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  proof          BrebPaymentProof?
+
+  @@index([storeId, status])
+}
+
+model BrebPaymentProof {
+  id                     String            @id @default(cuid())
+  paymentIntentId        String            @unique
+  paymentIntent          BrebPaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Cascade)
+  imageUrl               String
+  ocrRawText             String?
+  bankOrigin             String?
+  destinationKey         String?
+  extractedAmount        Int?
+  extractedTransactionId String?           @unique
+  extractedDatetime      DateTime?
+  isSuccessScreen        Boolean?
+  confidence             Float             @default(0)
+  decision               String            @default("PENDING")
+  reviewReason           String?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([decision])
 }
 
 model Driver {

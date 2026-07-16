@@ -16,6 +16,9 @@ const isPublicRoute = createRouteMatcher([
   '/api/checkout/(.*)',
   '/api/cron/(.*)',
   '/api/agent/flashy(.*)',
+  '/api/explore/assistant(.*)',
+  '/api/breb/payment-intents(.*)',
+  '/api/breb/proofs(.*)',
   '/legal(.*)'
 ]);
 

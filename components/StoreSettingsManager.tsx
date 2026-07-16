@@ -166,6 +166,50 @@ export default function StoreSettingsManager({
   const [mpConnected, setMpConnected] = useState(!!initialStore.mpConnected)
   const [mpPublicKey, setMpPublicKey] = useState(initialStore.mpPublicKey || '')
   const [disconnectingMp, setDisconnectingMp] = useState(false)
+  const [brebConfig, setBrebConfig] = useState({
+    enabled: false,
+    keyType: 'PHONE',
+    keyValue: '',
+    bankProvider: '',
+    merchantDisplayName: initialStore.name,
+    participantId: '',
+    keyTypeCode: '',
+    verificationStatus: 'PENDING',
+  })
+  const [loadingBreb, setLoadingBreb] = useState(true)
+  const [savingBreb, setSavingBreb] = useState(false)
+
+  const applyBrebPreset = (provider: 'NEQUI' | 'NU' | 'DAVIVIENDA') => {
+    if (provider === 'NEQUI') {
+      setBrebConfig(prev => ({
+        ...prev,
+        bankProvider: 'Nequi',
+        participantId: '1507',
+        keyType: 'PHONE',
+        keyTypeCode: '02',
+      }))
+      return
+    }
+
+    if (provider === 'DAVIVIENDA') {
+      setBrebConfig(prev => ({
+        ...prev,
+        bankProvider: 'Davivienda',
+        participantId: '0051',
+        keyType: 'PHONE',
+        keyTypeCode: '02',
+      }))
+      return
+    }
+
+    setBrebConfig(prev => ({
+      ...prev,
+      bankProvider: 'Nu Colombia',
+      participantId: '3201',
+      keyType: 'ALPHANUMERIC',
+      keyTypeCode: '01',
+    }))
+  }
   
   const [logoPreview, setLogoPreview] = useState<string | null>(initialStore.logoUrl)
   const [loading, setLoading] = useState(false)
@@ -200,6 +244,35 @@ export default function StoreSettingsManager({
       }
     }
   }, [])
+
+  useEffect(() => {
+    async function loadBrebConfig() {
+      setLoadingBreb(true)
+      try {
+        const res = await fetch('/api/breb/config')
+        if (!res.ok) throw new Error('No se pudo cargar Bre-B')
+        const data = await res.json()
+        if (data.config) {
+          setBrebConfig({
+            enabled: Boolean(data.config.enabled),
+            keyType: data.config.keyType || 'PHONE',
+            keyValue: data.config.keyValue || '',
+            bankProvider: data.config.bankProvider || '',
+            merchantDisplayName: data.config.merchantDisplayName || initialStore.name,
+            participantId: data.config.participantId || '',
+            keyTypeCode: data.config.keyTypeCode || '',
+            verificationStatus: data.config.verificationStatus || 'PENDING',
+          })
+        }
+      } catch (error) {
+        console.error('Error loading Bre-B config:', error)
+      } finally {
+        setLoadingBreb(false)
+      }
+    }
+
+    loadBrebConfig()
+  }, [initialStore.name])
 
   useEffect(() => {
     async function checkInitialStatus() {
@@ -321,6 +394,35 @@ export default function StoreSettingsManager({
       toast.error("Error al desconectar", { description: "No se pudo desconectar tu cuenta de Mercado Pago. Inténtalo de nuevo." })
     } finally {
       setDisconnectingMp(false)
+    }
+  }
+
+  async function handleSaveBrebConfig() {
+    setSavingBreb(true)
+    try {
+      const res = await fetch('/api/breb/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(brebConfig),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || 'No se pudo guardar Bre-B')
+
+      setBrebConfig(prev => ({
+        ...prev,
+        verificationStatus: data.config?.verificationStatus || prev.verificationStatus,
+      }))
+      toast.success('Bre-B configurado', {
+        description: brebConfig.enabled
+          ? 'Tu tienda ya puede generar cobros directos con tu llave Bre-B.'
+          : 'La configuracion quedo guardada, pero Bre-B esta desactivado.',
+      })
+    } catch (error) {
+      toast.error('Error guardando Bre-B', {
+        description: error instanceof Error ? error.message : 'Intentalo de nuevo.',
+      })
+    } finally {
+      setSavingBreb(false)
     }
   }
 
@@ -777,6 +879,163 @@ export default function StoreSettingsManager({
                       <span>Conectar</span>
                     </button>
                   )}
+                </div>
+
+                {/* Bre-B Direct */}
+                <div className="p-4 bg-emerald-50/40 border border-emerald-200/70 rounded-lg space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                        <Key className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-zinc-900">Bre-B directo</h4>
+                          <span className={cn(
+                            "text-[9px] font-bold px-2 py-0.5 rounded-full border",
+                            brebConfig.enabled
+                              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                              : "bg-white text-zinc-400 border-zinc-200"
+                          )}>
+                            {brebConfig.enabled ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 font-semibold mt-0.5">
+                          Cobra con QR Bre-B. El dinero llega directo a tu cuenta, FlashCheckout no toca los fondos.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => applyBrebPreset('NEQUI')}
+                            className="h-6 px-2.5 rounded-full bg-white border border-emerald-200 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"
+                          >
+                            Usar Nequi 1507
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => applyBrebPreset('NU')}
+                            className="h-6 px-2.5 rounded-full bg-white border border-emerald-200 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"
+                          >
+                            Usar Nu 3201
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => applyBrebPreset('DAVIVIENDA')}
+                            className="h-6 px-2.5 rounded-full bg-white border border-emerald-200 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"
+                          >
+                            Usar Davivienda 0051
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <Toggle
+                      checked={brebConfig.enabled}
+                      onChange={value => setBrebConfig(prev => ({ ...prev, enabled: value }))}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-500">Tipo de llave</label>
+                      <select
+                        value={brebConfig.keyType}
+                        onChange={e => setBrebConfig(prev => ({ ...prev, keyType: e.target.value }))}
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                      >
+                        <option value="PHONE">Celular</option>
+                        <option value="EMAIL">Correo</option>
+                        <option value="DOCUMENT">Cedula / NIT</option>
+                        <option value="ALPHANUMERIC">Llave alfanumerica</option>
+                        <option value="MERCHANT_CODE">Codigo de comercio</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-500">Llave Bre-B</label>
+                      <input
+                        value={brebConfig.keyValue}
+                        onChange={e => setBrebConfig(prev => ({ ...prev, keyValue: e.target.value }))}
+                        placeholder="Ej. @3025382862 o @NYL279"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-500">Banco o billetera</label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-350" />
+                        <select
+                          value={brebConfig.bankProvider}
+                          onChange={e => {
+                            const value = e.target.value
+                            if (value === 'Nequi') applyBrebPreset('NEQUI')
+                            else if (value === 'Nu Colombia') applyBrebPreset('NU')
+                            else if (value === 'Davivienda') applyBrebPreset('DAVIVIENDA')
+                            else setBrebConfig(prev => ({ ...prev, bankProvider: value }))
+                          }}
+                          className="w-full h-9 bg-white border border-zinc-200 rounded-lg pl-9 pr-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                        >
+                          <option value="">Selecciona tu banco</option>
+                          <option value="Nequi">Nequi - 1507</option>
+                          <option value="Nu Colombia">Nu Colombia - 3201</option>
+                          <option value="Davivienda">Davivienda - 0051</option>
+                          <option value="Otro">Otro / manual</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-500">Nombre visible en QR</label>
+                      <input
+                        value={brebConfig.merchantDisplayName}
+                        onChange={e => setBrebConfig(prev => ({ ...prev, merchantDisplayName: e.target.value }))}
+                        placeholder={initialStore.name}
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-500">Codigo entidad Bre-B</label>
+                      <input
+                        value={brebConfig.participantId}
+                        onChange={e => setBrebConfig(prev => ({ ...prev, participantId: e.target.value.replace(/\D/g, '') }))}
+                        placeholder="Ej. 3201"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                      />
+                      <p className="text-[9px] font-semibold text-zinc-400">Se completa al elegir banco. Ej: Nequi 1507, Nu 3201, Davivienda 0051.</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-zinc-500">Codigo tipo de llave</label>
+                      <input
+                        value={brebConfig.keyTypeCode}
+                        onChange={e => setBrebConfig(prev => ({ ...prev, keyTypeCode: e.target.value.replace(/\D/g, '') }))}
+                        placeholder="Opcional. Ej. 01 para alias"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                      />
+                      <p className="text-[9px] font-semibold text-zinc-400">Si esta vacio, usamos el mapeo observado para el tipo elegido.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 rounded-lg bg-white/70 border border-emerald-100 p-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-[10px] font-bold text-zinc-700">Validacion automatica por comprobante</p>
+                        <p className="text-[10px] font-semibold text-zinc-400 leading-relaxed">
+                          El QR se generara con monto y referencia unica. El OCR antifraude queda preparado para revisar capturas.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleSaveBrebConfig}
+                      disabled={savingBreb || loadingBreb}
+                      className="flex items-center justify-center gap-1.5 h-8 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                    >
+                      {savingBreb || loadingBreb ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                      <span>{loadingBreb ? 'Cargando' : 'Guardar Bre-B'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
