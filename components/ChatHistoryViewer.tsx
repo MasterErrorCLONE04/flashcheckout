@@ -279,6 +279,25 @@ export default function ChatHistoryViewer({
       })
   }, [activeSessionId])
 
+  // Poll for real-time WhatsApp session and message updates
+  useEffect(() => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/whatsapp/sessions')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.sessions) {
+            setSessions(data.sessions)
+          }
+        }
+      } catch (err) {
+        console.error('Error polling for chat updates:', err)
+      }
+    }, 3500)
+
+    return () => clearInterval(pollInterval)
+  }, [])
+
   // Scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })

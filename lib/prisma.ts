@@ -10,7 +10,12 @@ function makePrismaClient() {
   const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL
 
   // Create a pg connection pool
-  const pool = new Pool({ connectionString })
+  const pool = new Pool({ 
+    connectionString,
+    ssl: connectionString?.includes('supabase.com') || connectionString?.includes('140.216') 
+      ? { rejectUnauthorized: false } 
+      : undefined
+  })
   const adapter = new PrismaPg(pool)
 
   return new PrismaClient({

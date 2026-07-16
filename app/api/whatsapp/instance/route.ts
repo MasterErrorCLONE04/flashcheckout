@@ -6,6 +6,19 @@ import { getErrorMessage } from '@/lib/api/route-utils';
 
 export const dynamic = 'force-dynamic';
 
+async function forceRecreateInstance(instanceName: string) {
+  try {
+    console.log(`[Instance Recreate] Deleting instance ${instanceName} first...`);
+    await evolutionClient.deleteInstance(instanceName).catch(() => {});
+    console.log(`[Instance Recreate] Waiting 2.5 seconds for deletion to complete...`);
+    await new Promise(resolve => setTimeout(resolve, 2500));
+  } catch (e) {
+    console.warn(`[Instance Recreate] Ignored error while deleting instance:`, e);
+  }
+  console.log(`[Instance Recreate] Creating instance ${instanceName}...`);
+  await evolutionClient.createInstance(instanceName);
+}
+
 type WhatsAppStore = {
   id: string;
   whatsappInstanceName: string | null;
@@ -14,8 +27,10 @@ type WhatsAppStore = {
 
 // GET: Check connection status and get QR code if not connected
 export async function GET() {
+  console.log('[Instance GET] Handler started');
   try {
     const { userId } = await auth();
+    console.log('[Instance GET] authenticated userId:', userId);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -25,8 +40,11 @@ export async function GET() {
     });
 
     if (!store) {
+      console.log('[Instance GET] Store not found for user');
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }
+
+    console.log('[Instance GET] Store found:', store.id, 'instanceName:', store.whatsappInstanceName);
 
     if (!store.whatsappInstanceName) {
       return NextResponse.json({ status: 'DISCONNECTED' });
@@ -34,7 +52,29 @@ export async function GET() {
 
     // Consult connection status / retrieve QR code
     try {
-      const qrData = await evolutionClient.getQR(store.whatsappInstanceName);
+      let qrData;
+      try {
+        qrData = await evolutionClient.getQR(store.whatsappInstanceName);
+      } catch (err: any) {
+        const errMsg = getErrorMessage(err);
+        if (errMsg.toLowerCase().includes('does not exist') || errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('in use')) {
+          console.log(`[Instance GET] Instance ${store.whatsappInstanceName} does not exist or is in conflict in Evolution API. Re-creating...`);
+          try {
+            await forceRecreateInstance(store.whatsappInstanceName);
+            try {
+              await evolutionClient.setWebhook(store.whatsappInstanceName);
+            } catch (webhookErr) {
+              console.error('[Instance GET] Failed to set webhook on re-creation', webhookErr);
+            }
+            qrData = await evolutionClient.getQR(store.whatsappInstanceName);
+          } catch (createErr) {
+            console.error('[Instance GET] Failed to auto-recreate instance', createErr);
+            throw err;
+          }
+        } else {
+          throw err;
+        }
+      }
       
       if (qrData.status === 'CONNECTED') {
         if (!store.whatsappConnected) {
@@ -99,10 +139,9 @@ export async function POST(req: Request) {
 
     // 2. Register instance in Evolution API
     try {
-      await evolutionClient.createInstance(instanceName);
+      await forceRecreateInstance(instanceName);
     } catch (err: unknown) {
-      // If it already exists, that is fine, we continue
-      console.log(`[Instance POST] Instance ${instanceName} may already exist, proceeding.`);
+      console.error(`[Instance POST] Failed to force-recreate instance ${instanceName}`, err);
     }
 
     // 3. Configure webhook
@@ -160,6 +199,13 @@ async function disconnectStoreInstance(store: WhatsAppStore) {
       whatsappInstanceName: null,
       whatsappConnected: false
     }
+  });
+
+  // Clear previous WhatsApp sessions in the database for this store to prevent mixed conversations
+  await prisma.whatsAppSession.deleteMany({
+    where: { storeId: store.id }
+  }).catch((err) => {
+    console.error('[disconnectStoreInstance] Failed to delete old sessions:', err);
   });
 
   // Call Evolution API delete in the background (no await) since logging out from WhatsApp can be very slow
