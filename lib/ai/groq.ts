@@ -2,8 +2,20 @@ export type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'
   content: string | null
   name?: string
-  tool_calls?: any[]
+  tool_calls?: Array<{
+    id: string
+    function: { name: string; arguments?: string | Record<string, unknown> }
+  }>
   tool_call_id?: string
+}
+
+export type ToolDefinition = {
+  type: 'function'
+  function: {
+    name: string
+    description: string
+    parameters: Record<string, unknown>
+  }
 }
 
 export interface AIGatewayConfig {
@@ -24,8 +36,8 @@ const GATEWAY_CONFIG: AIGatewayConfig = {
 export async function generateGroqCompletion(
   messages: ChatMessage[],
   systemPrompt?: string,
-  tools?: any[]
-): Promise<any> {
+  tools?: ToolDefinition[]
+): Promise<string | ChatMessage> {
   const apiKey = process.env.GROQ_API_KEY
   const model = process.env.GROQ_MODEL || 'qwen/qwen3.6-27b'
   const apiUrl = process.env.GROQ_API_URL || 'https://api.groq.com/openai/v1'
@@ -88,7 +100,7 @@ export async function generateGroqCompletion(
     }
 
     const data = await res.json()
-    const responseMessage = data.choices?.[0]?.message
+    const responseMessage = data.choices?.[0]?.message as ChatMessage | undefined
 
     if (tools && tools.length > 0) {
       return responseMessage || { role: 'assistant', content: '' }

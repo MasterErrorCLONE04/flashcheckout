@@ -55,7 +55,7 @@ export async function GET() {
       let qrData;
       try {
         qrData = await evolutionClient.getQR(store.whatsappInstanceName);
-      } catch (err: any) {
+      } catch (err: unknown) {
         const errMsg = getErrorMessage(err);
         if (errMsg.toLowerCase().includes('does not exist') || errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('in use')) {
           console.log(`[Instance GET] Instance ${store.whatsappInstanceName} does not exist or is in conflict in Evolution API. Re-creating...`);

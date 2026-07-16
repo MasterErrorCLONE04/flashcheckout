@@ -19,6 +19,10 @@ export type CartState = {
   items: Record<string, CartLine>
 }
 
+export function emptyCartState(): CartState {
+  return { items: {} }
+}
+
 export function parseCartState(cart: unknown): CartState | null {
   if (!cart) return null
 

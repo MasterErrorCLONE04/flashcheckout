@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { waClient as officialWaClient } from '@/lib/whatsapp/cloud-api';
+import { emptyCartState, normalizeChatMessages } from '@/lib/whatsapp/session-state';
 import { parseIntent } from './intent-engine';
 import { searchGlobalProducts } from './search-service';
 import { mpPreference } from '@/lib/mercadopago';
@@ -22,17 +23,7 @@ type BotClient = {
 };
 
 function toChatMessages(value: unknown): ChatMessage[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is ChatMessage => {
-    return Boolean(
-      item &&
-      typeof item === 'object' &&
-      (item as ChatMessage).sender &&
-      typeof (item as ChatMessage).text === 'string' &&
-      typeof (item as ChatMessage).time === 'string' &&
-      typeof (item as ChatMessage).timestamp === 'number'
-    );
-  });
+  return normalizeChatMessages(value);
 }
 
 function toCartState(value: unknown): CartState {
@@ -71,6 +62,50 @@ function toCartItems(cart: CartState): CartItem[] {
       typeof item.qty === 'number'
     );
   });
+}
+
+type DownloadableWhatsAppClient = {
+  sendText: (to: string, msg: string) => Promise<unknown>
+  downloadMedia: (id: string | Record<string, unknown>) => Promise<{ buffer: Buffer }>
+}
+
+function extractMediaId(mediaIdOrKey: string | Record<string, unknown>): string {
+  if (typeof mediaIdOrKey === 'string') {
+    return mediaIdOrKey
+  }
+
+  const candidate = mediaIdOrKey.id
+  return typeof candidate === 'string' ? candidate : ''
+}
+
+function createDownloadableClient(
+  instanceName?: string,
+  messagePayload?: Record<string, unknown>
+): DownloadableWhatsAppClient {
+  if (instanceName && instanceName !== 'global') {
+    return {
+      sendText: async (to: string, msg: string) => {
+        const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+        return evolutionClient.sendText(instanceName, to, msg)
+      },
+      downloadMedia: async (id: string | Record<string, unknown>) => {
+        const { evolutionClient } = await import('@/lib/whatsapp/evolution')
+        const buffer = await evolutionClient.downloadMedia(instanceName, id, messagePayload)
+        return { buffer }
+      },
+    }
+  }
+
+  return {
+    sendText: (to: string, msg: string) => officialWaClient.sendText(to, msg),
+    downloadMedia: async (id: string | Record<string, unknown>) => {
+      const mediaId = extractMediaId(id)
+      if (!mediaId) {
+        throw new Error('Media id missing for WhatsApp download')
+      }
+      return officialWaClient.downloadMedia(mediaId)
+    },
+  }
 }
 
 async function getCartItemsForSession(session: SessionRecord): Promise<CartItem[]> {
@@ -150,7 +185,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
 
   // 1.5 Resolver el cliente de envío dinámico (Meta Cloud API o Evolution API)
   const isGlobal = !session.storeId || session.storeId === 'global';
-  let client: any = officialWaClient;
+  let client: BotClient = officialWaClient;
   let store: StoreRecord | null = null;
 
   if (!isGlobal) {
@@ -309,7 +344,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
       session = await updateWhatsAppSession(session.id, {
         storeId: resetStoreId,
-        cart: null as any,
+        cart: emptyCartState(),
       });
       await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕');
       return;
@@ -366,11 +401,11 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   if (intent.intent === 'EXIT') {
     await waClient.sendText(from, '¡De nada! Ha sido un placer ayudarte. 😊\n\nSi necesitas algo más en el futuro, solo escribe "Hola". ¡Que tengas un gran día! 👋');
     const exitStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-    await updateWhatsAppSession(session.id, {
-      step: 'START',
-      storeId: exitStoreId,
-      cart: null as any,
-    });
+      await updateWhatsAppSession(session.id, {
+        step: 'START',
+        storeId: exitStoreId,
+        cart: emptyCartState(),
+      });
     return;
   }
 
@@ -732,7 +767,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   }
 
   if (text === 'clear_cart') {
-       await updateWhatsAppSession(session.id, { cart: null as any });
+      await updateWhatsAppSession(session.id, { cart: emptyCartState() });
       await waClient.sendText(from, 'Carrito vaciado. 🗑️ ¿En qué puedo ayudarte?');
       return;
   }
@@ -1090,7 +1125,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                 );
               }
 
-              await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION', cart: null as any });
+              await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION', cart: emptyCartState() });
             } catch (err) {
                console.error('[Chatbot checkout finalize error]', err);
                await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
@@ -1112,22 +1147,7 @@ export async function handleWhatsAppImage(
   instanceName?: string,
   messagePayload?: Record<string, unknown>
 ) {
-  // Shadow client
-  let waClientInstance: typeof officialWaClient | {
-    sendText: (to: string, msg: string) => Promise<unknown>
-    downloadMedia: (id: string | Record<string, unknown>) => Promise<{ buffer: Buffer }>
-  } = officialWaClient;
-  if (instanceName && instanceName !== 'global') {
-    const { evolutionClient } = await import('@/lib/whatsapp/evolution');
-    waClientInstance = {
-      sendText: (to: string, msg: string) => evolutionClient.sendText(instanceName, to, msg),
-      downloadMedia: async (id: string | Record<string, unknown>) => {
-        const buffer = await evolutionClient.downloadMedia(instanceName, id, messagePayload);
-        return { buffer };
-      }
-    };
-  }
-  const waClient = waClientInstance;
+  const waClient = createDownloadableClient(instanceName, messagePayload);
 
   // 1. Obtener sesión del bot usando compound key
   const session = await prisma.whatsAppSession.findUnique({
@@ -1165,7 +1185,7 @@ export async function handleWhatsAppImage(
     await waClient.sendText(from, 'Procesando tu comprobante de pago... ⏳');
 
     // 3. Descargar comprobante de WhatsApp
-    const { buffer } = await waClient.downloadMedia(mediaIdOrKey as any);
+    const { buffer } = await waClient.downloadMedia(mediaIdOrKey);
 
     // 4. Subir a Supabase Storage
     const ext = mimeType.split('/')[1] || 'png';

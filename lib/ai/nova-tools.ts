@@ -1,3 +1,4 @@
+﻿import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export interface ToolDefinition {
@@ -7,23 +8,29 @@ export interface ToolDefinition {
     description: string
     parameters: {
       type: 'object'
-      properties: Record<string, any>
+      properties: Record<string, unknown>
       required?: string[]
     }
   }
 }
 
-// 1. Definición de herramientas para el LLM
+type JsonRecord = Record<string, unknown>
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+// 1. DefiniciÃ³n de herramientas para el LLM
 export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
   {
     type: 'function',
     function: {
       name: 'search_products',
-      description: 'Busca productos en el catálogo por nombre, descripción o categoría.',
+      description: 'Busca productos en el catÃ¡logo por nombre, descripciÃ³n o categorÃ­a.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'El término de búsqueda (ej. "camisa", "tecnología").' }
+          query: { type: 'string', description: 'El tÃ©rmino de bÃºsqueda (ej. "camisa", "tecnologÃ­a").' }
         },
         required: ['query']
       }
@@ -33,14 +40,14 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'update_product',
-      description: 'Actualiza el nombre, descripción, categoría, precio, stock o estado activo/inactivo de un producto específico.',
+      description: 'Actualiza el nombre, descripciÃ³n, categorÃ­a, precio, stock o estado activo/inactivo de un producto especÃ­fico.',
       parameters: {
         type: 'object',
         properties: {
-          productId: { type: 'string', description: 'ID único del producto.' },
+          productId: { type: 'string', description: 'ID Ãºnico del producto.' },
           name: { type: 'string', description: 'Nuevo nombre del producto (opcional).' },
-          description: { type: 'string', description: 'Nueva descripción detallada del producto (opcional).' },
-          category: { type: 'string', description: 'Nueva categoría del producto (opcional).' },
+          description: { type: 'string', description: 'Nueva descripciÃ³n detallada del producto (opcional).' },
+          category: { type: 'string', description: 'Nueva categorÃ­a del producto (opcional).' },
           price: { type: 'number', description: 'Nuevo precio del producto (opcional).' },
           stock: { type: 'number', description: 'Nueva cantidad disponible en stock (opcional).' },
           active: { type: 'boolean', description: 'Estado activo o inactivo del producto (opcional).' }
@@ -53,15 +60,15 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'create_product',
-      description: 'Crea un nuevo producto en el catálogo de la tienda.',
+      description: 'Crea un nuevo producto en el catÃ¡logo de la tienda.',
       parameters: {
         type: 'object',
         properties: {
           name: { type: 'string', description: 'Nombre del producto.' },
           price: { type: 'number', description: 'Precio del producto.' },
           stock: { type: 'number', description: 'Cantidad inicial de stock (opcional, por defecto 10).' },
-          category: { type: 'string', description: 'Categoría del producto (opcional, por defecto "General").' },
-          description: { type: 'string', description: 'Descripción detallada del producto (opcional).' },
+          category: { type: 'string', description: 'CategorÃ­a del producto (opcional, por defecto "General").' },
+          description: { type: 'string', description: 'DescripciÃ³n detallada del producto (opcional).' },
           imageUrl: { type: 'string', description: 'URL de la imagen del producto (opcional).' }
         },
         required: ['name', 'price']
@@ -72,7 +79,7 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'list_orders',
-      description: 'Obtiene una lista de los pedidos recientes, con opción de filtrar por estado (pending, preparing, ready, delivered, cancelled).',
+      description: 'Obtiene una lista de los pedidos recientes, con opciÃ³n de filtrar por estado (pending, preparing, ready, delivered, cancelled).',
       parameters: {
         type: 'object',
         properties: {
@@ -86,7 +93,7 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'update_order_status',
-      description: 'Cambia el estado de un pedido (por ejemplo, a "preparing", "ready", "delivered" o "cancelled") y permite añadir comentarios internos.',
+      description: 'Cambia el estado de un pedido (por ejemplo, a "preparing", "ready", "delivered" o "cancelled") y permite aÃ±adir comentarios internos.',
       parameters: {
         type: 'object',
         properties: {
@@ -102,16 +109,16 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'create_coupon',
-      description: 'Crea un nuevo cupón de descuento activo para la tienda.',
+      description: 'Crea un nuevo cupÃ³n de descuento activo para la tienda.',
       parameters: {
         type: 'object',
         properties: {
-          code: { type: 'string', description: 'Código del cupón (ej. "SUMMER10"). Se guardará en mayúsculas.' },
-          desc: { type: 'string', description: 'Descripción de la promoción.' },
-          valor: { type: 'string', description: 'Valor del descuento (ej: "10%", "5000", "Envío gratis").' },
-          tipo: { type: 'string', description: 'Tipo de cupón ("Código" o "Automático", por defecto "Código").' },
-          tipoDesc: { type: 'string', description: 'Tipo de descuento ("Porcentaje", "Monto fijo", "Envío gratis", por defecto "Porcentaje").' },
-          validoHasta: { type: 'string', description: 'Fecha o descripción de validez (ej: "31 Dic 2026", "mañana", "Sin fecha límite").' }
+          code: { type: 'string', description: 'CÃ³digo del cupÃ³n (ej. "SUMMER10"). Se guardarÃ¡ en mayÃºsculas.' },
+          desc: { type: 'string', description: 'DescripciÃ³n de la promociÃ³n.' },
+          valor: { type: 'string', description: 'Valor del descuento (ej: "10%", "5000", "EnvÃ­o gratis").' },
+          tipo: { type: 'string', description: 'Tipo de cupÃ³n ("CÃ³digo" o "AutomÃ¡tico", por defecto "CÃ³digo").' },
+          tipoDesc: { type: 'string', description: 'Tipo de descuento ("Porcentaje", "Monto fijo", "EnvÃ­o gratis", por defecto "Porcentaje").' },
+          validoHasta: { type: 'string', description: 'Fecha o descripciÃ³n de validez (ej: "31 Dic 2026", "maÃ±ana", "Sin fecha lÃ­mite").' }
         },
         required: ['code', 'desc', 'valor']
       }
@@ -121,7 +128,7 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_sales_metrics',
-      description: 'Obtiene las métricas de rendimiento y estadísticas de ventas de la tienda (ventas totales, promedio de ticket, pedidos y productos más vendidos).',
+      description: 'Obtiene las mÃ©tricas de rendimiento y estadÃ­sticas de ventas de la tienda (ventas totales, promedio de ticket, pedidos y productos mÃ¡s vendidos).',
       parameters: {
         type: 'object',
         properties: {}
@@ -132,11 +139,11 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_customer_chat',
-      description: 'Obtiene la transcripción del chat de WhatsApp reciente con un cliente específico usando su teléfono.',
+      description: 'Obtiene la transcripciÃ³n del chat de WhatsApp reciente con un cliente especÃ­fico usando su telÃ©fono.',
       parameters: {
         type: 'object',
         properties: {
-          phone: { type: 'string', description: 'Número de teléfono del cliente (con o sin código de país).' }
+          phone: { type: 'string', description: 'NÃºmero de telÃ©fono del cliente (con o sin cÃ³digo de paÃ­s).' }
         },
         required: ['phone']
       }
@@ -146,7 +153,7 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'toggle_whatsapp_bot',
-      description: 'Activa o desactiva (pausa) el bot inteligente autómata de ventas que atiende a los clientes finales en WhatsApp.',
+      description: 'Activa o desactiva (pausa) el bot inteligente autÃ³mata de ventas que atiende a los clientes finales en WhatsApp.',
       parameters: {
         type: 'object',
         properties: {
@@ -160,7 +167,7 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_business_profile',
-      description: 'Obtiene la memoria del negocio (nicho, público objetivo, propuesta de valor, tono de marca) para contextualizar las respuestas.',
+      description: 'Obtiene la memoria del negocio (nicho, pÃºblico objetivo, propuesta de valor, tono de marca) para contextualizar las respuestas.',
       parameters: {
         type: 'object',
         properties: {}
@@ -171,7 +178,7 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_current_builder_layout',
-      description: 'Obtiene el estado y los textos actuales del constructor de páginas (secciones activas, textos del banner, historia de marca, bento highlights, etc.).',
+      description: 'Obtiene el estado y los textos actuales del constructor de pÃ¡ginas (secciones activas, textos del banner, historia de marca, bento highlights, etc.).',
       parameters: {
         type: 'object',
         properties: {}
@@ -182,20 +189,20 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'update_builder_layout',
-      description: 'Actualiza el layout, colores o textos en el constructor de páginas. Permite configurar o habilitar/deshabilitar secciones (ej. bannerTitle, brandStory, colors, etc.).',
+      description: 'Actualiza el layout, colores o textos en el constructor de pÃ¡ginas. Permite configurar o habilitar/deshabilitar secciones (ej. bannerTitle, brandStory, colors, etc.).',
       parameters: {
         type: 'object',
         properties: {
-          bannerTitle: { type: 'string', description: 'Título principal del banner (opcional).' },
-          bannerSubtitle: { type: 'string', description: 'Subtítulo del banner (opcional).' },
+          bannerTitle: { type: 'string', description: 'TÃ­tulo principal del banner (opcional).' },
+          bannerSubtitle: { type: 'string', description: 'SubtÃ­tulo del banner (opcional).' },
           heroType: { type: 'string', description: 'Tipo de banner ("image" o "video", opcional).' },
           heroVideoUrl: { type: 'string', description: 'URL del video loop del banner (opcional).' },
-          brandStoryTitle: { type: 'string', description: 'Título de la historia de marca (opcional).' },
+          brandStoryTitle: { type: 'string', description: 'TÃ­tulo de la historia de marca (opcional).' },
           brandStoryDesc: { type: 'string', description: 'Texto narrativo de la historia de marca (opcional).' },
           brandStoryBgUrl: { type: 'string', description: 'Imagen de fondo de la historia de marca (opcional).' },
           primaryColor: { type: 'string', description: 'Color primario de la marca en formato HEX (opcional).' },
           secondaryColor: { type: 'string', description: 'Color secundario en formato HEX (opcional).' },
-          freeShippingThreshold: { type: 'number', description: 'Monto mínimo para activar envío gratuito (opcional).' },
+          freeShippingThreshold: { type: 'number', description: 'Monto mÃ­nimo para activar envÃ­o gratuito (opcional).' },
           toggleSections: { 
             type: 'object', 
             description: 'Objeto para activar/desactivar secciones, ej. {"banner": true, "ingredientsSection": false} (opcional).' 
@@ -206,16 +213,17 @@ export const NOVA_TOOLS_DEFINITIONS: ToolDefinition[] = [
   }
 ]
 
-// 2. Ejecución de herramientas (Resolvers en Backend)
+// 2. EjecuciÃ³n de herramientas (Resolvers en Backend)
 export async function executeNovaTool(
   storeId: string,
   name: string,
-  args: any
-): Promise<any> {
+  args: unknown
+): Promise<JsonRecord> {
+  const payload = isRecord(args) ? args : {}
   try {
     switch (name) {
       case 'search_products': {
-        const { query } = args
+        const query = typeof payload.query === 'string' ? payload.query : ''
         const products = await prisma.product.findMany({
           where: {
             storeId,
@@ -247,13 +255,18 @@ export async function executeNovaTool(
       }
 
       case 'create_product': {
-        const { name, price, stock = 10, category = 'General', description = '', imageUrl = '' } = args
+        const name = typeof payload.name === 'string' ? payload.name : ''
+        const price = Number(payload.price ?? 0)
+        const stock = Number(payload.stock ?? 10)
+        const category = typeof payload.category === 'string' ? payload.category : 'General'
+        const description = typeof payload.description === 'string' ? payload.description : ''
+        const imageUrl = typeof payload.imageUrl === 'string' ? payload.imageUrl : ''
 
-        const newProduct = await (prisma.product as any).create({
+        const newProduct = await prisma.product.create({
           data: {
             name,
-            price: Math.round(Number(price)),
-            stock: Number(stock),
+            price: Math.round(price),
+            stock: Number.isFinite(stock) ? stock : 10,
             category,
             description,
             imageUrl: imageUrl || null,
@@ -276,7 +289,13 @@ export async function executeNovaTool(
       }
 
       case 'update_product': {
-        const { productId, name, description, category, price, stock, active } = args
+        const productId = typeof payload.productId === 'string' ? payload.productId : ''
+        const name = typeof payload.name === 'string' ? payload.name : undefined
+        const description = typeof payload.description === 'string' ? payload.description : undefined
+        const category = typeof payload.category === 'string' ? payload.category : undefined
+        const price = payload.price
+        const stock = payload.stock
+        const active = payload.active
         
         // Verificar pertenencia del producto a la tienda
         const existing = await prisma.product.findFirst({
@@ -287,7 +306,7 @@ export async function executeNovaTool(
           return { error: 'Producto no encontrado o no pertenece a esta tienda.' }
         }
 
-        const updateData: any = {}
+        const updateData: Prisma.ProductUpdateInput = {}
         if (name !== undefined) updateData.name = name
         if (description !== undefined) updateData.description = description
         if (category !== undefined) updateData.category = category
@@ -318,8 +337,9 @@ export async function executeNovaTool(
       }
 
       case 'list_orders': {
-        const { status, take = 10 } = args
-        const whereClause: any = { storeId }
+        const status = typeof payload.status === 'string' ? payload.status : undefined
+        const take = Number(payload.take ?? 10)
+        const whereClause: Prisma.OrderWhereInput = { storeId }
         if (status) {
           whereClause.status = status.toLowerCase()
         }
@@ -327,7 +347,7 @@ export async function executeNovaTool(
         const orders = await prisma.order.findMany({
           where: whereClause,
           orderBy: { createdAt: 'desc' },
-          take: Math.min(take, 30)
+          take: Math.min(Number.isFinite(take) ? take : 10, 30)
         })
 
         if (orders.length === 0) {
@@ -339,7 +359,7 @@ export async function executeNovaTool(
           orders: orders.map(o => ({
             id: o.id,
             customerName: o.customerName,
-            customerPhone: o.customerPhone || 'Sin teléfono',
+            customerPhone: o.customerPhone || 'Sin telÃ©fono',
             city: o.city,
             total: o.total,
             status: o.status,
@@ -350,7 +370,9 @@ export async function executeNovaTool(
       }
 
       case 'update_order_status': {
-        const { orderId, status, adminComment } = args
+        const orderId = typeof payload.orderId === 'string' ? payload.orderId : ''
+        const status = typeof payload.status === 'string' ? payload.status : ''
+        const adminComment = typeof payload.adminComment === 'string' ? payload.adminComment : undefined
 
         const existing = await prisma.order.findFirst({
           where: { id: orderId, storeId }
@@ -382,7 +404,12 @@ export async function executeNovaTool(
       }
 
       case 'create_coupon': {
-        const { code, desc, valor, tipo = 'Código', tipoDesc = 'Porcentaje', validoHasta = 'Sin fecha límite' } = args
+        const code = typeof payload.code === 'string' ? payload.code : ''
+        const desc = typeof payload.desc === 'string' ? payload.desc : ''
+        const valor = typeof payload.valor === 'string' ? payload.valor : ''
+        const tipo = typeof payload.tipo === 'string' ? payload.tipo : 'CÃ³digo'
+        const tipoDesc = typeof payload.tipoDesc === 'string' ? payload.tipoDesc : 'Porcentaje'
+        const validoHasta = typeof payload.validoHasta === 'string' ? payload.validoHasta : 'Sin fecha lÃ­mite'
 
         const newCoupon = await prisma.coupon.create({
           data: {
@@ -398,7 +425,7 @@ export async function executeNovaTool(
         })
 
         return {
-          message: 'Cupón creado exitosamente.',
+          message: 'CupÃ³n creado exitosamente.',
           coupon: {
             id: newCoupon.id,
             code: newCoupon.code,
@@ -462,7 +489,7 @@ export async function executeNovaTool(
       }
 
       case 'get_customer_chat': {
-        const { phone } = args
+        const phone = typeof payload.phone === 'string' ? payload.phone : ''
         const cleanedPhone = phone.replace(/\D/g, '')
 
         const session = await prisma.whatsAppSession.findFirst({
@@ -473,7 +500,7 @@ export async function executeNovaTool(
         })
 
         if (!session) {
-          return { message: `No se encontró ninguna sesión de chat de WhatsApp para el teléfono "${phone}".` }
+          return { message: `No se encontrÃ³ ninguna sesiÃ³n de chat de WhatsApp para el telÃ©fono "${phone}".` }
         }
 
         // Obtener historial de mensajes guardados
@@ -486,12 +513,12 @@ export async function executeNovaTool(
           step: session.step,
           assignedTo: session.assignedTo,
           lastInteraction: session.lastInteraction.toISOString(),
-          chatHistory: messages.slice(-15) // Traer los últimos 15 mensajes para resumir
+          chatHistory: messages.slice(-15) // Traer los Ãºltimos 15 mensajes para resumir
         }
       }
 
       case 'toggle_whatsapp_bot': {
-        const { active } = args
+        const active = typeof payload.active === 'boolean' ? payload.active : Boolean(payload.active)
 
         const updated = await prisma.store.update({
           where: { id: storeId },
@@ -509,7 +536,7 @@ export async function executeNovaTool(
           where: { id: storeId }
         })
         if (!store) return { error: 'Tienda no encontrada.' }
-        const settings: any = store.settings || {}
+        const settings = isRecord(store.settings) ? store.settings : {}
         return {
           businessProfile: settings.businessProfile || {
             niche: 'Sin especificar',
@@ -525,7 +552,7 @@ export async function executeNovaTool(
           where: { id: storeId }
         })
         if (!store) return { error: 'Tienda no encontrada.' }
-        const aiSettings: any = store.aiSettings || {}
+        const aiSettings = isRecord(store.aiSettings) ? store.aiSettings : {}
         return {
           heroType: aiSettings.heroType || 'image',
           heroVideoUrl: aiSettings.heroVideoUrl || '',
@@ -545,35 +572,40 @@ export async function executeNovaTool(
         })
         if (!store) return { error: 'Tienda no encontrada.' }
 
-        const aiSettings: any = store.aiSettings && typeof store.aiSettings === 'object' ? store.aiSettings : {}
-        
+        const aiSettings: JsonRecord = isRecord(store.aiSettings) ? { ...store.aiSettings } : {}
+        const brandStory: JsonRecord = isRecord(aiSettings.brandStory) ? { ...aiSettings.brandStory } : {}
+        const colors: JsonRecord = isRecord(aiSettings.colors) ? { ...aiSettings.colors } : {}
+        const freeShipping: JsonRecord = isRecord(aiSettings.freeShipping)
+          ? { ...aiSettings.freeShipping }
+          : { enabled: false, threshold: 100000 }
+        const sections: JsonRecord = isRecord(aiSettings.sections) ? { ...aiSettings.sections } : {}
+
         // Actualizaciones individuales
-        if (args.bannerTitle !== undefined) aiSettings.bannerTitle = args.bannerTitle
-        if (args.bannerSubtitle !== undefined) aiSettings.bannerSubtitle = args.bannerSubtitle
-        if (args.heroType !== undefined) aiSettings.heroType = args.heroType
-        if (args.heroVideoUrl !== undefined) aiSettings.heroVideoUrl = args.heroVideoUrl
+        if (payload.bannerTitle !== undefined) aiSettings.bannerTitle = payload.bannerTitle
+        if (payload.bannerSubtitle !== undefined) aiSettings.bannerSubtitle = payload.bannerSubtitle
+        if (payload.heroType !== undefined) aiSettings.heroType = payload.heroType
+        if (payload.heroVideoUrl !== undefined) aiSettings.heroVideoUrl = payload.heroVideoUrl
 
-        if (!aiSettings.brandStory) aiSettings.brandStory = {}
-        if (args.brandStoryTitle !== undefined) aiSettings.brandStory.title = args.brandStoryTitle
-        if (args.brandStoryDesc !== undefined) aiSettings.brandStory.desc = args.brandStoryDesc
-        if (args.brandStoryBgUrl !== undefined) aiSettings.brandStory.bgUrl = args.brandStoryBgUrl
+        if (payload.brandStoryTitle !== undefined) brandStory.title = payload.brandStoryTitle
+        if (payload.brandStoryDesc !== undefined) brandStory.desc = payload.brandStoryDesc
+        if (payload.brandStoryBgUrl !== undefined) brandStory.bgUrl = payload.brandStoryBgUrl
 
-        if (!aiSettings.colors) aiSettings.colors = {}
-        if (args.primaryColor !== undefined) aiSettings.colors.primario = args.primaryColor
-        if (args.secondaryColor !== undefined) aiSettings.colors.secundario = args.secondaryColor
+        if (payload.primaryColor !== undefined) colors.primario = payload.primaryColor
+        if (payload.secondaryColor !== undefined) colors.secundario = payload.secondaryColor
 
-        if (!aiSettings.freeShipping) aiSettings.freeShipping = { enabled: false, threshold: 100000 }
-        if (args.freeShippingThreshold !== undefined) {
-          aiSettings.freeShipping.threshold = Number(args.freeShippingThreshold)
-          aiSettings.freeShipping.enabled = true
+        if (payload.freeShippingThreshold !== undefined) {
+          freeShipping.threshold = Number(payload.freeShippingThreshold)
+          freeShipping.enabled = true
         }
 
-        if (args.toggleSections !== undefined && typeof args.toggleSections === 'object') {
-          aiSettings.sections = {
-            ...(aiSettings.sections || {}),
-            ...args.toggleSections
-          }
+        if (payload.toggleSections !== undefined && isRecord(payload.toggleSections)) {
+          Object.assign(sections, payload.toggleSections)
         }
+
+        aiSettings.brandStory = brandStory
+        aiSettings.colors = colors
+        aiSettings.freeShipping = freeShipping
+        aiSettings.sections = sections
 
         const updated = await prisma.store.update({
           where: { id: storeId },
@@ -581,16 +613,18 @@ export async function executeNovaTool(
         })
 
         return {
-          message: 'Diseño del constructor de páginas actualizado exitosamente.',
-          updatedFields: Object.keys(args)
+          message: 'DiseÃ±o del constructor de pÃ¡ginas actualizado exitosamente.',
+          updatedFields: Object.keys(payload)
         }
       }
 
       default:
-        return { error: `La herramienta "${name}" no está implementada.` }
+        return { error: `La herramienta "${name}" no estÃ¡ implementada.` }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(`Error al ejecutar la herramienta "${name}":`, err)
-    return { error: `Excepción interna ejecutando la herramienta: ${err.message}` }
+    return {
+      error: `Excepcion interna ejecutando la herramienta: ${err instanceof Error ? err.message : 'Error desconocido'}`
+    }
   }
 }

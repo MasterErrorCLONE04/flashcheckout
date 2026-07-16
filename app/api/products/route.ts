@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
@@ -29,6 +30,24 @@ type ProductBody = {
 type StoreWithProductCount = {
   id: string
   products: Array<{ id: string }>
+}
+
+function toJsonValue(value: unknown): Prisma.InputJsonValue | null {
+  if (value === null) return null
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value as Prisma.InputJsonValue
+  }
+  if (value && typeof value === 'object') {
+    return value as Prisma.InputJsonValue
+  }
+  return null
 }
 
 export async function GET() {
@@ -77,7 +96,7 @@ export async function POST(req: Request) {
         imageUrl: body.imageUrl ?? null,
         category: body.category ?? 'General',
         description: body.description ?? null,
-        options: (body.options ?? null) as any,
+        options: toJsonValue(body.options),
         storeId: store.id,
       },
     })
@@ -116,7 +135,7 @@ export async function PUT(req: Request) {
         ...(body.category !== undefined && { category: body.category }),
         ...(body.active !== undefined && { active: body.active }),
         ...(body.description !== undefined && { description: body.description }),
-        ...(body.options !== undefined && { options: body.options as any }),
+        ...(body.options !== undefined && { options: toJsonValue(body.options) }),
       },
     })
 

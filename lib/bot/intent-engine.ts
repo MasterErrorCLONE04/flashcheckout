@@ -1,7 +1,7 @@
 export interface IntentResult {
   intent: 'QUERY' | 'CONFIRM' | 'CANCEL' | 'EXIT' | 'UNKNOWN';
   query?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 /**

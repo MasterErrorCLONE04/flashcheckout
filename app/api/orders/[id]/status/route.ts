@@ -13,7 +13,7 @@ type WhatsAppNotifier = {
     to: string,
     message: string,
     buttons: Array<{ id: string; title: string }>
-  ) => Promise<unknown>
+    ) => Promise<unknown>
 }
 
 export async function PATCH(
@@ -95,7 +95,7 @@ export async function PATCH(
               .replace(/{{total}}/g, updatedOrder.total.toLocaleString('es-CO'))
               .replace(/{{tienda}}/g, updatedOrder.store.name)
 
-            let clientToUse: any = waClient
+            let clientToUse: WhatsAppNotifier = waClient
             const store = updatedOrder.store
             if (store.whatsappInstanceName && store.whatsappConnected) {
               const { evolutionClient } = await import('@/lib/whatsapp/evolution')

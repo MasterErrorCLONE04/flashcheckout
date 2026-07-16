@@ -2,8 +2,20 @@ export type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'
   content: string | null
   name?: string
-  tool_calls?: any[]
+  tool_calls?: Array<{
+    id: string
+    function: { name: string; arguments?: string | Record<string, unknown> }
+  }>
   tool_call_id?: string
+}
+
+export type ToolDefinition = {
+  type: 'function'
+  function: {
+    name: string
+    description: string
+    parameters: Record<string, unknown>
+  }
 }
 
 export interface AIGatewayConfig {
@@ -24,9 +36,9 @@ const GATEWAY_CONFIG: AIGatewayConfig = {
 export async function generateOpenRouterCompletion(
   messages: ChatMessage[],
   systemPrompt?: string,
-  tools?: any[],
+  tools?: ToolDefinition[],
   modelOverride?: string
-): Promise<any> {
+): Promise<string | ChatMessage> {
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY
   const model = modelOverride || process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct:free'
   const apiUrl = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1'
@@ -91,7 +103,7 @@ export async function generateOpenRouterCompletion(
     }
 
     const data = await res.json()
-    const responseMessage = data.choices?.[0]?.message
+    const responseMessage = data.choices?.[0]?.message as ChatMessage | undefined
 
     if (tools && tools.length > 0) {
       return responseMessage || { role: 'assistant', content: '' }

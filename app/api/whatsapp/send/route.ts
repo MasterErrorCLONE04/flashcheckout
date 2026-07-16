@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
 
     await prisma.whatsAppSession.update({
       where: { id: session.id },
-      data: { messages: messages as any },
+      data: { messages: messages as Prisma.InputJsonValue },
     })
 
     return NextResponse.json({

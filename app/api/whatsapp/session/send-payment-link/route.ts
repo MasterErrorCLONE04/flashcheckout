@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import {
   cartStateToLines,
+  buildCartState,
   normalizeChatMessages,
 } from '@/lib/whatsapp/session-state'
 import {
@@ -35,6 +36,28 @@ type CartLine = {
   name: string
   price: number
   qty: number
+}
+
+type MercadoPagoPreferenceBody = {
+  items: Array<{
+    id: string
+    title: string
+    quantity: number
+    unit_price: number
+    currency_id: string
+  }>
+  external_reference: string
+  back_urls: {
+    success: string
+    failure: string
+    pending: string
+  }
+  metadata: {
+    orderId: string
+    storeId: string
+  }
+  notification_url?: string
+  auto_return?: 'approved'
 }
 
 function parseSessionBody(body: unknown): SendPaymentLinkBody | null {
@@ -126,7 +149,7 @@ export async function POST(req: Request) {
     const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN
     if (tokenToUse) {
       try {
-        const preferenceData: any = {
+        const preferenceData: { body: MercadoPagoPreferenceBody } = {
           body: {
             items: items.map(line => ({
               id: line.id,
@@ -201,9 +224,9 @@ export async function POST(req: Request) {
       await prisma.whatsAppSession.update({
         where: { id: session.id },
         data: {
-          messages: messages as any,
+          messages,
           step: 'AWAITING_CONFIRMATION',
-          cart: null as any,
+          cart: buildCartState([]),
         },
       })
     } catch (waErr) {

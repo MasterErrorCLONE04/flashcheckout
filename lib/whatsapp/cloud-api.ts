@@ -9,7 +9,43 @@ export type InteractiveLink = {
   description?: string;
 };
 
-type WhatsAppPayload = any
+type ReplyButton = { type: 'reply'; reply: { id: string; title: string } }
+
+type InteractivePayload = {
+  type: 'button' | 'list' | 'cta_url' | 'flow'
+  body?: { text?: string }
+  header?: { type?: string; text?: string; image?: { link?: string } }
+  footer?: { text?: string }
+  action?: {
+    buttons?: ReplyButton[]
+    button?: string
+    name?: string
+    parameters?: {
+      display_text?: string
+      url?: string
+      flow_message_version?: string
+      flow_token?: string
+      flow_id?: string
+      flow_cta?: string
+      flow_action?: string
+      flow_action_payload?: {
+        screen?: string
+        data?: Record<string, unknown>
+      }
+    }
+  }
+}
+
+type WhatsAppPayload = {
+  messaging_product: 'whatsapp'
+  recipient_type?: 'individual'
+  to: string
+  type: 'text' | 'interactive' | 'image' | 'document'
+  text?: { body?: string }
+  interactive?: InteractivePayload
+  image?: { link?: string; caption?: string }
+  document?: { link?: string; filename?: string }
+} & Record<string, unknown>
 
 export class WhatsAppCloudAPI {
   private url: string;
@@ -197,13 +233,12 @@ export class WhatsAppCloudAPI {
         text = interactive.body?.text || '';
         if (interactive.type === 'button') {
           const buttons = interactive.action?.buttons || [];
-          const buttonLabels = buttons.map((b: { reply?: { title?: string } }) => `[${b.reply?.title || ''}]`).join(' ');
+          const buttonLabels = buttons.map(b => `[${b.reply?.title || ''}]`).join(' ');
           text = `${text}\n${buttonLabels}`;
         } else if (interactive.type === 'list') {
           text = `${interactive.header?.text || ''}\n${text}\n[Lista de opciones]`;
         } else if (interactive.type === 'cta_url') {
-          const action = interactive.action;
-          const param = action?.parameters;
+          const param = interactive.action?.parameters;
           text = `${text}\n[Enlace: ${param?.display_text || ''} - ${param?.url || ''}]`;
         } else if (interactive.type === 'flow') {
           text = `${text}\n[Formulario/Flow: ${interactive.action?.parameters?.flow_cta || ''}]`;

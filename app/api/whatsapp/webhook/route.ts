@@ -81,6 +81,17 @@ async function upsertSession(
 
 async function appendMessage(session: SessionRecord, message: MessageLog): Promise<SessionRecord> {
   const messages = toMessageLogs(session.messages)
+  const lastMessage = messages[messages.length - 1]
+
+  if (
+    lastMessage &&
+    lastMessage.sender === message.sender &&
+    lastMessage.text === message.text &&
+    Math.abs(lastMessage.timestamp - message.timestamp) < 30000
+  ) {
+    return session
+  }
+
   messages.push(message)
 
   return prisma.whatsAppSession.update({

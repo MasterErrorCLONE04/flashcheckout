@@ -60,6 +60,32 @@ export async function POST(req: Request) {
       legacyStatus = 'cancelled'
     }
 
+    const currentOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        paymentStatus: true,
+        mpPaymentId: true,
+        storeId: true,
+        customerPhone: true,
+        customerWhatsAppId: true,
+        customerName: true,
+        total: true,
+        address: true,
+        city: true,
+      },
+    })
+
+    if (!currentOrder) {
+      console.warn(`[MP Webhook] Order not found: ${orderId}`)
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
+
+    if (currentOrder.mpPaymentId === String(id) && currentOrder.paymentStatus === newStatus) {
+      console.log(`[MP Webhook] Duplicate notification ignored for order ${orderId} and payment ${id}`)
+      return NextResponse.json({ received: true, duplicate: true }, { status: 200 })
+    }
+
     const order = await prisma.order.update({
       where: { id: orderId },
       data: {

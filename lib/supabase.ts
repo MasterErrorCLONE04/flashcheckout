@@ -25,6 +25,10 @@ export function resolveProofStorageLocation(
   if (!value) return null
 
   if (!value.includes('/storage/v1/object/')) {
+    if (/^https?:\/\//i.test(value)) {
+      return null
+    }
+
     return {
       bucket: PRIVATE_PROOF_BUCKET,
       path: value,

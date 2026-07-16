@@ -68,7 +68,12 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
       where: { id: orderId },
     })
 
-    if (!order || order.status !== 'pending_payment') {
+    if (
+      !order ||
+      order.status !== 'pending_payment' ||
+      order.stripeCheckoutSessionId === session.id ||
+      order.paymentStatus === 'PAID'
+    ) {
       return
     }
 
@@ -128,7 +133,7 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
           .replace(/{{total}}/g, order.total.toLocaleString('es-CO'))
           .replace(/{{tienda}}/g, order.store.name)
 
-        let clientToUse: any = waClient
+        let clientToUse: WhatsAppNotifier = waClient
         const store = order.store
         if (store.whatsappInstanceName && store.whatsappConnected) {
           const { evolutionClient } = await import('@/lib/whatsapp/evolution')
@@ -187,7 +192,15 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
 export async function POST(req: Request) {
   const body = await req.text()
   const headersList = await headers()
-  const signature = headersList.get('Stripe-Signature') as string
+  const signature = headersList.get('Stripe-Signature')
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET?.trim()) {
+    return new NextResponse('Missing Stripe webhook secret', { status: 500 })
+  }
+
+  if (!signature) {
+    return new NextResponse('Missing Stripe signature', { status: 400 })
+  }
 
   let event: Stripe.Event
 

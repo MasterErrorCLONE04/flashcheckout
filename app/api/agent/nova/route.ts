@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateOpenRouterCompletion, ChatMessage } from '@/lib/ai/openrouter'
@@ -292,7 +293,7 @@ export async function POST(req: Request) {
       await prisma.novaChatSession.update({
         where: { id: dbSession.id },
         data: {
-          messages: updatedHistory as any,
+          messages: updatedHistory as Prisma.InputJsonValue,
           title: newTitle,
         },
       })
@@ -304,7 +305,7 @@ export async function POST(req: Request) {
       data: {
         title: message.slice(0, 35) || 'Nuevo Chat',
         storeId: store.id,
-        messages: [userMessageObj, botMessageObj] as any,
+        messages: [userMessageObj, botMessageObj] as Prisma.InputJsonValue,
       },
     })
 

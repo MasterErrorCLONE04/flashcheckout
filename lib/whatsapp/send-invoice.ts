@@ -1,6 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 
+type WhatsAppDocumentClient = {
+  sendDocument: (to: string, doc: string, filename: string) => Promise<unknown>
+}
+
 export async function sendInvoiceToWhatsApp(orderId: string) {
   try {
     const order = await prisma.order.findUnique({
@@ -25,7 +29,7 @@ export async function sendInvoiceToWhatsApp(orderId: string) {
     console.log(`[sendInvoiceToWhatsApp] Invoice URL: ${invoiceUrl}`)
 
     // Resolve client to use
-    let clientToUse: any = waClient
+    let clientToUse: WhatsAppDocumentClient = waClient
     const store = order.store
     if (store && store.whatsappInstanceName && store.whatsappConnected) {
       const { evolutionClient } = await import('@/lib/whatsapp/evolution')

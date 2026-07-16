@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { buildCartState, CartLine } from '@/lib/whatsapp/session-state'
 import { badRequest, getErrorMessage, internalServerError } from '@/lib/api/route-utils'
@@ -79,14 +80,14 @@ export async function POST(req: Request) {
       },
       create: {
         phoneNumber: body.phoneNumber,
-        cart: enrichedCart as any,
+        cart: enrichedCart as Prisma.InputJsonValue,
         storeId: resolvedStoreId,
         customerName: body.customerName,
         address: body.address,
         step: 'IDLE',
       },
       update: {
-        cart: enrichedCart as any,
+        cart: enrichedCart as Prisma.InputJsonValue,
         customerName: body.customerName || undefined,
         address: body.address || undefined,
         lastInteraction: new Date(),

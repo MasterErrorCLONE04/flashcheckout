@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getActiveStore } from '@/lib/store-context'
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
 
     await prisma.store.update({
       where: { id: store.id },
-      data: { settings: updatedSettings as any },
+      data: { settings: updatedSettings as Prisma.InputJsonValue },
     })
 
     return NextResponse.json({ success: true, layoutItems: body.layoutItems })
