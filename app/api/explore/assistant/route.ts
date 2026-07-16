@@ -75,7 +75,7 @@ const STOP_WORDS = new Set([
   'los',
   'las',
   'mi',
-]
+])
 
 export async function POST(req: Request) {
   try {
