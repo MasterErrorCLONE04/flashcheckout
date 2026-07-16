@@ -30,6 +30,7 @@ export async function POST(req: Request) {
           select: {
             id: true,
             settings: true,
+            brebConfig: true,
           },
         },
       },
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
       return badRequest('La orden ya esta pagada')
     }
 
-    const brebConfig = getBrebConfig(order.store.settings)
+    const brebConfig = getBrebConfig(order.store.brebConfig, order.store.settings)
     if (!brebConfig?.enabled || !brebConfig.keyValue) {
       return badRequest('La tienda no tiene Bre-B activo')
     }
@@ -82,7 +83,8 @@ export async function POST(req: Request) {
   }
 }
 
-function getBrebConfig(settings: unknown): StoredBrebConfig | null {
+function getBrebConfig(tableConfig: StoredBrebConfig | null, settings: unknown): StoredBrebConfig | null {
+  if (tableConfig) return tableConfig
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null
   const config = (settings as Record<string, unknown>).brebConfig
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null

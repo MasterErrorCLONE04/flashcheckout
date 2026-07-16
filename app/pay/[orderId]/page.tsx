@@ -26,7 +26,8 @@ export default async function SmartPayPage({
           whatsapp: true,
           mpAccessToken: true,
           mpPublicKey: true,
-          settings: true
+          settings: true,
+          brebConfig: true
         }
       }
     }
@@ -67,12 +68,23 @@ export default async function SmartPayPage({
       }}
       items={items}
       paymentUrl={paymentUrl}
-      brebConfig={getBrebConfig(order.store.settings)}
+      brebConfig={getBrebConfig(order.store.brebConfig, order.store.settings)}
     />
   )
 }
 
-function getBrebConfig(settings: unknown) {
+function getBrebConfig(tableConfig: Record<string, unknown> | null, settings: unknown) {
+  if (tableConfig) {
+    return {
+      enabled: Boolean(tableConfig.enabled),
+      keyValue: typeof tableConfig.keyValue === 'string' ? tableConfig.keyValue : '',
+      bankProvider: typeof tableConfig.bankProvider === 'string' ? tableConfig.bankProvider : '',
+      merchantDisplayName: typeof tableConfig.merchantDisplayName === 'string' ? tableConfig.merchantDisplayName : '',
+      participantId: typeof tableConfig.participantId === 'string' ? tableConfig.participantId : '',
+      keyTypeCode: typeof tableConfig.keyTypeCode === 'string' ? tableConfig.keyTypeCode : '',
+    }
+  }
+
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null
   const config = (settings as Record<string, unknown>).brebConfig
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null

@@ -1034,9 +1034,12 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
             });
 
             try {
-              const store = await prisma.store.findUnique({ where: { id: storeId } });
+              const store = await prisma.store.findUnique({
+                where: { id: storeId },
+                include: { brebConfig: true },
+              });
               const bankDetails = store?.whatsapp ? `Nequi o Daviplata al celular ${store.whatsapp}` : '[Datos Cuenta]';
-              const brebConfig = getBrebPaymentConfig(store?.settings);
+              const brebConfig = getBrebPaymentConfig(store?.brebConfig, store?.settings);
               const shouldUseBreb = Boolean(brebConfig?.enabled && brebConfig.keyValue && brebConfig.participantId);
               
               let mpPreferenceId: string | null = null;
@@ -1155,7 +1158,8 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
   }
 }
 
-function getBrebPaymentConfig(settings: unknown) {
+function getBrebPaymentConfig(tableConfig: { enabled?: boolean; keyValue?: string; participantId?: string | null } | null | undefined, settings: unknown) {
+  if (tableConfig) return tableConfig;
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null;
   const config = (settings as Record<string, unknown>).brebConfig;
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;

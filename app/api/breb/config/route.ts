@@ -27,8 +27,11 @@ export async function GET() {
   const store = await getActiveStore(userId)
   if (!store) return NextResponse.json({ config: null })
 
+  const tableConfig = await prisma.brebPaymentConfig.findUnique({
+    where: { storeId: store.id },
+  })
   const settings = getStoreSettings(store.settings)
-  const config = settings[BREB_SETTINGS_KEY] || null
+  const config = tableConfig || settings[BREB_SETTINGS_KEY] || null
 
   return NextResponse.json({ config })
 }
@@ -75,15 +78,41 @@ export async function PUT(req: Request) {
       updatedAt: new Date().toISOString(),
     }
 
-    await prisma.store.update({
-      where: { id: store.id },
-      data: {
-        settings: {
-          ...settings,
-          [BREB_SETTINGS_KEY]: config,
+    await prisma.$transaction([
+      prisma.brebPaymentConfig.upsert({
+        where: { storeId: store.id },
+        create: {
+          storeId: store.id,
+          enabled: config.enabled,
+          keyType: config.keyType,
+          keyValue: config.keyValue,
+          bankProvider: config.bankProvider,
+          merchantDisplayName: config.merchantDisplayName,
+          participantId: config.participantId,
+          keyTypeCode: config.keyTypeCode,
+          verificationStatus: config.verificationStatus,
         },
-      },
-    })
+        update: {
+          enabled: config.enabled,
+          keyType: config.keyType,
+          keyValue: config.keyValue,
+          bankProvider: config.bankProvider,
+          merchantDisplayName: config.merchantDisplayName,
+          participantId: config.participantId,
+          keyTypeCode: config.keyTypeCode,
+          verificationStatus: config.verificationStatus,
+        },
+      }),
+      prisma.store.update({
+        where: { id: store.id },
+        data: {
+          settings: {
+            ...settings,
+            [BREB_SETTINGS_KEY]: config,
+          },
+        },
+      }),
+    ])
 
     return NextResponse.json({ config })
   } catch (error) {

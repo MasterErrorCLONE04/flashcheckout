@@ -12,12 +12,14 @@ type CreatePaymentIntentBody = {
 
 type StoredBrebConfig = {
   enabled?: boolean
-  keyType?: BrebKeyType
+  keyType?: string
   keyValue?: string
   merchantDisplayName?: string
   participantId?: string | null
   keyTypeCode?: string | null
 }
+
+const VALID_KEY_TYPES: BrebKeyType[] = ['PHONE', 'EMAIL', 'DOCUMENT', 'ALPHANUMERIC', 'MERCHANT_CODE']
 
 export async function POST(req: Request) {
   try {
@@ -32,6 +34,7 @@ export async function POST(req: Request) {
             id: true,
             name: true,
             settings: true,
+            brebConfig: true,
           },
         },
       },
@@ -42,9 +45,10 @@ export async function POST(req: Request) {
       return badRequest('La orden ya esta pagada')
     }
 
-    const config = getBrebConfig(order.store.settings)
+    const config = getBrebConfig(order.store.brebConfig, order.store.settings)
     if (!config?.enabled) return badRequest('La tienda no tiene Bre-B activo')
-    if (!config.keyValue || !config.keyType) return badRequest('La configuracion Bre-B esta incompleta')
+    const keyType = normalizeBrebKeyType(config.keyType)
+    if (!config.keyValue || !keyType) return badRequest('La configuracion Bre-B esta incompleta')
     if (!config.participantId) return badRequest('Falta el codigo de entidad participante Bre-B')
 
     const gui = process.env.BREB_EMVCO_GUI?.trim() || DEFAULT_BREB_EMVCO_GUI
@@ -57,7 +61,7 @@ export async function POST(req: Request) {
       merchantAccount: {
         gui,
         participantId: config.participantId,
-        keyType: config.keyType,
+        keyType,
         keyValue: config.keyValue,
         keyTypeCode: config.keyTypeCode || undefined,
       },
@@ -82,9 +86,15 @@ export async function POST(req: Request) {
   }
 }
 
-function getBrebConfig(settings: unknown): StoredBrebConfig | null {
+function getBrebConfig(tableConfig: StoredBrebConfig | null, settings: unknown): StoredBrebConfig | null {
+  if (tableConfig) return tableConfig
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null
   const config = (settings as Record<string, unknown>).brebConfig
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null
   return config as StoredBrebConfig
+}
+
+function normalizeBrebKeyType(value: string | undefined): BrebKeyType | null {
+  if (!value) return null
+  return VALID_KEY_TYPES.includes(value as BrebKeyType) ? (value as BrebKeyType) : null
 }

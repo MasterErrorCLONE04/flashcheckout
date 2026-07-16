@@ -136,6 +136,7 @@ model BrebPaymentConfig {
   bankProvider        String
   merchantDisplayName String
   participantId       String?
+  keyTypeCode         String?
   verificationStatus  String   @default("PENDING")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
