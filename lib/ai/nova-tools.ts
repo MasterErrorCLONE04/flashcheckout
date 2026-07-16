@@ -1,4 +1,4 @@
-﻿import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export interface ToolDefinition {
@@ -609,7 +609,7 @@ export async function executeNovaTool(
 
         const updated = await prisma.store.update({
           where: { id: storeId },
-          data: { aiSettings }
+          data: { aiSettings: aiSettings as any }
         })
 
         return {

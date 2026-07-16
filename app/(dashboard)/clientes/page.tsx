@@ -160,7 +160,7 @@ export default async function ClientesPage() {
 
       return {
         ...customer,
-        status: diffDays <= 30 ? 'Activo' : 'Inactivo',
+        status: (diffDays <= 30 ? 'Activo' : 'Inactivo') as 'Activo' | 'Inactivo',
         segment,
       }
     })

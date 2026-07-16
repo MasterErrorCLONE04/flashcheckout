@@ -19,7 +19,7 @@ type BotClient = {
   sendImage: (to: string, img: string, cap: string) => Promise<unknown>;
   sendDocument: (to: string, doc: string, fn: string) => Promise<unknown>;
   sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => Promise<unknown>;
-  sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: unknown, header?: string, body?: string) => Promise<unknown>;
+  sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: any, header?: string, body?: string) => Promise<unknown>;
 };
 
 function toChatMessages(value: unknown): ChatMessage[] {
@@ -90,7 +90,11 @@ function createDownloadableClient(
       },
       downloadMedia: async (id: string | Record<string, unknown>) => {
         const { evolutionClient } = await import('@/lib/whatsapp/evolution')
-        const buffer = await evolutionClient.downloadMedia(instanceName, id, messagePayload)
+        const buffer = await evolutionClient.downloadMedia(
+          instanceName,
+          typeof id === 'string' ? { id } : id,
+          messagePayload || {}
+        )
         return { buffer }
       },
     }
@@ -892,8 +896,11 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
             const aiReply = await generateOpenRouterCompletion(chatMessages, systemPrompt, undefined, salesModel);
 
             if (aiReply) {
-              await waClient.sendText(from, aiReply);
-              answeredByAI = true;
+              const replyText = typeof aiReply === 'string' ? aiReply : (aiReply.content || '');
+              if (replyText) {
+                await waClient.sendText(from, replyText);
+                answeredByAI = true;
+              }
             }
           } catch (aiErr) {
             console.error('Error in chatbot AI response generation:', aiErr);

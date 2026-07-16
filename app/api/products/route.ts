@@ -32,8 +32,8 @@ type StoreWithProductCount = {
   products: Array<{ id: string }>
 }
 
-function toJsonValue(value: unknown): Prisma.InputJsonValue | null {
-  if (value === null) return null
+function toJsonValue(value: unknown): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  if (value === null) return Prisma.DbNull
   if (
     typeof value === 'string' ||
     typeof value === 'number' ||
@@ -47,7 +47,7 @@ function toJsonValue(value: unknown): Prisma.InputJsonValue | null {
   if (value && typeof value === 'object') {
     return value as Prisma.InputJsonValue
   }
-  return null
+  return Prisma.DbNull
 }
 
 export async function GET() {

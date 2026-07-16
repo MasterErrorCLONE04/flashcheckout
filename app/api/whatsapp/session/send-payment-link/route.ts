@@ -224,7 +224,7 @@ export async function POST(req: Request) {
       await prisma.whatsAppSession.update({
         where: { id: session.id },
         data: {
-          messages,
+          messages: messages as any,
           step: 'AWAITING_CONFIRMATION',
           cart: buildCartState([]),
         },

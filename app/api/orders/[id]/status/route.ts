@@ -9,7 +9,7 @@ type StatusUpdateBody = {
 
 type WhatsAppNotifier = {
   sendText: (to: string, message: string) => Promise<unknown>
-  sendButtons: (
+  sendButtons?: (
     to: string,
     message: string,
     buttons: Array<{ id: string; title: string }>

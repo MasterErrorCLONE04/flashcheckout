@@ -19,6 +19,14 @@ type InteractivePayload = {
   action?: {
     buttons?: ReplyButton[]
     button?: string
+    sections?: Array<{
+      title?: string
+      rows?: Array<{
+        id: string
+        title: string
+        description?: string
+      }>
+    }>
     name?: string
     parameters?: {
       display_text?: string
