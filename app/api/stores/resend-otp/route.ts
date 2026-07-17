@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     try {
       await waClient.sendText(
         store.whatsapp,
-        `¡Hola! Tu nuevo codigo de verificacion para FlashCheckout es: *${otpCode}*. Ingresalo en tu panel para verificar tu cuenta.`
+        `Ã‚Â¡Hola! Tu nuevo codigo de verificacion para Flashcheckouts es: *${otpCode}*. Ingresalo en tu panel para verificar tu cuenta.`
       )
     } catch (err: unknown) {
       console.error('Error sending resend OTP:', err)

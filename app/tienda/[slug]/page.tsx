@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!store) return { title: 'Tienda no encontrada' }
 
   return {
-    title: `${store.name} - FlashCheckout`,
+    title: `${store.name} - Flashcheckouts`,
     description: `Compra en ${store.name} y recibe tu pedido rapido. Checkout por WhatsApp en 30 segundos.`,
   }
 }

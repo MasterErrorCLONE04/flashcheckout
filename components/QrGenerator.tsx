@@ -29,7 +29,7 @@ export default function QrGenerator({
 
     let downloadLink = document.createElement('a')
     downloadLink.href = pngUrl
-    downloadLink.download = `QR-${storeName.replace(/\s+/g, '-')}-FlashCheckout.png`
+    downloadLink.download = `QR-${storeName.replace(/\s+/g, '-')}-Flashcheckouts.png`
     document.body.appendChild(downloadLink)
     downloadLink.click()
     document.body.removeChild(downloadLink)
@@ -79,9 +79,9 @@ export default function QrGenerator({
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
                 <Share2 className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-semibold text-black tracking-tight mb-3">Código QR de acceso</h3>
+              <h3 className="text-2xl font-semibold text-black tracking-tight mb-3">CÃƒÂ³digo QR de acceso</h3>
               <p className="text-[11px] text-zinc-400 font-bold tracking-widest leading-relaxed px-6">
-                Descarga este código para tus impresiones o material publicitario. Abre <b>{storeName}</b> instantáneamente.
+                Descarga este cÃƒÂ³digo para tus impresiones o material publicitario. Abre <b>{storeName}</b> instantÃƒÂ¡neamente.
               </p>
             </div>
 

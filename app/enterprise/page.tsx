@@ -71,11 +71,11 @@ export default function EnterprisePage() {
                 <Building className="w-3.5 h-3.5 text-zinc-950" />
                 <span className="uppercase tracking-wider text-[10px] font-bold text-zinc-500">Corporativo</span>
                 <span className="text-zinc-300">|</span>
-                <span className="text-zinc-800">FlashCheckout Enterprise</span>
+                <span className="text-zinc-800">Flashcheckouts Enterprise</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-zinc-950 font-display leading-[1.1]">
-                Checkout y agentes IA diseñados para escala empresarial
+                Checkout y agentes IA diseÃƒÂ±ados para escala empresarial
               </h1>
               
               <p className="text-lg text-zinc-500 leading-relaxed max-w-2xl font-normal">
@@ -89,9 +89,9 @@ export default function EnterprisePage() {
                     <Database className="w-5 h-5 text-zinc-900" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-zinc-950 mb-1">Integración ERP / CRM</h4>
+                    <h4 className="font-bold text-sm text-zinc-950 mb-1">IntegraciÃƒÂ³n ERP / CRM</h4>
                     <p className="text-xs text-zinc-500 leading-relaxed font-normal">
-                      Sincronización nativa con SAP, Oracle, Zoho CRM, Salesforce y bases de datos SQL corporativas.
+                      SincronizaciÃƒÂ³n nativa con SAP, Oracle, Zoho CRM, Salesforce y bases de datos SQL corporativas.
                     </p>
                   </div>
                 </div>
@@ -103,7 +103,7 @@ export default function EnterprisePage() {
                   <div>
                     <h4 className="font-bold text-sm text-zinc-950 mb-1">Seguridad de Nivel Bancario</h4>
                     <p className="text-xs text-zinc-500 leading-relaxed font-normal">
-                      Encriptación de datos AES-256 en tránsito y en reposo. Cumplimiento estricto de privacidad.
+                      EncriptaciÃƒÂ³n de datos AES-256 en trÃƒÂ¡nsito y en reposo. Cumplimiento estricto de privacidad.
                     </p>
                   </div>
                 </div>
@@ -113,7 +113,7 @@ export default function EnterprisePage() {
                     <Layers className="w-5 h-5 text-zinc-900" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-zinc-950 mb-1">Múltiples Canales</h4>
+                    <h4 className="font-bold text-sm text-zinc-950 mb-1">MÃƒÂºltiples Canales</h4>
                     <p className="text-xs text-zinc-500 leading-relaxed font-normal">
                       Despliega agentes IA concurrentes en WhatsApp Business API, Instagram Direct y Facebook Messenger.
                     </p>
@@ -148,9 +148,9 @@ export default function EnterprisePage() {
                       className="space-y-6"
                     >
                       <div className="text-left">
-                        <h3 className="text-xl font-bold text-zinc-950 mb-1.5">Agenda una Demostración</h3>
+                        <h3 className="text-xl font-bold text-zinc-950 mb-1.5">Agenda una DemostraciÃƒÂ³n</h3>
                         <p className="text-xs text-zinc-500 font-normal leading-relaxed">
-                          Completa el formulario y un especialista en integraciones empresariales se pondrá en contacto contigo en las próximas 2 horas hábiles.
+                          Completa el formulario y un especialista en integraciones empresariales se pondrÃƒÂ¡ en contacto contigo en las prÃƒÂ³ximas 2 horas hÃƒÂ¡biles.
                         </p>
                       </div>
 
@@ -160,7 +160,7 @@ export default function EnterprisePage() {
                           <input
                             type="text"
                             required
-                            placeholder="Ej. Juan Pérez"
+                            placeholder="Ej. Juan PÃƒÂ©rez"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="w-full h-11 border border-zinc-200 rounded-lg px-4 text-sm font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-400"
@@ -223,7 +223,7 @@ export default function EnterprisePage() {
                         <div>
                           <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Detalles de tu Requerimiento</label>
                           <textarea
-                            placeholder="Describe brevemente tus necesidades de canales, volumen de órdenes mensuales o integraciones específicas."
+                            placeholder="Describe brevemente tus necesidades de canales, volumen de ÃƒÂ³rdenes mensuales o integraciones especÃƒÂ­ficas."
                             rows={3}
                             value={formData.details}
                             onChange={(e) => setFormData({ ...formData, details: e.target.value })}
@@ -260,12 +260,12 @@ export default function EnterprisePage() {
                       <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-sm">
                         <CheckCircle2 className="w-8 h-8" />
                       </div>
-                      <h3 className="text-2xl font-bold text-zinc-950 tracking-tight">¡Solicitud Recibida!</h3>
+                      <h3 className="text-2xl font-bold text-zinc-950 tracking-tight">Ã‚Â¡Solicitud Recibida!</h3>
                       <p className="text-sm text-zinc-500 font-normal leading-relaxed max-w-sm">
-                        Gracias <strong>{formData.name}</strong>. Hemos registrado el interés de <strong>{formData.company}</strong> por integrar sus flujos de pago con {formData.integration}.
+                        Gracias <strong>{formData.name}</strong>. Hemos registrado el interÃƒÂ©s de <strong>{formData.company}</strong> por integrar sus flujos de pago con {formData.integration}.
                       </p>
                       <p className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mt-4">
-                        Un asesor se contactará al {formData.phone}
+                        Un asesor se contactarÃƒÂ¡ al {formData.phone}
                       </p>
                       <button
                         onClick={() => {
@@ -291,7 +291,7 @@ export default function EnterprisePage() {
       <section className="w-full py-16 bg-white border-y border-zinc-200/60">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="font-semibold text-xs text-zinc-400 uppercase tracking-[0.2em] mb-8">
-            Infraestructura confiable para empresas líderes
+            Infraestructura confiable para empresas lÃƒÂ­deres
           </p>
           <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-20 opacity-40 grayscale">
             <span className="text-xl font-bold text-zinc-950 font-sans tracking-tight">Shopify Plus</span>
@@ -308,10 +308,10 @@ export default function EnterprisePage() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16 flex flex-col items-center gap-4">
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-950">
-              Arquitectura diseñada para rendir
+              Arquitectura diseÃƒÂ±ada para rendir
             </h2>
             <p className="text-base text-zinc-500 max-w-2xl font-normal leading-relaxed">
-              Cumplimos con las especificaciones y demandas más exigentes en fiabilidad de sistemas de cobro y automatización.
+              Cumplimos con las especificaciones y demandas mÃƒÂ¡s exigentes en fiabilidad de sistemas de cobro y automatizaciÃƒÂ³n.
             </p>
           </div>
 
@@ -320,7 +320,7 @@ export default function EnterprisePage() {
               <span className="text-2xl font-black text-zinc-950 block">99.99%</span>
               <h4 className="font-bold text-sm text-zinc-950">SLA de Disponibilidad</h4>
               <p className="text-xs text-zinc-500 leading-relaxed font-normal">
-                Nuestra infraestructura está desplegada de forma redundante en múltiples zonas para garantizar la continuidad del negocio y evitar la pérdida de ventas.
+                Nuestra infraestructura estÃƒÂ¡ desplegada de forma redundante en mÃƒÂºltiples zonas para garantizar la continuidad del negocio y evitar la pÃƒÂ©rdida de ventas.
               </p>
             </div>
 
@@ -328,7 +328,7 @@ export default function EnterprisePage() {
               <span className="text-2xl font-black text-zinc-950 block">&lt; 100ms</span>
               <h4 className="font-bold text-sm text-zinc-950">Latencia en Respuestas</h4>
               <p className="text-xs text-zinc-500 leading-relaxed font-normal">
-                Optimización y cacheo a nivel perimetral de bases de datos para garantizar que las páginas de checkout y consultas de inventario carguen de manera inmediata.
+                OptimizaciÃƒÂ³n y cacheo a nivel perimetral de bases de datos para garantizar que las pÃƒÂ¡ginas de checkout y consultas de inventario carguen de manera inmediata.
               </p>
             </div>
 
@@ -336,7 +336,7 @@ export default function EnterprisePage() {
               <span className="text-2xl font-black text-zinc-950 block">SOC 2 Ready</span>
               <h4 className="font-bold text-sm text-zinc-950">Seguridad & Privacidad</h4>
               <p className="text-xs text-zinc-500 leading-relaxed font-normal">
-                Arquitectura alineada con las directrices de seguridad SOC 2 para asegurar la protección, segregación y control de acceso a los datos transaccionales de tu negocio.
+                Arquitectura alineada con las directrices de seguridad SOC 2 para asegurar la protecciÃƒÂ³n, segregaciÃƒÂ³n y control de acceso a los datos transaccionales de tu negocio.
               </p>
             </div>
           </div>

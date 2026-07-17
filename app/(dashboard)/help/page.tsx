@@ -6,24 +6,24 @@ import { cn } from '@/lib/utils'
 
 const FAQS = [
   {
-    question: '¿Cómo funciona la asignación automática de repartidores?',
-    answer: 'Cuando recibes un pedido pagado y seleccionas "SÍ" al domicilio, el sistema envía una oferta de entrega a todos los repartidores activos. El primero en aceptar el servicio se queda con él y el sistema actualiza automáticamente la orden.'
+    question: 'Ã‚Â¿CÃƒÂ³mo funciona la asignaciÃƒÂ³n automÃƒÂ¡tica de repartidores?',
+    answer: 'Cuando recibes un pedido pagado y seleccionas "SÃƒÂ" al domicilio, el sistema envÃƒÂ­a una oferta de entrega a todos los repartidores activos. El primero en aceptar el servicio se queda con ÃƒÂ©l y el sistema actualiza automÃƒÂ¡ticamente la orden.'
   },
   {
-    question: '¿Cómo conecto mi cuenta de Mercado Pago o Stripe Connect?',
-    answer: 'Ve a "Ajustes de Tienda" desde el panel lateral y haz clic en el botón de conexión de pasarela correspondiente. El sistema te guiará de forma segura por el onboarding oficial.'
+    question: 'Ã‚Â¿CÃƒÂ³mo conecto mi cuenta de Mercado Pago o Stripe Connect?',
+    answer: 'Ve a "Ajustes de Tienda" desde el panel lateral y haz clic en el botÃƒÂ³n de conexiÃƒÂ³n de pasarela correspondiente. El sistema te guiarÃƒÂ¡ de forma segura por el onboarding oficial.'
   },
   {
-    question: '¿Qué costo tiene el servicio de domicilio por plataforma?',
-    answer: 'El servicio de repartidores oficiales de la plataforma tiene una tarifa estándar de $5.000 COP por trayecto, los cuales se descuentan automáticamente del balance de cobro del pedido.'
+    question: 'Ã‚Â¿QuÃƒÂ© costo tiene el servicio de domicilio por plataforma?',
+    answer: 'El servicio de repartidores oficiales de la plataforma tiene una tarifa estÃƒÂ¡ndar de $5.000 COP por trayecto, los cuales se descuentan automÃƒÂ¡ticamente del balance de cobro del pedido.'
   },
   {
-    question: '¿Cómo edito la información de mi tienda o el enlace público?',
-    answer: 'Puedes editar el nombre de tu tienda, biografía, logotipo, número de WhatsApp y slug del enlace de catálogo directamente desde "Ajustes de Tienda" en la sección de configuración.'
+    question: 'Ã‚Â¿CÃƒÂ³mo edito la informaciÃƒÂ³n de mi tienda o el enlace pÃƒÂºblico?',
+    answer: 'Puedes editar el nombre de tu tienda, biografÃƒÂ­a, logotipo, nÃƒÂºmero de WhatsApp y slug del enlace de catÃƒÂ¡logo directamente desde "Ajustes de Tienda" en la secciÃƒÂ³n de configuraciÃƒÂ³n.'
   },
   {
-    question: '¿Los clientes necesitan descargar alguna aplicación para comprar?',
-    answer: 'No. El cliente final accede a tu catálogo mediante un navegador web optimizado para móviles o recibe listas de botones interactivos directas en su chat de WhatsApp, sin instalar nada.'
+    question: 'Ã‚Â¿Los clientes necesitan descargar alguna aplicaciÃƒÂ³n para comprar?',
+    answer: 'No. El cliente final accede a tu catÃƒÂ¡logo mediante un navegador web optimizado para mÃƒÂ³viles o recibe listas de botones interactivos directas en su chat de WhatsApp, sin instalar nada.'
   }
 ]
 
@@ -38,7 +38,7 @@ export default function HelpPage() {
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Centro de Ayuda y Soporte</h1>
             <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Encuentra respuestas rápidas o contacta directamente a nuestro equipo operativo.</span>
+              <span>Encuentra respuestas rÃƒÂ¡pidas o contacta directamente a nuestro equipo operativo.</span>
             </div>
           </div>
         </div>
@@ -104,13 +104,13 @@ export default function HelpPage() {
             <div className="space-y-2">
               <h3 className="font-semibold text-zinc-900 text-base">Soporte Prioritario</h3>
               <p className="text-zinc-500 text-xs leading-relaxed font-medium">
-                Atendemos tus inquietudes técnicas o comerciales de lunes a domingo.
+                Atendemos tus inquietudes tÃƒÂ©cnicas o comerciales de lunes a domingo.
               </p>
             </div>
 
             <div className="space-y-3">
               <a
-                href="https://wa.me/573001234567?text=Hola!%20Necesito%20soporte%20con%20mi%20tienda%20en%20FlashCheckout"
+                href="https://wa.me/573001234567?text=Hola!%20Necesito%20soporte%20con%20mi%20tienda%20en%20Flashcheckouts"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-4 bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100 hover:border-emerald-200 rounded-xl transition-all group active:scale-95 cursor-pointer"
@@ -152,7 +152,7 @@ export default function HelpPage() {
                     <BookOpen className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-zinc-900">Documentación de Uso</p>
+                    <p className="text-xs font-bold text-zinc-900">DocumentaciÃƒÂ³n de Uso</p>
                     <p className="text-[10px] font-medium text-zinc-400 mt-0.5">Aprende a usar la plataforma</p>
                   </div>
                 </div>

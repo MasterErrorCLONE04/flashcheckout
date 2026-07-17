@@ -23,7 +23,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://flashcheckout.vercel.app"),
-  title: "FlashCheckout — Cierra ventas en 30 segundos",
+  title: "Flashcheckouts - Cierra ventas en 30 segundos",
   icons: {
     icon: "/Flashcheckout logo.svg",
     apple: "/Flashcheckout logo.svg",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     "tiktok",
     "ecommerce",
     "colombia",
-    "automatización de ventas",
+    "automatizacion de ventas",
     "enlaces de pago",
   ],
   alternates: {
@@ -63,21 +63,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_ES",
     url: "https://flashcheckout.vercel.app",
-    title: "FlashCheckout — Cierra ventas en 30 segundos",
+    title: "Flashcheckouts - Cierra ventas en 30 segundos",
     description: "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
-    siteName: "FlashCheckout",
+    siteName: "Flashcheckouts",
     images: [
       {
         url: "https://flashcheckout.vercel.app/og-image.png",
         width: 1200,
         height: 630,
-        alt: "FlashCheckout - Cierra ventas en 30 segundos",
+        alt: "Flashcheckouts - Cierra ventas en 30 segundos",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FlashCheckout — Cierra ventas en 30 segundos",
+    title: "Flashcheckouts - Cierra ventas en 30 segundos",
     description: "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
     images: ["https://flashcheckout.vercel.app/og-image.png"],
   },
@@ -102,7 +102,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "FlashCheckout",
+              "name": "Flashcheckouts",
               "url": "https://flashcheckout.vercel.app",
               "applicationCategory": "BusinessApplication",
               "browserRequirements": "Requires JavaScript and HTML5",

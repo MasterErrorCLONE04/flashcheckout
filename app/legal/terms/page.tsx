@@ -14,7 +14,7 @@ export default function TermsOfService() {
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm">
               <Zap className="w-4.5 h-4.5 fill-white stroke-white" />
             </div>
-            <span className="text-[19px] font-semibold tracking-tight text-zinc-900">FlashCheckout</span>
+            <span className="text-[19px] font-semibold tracking-tight text-zinc-900">Flashcheckouts</span>
           </Link>
           
           <Link 
@@ -35,7 +35,7 @@ export default function TermsOfService() {
             Terms of Service
           </h1>
           <p className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">
-            Última actualización: 15 de julio de 2026
+            ÃƒÅ¡ltima actualizaciÃƒÂ³n: 15 de julio de 2026
           </p>
         </div>
 
@@ -54,14 +54,14 @@ export default function TermsOfService() {
               1.1 Service Description
             </h3>
             <p className="mb-4">
-              FlashCheckout owns and provides a cloud-based artificial intelligence service offering agents for customer support, sales, and user engagement (the &quot;Service&quot;). Anything the Customer (including Users) configures, customizes, uploads, or otherwise utilizes through the Service is considered a &quot;User Submission.&quot; Customer is solely responsible for all User Submissions it contributes to the Service. Additional terms regarding User Submissions, including ownership, are in Section 8.2 below. The Service may include templates, scripts, documentation, and other materials that assist Customer in using the Service (&quot;FlashCheckout Content&quot;). Customers will not receive or have access to the underlying code or software of the Service (collectively, the &quot;Software&quot;) nor receive a copy of the Software.
+              Flashcheckouts owns and provides a cloud-based artificial intelligence service offering agents for customer support, sales, and user engagement (the &quot;Service&quot;). Anything the Customer (including Users) configures, customizes, uploads, or otherwise utilizes through the Service is considered a &quot;User Submission.&quot; Customer is solely responsible for all User Submissions it contributes to the Service. Additional terms regarding User Submissions, including ownership, are in Section 8.2 below. The Service may include templates, scripts, documentation, and other materials that assist Customer in using the Service (&quot;Flashcheckouts Content&quot;). Customers will not receive or have access to the underlying code or software of the Service (collectively, the &quot;Software&quot;) nor receive a copy of the Software.
             </p>
 
             <h3 className="text-[15px] font-bold text-zinc-800 mb-2">
               1.2 Access and Support
             </h3>
             <p>
-              Subject to Customer&apos;s compliance with this Agreement and the applicable order process, FlashCheckout hereby grants Customer a non-exclusive, non-transferable, non-sublicensable right to access and use the Service during the applicable Term. FlashCheckout will provide standard support services to Customer in accordance with our standard support guidelines.
+              Subject to Customer&apos;s compliance with this Agreement and the applicable order process, Flashcheckouts hereby grants Customer a non-exclusive, non-transferable, non-sublicensable right to access and use the Service during the applicable Term. Flashcheckouts will provide standard support services to Customer in accordance with our standard support guidelines.
             </p>
           </div>
 
@@ -79,7 +79,7 @@ export default function TermsOfService() {
               3. Payment of Fees
             </h2>
             <p className="mb-4">
-              Customer shall pay FlashCheckout all applicable fees for the selected pricing plans in accordance with the billing terms. If Customer upgrades their plan (e.g. from Free to Pro), the billing will adjust immediately and be charged through our connected gateway (Stripe or MercadoPago). All fees are non-refundable except as explicitly stated herein.
+              Customer shall pay Flashcheckouts all applicable fees for the selected pricing plans in accordance with the billing terms. If Customer upgrades their plan (e.g. from Free to Pro), the billing will adjust immediately and be charged through our connected gateway (Stripe or MercadoPago). All fees are non-refundable except as explicitly stated herein.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export default function TermsOfService() {
 
         {/* Footer footer */}
         <div className="border-t border-zinc-100 mt-16 pt-8 flex items-center justify-between text-xs font-medium text-zinc-400 select-none">
-          <span>© {new Date().getFullYear()} FlashCheckout Inc.</span>
+          <span>Ã‚Â© {new Date().getFullYear()} Flashcheckouts Inc.</span>
           <Link href="/solutions/privacidad" className="hover:text-zinc-650 transition-colors">
             Privacy Policy
           </Link>

@@ -25,24 +25,24 @@ import {
 // FAQ Items Data
 const FAQS = [
   {
-    q: '¿Cómo funciona el límite de 10 productos en el plan Gratuito?',
-    a: 'Puedes crear tu tienda y agregar hasta 10 productos activos sin ningún costo ni necesidad de tarjeta de crédito. Si deseas ofrecer un catálogo más grande, puedes actualizar al plan Pro en cualquier momento desde tu panel de configuración.'
+    q: 'Ã‚Â¿CÃƒÂ³mo funciona el lÃƒÂ­mite de 10 productos en el plan Gratuito?',
+    a: 'Puedes crear tu tienda y agregar hasta 10 productos activos sin ningÃƒÂºn costo ni necesidad de tarjeta de crÃƒÂ©dito. Si deseas ofrecer un catÃƒÂ¡logo mÃƒÂ¡s grande, puedes actualizar al plan Pro en cualquier momento desde tu panel de configuraciÃƒÂ³n.'
   },
   {
-    q: '¿Qué es el Agente de WhatsApp Inteligente (WhatsApp Agent)?',
-    a: 'Es un asistente de inteligencia artificial entrenado específicamente con la información y productos de tu tienda. Atiende a tus clientes por WhatsApp las 24 horas del día, responde sus dudas, comprueba inventario en tiempo real y les envía enlaces directos de pago para cerrar las ventas automáticamente.'
+    q: 'Ã‚Â¿QuÃƒÂ© es el Agente de WhatsApp Inteligente (WhatsApp Agent)?',
+    a: 'Es un asistente de inteligencia artificial entrenado especÃƒÂ­ficamente con la informaciÃƒÂ³n y productos de tu tienda. Atiende a tus clientes por WhatsApp las 24 horas del dÃƒÂ­a, responde sus dudas, comprueba inventario en tiempo real y les envÃƒÂ­a enlaces directos de pago para cerrar las ventas automÃƒÂ¡ticamente.'
   },
   {
-    q: '¿Cómo se maneja la recuperación de carritos abandonados?',
-    a: 'Cuando un cliente inicia un flujo de pago pero no completa la transacción, nuestro sistema de automatización de WhatsApp le envía un recordatorio amistoso y personalizado con un botón para finalizar la compra, aumentando tu conversión de ventas hasta en un 35%.'
+    q: 'Ã‚Â¿CÃƒÂ³mo se maneja la recuperaciÃƒÂ³n de carritos abandonados?',
+    a: 'Cuando un cliente inicia un flujo de pago pero no completa la transacciÃƒÂ³n, nuestro sistema de automatizaciÃƒÂ³n de WhatsApp le envÃƒÂ­a un recordatorio amistoso y personalizado con un botÃƒÂ³n para finalizar la compra, aumentando tu conversiÃƒÂ³n de ventas hasta en un 35%.'
   },
   {
-    q: '¿Qué métodos de pago puedo ofrecer a mis clientes?',
-    a: 'FlashCheckout se integra directamente con Stripe y MercadoPago. Puedes aceptar tarjetas de crédito locales e internacionales, PSE (en Colombia), transferencias bancarias y monederos digitales de forma segura y directa a tu propia cuenta.'
+    q: 'Ã‚Â¿QuÃƒÂ© mÃƒÂ©todos de pago puedo ofrecer a mis clientes?',
+    a: 'Flashcheckouts se integra directamente con Stripe y MercadoPago. Puedes aceptar tarjetas de crÃƒÂ©dito locales e internacionales, PSE (en Colombia), transferencias bancarias y monederos digitales de forma segura y directa a tu propia cuenta.'
   },
   {
-    q: '¿Puedo cancelar o cambiar mi plan en cualquier momento?',
-    a: 'Sí, absolutamente. No hay contratos a largo plazo ni compromisos de permanencia. Puedes subir, bajar o cancelar tu plan Pro en cualquier momento directamente desde tu panel de control.'
+    q: 'Ã‚Â¿Puedo cancelar o cambiar mi plan en cualquier momento?',
+    a: 'SÃƒÂ­, absolutamente. No hay contratos a largo plazo ni compromisos de permanencia. Puedes subir, bajar o cancelar tu plan Pro en cualquier momento directamente desde tu panel de control.'
   }
 ]
 
@@ -83,7 +83,7 @@ export default function PricingPage() {
           </h1>
 
           <p className="text-lg text-zinc-500 max-w-2xl font-normal leading-relaxed mb-12">
-            Crea tu tienda virtual y agrega tus primeros productos gratis. Desbloquea automatizaciones profesionales por WhatsApp cuando estés listo para crecer.
+            Crea tu tienda virtual y agrega tus primeros productos gratis. Desbloquea automatizaciones profesionales por WhatsApp cuando estÃƒÂ©s listo para crecer.
           </p>
 
           {/* Billing Switcher Toggle */}
@@ -140,7 +140,7 @@ export default function PricingPage() {
                   <span className="text-sm font-semibold text-zinc-400">/ mes</span>
                 </div>
                 <p className="text-xs text-zinc-500 mb-8 leading-relaxed">
-                  Perfecto para probar la plataforma y lanzar tu primer catálogo digital básico.
+                  Perfecto para probar la plataforma y lanzar tu primer catÃƒÂ¡logo digital bÃƒÂ¡sico.
                 </p>
                 <div className="h-px bg-zinc-100 w-full mb-8" />
                 <ul className="space-y-4">
@@ -150,11 +150,11 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium">
                     <Check className="w-4 h-4 text-zinc-900 mt-0.5 shrink-0" />
-                    <span>Página de checkout rápido</span>
+                    <span>PÃƒÂ¡gina de checkout rÃƒÂ¡pido</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium">
                     <Check className="w-4 h-4 text-zinc-900 mt-0.5 shrink-0" />
-                    <span>Integración Stripe & MercadoPago</span>
+                    <span>IntegraciÃƒÂ³n Stripe & MercadoPago</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium text-zinc-300">
                     <Check className="w-4 h-4 text-zinc-300 mt-0.5 shrink-0" />
@@ -162,7 +162,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium text-zinc-300">
                     <Check className="w-4 h-4 text-zinc-300 mt-0.5 shrink-0" />
-                    <span className="line-through">Recuperación de carritos por chat</span>
+                    <span className="line-through">RecuperaciÃƒÂ³n de carritos por chat</span>
                   </li>
                 </ul>
               </div>
@@ -176,7 +176,7 @@ export default function PricingPage() {
               recommendedPlan === 'pro' ? 'ring-2 ring-zinc-950 ring-offset-2' : ''
             }`}>
               <div className="absolute top-0 right-6 -translate-y-1/2 bg-amber-500 text-zinc-950 text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full shadow-sm">
-                Más Popular
+                MÃƒÂ¡s Popular
               </div>
               {recommendedPlan === 'pro' && (
                 <span className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-zinc-950 text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
@@ -190,7 +190,7 @@ export default function PricingPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-zinc-950">Plan Pro</h3>
-                    <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">Ventas Automáticas</p>
+                    <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">Ventas AutomÃƒÂ¡ticas</p>
                   </div>
                 </div>
                 <div className="mb-6 flex items-baseline gap-1">
@@ -200,7 +200,7 @@ export default function PricingPage() {
                   <span className="text-sm font-semibold text-zinc-400">/ mes</span>
                 </div>
                 <p className="text-xs text-zinc-500 mb-8 leading-relaxed">
-                  Para comercios en crecimiento que desean automatizar su canal de WhatsApp y vender en piloto automático.
+                  Para comercios en crecimiento que desean automatizar su canal de WhatsApp y vender en piloto automÃƒÂ¡tico.
                 </p>
                 <div className="h-px bg-zinc-100 w-full mb-8" />
                 <ul className="space-y-4">
@@ -214,11 +214,11 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium">
                     <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <span>Recuperación de carritos abandonados</span>
+                    <span>RecuperaciÃƒÂ³n de carritos abandonados</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium">
                     <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <span>Sincronización de stock en tiempo real</span>
+                    <span>SincronizaciÃƒÂ³n de stock en tiempo real</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-600 font-medium">
                     <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
@@ -264,11 +264,11 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium">
                     <Check className="w-4 h-4 text-white mt-0.5 shrink-0" />
-                    <span>Integración directa con ERPs/CRMs</span>
+                    <span>IntegraciÃƒÂ³n directa con ERPs/CRMs</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium">
                     <Check className="w-4 h-4 text-white mt-0.5 shrink-0" />
-                    <span>Múltiples canales (Insta, Messenger, WA)</span>
+                    <span>MÃƒÂºltiples canales (Insta, Messenger, WA)</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium">
                     <Check className="w-4 h-4 text-white mt-0.5 shrink-0" />
@@ -276,7 +276,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium">
                     <Check className="w-4 h-4 text-white mt-0.5 shrink-0" />
-                    <span>Desarrollo de módulos a medida</span>
+                    <span>Desarrollo de mÃƒÂ³dulos a medida</span>
                   </li>
                 </ul>
               </div>
@@ -294,17 +294,17 @@ export default function PricingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-10 flex flex-col items-center gap-3">
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950">
-              ¿Cuál es el plan adecuado para tus productos?
+              Ã‚Â¿CuÃƒÂ¡l es el plan adecuado para tus productos?
             </h2>
             <p className="text-sm text-zinc-500 max-w-xl font-normal leading-relaxed">
-              Desliza el control para indicar cuántos productos activos necesitas vender y descubre nuestra recomendación.
+              Desliza el control para indicar cuÃƒÂ¡ntos productos activos necesitas vender y descubre nuestra recomendaciÃƒÂ³n.
             </p>
           </div>
 
           <div className="bg-zinc-50 border border-zinc-200/60 p-8 rounded-3xl shadow-sm flex flex-col gap-8 items-stretch">
             <div className="flex justify-between items-center">
               <div>
-                <span className="text-sm font-semibold text-zinc-400 uppercase tracking-wider block mb-1">Capacidad del Catálogo</span>
+                <span className="text-sm font-semibold text-zinc-400 uppercase tracking-wider block mb-1">Capacidad del CatÃƒÂ¡logo</span>
                 <span className="text-3xl font-bold tracking-tight text-zinc-950">
                   {productCount === 250 ? '250+ (Ilimitado)' : `${productCount} productos`}
                 </span>
@@ -353,12 +353,12 @@ export default function PricingPage() {
               <div>
                 <h4 className="font-bold text-sm text-zinc-950 mb-0.5">
                   {recommendedPlan === 'free' && 'Plan Gratuito: Gratis para siempre'}
-                  {recommendedPlan === 'pro' && `Plan Pro: Automático por $${isAnnual ? '8' : '10'}/mes`}
-                  {recommendedPlan === 'enterprise' && 'Plan Enterprise: Solución a Medida'}
+                  {recommendedPlan === 'pro' && `Plan Pro: AutomÃƒÂ¡tico por $${isAnnual ? '8' : '10'}/mes`}
+                  {recommendedPlan === 'enterprise' && 'Plan Enterprise: SoluciÃƒÂ³n a Medida'}
                 </h4>
                 <p className="text-xs text-zinc-500 font-normal leading-relaxed">
-                  {recommendedPlan === 'free' && 'Ideal para pequeños emprendimientos. Permite agregar hasta 10 productos sin costo.'}
-                  {recommendedPlan === 'pro' && 'Permite productos ilimitados e incluye el Agente de WhatsApp inteligente para vender de forma automática 24/7.'}
+                  {recommendedPlan === 'free' && 'Ideal para pequeÃƒÂ±os emprendimientos. Permite agregar hasta 10 productos sin costo.'}
+                  {recommendedPlan === 'pro' && 'Permite productos ilimitados e incluye el Agente de WhatsApp inteligente para vender de forma automÃƒÂ¡tica 24/7.'}
                   {recommendedPlan === 'enterprise' && 'Para tiendas que superan los 250 productos o requieren integraciones API personalizadas con ERPs.'}
                 </p>
               </div>
@@ -375,7 +375,7 @@ export default function PricingPage() {
               Preguntas Frecuentes
             </h2>
             <p className="text-base text-zinc-500 max-w-2xl font-normal">
-              ¿Tienes dudas sobre los planes de FlashCheckout? Resolvemos las preguntas más comunes sobre nuestras tarifas y capacidades.
+              Ã‚Â¿Tienes dudas sobre los planes de Flashcheckouts? Resolvemos las preguntas mÃƒÂ¡s comunes sobre nuestras tarifas y capacidades.
             </p>
           </div>
 

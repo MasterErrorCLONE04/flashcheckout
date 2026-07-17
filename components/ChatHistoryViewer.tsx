@@ -123,7 +123,7 @@ export default function ChatHistoryViewer({
           const data = await statusRes.json()
           if (data.status === 'CONNECTED') {
             setIsConnected(true)
-            toast.success("¡WhatsApp conectado!")
+            toast.success("Ã‚Â¡WhatsApp conectado!")
             return
           } else if (data.status === 'QRCODE') {
             setQrCodeBase64(data.base64 || null)
@@ -171,8 +171,8 @@ export default function ChatHistoryViewer({
               setIsConnected(true)
               setQrCodeBase64(null)
               setPollingStatus(false)
-              toast.success("¡WhatsApp enlazado con éxito! ✅", {
-                description: "Tu número celular ahora está vinculado a FlashCheckout y respondiendo de forma automática."
+              toast.success("Ã‚Â¡WhatsApp enlazado con ÃƒÂ©xito! Ã¢Å“â€¦", {
+                description: "Tu nÃƒÂºmero celular ahora estÃƒÂ¡ vinculado a Flashcheckouts y respondiendo de forma automÃƒÂ¡tica."
               })
               router.refresh()
             } else if (data.status === 'QRCODE') {
@@ -197,7 +197,7 @@ export default function ChatHistoryViewer({
       ...s,
       tags: s.tags || [],
       notes: s.notes || [],
-      assignedTo: s.assignedTo || 'Tú',
+      assignedTo: s.assignedTo || 'TÃƒÂº',
       isFavorite: s.isFavorite ?? false,
       status: s.status || 'active'
     }))
@@ -210,7 +210,7 @@ export default function ChatHistoryViewer({
   const [disconnecting, setDisconnecting] = useState(false)
 
   const handleDisconnect = async () => {
-    if (!confirm('¿Estás seguro de que deseas desconectar WhatsApp? Se detendrán las respuestas automáticas del bot.')) {
+    if (!confirm('Ã‚Â¿EstÃƒÂ¡s seguro de que deseas desconectar WhatsApp? Se detendrÃƒÂ¡n las respuestas automÃƒÂ¡ticas del bot.')) {
       return
     }
 
@@ -306,8 +306,8 @@ export default function ChatHistoryViewer({
   // Tab counts
   const totalCount = sessions.length
   const unreadCount = sessions.filter(s => s.messages.length > 0 && s.messages[s.messages.length - 1].sender === 'user').length
-  const assignedCount = sessions.filter(s => s.assignedTo === 'Tú').length
-  const unassignedCount = sessions.filter(s => s.assignedTo !== 'Tú' && s.assignedTo !== 'Bot de IA').length
+  const assignedCount = sessions.filter(s => s.assignedTo === 'TÃƒÂº').length
+  const unassignedCount = sessions.filter(s => s.assignedTo !== 'TÃƒÂº' && s.assignedTo !== 'Bot de IA').length
 
   // Filter conversations
   const filteredSessions = sessions.filter(s => {
@@ -319,8 +319,8 @@ export default function ChatHistoryViewer({
     const matchesTab =
       activeTab === 'all' ||
       (activeTab === 'unread' && s.messages.length > 0 && s.messages[s.messages.length - 1].sender === 'user') ||
-      (activeTab === 'assigned' && s.assignedTo === 'Tú') ||
-      (activeTab === 'unassigned' && s.assignedTo !== 'Tú' && s.assignedTo !== 'Bot de IA')
+      (activeTab === 'assigned' && s.assignedTo === 'TÃƒÂº') ||
+      (activeTab === 'unassigned' && s.assignedTo !== 'TÃƒÂº' && s.assignedTo !== 'Bot de IA')
 
     return matchesSearch && matchesTab
   })
@@ -356,7 +356,7 @@ export default function ChatHistoryViewer({
     if (!session) return
     const nextVal = session.status === 'active' ? 'closed' : 'active'
     setSessions(prev => prev.map(s => s.id === id ? { ...s, status: nextVal } : s))
-    toast.success(nextVal === 'closed' ? 'Conversación cerrada' : 'Conversación reabierta')
+    toast.success(nextVal === 'closed' ? 'ConversaciÃƒÂ³n cerrada' : 'ConversaciÃƒÂ³n reabierta')
     await persistSessionUpdate(id, { status: nextVal })
   }
 
@@ -376,7 +376,7 @@ export default function ChatHistoryViewer({
       id: Date.now().toString(),
       text,
       createdAt: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      author: 'Tú'
+      author: 'TÃƒÂº'
     }
 
     const updatedNotes = [...activeSession.notes, newNote]
@@ -419,11 +419,11 @@ export default function ChatHistoryViewer({
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    toast.success('Número copiado')
+    toast.success('NÃƒÂºmero copiado')
   }
 
   const exportChats = () => {
-    const headers = ['ID Sesión', 'Cliente', 'WhatsApp', 'Última interacción', 'Estado', 'Mensajes']
+    const headers = ['ID SesiÃƒÂ³n', 'Cliente', 'WhatsApp', 'ÃƒÅ¡ltima interacciÃƒÂ³n', 'Estado', 'Mensajes']
     const rows = sessions.map(s => [
       s.id,
       s.customerName,
@@ -573,7 +573,7 @@ export default function ChatHistoryViewer({
       <div className="space-y-1">
         {isHumanTakeover && (
           <span className="block text-[8px] opacity-75 font-black tracking-wider leading-none text-zinc-400">
-            Intervención Humana
+            IntervenciÃƒÂ³n Humana
           </span>
         )}
         <p className="leading-relaxed break-words font-semibold text-zinc-800">{cleanText}</p>
@@ -590,7 +590,7 @@ export default function ChatHistoryViewer({
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Conversaciones</h1>
             <div className="text-[12px] font-bold text-zinc-500 mt-1 flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              Esperando conexión de WhatsApp...
+              Esperando conexiÃƒÂ³n de WhatsApp...
             </div>
           </div>
         </div>
@@ -603,14 +603,14 @@ export default function ChatHistoryViewer({
             <div className="xl:col-span-5 space-y-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold rounded-full select-none">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                <span>Conexión requerida</span>
+                <span>ConexiÃƒÂ³n requerida</span>
               </div>
               <div className="space-y-3">
                 <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight leading-tight">
                   Conecta tu <span className="text-emerald-600">WhatsApp</span> <br /> para empezar a chatear
                 </h2>
                 <p className="text-xs text-zinc-500 font-bold leading-relaxed">
-                  Escanea el código QR con tu teléfono para vincular tu cuenta de WhatsApp y empezar a gestionar tus conversaciones desde FlashCheckouts.
+                  Escanea el cÃƒÂ³digo QR con tu telÃƒÂ©fono para vincular tu cuenta de WhatsApp y empezar a gestionar tus conversaciones desde Flashcheckouts.
                 </p>
               </div>
 
@@ -624,18 +624,18 @@ export default function ChatHistoryViewer({
                   },
                   {
                     icon: Zap,
-                    title: "No te pierdas ningún mensaje",
+                    title: "No te pierdas ningÃƒÂºn mensaje",
                     desc: "Recibe y responde mensajes en tiempo real sin depender de tu celular."
                   },
                   {
                     icon: User,
                     title: "Automatiza y ahorra tiempo",
-                    desc: "Usa inteligencia artificial y automatizaciones para responder más rápido."
+                    desc: "Usa inteligencia artificial y automatizaciones para responder mÃƒÂ¡s rÃƒÂ¡pido."
                   },
                   {
                     icon: CheckCircle,
                     title: "Seguro y confiable",
-                    desc: "Tus conversaciones están protegidas con encriptación de extremo a extremo."
+                    desc: "Tus conversaciones estÃƒÂ¡n protegidas con encriptaciÃƒÂ³n de extremo a extremo."
                   }
                 ].map((feat, index) => {
                   const IconComponent = feat.icon;
@@ -700,11 +700,11 @@ export default function ChatHistoryViewer({
                   {/* Chats stream inside phone mockup */}
                   <div className="flex-1 bg-white overflow-hidden p-1.5 space-y-1">
                     {[
-                      { name: "María González", time: "11:28", text: "¡Perfecto, muchas gracias!" },
-                      { name: "Tienda Webs", time: "11:24", text: "¡Hola, ¿tienes disponible el..." },
-                      { name: "Carlos Ramírez", time: "11:20", text: "Listo, muchas gracias 🙌" },
-                      { name: "Ana López", time: "11:15", text: "Te envío el comprobante" },
-                      { name: "Grupo Ventas", time: "11:10", text: "Juan: ¡Excelente!" },
+                      { name: "MarÃƒÂ­a GonzÃƒÂ¡lez", time: "11:28", text: "Ã‚Â¡Perfecto, muchas gracias!" },
+                      { name: "Tienda Webs", time: "11:24", text: "Ã‚Â¡Hola, Ã‚Â¿tienes disponible el..." },
+                      { name: "Carlos RamÃƒÂ­rez", time: "11:20", text: "Listo, muchas gracias Ã°Å¸â„¢Å’" },
+                      { name: "Ana LÃƒÂ³pez", time: "11:15", text: "Te envÃƒÂ­o el comprobante" },
+                      { name: "Grupo Ventas", time: "11:10", text: "Juan: Ã‚Â¡Excelente!" },
                       { name: "Miguel Torres", time: "Ayer", text: "Dale, seguimos en contacto" }
                     ].map((chat, idx) => (
                       <div key={idx} className="flex gap-2.5 items-center p-1.5 border-b border-zinc-50 last:border-none">
@@ -734,13 +734,13 @@ export default function ChatHistoryViewer({
             <div className="xl:col-span-3 space-y-5 flex flex-col items-center xl:items-start text-left">
               {/* How to Connect instructions card */}
               <div className="w-full bg-zinc-50/65 border border-zinc-150 rounded-2xl p-4.5 space-y-4">
-                <h4 className="text-xs font-bold text-zinc-800 tracking-wider">Cómo conectar</h4>
+                <h4 className="text-xs font-bold text-zinc-800 tracking-wider">CÃƒÂ³mo conectar</h4>
                 
                 <div className="space-y-3.5">
                   {[
-                    { step: "1", text: "Abre WhatsApp en tu teléfono" },
+                    { step: "1", text: "Abre WhatsApp en tu telÃƒÂ©fono" },
                     { step: "2", text: "Ve a Dispositivos vinculados" },
-                    { step: "3", text: "Escanea este código QR" }
+                    { step: "3", text: "Escanea este cÃƒÂ³digo QR" }
                   ].map((item, idx) => (
                     <div key={idx} className="flex gap-3.5 items-start">
                       <div className="w-6 h-6 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-extrabold text-zinc-700 shrink-0 border border-zinc-205 shadow-2xs">
@@ -780,7 +780,7 @@ export default function ChatHistoryViewer({
                 {!loadingQr && !qrCodeBase64 && (
                   <div className="flex flex-col items-center gap-2.5">
                     <Wifi className="w-8 h-8 text-zinc-350 animate-pulse" />
-                    <span className="text-[10px] text-zinc-400 font-extrabold uppercase tracking-wider leading-relaxed">Sin señal de QR</span>
+                    <span className="text-[10px] text-zinc-400 font-extrabold uppercase tracking-wider leading-relaxed">Sin seÃƒÂ±al de QR</span>
                     <button 
                       onClick={async () => {
                         setLoadingQr(true)
@@ -800,7 +800,7 @@ export default function ChatHistoryViewer({
                             setPollingStatus(true)
                           }
                         } catch (e) {
-                          toast.error("Error al regenerar código QR")
+                          toast.error("Error al regenerar cÃƒÂ³digo QR")
                         } finally {
                           setLoadingQr(false)
                         }
@@ -821,7 +821,7 @@ export default function ChatHistoryViewer({
                 </svg>
                 <div className="flex flex-col leading-tight">
                   <span className="text-zinc-800">Tu privacidad es importante</span>
-                  <span className="text-[9px] text-zinc-400 font-medium">Encriptación de extremo a extremo</span>
+                  <span className="text-[9px] text-zinc-400 font-medium">EncriptaciÃƒÂ³n de extremo a extremo</span>
                 </div>
               </div>
             </div>
@@ -836,10 +836,10 @@ export default function ChatHistoryViewer({
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
-              <span>¿Problemas para conectar?</span>
+              <span>Ã‚Â¿Problemas para conectar?</span>
             </div>
             <a href="/help" className="text-emerald-600 font-bold hover:underline flex items-center gap-1 select-none cursor-pointer">
-              <span>Ver guía paso a paso</span>
+              <span>Ver guÃƒÂ­a paso a paso</span>
               <svg className="w-3.5 h-3.5 stroke-current stroke-2 fill-none" viewBox="0 0 24 24">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
@@ -912,7 +912,7 @@ export default function ChatHistoryViewer({
                   activeTab === 'unread' ? "text-emerald-600" : "hover:text-zinc-955"
                 )}
               >
-                No leídas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{unreadCount}</span>
+                No leÃƒÂ­das <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{unreadCount}</span>
                 {activeTab === 'unread' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
               </button>
 
@@ -945,7 +945,7 @@ export default function ChatHistoryViewer({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
                 <input
                   type="text"
-                  placeholder="Buscar conversación..."
+                  placeholder="Buscar conversaciÃƒÂ³n..."
                   value={searchQuery}
                   onChange={e => {
                     setSearchQuery(e.target.value)
@@ -971,12 +971,12 @@ export default function ChatHistoryViewer({
               currentSessions.map(s => {
                 const isSelected = s.id === activeSessionId
                 const lastMsgObj = s.messages[s.messages.length - 1]
-                let lastMsg = lastMsgObj ? lastMsgObj.text : 'Conversación iniciada'
+                let lastMsg = lastMsgObj ? lastMsgObj.text : 'ConversaciÃƒÂ³n iniciada'
                 if (lastMsg.startsWith('[PRODUCT_CARD]')) {
                   const parts = lastMsg.replace('[PRODUCT_CARD] ', '').split(' | ')
                   lastMsg = `Tarjeta de producto: ${parts[0] || 'Producto'}`
                 } else if (lastMsg.startsWith('[Link de Pago Enviado]')) {
-                  lastMsg = 'Link de Pago Enviado 🛒'
+                  lastMsg = 'Link de Pago Enviado Ã°Å¸â€ºâ€™'
                 }
                 const lastTime = lastMsgObj ? lastMsgObj.time : '10:00'
                 const isUnread = s.messages.length > 0 && s.messages[s.messages.length - 1].sender === 'user'
@@ -1114,9 +1114,9 @@ export default function ChatHistoryViewer({
                         onChange={(e) => handleAssigneeChange(activeSession.id, e.target.value)}
                         className="bg-transparent border-none text-[10px] font-bold text-zinc-700 cursor-pointer focus:outline-none hover:text-zinc-955 transition-colors p-0 leading-none"
                       >
-                        <option value="Tú">Tú</option>
+                        <option value="TÃƒÂº">TÃƒÂº</option>
                         <option value="Bot de IA">Bot de IA</option>
-                        <option value="Soporte Técnico">Soporte</option>
+                        <option value="Soporte TÃƒÂ©cnico">Soporte</option>
                       </select>
                     </div>
                   </div>
@@ -1211,7 +1211,7 @@ export default function ChatHistoryViewer({
                               )}>
                                 <span>{msg.time}</span>
                                 {!isUser && (
-                                  <span className="text-emerald-600 font-extrabold">✓✓</span>
+                                  <span className="text-emerald-600 font-extrabold">Ã¢Å“â€œÃ¢Å“â€œ</span>
                                 )}
                               </div>
                             )}
@@ -1268,7 +1268,7 @@ export default function ChatHistoryViewer({
               <div className="bg-amber-50 border-t border-b border-amber-100 p-2.5 flex items-center gap-2 px-4.5">
                 <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <p className="text-[9px] text-amber-800 font-bold tracking-wide leading-none select-none">
-                  El bot está respondiendo automáticamente. Al enviar un mensaje tomarás el control.
+                  El bot estÃƒÂ¡ respondiendo automÃƒÂ¡ticamente. Al enviar un mensaje tomarÃƒÂ¡s el control.
                 </p>
               </div>
 
@@ -1321,14 +1321,14 @@ export default function ChatHistoryViewer({
                       <div className="flex items-center gap-2">
                         <button 
                           type="button" 
-                          onClick={() => toast.info('Emojis (Próximamente)')}
+                          onClick={() => toast.info('Emojis (PrÃƒÂ³ximamente)')}
                           className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
                         >
                           <Smile className="w-4 h-4 text-zinc-400" />
                         </button>
                         <button 
                           type="button"
-                          onClick={() => toast.info('Adjuntar archivos (Próximamente)')}
+                          onClick={() => toast.info('Adjuntar archivos (PrÃƒÂ³ximamente)')}
                           className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
                         >
                           <Paperclip className="w-4 h-4 text-zinc-400" />
@@ -1336,11 +1336,11 @@ export default function ChatHistoryViewer({
                         <button 
                           type="button"
                           onClick={() => {
-                            setTakeoverText('¡Hola! Claro que sí, con gusto te ayudo.')
-                            toast.success('Respuesta rápida cargada')
+                            setTakeoverText('Ã‚Â¡Hola! Claro que sÃƒÂ­, con gusto te ayudo.')
+                            toast.success('Respuesta rÃƒÂ¡pida cargada')
                           }}
                           className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-                          title="Respuesta rápida"
+                          title="Respuesta rÃƒÂ¡pida"
                         >
                           <Zap className="w-4 h-4 text-zinc-400" />
                         </button>
@@ -1396,9 +1396,9 @@ export default function ChatHistoryViewer({
           
           {activeSession ? (
             <>
-              {/* Card 1: Información del cliente */}
+              {/* Card 1: InformaciÃƒÂ³n del cliente */}
               <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
-                <h4 className="text-xs font-bold text-zinc-955 tracking-wider select-none">Información del cliente</h4>
+                <h4 className="text-xs font-bold text-zinc-955 tracking-wider select-none">InformaciÃƒÂ³n del cliente</h4>
                 
                 <div className="flex items-center gap-3.5 select-none">
                   {activeSession.avatarUrl ? (
@@ -1501,7 +1501,7 @@ export default function ChatHistoryViewer({
                         <span>${activeDetails.cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0).toLocaleString('es-CO')}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-400">Envío</span>
+                        <span className="text-zinc-400">EnvÃƒÂ­o</span>
                         <span className="text-emerald-600 font-bold">Gratis</span>
                       </div>
                       <div className="flex justify-between text-xs font-bold text-zinc-950 pt-1.5 border-t border-zinc-50">
@@ -1600,7 +1600,7 @@ export default function ChatHistoryViewer({
                           onClick={() => handleRemoveTag(activeSession.id, tag)}
                           className="hover:text-zinc-955 text-[10px] ml-0.5 opacity-60 hover:opacity-100"
                         >
-                          ×
+                          Ãƒâ€”
                         </button>
                       </span>
                     )
@@ -1627,7 +1627,7 @@ export default function ChatHistoryViewer({
                 )}
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span>{activeSession.status === 'closed' ? 'Reabrir conversación' : 'Cerrar conversación'}</span>
+                <span>{activeSession.status === 'closed' ? 'Reabrir conversaciÃƒÂ³n' : 'Cerrar conversaciÃƒÂ³n'}</span>
               </button>
             </>
           ) : (

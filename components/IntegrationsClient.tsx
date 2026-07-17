@@ -48,9 +48,9 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       icon: SiWhatsapp,
       iconBg: store.whatsappConnected ? 'bg-emerald-50 border-emerald-100/60' : 'bg-zinc-50 border-zinc-150',
       iconColor: store.whatsappConnected ? 'text-[#25D366]' : 'text-zinc-400',
-      desc: 'Recibe y gestiona mensajes de WhatsApp Business mediante código QR.',
+      desc: 'Recibe y gestiona mensajes de WhatsApp Business mediante cÃƒÂ³digo QR.',
       connected: store.whatsappConnected,
-      detailKey: 'Instancia / Número',
+      detailKey: 'Instancia / NÃƒÂºmero',
       detailVal: store.whatsappConnected ? (store.whatsapp || 'Conectado') : 'Desconectado',
       type: 'Canales' as const
     },
@@ -60,9 +60,9 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       icon: SiMercadopago,
       iconBg: store.mpConnected ? 'bg-sky-50 border-sky-100/60' : 'bg-zinc-50 border-zinc-150',
       iconColor: store.mpConnected ? 'text-[#00AEEF]' : 'text-zinc-400',
-      desc: 'Procesa cobros dinámicos de tarjetas, efectivo y transferencias.',
+      desc: 'Procesa cobros dinÃƒÂ¡micos de tarjetas, efectivo y transferencias.',
       connected: store.mpConnected,
-      detailKey: 'Clave Pública',
+      detailKey: 'Clave PÃƒÂºblica',
       detailVal: store.mpConnected ? (store.mpPublicKey ? `${store.mpPublicKey.slice(0, 15)}...` : 'Conectado') : 'Desconectado',
       type: 'Pasarelas' as const
     },
@@ -84,7 +84,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       icon: SiCloudflare,
       iconBg: 'bg-amber-50 border-amber-100/60',
       iconColor: 'text-[#F38020]',
-      desc: 'Servicio de CDN y almacenamiento para imágenes de tus productos.',
+      desc: 'Servicio de CDN y almacenamiento para imÃƒÂ¡genes de tus productos.',
       connected: true,
       detailKey: 'Proveedor',
       detailVal: 'Gestionado por la Plataforma',
@@ -95,7 +95,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
   // Available integrations (Coming soon)
   const availableApps = [
     { id: 'stripe', name: 'Stripe Checkout', icon: SiStripe, iconColor: 'text-[#635BFF]', desc: 'Procesamiento de pagos globales con tarjeta.' },
-    { id: 'shopify', name: 'Shopify Sync', icon: SiShopify, iconColor: 'text-[#96BF48]', desc: 'Sincroniza stock y productos desde tu catálogo.' },
+    { id: 'shopify', name: 'Shopify Sync', icon: SiShopify, iconColor: 'text-[#96BF48]', desc: 'Sincroniza stock y productos desde tu catÃƒÂ¡logo.' },
     { id: 'woocommerce', name: 'WooCommerce Sync', icon: SiWoocommerce, iconColor: 'text-[#96588A]', desc: 'Vincula pedidos con tu tienda WordPress.' },
     { id: 'telegram', name: 'Telegram Bot', icon: SiTelegram, iconColor: 'text-[#24A1DE]', desc: 'Responde pedidos y chats desde canales.' },
     { id: 'facebook', name: 'Meta Messenger', icon: SiMeta, iconColor: 'text-[#1877F2]', desc: 'Sincroniza chats de Instagram y Facebook.' },
@@ -127,7 +127,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
         {[
           { id: 'Todas', label: 'Todas', count: connectedApps.length + availableApps.length },
           { id: 'Conectadas', label: 'Conectadas', count: connectedApps.filter(a => a.connected).length },
-          { id: 'Disponibles', label: 'Próximamente', count: availableApps.length },
+          { id: 'Disponibles', label: 'PrÃƒÂ³ximamente', count: availableApps.length },
         ].map(tab => (
           <button
             key={tab.id}
@@ -217,10 +217,10 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
             </div>
           )}
 
-          {/* Section: Próximamente */}
+          {/* Section: PrÃƒÂ³ximamente */}
           {activeTab !== 'Conectadas' && (
             <div className="space-y-4">
-              <h2 className="text-sm font-black text-zinc-800  tracking-wider">Integraciones Próximas</h2>
+              <h2 className="text-sm font-black text-zinc-800  tracking-wider">Integraciones PrÃƒÂ³ximas</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {availableApps.map((app) => {
@@ -235,7 +235,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
                           <div>
                             <h3 className="text-xs xl:text-sm font-extrabold text-zinc-900 leading-tight">{app.name}</h3>
                             <span className="inline-block px-1.5 py-0.2 bg-zinc-100 border border-zinc-200 text-zinc-500 text-[8.5px] font-black rounded-md mt-1 leading-none">
-                              Próximamente
+                              PrÃƒÂ³ximamente
                             </span>
                           </div>
                         </div>
@@ -256,15 +256,15 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
         {/* RIGHT COLUMN: Info SideCard (4/12) */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
-            <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800  tracking-wider">¿Cómo funcionan?</h3>
+            <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800  tracking-wider">Ã‚Â¿CÃƒÂ³mo funcionan?</h3>
             <p className="text-xs font-semibold text-zinc-405 leading-relaxed text-left">
-              Las integraciones conectan tu tienda FlashCheckout con canales de mensajería (WhatsApp) y pasarelas de pago (Mercado Pago).
+              Las integraciones conectan tu tienda Flashcheckouts con canales de mensajerÃƒÂ­a (WhatsApp) y pasarelas de pago (Mercado Pago).
             </p>
             <div className="h-px w-full bg-zinc-100" />
             <div className="space-y-3">
               <div className="flex items-start gap-2.5 text-xs text-zinc-800 font-semibold">
                 <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold text-[10px]">1</div>
-                <p className="text-left leading-normal">Escanea tu QR de WhatsApp en la pestaña de Ajustes.</p>
+                <p className="text-left leading-normal">Escanea tu QR de WhatsApp en la pestaÃƒÂ±a de Ajustes.</p>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-zinc-800 font-semibold">
                 <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold text-[10px]">2</div>
@@ -272,7 +272,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
               </div>
               <div className="flex items-start gap-2.5 text-xs text-zinc-800 font-semibold">
                 <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold text-[10px]">3</div>
-                <p className="text-left leading-normal">Nova y el Chatbot comenzarán a atender a tus clientes de manera autónoma.</p>
+                <p className="text-left leading-normal">Nova y el Chatbot comenzarÃƒÂ¡n a atender a tus clientes de manera autÃƒÂ³noma.</p>
               </div>
             </div>
             <div className="h-px w-full bg-zinc-100 pt-1" />
@@ -280,7 +280,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
               href="/configuracion"
               className="text-xs font-bold text-[#6F42C1] hover:text-purple-700 inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>Ir a Configuración</span>
+              <span>Ir a ConfiguraciÃƒÂ³n</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

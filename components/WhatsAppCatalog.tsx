@@ -304,7 +304,7 @@ export default function WhatsAppCatalog({
   
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Configuración de apariencia dinámica proveniente del administrador
+  // ConfiguraciÃƒÂ³n de apariencia dinÃƒÂ¡mica proveniente del administrador
   const aiSettings = (store.aiSettings as CatalogSettings) || {}
   const colors = {
     primario: aiSettings.colors?.primario || '#059669', // Emerald 600 default
@@ -315,7 +315,7 @@ export default function WhatsAppCatalog({
   }
   const typography = aiSettings.typography || 'Inter'
   const bannerUrl = aiSettings.bannerUrl || ''
-  const bannerTitle = aiSettings.bannerTitle || 'El mejor café, directo a tu puerta'
+  const bannerTitle = aiSettings.bannerTitle || 'El mejor cafÃƒÂ©, directo a tu puerta'
   const bannerSubtitle = aiSettings.bannerSubtitle || 'Descubre nuestros productos de especialidad cultivados con amor y tostados frescos.'
   
   // Announcement Bar config
@@ -336,10 +336,10 @@ export default function WhatsAppCatalog({
   // Benefits config
   const benefits: any = aiSettings.benefits || {
     items: [
-      { icon: 'Truck', label: 'Envíos rápidos', desc: 'A todo el país' },
-      { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'Múltiples métodos' },
-      { icon: 'Award', label: 'Café de calidad', desc: 'Granos seleccionados' },
-      { icon: 'Clock', label: 'Atención 24/7', desc: 'Siempre disponibles' }
+      { icon: 'Truck', label: 'EnvÃƒÂ­os rÃƒÂ¡pidos', desc: 'A todo el paÃƒÂ­s' },
+      { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'MÃƒÂºltiples mÃƒÂ©todos' },
+      { icon: 'Award', label: 'CafÃƒÂ© de calidad', desc: 'Granos seleccionados' },
+      { icon: 'Clock', label: 'AtenciÃƒÂ³n 24/7', desc: 'Siempre disponibles' }
     ]
   }
 
@@ -359,7 +359,7 @@ export default function WhatsAppCatalog({
 
   const ingredientsSection = aiSettings.ingredientsSection || {
     title: 'Nuestros Ingredientes Premium',
-    leftTitle: 'Dátiles de Faraón',
+    leftTitle: 'DÃƒÂ¡tiles de FaraÃƒÂ³n',
     leftDesc: 'Dulces, carnosos, naturales y recolectados en su punto de madurez.',
     centerImageUrl: 'https://www.chocodate.com/assets/img/central-product.png',
     rightTitle: 'Chocolate Belga Puro',
@@ -375,24 +375,24 @@ export default function WhatsAppCatalog({
   const bentoHighlights: any = aiSettings.bentoHighlights || {
     title: 'Nuestros Ingredientes Premium',
     items: [
-      { emoji: '🌴', title: 'Dátiles de Faraón', desc: 'Dulces, carnosos y naturales' },
-      { emoji: '🥜', title: 'Almendras Tostadas', desc: 'Crujientes y seleccionadas a mano' },
-      { emoji: '🍫', title: 'Chocolate Belga', desc: 'Cobertura suave de cacao puro' }
+      { emoji: 'Ã°Å¸Å’Â´', title: 'DÃƒÂ¡tiles de FaraÃƒÂ³n', desc: 'Dulces, carnosos y naturales' },
+      { emoji: 'Ã°Å¸Â¥Å“', title: 'Almendras Tostadas', desc: 'Crujientes y seleccionadas a mano' },
+      { emoji: 'Ã°Å¸ÂÂ«', title: 'Chocolate Belga', desc: 'Cobertura suave de cacao puro' }
     ]
   }
 
   // Accordion Specs config
   const accordionSpecs: Array<{ title: string; content: string }> = aiSettings.accordionSpecs?.tabs || [
-    { title: 'Ficha Nutricional', content: 'Calorías: 140 kcal | Grasas: 4g | Carbohidratos: 22g | Proteínas: 2g por porción.' },
-    { title: 'Método de Envío', content: 'Empacado con tecnología térmica para conservar el chocolate fresco hasta tu puerta.' }
+    { title: 'Ficha Nutricional', content: 'CalorÃƒÂ­as: 140 kcal | Grasas: 4g | Carbohidratos: 22g | ProteÃƒÂ­nas: 2g por porciÃƒÂ³n.' },
+    { title: 'MÃƒÂ©todo de EnvÃƒÂ­o', content: 'Empacado con tecnologÃƒÂ­a tÃƒÂ©rmica para conservar el chocolate fresco hasta tu puerta.' }
   ]
 
   // Brand Story config
   const brandStory = aiSettings.brandStory || {
     title: 'Nuestra Historia de Sabor',
-    desc: 'Fundada con la visión de combinar frutos del desierto y chocolate fino, creamos una experiencia única de confitería artesanal.',
+    desc: 'Fundada con la visiÃƒÂ³n de combinar frutos del desierto y chocolate fino, creamos una experiencia ÃƒÂºnica de confiterÃƒÂ­a artesanal.',
     bgUrl: 'https://images.unsplash.com/photo-1549007994-cb92ca71450a?q=80&w=800&auto=format&fit=crop',
-    btnText: 'Saber más',
+    btnText: 'Saber mÃƒÂ¡s',
     btnLink: ''
   }
 
@@ -400,47 +400,47 @@ export default function WhatsAppCatalog({
   const brandStoryPage = aiSettings.brandStoryPage || {
     headerTrayectoria: 'Nuestra Trayectoria',
     headerPerfil: 'Perfil de la Empresa',
-    narrativeP1: 'Fundada en 1992 por el visionario Fawaz Masri, Chocodate nació en el corazón de los Emiratos Árabes Unidos con una misión singular: elevar la humilde y nutritiva fruta del dátil de Arabia a una experiencia de confitería de clase mundial.',
-    narrativeP2: 'Al combinar el dulzor natural y la riqueza en fibra de los mejores dátiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prémium, creamos una golosina única que trasciende fronteras. Hoy en día, nuestros productos se disfrutan en más de 50 países alrededor del mundo.',
+    narrativeP1: 'Fundada en 1992 por el visionario Fawaz Masri, Chocodate naciÃƒÂ³ en el corazÃƒÂ³n de los Emiratos ÃƒÂrabes Unidos con una misiÃƒÂ³n singular: elevar la humilde y nutritiva fruta del dÃƒÂ¡til de Arabia a una experiencia de confiterÃƒÂ­a de clase mundial.',
+    narrativeP2: 'Al combinar el dulzor natural y la riqueza en fibra de los mejores dÃƒÂ¡tiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prÃƒÂ©mium, creamos una golosina ÃƒÂºnica que trasciende fronteras. Hoy en dÃƒÂ­a, nuestros productos se disfrutan en mÃƒÂ¡s de 50 paÃƒÂ­ses alrededor del mundo.',
     imageHeritage: 'https://images.unsplash.com/photo-1606312440799-b4f0c4013a21?q=80&w=800&auto=format&fit=crop',
     pillarsTitle: 'Nuestras Dos Grandes Columnas',
-    pillar1Icon: '🏭',
-    pillar1Title: 'Fábrica La Ronda (Dubái, EAU)',
-    pillar1Desc: 'Nuestra planta principal con tecnología de punta dedicada exclusivamente al procesamiento de dátiles frescos, tostado de almendras y la formulación del chocolate belga. Cumple con las más estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).',
-    pillar2Icon: '🌴',
+    pillar1Icon: 'Ã°Å¸ÂÂ­',
+    pillar1Title: 'FÃƒÂ¡brica La Ronda (DubÃƒÂ¡i, EAU)',
+    pillar1Desc: 'Nuestra planta principal con tecnologÃƒÂ­a de punta dedicada exclusivamente al procesamiento de dÃƒÂ¡tiles frescos, tostado de almendras y la formulaciÃƒÂ³n del chocolate belga. Cumple con las mÃƒÂ¡s estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).',
+    pillar2Icon: 'Ã°Å¸Å’Â´',
     pillar2Title: 'Star Foods (KSA)',
-    pillar2Desc: 'Nuestra sucursal agrícola y de procesamiento ubicada en Arabia Saudita, encargada de la recolección y selección de los dátiles en su momento justo de maduración, garantizando una cadena de suministro sostenible y local.',
+    pillar2Desc: 'Nuestra sucursal agrÃƒÂ­cola y de procesamiento ubicada en Arabia Saudita, encargada de la recolecciÃƒÂ³n y selecciÃƒÂ³n de los dÃƒÂ¡tiles en su momento justo de maduraciÃƒÂ³n, garantizando una cadena de suministro sostenible y local.',
     leadership: [
-      { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: '👨‍💼' },
-      { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: '👩‍💼' },
-      { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: '👨‍💻' },
-      { name: 'Hazem Al-Masri', role: 'Gerente General', icon: '👨‍🔧' }
+      { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: 'Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸â€™Â¼' },
+      { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: 'Ã°Å¸â€˜Â©Ã¢â‚¬ÂÃ°Å¸â€™Â¼' },
+      { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: 'Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸â€™Â»' },
+      { name: 'Hazem Al-Masri', role: 'Gerente General', icon: 'Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸â€Â§' }
     ],
     values: [
-      { title: 'Razón & Pasión', desc: 'Equilibramos la toma de decisiones basada en datos científicos con la pasión por la repostería fina.' },
-      { title: 'Tradición & Modernidad', desc: 'Respetamos el legado histórico del dátil del desierto mientras aplicamos tecnología de punta en empaque y producción.' },
+      { title: 'RazÃƒÂ³n & PasiÃƒÂ³n', desc: 'Equilibramos la toma de decisiones basada en datos cientÃƒÂ­ficos con la pasiÃƒÂ³n por la reposterÃƒÂ­a fina.' },
+      { title: 'TradiciÃƒÂ³n & Modernidad', desc: 'Respetamos el legado histÃƒÂ³rico del dÃƒÂ¡til del desierto mientras aplicamos tecnologÃƒÂ­a de punta en empaque y producciÃƒÂ³n.' },
       { title: 'Familia & Comunidad', desc: 'Operamos como una empresa familiar que apoya a los agricultores locales y cuida de sus empleados.' }
     ]
   }
 
-  // Categorías Visuales config
+  // CategorÃƒÂ­as Visuales config
   const visualCategories: Array<{ category: string; imageUrl: string }> = aiSettings.visualCategories || [
-    { category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
+    { category: 'CafÃƒÂ©', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
     { category: 'Accesorios', imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300&auto=format&fit=crop' },
     { category: 'Combos', imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=300&auto=format&fit=crop' }
   ]
 
   // Proceso Timeline config
   const processTimeline: any = aiSettings.processTimeline || {
-    title: '¿Cómo Comprar en FlashCheckout?',
+    title: 'Ã‚Â¿CÃƒÂ³mo Comprar en Flashcheckouts?',
     items: [
-      { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catálogo y agrégalos al carrito.' },
-      { step: '2', title: 'Datos de Envío', desc: 'Ingresa tu dirección de entrega y ubícate en el mapa interactivo.' },
+      { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catÃƒÂ¡logo y agrÃƒÂ©galos al carrito.' },
+      { step: '2', title: 'Datos de EnvÃƒÂ­o', desc: 'Ingresa tu direcciÃƒÂ³n de entrega y ubÃƒÂ­cate en el mapa interactivo.' },
       { step: '3', title: 'Completa en WhatsApp', desc: 'Finaliza el pedido enviando el mensaje estructurado de WhatsApp al vendedor.' }
     ]
   }
 
-  // Galería de fotos reales de estilo de vida (Lifestyle)
+  // GalerÃƒÂ­a de fotos reales de estilo de vida (Lifestyle)
   const lifestyleGallery = aiSettings.lifestyleGallery || [
     'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=400&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?q=80&w=400&auto=format&fit=crop',
@@ -450,15 +450,15 @@ export default function WhatsAppCatalog({
 
   // Newsletter Widget Premium config
   const newsletterWidget = aiSettings.newsletterWidget || {
-    title: 'Únete a Nuestro Club Gourmet',
-    subtitle: 'Entérate antes que nadie de nuestros lanzamientos, descuentos exclusivos y recetas especiales.',
-    placeholder: 'Ingresa tu correo electrónico',
+    title: 'ÃƒÅ¡nete a Nuestro Club Gourmet',
+    subtitle: 'EntÃƒÂ©rate antes que nadie de nuestros lanzamientos, descuentos exclusivos y recetas especiales.',
+    placeholder: 'Ingresa tu correo electrÃƒÂ³nico',
     btnText: 'Suscribirme',
     bgColor: '#111827',
     textColor: '#FFFFFF'
   }
 
-  // Menú de navegación superior (Navbar links)
+  // MenÃƒÂº de navegaciÃƒÂ³n superior (Navbar links)
   const navbarLinks: NavLink[] = aiSettings.navbarLinks || [
     { label: 'Inicio', action: 'scroll-banner', link: '' },
     { label: 'Productos', action: 'scroll-products', link: '' },
@@ -483,7 +483,7 @@ export default function WhatsAppCatalog({
     } else if (item.action === 'scroll-story') {
       setActiveNavTab('Historia')
     } else if (item.action === 'whatsapp') {
-      window.open(`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Hola! Me gustaría hacer una consulta.`, '_blank')
+      window.open(`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Hola! Me gustarÃƒÂ­a hacer una consulta.`, '_blank')
     } else if (item.action === 'link' && item.link) {
       window.open(item.link, '_blank')
     } else {
@@ -570,7 +570,7 @@ export default function WhatsAppCatalog({
   const [payError, setPayError] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Sincronizar carrito con la base de datos automáticamente
+  // Sincronizar carrito con la base de datos automÃƒÂ¡ticamente
   useEffect(() => {
     if (!initialPhone || !hasChanged) return
     const timer = setTimeout(async () => {
@@ -591,7 +591,7 @@ export default function WhatsAppCatalog({
     return () => clearTimeout(timer)
   }, [cart, initialPhone, store.id, hasChanged])
 
-  // Manejar el botón de regresar del navegador
+  // Manejar el botÃƒÂ³n de regresar del navegador
   useEffect(() => {
     window.history.pushState({ page: 'catalog' }, '')
 
@@ -628,10 +628,10 @@ export default function WhatsAppCatalog({
     }
   }).filter(Boolean) as (Product & { cartKey: string, qty: number, variations: Record<string, string> })[]
 
-  // Categorías
+  // CategorÃƒÂ­as
   const categories = ['Todos', ...Array.from(new Set(store.products.map(p => p.category || 'Varios')))]
 
-  // Conteo dinámico de productos por categoría
+  // Conteo dinÃƒÂ¡mico de productos por categorÃƒÂ­a
   const categoryCounts = store.products.reduce((acc, p) => {
     const cat = p.category || 'Varios'
     acc[cat] = (acc[cat] || 0) + 1
@@ -673,7 +673,7 @@ export default function WhatsAppCatalog({
       return false
     }
     if (!form.address.trim()) {
-      toast.error("La dirección de entrega es obligatoria")
+      toast.error("La direcciÃƒÂ³n de entrega es obligatoria")
       return false
     }
     if (!form.city.trim()) {
@@ -711,7 +711,7 @@ export default function WhatsAppCatalog({
       const data = await res.json()
       if (res.ok) {
         setIsSuccess(true)
-        toast.success("¡Pedido enviado!")
+        toast.success("Ã‚Â¡Pedido enviado!")
         if (data.whatsappUrl) {
           window.open(data.whatsappUrl, '_blank')
         }
@@ -720,7 +720,7 @@ export default function WhatsAppCatalog({
         setPayError(data.error)
       }
     } catch {
-      toast.error('Error de conexión con el bot')
+      toast.error('Error de conexiÃƒÂ³n con el bot')
       setPayError('Error de red')
     } finally {
       setLoadingAction(null)
@@ -761,7 +761,7 @@ export default function WhatsAppCatalog({
       }
     } catch {
       toast.error('Error al conectar con la pasarela de pagos')
-      setPayError('Error de conexión')
+      setPayError('Error de conexiÃƒÂ³n')
     } finally {
       setLoadingAction(null)
     }
@@ -771,7 +771,7 @@ export default function WhatsAppCatalog({
     switch (cat.toLowerCase()) {
       case 'todos': return Sprout
       case 'moda': return Shirt
-      case 'tecnología':
+      case 'tecnologÃƒÂ­a':
       case 'tecnologia': return Smartphone
       case 'hogar': return Home
       case 'belleza': return Sparkles
@@ -807,9 +807,9 @@ export default function WhatsAppCatalog({
             <MessageCircle className="w-8 h-8 text-white animate-pulse" />
           </div>
         </div>
-        <h1 className="text-3xl font-black text-zinc-900 mb-4 tracking-tight">¡Pedido Recibido!</h1>
+        <h1 className="text-3xl font-black text-zinc-900 mb-4 tracking-tight">Ã‚Â¡Pedido Recibido!</h1>
         <p className="text-zinc-500 mb-10 leading-relaxed text-lg">
-          Hemos enviado un mensaje de confirmación a tu WhatsApp. <br/>
+          Hemos enviado un mensaje de confirmaciÃƒÂ³n a tu WhatsApp. <br/>
           <span className="font-bold text-zinc-800">Cierra esta ventana y vuelve al chat</span> para continuar.
         </p>
         <a 
@@ -870,7 +870,7 @@ export default function WhatsAppCatalog({
       `}} />
       
       {/* ========================================================================= */}
-      {/* 🖥️ VISTA DESKTOP (PANTALLAS GRANDES - lg:flex) */}
+      {/* Ã°Å¸â€“Â¥Ã¯Â¸Â VISTA DESKTOP (PANTALLAS GRANDES - lg:flex) */}
       {/* ========================================================================= */}
       <div className={cn("flex flex-col min-h-screen w-full", showMobile ? "hidden" : "flex")}>
         
@@ -884,7 +884,7 @@ export default function WhatsAppCatalog({
           </div>
         )}
 
-        {/* Cabecera Premium Rediseñada */}
+        {/* Cabecera Premium RediseÃƒÂ±ada */}
         <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-[76px] shadow-none select-none shrink-0 w-full">
           <div className="max-w-[1300px] mx-auto w-full h-full px-6 flex items-center justify-between gap-6">
             
@@ -895,7 +895,7 @@ export default function WhatsAppCatalog({
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[10px] text-emerald-600">
-                    ☕
+                    Ã¢Ëœâ€¢
                   </div>
                   <span className="font-black text-sm text-zinc-955 uppercase tracking-tight">{formattedStoreName}</span>
                 </div>
@@ -918,7 +918,7 @@ export default function WhatsAppCatalog({
               )}
             </div>
 
-            {/* Enlaces de Navegación del Rediseño */}
+            {/* Enlaces de NavegaciÃƒÂ³n del RediseÃƒÂ±o */}
             <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-zinc-500">
               {navbarLinks.map((item, idx: number) => {
                 const isActive = activeNavTab === item.label;
@@ -1005,7 +1005,7 @@ export default function WhatsAppCatalog({
                 />
               </div>
 
-              {/* Botón Carrito */}
+              {/* BotÃƒÂ³n Carrito */}
               <button 
                 onClick={() => setIsCartOpen(true)}
                 className="flex items-center gap-2.5 h-9.5 px-3 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg transition-all active:scale-95 shrink-0 relative border-0 cursor-pointer"
@@ -1132,7 +1132,7 @@ export default function WhatsAppCatalog({
           </div>
         )}
 
-        {/* Categorías Visuales (Desktop) */}
+        {/* CategorÃƒÂ­as Visuales (Desktop) */}
         {activeNavTab === 'Inicio' && !selectedProduct && sections.visualCategories && visualCategories?.length > 0 && (
           <div className="max-w-[1300px] mx-auto w-full px-6 pt-6 pb-2 shrink-0 select-none">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1166,7 +1166,7 @@ export default function WhatsAppCatalog({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {bentoHighlights.items.map((item: any, idx: number) => (
                 <div key={idx} className="bg-white border border-zinc-150 rounded-2xl p-5 text-left flex flex-col justify-between hover:border-zinc-300 transition-all select-none">
-                  <div className="text-3xl mb-3">{item.emoji || '✨'}</div>
+                  <div className="text-3xl mb-3">{item.emoji || 'Ã¢Å“Â¨'}</div>
                   <div>
                     <h4 className="font-extrabold text-sm text-zinc-900 leading-snug">{item.title}</h4>
                     <p className="text-xs font-semibold text-zinc-500 mt-2 leading-relaxed">{item.desc}</p>
@@ -1237,7 +1237,7 @@ export default function WhatsAppCatalog({
                     )}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
-                    <span>Cuadrícula</span>
+                    <span>CuadrÃƒÂ­cula</span>
                   </button>
                   <button
                     type="button"
@@ -1281,7 +1281,7 @@ export default function WhatsAppCatalog({
                           className={cn("relative rounded-xl overflow-hidden bg-zinc-50 shrink-0 cursor-pointer border border-zinc-100", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-20 h-20")}
                           onClick={() => setSelectedProduct(product)}
                         >
-                          {/* Categoría Badge Overlay */}
+                          {/* CategorÃƒÂ­a Badge Overlay */}
                           <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-1 bg-[#EEF2F0] rounded-md text-[9px] font-bold text-emerald-700 uppercase tracking-wide select-none">
                             {product.category || 'General'}
                           </span>
@@ -1339,7 +1339,7 @@ export default function WhatsAppCatalog({
         </main>
       )}
 
-          {/* Secciones Adicionales de la Página de Inicio (Desktop) */}
+          {/* Secciones Adicionales de la PÃƒÂ¡gina de Inicio (Desktop) */}
           {activeNavTab === 'Inicio' && !selectedProduct && (
             <div className="max-w-[1300px] mx-auto w-full px-6 pb-20">
               {/* Accordion Specs (Desktop) */}
@@ -1442,7 +1442,7 @@ export default function WhatsAppCatalog({
                     <form 
                       onSubmit={(e) => {
                         e.preventDefault()
-                        toast.success("¡Te has unido al club correctamente! 🎁 Recibirás noticias pronto.")
+                        toast.success("Ã‚Â¡Te has unido al club correctamente! Ã°Å¸Å½Â RecibirÃƒÂ¡s noticias pronto.")
                       }}
                       className="flex gap-2 max-w-md w-full pt-1"
                     >
@@ -1563,12 +1563,12 @@ export default function WhatsAppCatalog({
               <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-2xl p-5 space-y-6 text-left select-none sticky top-24">
                 <div className="space-y-1 pb-3 border-b border-zinc-100">
                   <h3 className="text-sm font-black text-zinc-900 leading-none">Filtrar Productos</h3>
-                  <p className="text-[10px] text-zinc-400 font-bold">Refina tu búsqueda gourmet</p>
+                  <p className="text-[10px] text-zinc-400 font-bold">Refina tu bÃƒÂºsqueda gourmet</p>
                 </div>
 
                 {/* Categories checklist */}
                 <div className="space-y-3">
-                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categorías</h4>
+                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">CategorÃƒÂ­as</h4>
                   <div className="space-y-1.5">
                     {categories.map(cat => {
                       const isActive = selectedCategory === cat;
@@ -1637,7 +1637,7 @@ export default function WhatsAppCatalog({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-150">
                   <div className="text-left">
                     <h2 className="text-lg font-black text-zinc-900 tracking-tight">
-                      Catálogo Gourmet / {selectedCategory === 'Todos' ? 'Todos los productos' : selectedCategory}
+                      CatÃƒÂ¡logo Gourmet / {selectedCategory === 'Todos' ? 'Todos los productos' : selectedCategory}
                     </h2>
                     <p className="text-xs text-zinc-500 font-medium">
                       {filteredProducts.length} {filteredProducts.length === 1 ? 'producto encontrado' : 'productos encontrados'}
@@ -1654,7 +1654,7 @@ export default function WhatsAppCatalog({
                       )}
                     >
                       <LayoutGrid className="w-3.5 h-3.5" />
-                      <span>Cuadrícula</span>
+                      <span>CuadrÃƒÂ­cula</span>
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
@@ -1769,7 +1769,7 @@ export default function WhatsAppCatalog({
                 className="inline-flex items-center gap-1 hover:text-zinc-900 transition-colors border-none bg-transparent cursor-pointer font-bold"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Volver al Catálogo</span>
+                <span>Volver al CatÃƒÂ¡logo</span>
               </button>
               <span>/</span>
               <span className="text-zinc-400 truncate max-w-[200px]">{selectedProduct.name}</span>
@@ -1813,7 +1813,7 @@ export default function WhatsAppCatalog({
               {/* RIGHT COLUMN: Product Metadata & Actions */}
               <div className="bg-white border border-zinc-200 rounded-3xl p-6 space-y-6 text-left select-none">
                 <div className="space-y-1.5 pb-4 border-b border-zinc-100">
-                  <span className="text-[10px] font-black text-zinc-400 tracking-wider uppercase block">{selectedProduct.category || 'Gourmet Series'} • SKU: {productSku}</span>
+                  <span className="text-[10px] font-black text-zinc-400 tracking-wider uppercase block">{selectedProduct.category || 'Gourmet Series'} Ã¢â‚¬Â¢ SKU: {productSku}</span>
                   <h3 className="text-xl font-black text-zinc-900 tracking-tight leading-snug">{selectedProduct.name}</h3>
                   <div className="flex items-center gap-1.5 pt-0.5">
                     <div className="flex items-center text-amber-400">
@@ -1871,19 +1871,19 @@ export default function WhatsAppCatalog({
                 {/* Benefits */}
                 <div className="grid grid-cols-2 gap-3.5 pt-1">
                   <div className="p-3 bg-zinc-50 border border-zinc-200/80 rounded-2xl space-y-1 text-left">
-                    <div className="flex items-center gap-1.5 text-zinc-700"><Truck className="w-3.5 h-3.5 text-[#C5A880]" /><span className="text-[10px] font-bold uppercase tracking-wider">Envío Seguro</span></div>
-                    <p className="text-[9px] font-bold text-zinc-400 leading-normal">Cajas protegidas térmicamente. Envío en 24h-48h.</p>
+                    <div className="flex items-center gap-1.5 text-zinc-700"><Truck className="w-3.5 h-3.5 text-[#C5A880]" /><span className="text-[10px] font-bold uppercase tracking-wider">EnvÃƒÂ­o Seguro</span></div>
+                    <p className="text-[9px] font-bold text-zinc-400 leading-normal">Cajas protegidas tÃƒÂ©rmicamente. EnvÃƒÂ­o en 24h-48h.</p>
                   </div>
                   <div className="p-3 bg-zinc-50 border border-zinc-200/80 rounded-2xl space-y-1 text-left">
                     <div className="flex items-center gap-1.5 text-zinc-700"><ShieldCheck className="w-3.5 h-3.5 text-[#C5A880]" /><span className="text-[10px] font-bold uppercase tracking-wider">Calidad Premium</span></div>
-                    <p className="text-[9px] font-bold text-zinc-400 leading-normal">Garantía total del chocolate y frescura del dátil.</p>
+                    <p className="text-[9px] font-bold text-zinc-400 leading-normal">GarantÃƒÂ­a total del chocolate y frescura del dÃƒÂ¡til.</p>
                   </div>
                 </div>
 
                 {/* Description */}
                 <div className="space-y-1.5 pt-2 text-left">
-                  <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Descripción del Producto</h4>
-                  <p className="text-zinc-600 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Deliciosos dátiles gourmet rellenos y bañados en chocolate belga.'}</p>
+                  <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">DescripciÃƒÂ³n del Producto</h4>
+                  <p className="text-zinc-600 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Deliciosos dÃƒÂ¡tiles gourmet rellenos y baÃƒÂ±ados en chocolate belga.'}</p>
                 </div>
 
                 {/* Checkout actions */}
@@ -1947,11 +1947,11 @@ export default function WhatsAppCatalog({
             <div className="space-y-4">
               <span className="font-black text-lg tracking-wider text-white uppercase">{formattedStoreName}</span>
               <p className="text-xs text-zinc-300 leading-relaxed font-semibold">
-                Desde 1992, ofreciendo el equilibrio perfecto de sabores mediante la fusión gourmet del dátil de Arabia y el auténtico chocolate belga.
+                Desde 1992, ofreciendo el equilibrio perfecto de sabores mediante la fusiÃƒÂ³n gourmet del dÃƒÂ¡til de Arabia y el autÃƒÂ©ntico chocolate belga.
               </p>
             </div>
             <div className="space-y-3">
-              <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">Enlaces Rápidos</h4>
+              <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">Enlaces RÃƒÂ¡pidos</h4>
               <div className="flex flex-col gap-2 text-xs font-semibold text-zinc-300">
                 <span onClick={() => { setSelectedProduct(null); setActiveNavTab('Inicio'); }} className="hover:text-white cursor-pointer transition-colors">Inicio</span>
                 <span onClick={() => { setSelectedProduct(null); setActiveNavTab('Productos'); }} className="hover:text-white cursor-pointer transition-colors">Productos</span>
@@ -1961,11 +1961,11 @@ export default function WhatsAppCatalog({
             <div className="space-y-3">
               <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">Certificaciones</h4>
               <p className="text-xs text-zinc-300 font-semibold leading-relaxed">
-                ISO 22000 • HACCP • Certificación Halal. Máximos estándares de calidad internacional.
+                ISO 22000 Ã¢â‚¬Â¢ HACCP Ã¢â‚¬Â¢ CertificaciÃƒÂ³n Halal. MÃƒÂ¡ximos estÃƒÂ¡ndares de calidad internacional.
               </p>
             </div>
             <div className="space-y-4">
-              <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">Métodos de Pago</h4>
+              <h4 className="font-extrabold text-xs text-white uppercase tracking-wider">MÃƒÂ©todos de Pago</h4>
               <div className="flex gap-2.5 flex-wrap items-center">
                 <div className="bg-white px-2.5 py-1 rounded flex items-center justify-center h-7 shadow-sm">
                   <SiVisa className="h-4.5 w-auto text-[#1A1F71]" style={{ minWidth: '28px' }} />
@@ -1981,7 +1981,7 @@ export default function WhatsAppCatalog({
               
               {socialsShowInCatalog && (
                 <div className="space-y-2 pt-2">
-                  <h4 className="font-extrabold text-[10px] text-white/50 uppercase tracking-wider">Síguenos</h4>
+                  <h4 className="font-extrabold text-[10px] text-white/50 uppercase tracking-wider">SÃƒÂ­guenos</h4>
                   <div className="flex gap-2.5">
                     {aiSettings.socials?.instagram && (
                       <a href={aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Instagram">
@@ -2007,14 +2007,14 @@ export default function WhatsAppCatalog({
                 </div>
               )}
 
-              <p className="text-[10px] text-zinc-400 font-bold">© {new Date().getFullYear()} {formattedStoreName}. Todos los derechos reservados.</p>
+              <p className="text-[10px] text-zinc-400 font-bold">Ã‚Â© {new Date().getFullYear()} {formattedStoreName}. Todos los derechos reservados.</p>
             </div>
           </div>
         </footer>
       </div>
 
       {/* ========================================================================= */}
-      {/* 📱 VISTA MÓVIL (PANTALLAS CELULAR/TABLET - lg:hidden) */}
+      {/* Ã°Å¸â€œÂ± VISTA MÃƒâ€œVIL (PANTALLAS CELULAR/TABLET - lg:hidden) */}
       {/* ========================================================================= */}
       <div className={cn("flex flex-col min-h-screen pb-20 w-full", showMobile ? "flex" : "hidden")}>
         
@@ -2028,7 +2028,7 @@ export default function WhatsAppCatalog({
           </div>
         )}
 
-        {/* Cabecera Móvil */}
+        {/* Cabecera MÃƒÂ³vil */}
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-16 flex items-center justify-between px-4 shadow-none">
           <div className="flex items-center gap-2.5">
             <button onClick={() => setIsMobileMenuOpen(true)} className="text-zinc-650 hover:text-zinc-900 cursor-pointer">
@@ -2050,7 +2050,7 @@ export default function WhatsAppCatalog({
               ) : (
                 <div className="flex items-center gap-1.5">
                   <div className="w-5.5 h-5.5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[9px] text-emerald-600">
-                    ☕
+                    Ã¢Ëœâ€¢
                   </div>
                   <span className="font-black text-xs text-zinc-950 uppercase tracking-tight">{formattedStoreName}</span>
 
@@ -2079,7 +2079,7 @@ export default function WhatsAppCatalog({
           </button>
         </header>
 
-        {/* Cuerpo del Catálogo Móvil */}
+        {/* Cuerpo del CatÃƒÂ¡logo MÃƒÂ³vil */}
         <main className="flex-1 px-4 py-4 space-y-6">
 
           {/* Banner principal (Mobile) */}
@@ -2166,10 +2166,10 @@ export default function WhatsAppCatalog({
             </div>
           )}
 
-          {/* Categorías Visuales (Mobile) */}
+          {/* CategorÃƒÂ­as Visuales (Mobile) */}
           {(activeNavTab === 'Inicio' || activeNavTab === 'Productos') && sections.visualCategories && visualCategories?.length > 0 && (
             <div className="space-y-2.5 shrink-0 text-left">
-              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Categorías</h3>
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">CategorÃƒÂ­as</h3>
               <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap">
                 {visualCategories.map((catItem, idx: number) => (
                   <div 
@@ -2201,7 +2201,7 @@ export default function WhatsAppCatalog({
               <div className="grid grid-cols-1 gap-2.5">
                 {bentoHighlights.items.map((item: any, idx: number) => (
                   <div key={idx} className="bg-white border border-zinc-150 rounded-xl p-3 flex items-center gap-3 shadow-none">
-                    <span className="text-xl shrink-0 select-none">{item.emoji || '✨'}</span>
+                    <span className="text-xl shrink-0 select-none">{item.emoji || 'Ã¢Å“Â¨'}</span>
                     <div>
                       <h4 className="font-extrabold text-[11px] text-zinc-900 leading-none">{item.title}</h4>
                       <p className="text-[9px] font-semibold text-zinc-500 mt-1 leading-normal">{item.desc}</p>
@@ -2212,7 +2212,7 @@ export default function WhatsAppCatalog({
             </div>
           )}
           
-          {/* Barra de Búsqueda Móvil con botón Sliders */}
+          {/* Barra de BÃƒÂºsqueda MÃƒÂ³vil con botÃƒÂ³n Sliders */}
           {(activeNavTab === 'Inicio' || activeNavTab === 'Productos') && (
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -2232,7 +2232,7 @@ export default function WhatsAppCatalog({
             </div>
           )}
 
-          {/* Toggles Cuadrícula / Lista en Móvil */}
+          {/* Toggles CuadrÃƒÂ­cula / Lista en MÃƒÂ³vil */}
           {(activeNavTab === 'Inicio' || activeNavTab === 'Productos') && (
             <div className="flex items-center justify-center">
               <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl border border-zinc-200 w-full max-w-[280px]">
@@ -2245,7 +2245,7 @@ export default function WhatsAppCatalog({
                   )}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
-                  <span>Cuadrícula</span>
+                  <span>CuadrÃƒÂ­cula</span>
                 </button>
                 <button
                   type="button"
@@ -2262,7 +2262,7 @@ export default function WhatsAppCatalog({
             </div>
           )}
 
-          {/* Sección Más Productos (Cuadrícula vertical) */}
+          {/* SecciÃƒÂ³n MÃƒÂ¡s Productos (CuadrÃƒÂ­cula vertical) */}
           {(activeNavTab === 'Inicio' || activeNavTab === 'Productos') && (
             <div className="space-y-3.5 pb-12">
               <h3 className="text-sm font-black text-zinc-900 tracking-tight text-left">
@@ -2294,7 +2294,7 @@ export default function WhatsAppCatalog({
                           className={cn("relative rounded-xl overflow-hidden bg-zinc-50 shrink-0 cursor-pointer border border-zinc-100", viewMode === 'grid' ? "aspect-square w-full mb-3" : "w-16 h-16")}
                           onClick={() => setSelectedProduct(product)}
                         >
-                          {/* Categoría Badge Overlay */}
+                          {/* CategorÃƒÂ­a Badge Overlay */}
                           <span className="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 bg-[#EEF2F0] rounded-md text-[8px] font-bold text-emerald-700 uppercase tracking-wide select-none">
                             {product.category || 'General'}
                           </span>
@@ -2472,7 +2472,7 @@ export default function WhatsAppCatalog({
                 <form 
                   onSubmit={(e) => {
                     e.preventDefault()
-                    toast.success("¡Te has unido al club correctamente! 🎁 Recibirás noticias pronto.")
+                    toast.success("Ã‚Â¡Te has unido al club correctamente! Ã°Å¸Å½Â RecibirÃƒÂ¡s noticias pronto.")
                   }}
                   className="flex flex-col gap-2 w-full pt-1"
                 >
@@ -2598,7 +2598,7 @@ export default function WhatsAppCatalog({
                 )}
 
                 <p className="text-[10px] text-zinc-400 leading-relaxed font-semibold">
-                  © {new Date().getFullYear()} {formattedStoreName}. Todos los derechos reservados.
+                  Ã‚Â© {new Date().getFullYear()} {formattedStoreName}. Todos los derechos reservados.
                 </p>
                 <div className="flex gap-2 items-center">
                   <div className="bg-white px-2 py-0.5 rounded border border-zinc-200/80 flex items-center justify-center h-5.5 shadow-xs">
@@ -2618,7 +2618,7 @@ export default function WhatsAppCatalog({
 
         </main>
 
-        {/* 5. BOTTOM NAVIGATION BAR FOR MOBILE (Mockup Móvil) */}
+        {/* 5. BOTTOM NAVIGATION BAR FOR MOBILE (Mockup MÃƒÂ³vil) */}
         <div className={cn(
           (device === 'tablet' || device === 'movil') ? "absolute" : "fixed",
           "bottom-0 left-0 right-0 z-40 bg-white border-t border-zinc-150 h-16 flex items-center justify-around shadow-none px-4 select-none"
@@ -2636,7 +2636,7 @@ export default function WhatsAppCatalog({
             className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
           >
             <LayoutGrid className={cn("w-5 h-5 transition-colors", activeMobileTab === 'categorias' ? "text-emerald-600" : "text-zinc-400")} />
-            <span className={cn("text-[9px] font-bold transition-colors", activeMobileTab === 'categorias' ? "text-emerald-600 font-extrabold" : "text-zinc-400")}>Categorías</span>
+            <span className={cn("text-[9px] font-bold transition-colors", activeMobileTab === 'categorias' ? "text-emerald-600 font-extrabold" : "text-zinc-400")}>CategorÃƒÂ­as</span>
           </button>
           
           <button 
@@ -2692,7 +2692,7 @@ export default function WhatsAppCatalog({
             {/* Contenido Desplazable del Pedido */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* Progreso Envío Gratis (Chocodate Style) */}
+              {/* Progreso EnvÃƒÂ­o Gratis (Chocodate Style) */}
               {freeShipping.enabled && cartProducts.length > 0 && (() => {
                 const threshold = freeShipping.threshold || 100000
                 const difference = threshold - total
@@ -2701,12 +2701,12 @@ export default function WhatsAppCatalog({
                 return (
                   <div className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-3.5 space-y-2 text-left select-none animate-in fade-in duration-300">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">🚚</span>
+                      <span className="text-sm">Ã°Å¸Å¡Å¡</span>
                       <p className="text-[10px] font-bold text-zinc-700 leading-snug">
                         {isFree ? (
-                          <span className="text-emerald-700 font-black">¡Felicidades! Tienes envío gratis.</span>
+                          <span className="text-emerald-700 font-black">Ã‚Â¡Felicidades! Tienes envÃƒÂ­o gratis.</span>
                         ) : (
-                          <>Estás a <span className="font-extrabold text-emerald-600">${difference.toLocaleString('es-CO')}</span> de obtener envío gratis.</>
+                          <>EstÃƒÂ¡s a <span className="font-extrabold text-emerald-600">${difference.toLocaleString('es-CO')}</span> de obtener envÃƒÂ­o gratis.</>
                         )}
                       </p>
                     </div>
@@ -2725,7 +2725,7 @@ export default function WhatsAppCatalog({
                 {cartProducts.length === 0 ? (
                   <div className="text-center py-10 space-y-3">
                     <ShoppingBag className="w-12 h-12 text-zinc-300 mx-auto" />
-                    <p className="text-xs font-bold text-zinc-400">Tu carrito está vacío</p>
+                    <p className="text-xs font-bold text-zinc-400">Tu carrito estÃƒÂ¡ vacÃƒÂ­o</p>
                   </div>
                 ) : (
                   cartProducts.map(p => (
@@ -2742,7 +2742,7 @@ export default function WhatsAppCatalog({
                           <p className="font-bold text-xs text-zinc-900 truncate">{p.name}</p>
                           {Object.keys(p.variations).length > 0 && (
                             <p className="text-[10px] text-emerald-600 font-bold mt-0.5">
-                              {Object.entries(p.variations).map(([k, v]) => `${k}: ${v}`).join(' • ')}
+                              {Object.entries(p.variations).map(([k, v]) => `${k}: ${v}`).join(' Ã¢â‚¬Â¢ ')}
                             </p>
                           )}
                           <p className="text-[10px] text-zinc-400 mt-0.5 font-bold">${p.price.toLocaleString('es-CO')} x {p.qty}</p>
@@ -2765,7 +2765,7 @@ export default function WhatsAppCatalog({
                     <label className="text-[10px] font-bold text-zinc-400 tracking-wider">Datos de entrega</label>
                     
                     <input 
-                      placeholder="¿A nombre de quién?" 
+                      placeholder="Ã‚Â¿A nombre de quiÃƒÂ©n?" 
                       className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all" 
                       value={form.customerName}
                       onChange={e => {
@@ -2782,7 +2782,7 @@ export default function WhatsAppCatalog({
                         onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
                       />
                       <input 
-                        placeholder="Dirección" 
+                        placeholder="DirecciÃƒÂ³n" 
                         className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all" 
                         value={form.address}
                         onChange={e => {
@@ -2792,14 +2792,14 @@ export default function WhatsAppCatalog({
                       />
                     </div>
                     
-                    <p className="text-[10px] text-zinc-400 italic font-semibold">* También puedes ubicarte en el mapa interactivo:</p>
+                    <p className="text-[10px] text-zinc-400 italic font-semibold">* TambiÃƒÂ©n puedes ubicarte en el mapa interactivo:</p>
                   </div>
                   
                   {/* Mapa Interactivo */}
                   <div className="rounded-xl overflow-hidden border border-zinc-200 h-40 shadow-none">
                     <MapPicker 
                       onLocationSelectAction={(lat, lng, addr) => {
-                        setForm(f => ({ ...f, lat, lng, address: addr || f.address, city: f.city || 'Bogotá' }))
+                        setForm(f => ({ ...f, lat, lng, address: addr || f.address, city: f.city || 'BogotÃƒÂ¡' }))
                       }}
                     />
                   </div>
@@ -2849,7 +2849,7 @@ export default function WhatsAppCatalog({
       )}
 
       {/* ========================================================================= */}
-      {/* 3. SIMULATOR DRAWER PARA DETALLE EN MÓVILES (COMPARTIDO) */}
+      {/* 3. SIMULATOR DRAWER PARA DETALLE EN MÃƒâ€œVILES (COMPARTIDO) */}
       {/* ========================================================================= */}
       {selectedProduct && (
         <div className={cn("lg:hidden inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-300", !!device ? "absolute" : "fixed")}>
@@ -2860,7 +2860,7 @@ export default function WhatsAppCatalog({
             {/* Header */}
             <div className="p-5 pb-3 flex justify-between items-start border-b border-zinc-100">
               <div>
-                <p className="text-[9px] font-bold text-zinc-400 tracking-wider">{selectedProduct.category || 'General'} • SKU: {productSku}</p>
+                <p className="text-[9px] font-bold text-zinc-400 tracking-wider">{selectedProduct.category || 'General'} Ã¢â‚¬Â¢ SKU: {productSku}</p>
                 <h3 className="text-sm font-bold text-zinc-900 mt-0.5 leading-snug">{selectedProduct.name}</h3>
               </div>
               <button 
@@ -2918,8 +2918,8 @@ export default function WhatsAppCatalog({
 
                 <div className="text-[10px] font-bold text-emerald-600">Stock disponible: {selectedProduct.stock} unidades</div>
                 <div className="space-y-1.5 pt-2 border-t border-zinc-100">
-                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Descripción</h4>
-                  <p className="text-zinc-500 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Sin descripción disponible.'}</p>
+                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">DescripciÃƒÂ³n</h4>
+                  <p className="text-zinc-500 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Sin descripciÃƒÂ³n disponible.'}</p>
                 </div>
               </div>
             </div>
@@ -2951,7 +2951,7 @@ export default function WhatsAppCatalog({
       )}
 
 
-      {/* Drawer: Menú Lateral Móvil (Categorías & Enlaces) */}
+      {/* Drawer: MenÃƒÂº Lateral MÃƒÂ³vil (CategorÃƒÂ­as & Enlaces) */}
       {isMobileMenuOpen && (
         <div className={cn("inset-0 z-50 flex lg:hidden", !!device ? "absolute" : "fixed")}>
           {/* Backdrop */}
@@ -2984,7 +2984,7 @@ export default function WhatsAppCatalog({
             {/* Scrollable Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6 text-left">
               <div className="space-y-3">
-                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Categorías</h4>
+                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">CategorÃƒÂ­as</h4>
                 <div className="space-y-1">
                   {categories.map(cat => {
                     const Icon = getCategoryIcon(cat)
@@ -3022,7 +3022,7 @@ export default function WhatsAppCatalog({
 
               {/* Dynamic Navbar Links (Mobile menu) */}
               <div className="space-y-3 pt-4 border-t border-zinc-100">
-                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Navegación</h4>
+                <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">NavegaciÃƒÂ³n</h4>
                 <div className="space-y-1">
                   {navbarLinks.map((item, idx: number) => (
                     <button
@@ -3056,7 +3056,7 @@ export default function WhatsAppCatalog({
               {/* Schedule Info (Mobile menu) */}
               {schedule?.enabled && (
                 <div className="space-y-2 pt-4 border-t border-zinc-100 text-left">
-                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Horario de atención</h4>
+                  <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Horario de atenciÃƒÂ³n</h4>
                   <div className="px-3 py-1.5 bg-zinc-50 border border-zinc-150 rounded-lg text-zinc-700 text-[11px] font-semibold">
                     {schedule.alwaysOpen ? 'Abierto las 24 horas (Siempre abierto)' : schedule.text}
                   </div>
@@ -3096,7 +3096,7 @@ export default function WhatsAppCatalog({
         </div>
       )}
 
-      {/* Drawer: Filtros / Ordenación Bottom Sheet */}
+      {/* Drawer: Filtros / OrdenaciÃƒÂ³n Bottom Sheet */}
       {isFilterOpen && (
         <div className={cn("inset-0 z-50 flex items-end justify-center lg:hidden", !!device ? "absolute" : "fixed")}>
           {/* Backdrop */}

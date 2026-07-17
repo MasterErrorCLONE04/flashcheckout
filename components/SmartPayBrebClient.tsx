@@ -229,12 +229,12 @@ export default function SmartPayBrebClient({
 
             {isBrebEnabled && brebIntent && !isPaid && (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-950">
-                <div className="font-black mb-2">Cómo pagar por Bre-B</div>
+                <div className="font-black mb-2">CÃƒÂ³mo pagar por Bre-B</div>
                 <ol className="space-y-1 font-semibold list-decimal list-inside">
                   <li>Abre tu app bancaria o billetera favorita.</li>
                   <li>Escanea el QR o usa la llave de la tienda.</li>
                   <li>Verifica que el valor sea ${order.total.toLocaleString('es-CO')} COP.</li>
-                  <li>Sube la captura del comprobante exitoso aquí mismo.</li>
+                  <li>Sube la captura del comprobante exitoso aquÃƒÂ­ mismo.</li>
                 </ol>
               </div>
             )}
@@ -242,11 +242,11 @@ export default function SmartPayBrebClient({
 
           <div className="md:col-span-5 p-6 sm:p-8 bg-zinc-50/70 flex flex-col justify-center items-center text-center space-y-6">
             {isPaid ? (
-              <ResultState icon={<CheckCircle2 className="w-9 h-9" />} tone="success" title="Pedido confirmado" description="Tu pago quedó registrado. La tienda validará el despacho de tu orden." whatsapp={store.whatsapp} />
+              <ResultState icon={<CheckCircle2 className="w-9 h-9" />} tone="success" title="Pedido confirmado" description="Tu pago quedÃƒÂ³ registrado. La tienda validarÃƒÂ¡ el despacho de tu orden." whatsapp={store.whatsapp} />
             ) : isUnderReview ? (
-              <ResultState icon={<ShieldCheck className="w-9 h-9" />} tone="warning" title="Estamos revisando" description="Si el comprobante coincide, la orden se marcará como pagada automáticamente o quedará para revisión del vendedor." whatsapp={store.whatsapp} />
+              <ResultState icon={<ShieldCheck className="w-9 h-9" />} tone="warning" title="Estamos revisando" description="Si el comprobante coincide, la orden se marcarÃƒÂ¡ como pagada automÃƒÂ¡ticamente o quedarÃƒÂ¡ para revisiÃƒÂ³n del vendedor." whatsapp={store.whatsapp} />
             ) : isExpired ? (
-              <ResultState icon={<Clock className="w-8 h-8" />} tone="neutral" title="Tiempo expirado" description="Comunícate con el vendedor para renovar esta orden." whatsapp={store.whatsapp} />
+              <ResultState icon={<Clock className="w-8 h-8" />} tone="neutral" title="Tiempo expirado" description="ComunÃƒÂ­cate con el vendedor para renovar esta orden." whatsapp={store.whatsapp} />
             ) : isBrebEnabled && brebConfig ? (
               <BrebPaymentPanel
                 config={brebConfig}
@@ -277,7 +277,7 @@ export default function SmartPayBrebClient({
       </main>
 
       <footer className="text-center">
-        <span className="text-[10px] font-semibold text-zinc-400">Procesado de forma segura por FlashCheckout.</span>
+        <span className="text-[10px] font-semibold text-zinc-400">Procesado de forma segura por Flashcheckouts.</span>
       </footer>
     </div>
   )
@@ -294,7 +294,7 @@ function OrderStatusHeader({ isPaid, isUnderReview, isExpired }: { isPaid: boole
       ) : isUnderReview ? (
         <div className="flex items-center gap-2 text-amber-600">
           <ShieldCheck className="w-6 h-6" />
-          <h1 className="text-xl font-black tracking-tight text-zinc-950">Comprobante en revisión</h1>
+          <h1 className="text-xl font-black tracking-tight text-zinc-950">Comprobante en revisiÃƒÂ³n</h1>
         </div>
       ) : isExpired ? (
         <h1 className="text-xl font-black tracking-tight text-red-600">Pedido expirado</h1>
@@ -307,8 +307,8 @@ function OrderStatusHeader({ isPaid, isUnderReview, isExpired }: { isPaid: boole
           : isUnderReview
             ? 'Recibimos tu captura y la estamos validando para proteger a comprador y vendedor.'
             : isExpired
-              ? 'El tiempo límite terminó. Escríbele al vendedor para renovar la orden.'
-              : 'Revisa tu pedido y paga con el método disponible de la tienda.'}
+              ? 'El tiempo lÃƒÂ­mite terminÃƒÂ³. EscrÃƒÂ­bele al vendedor para renovar la orden.'
+              : 'Revisa tu pedido y paga con el mÃƒÂ©todo disponible de la tienda.'}
       </p>
     </div>
   )
@@ -354,7 +354,7 @@ function OrderTotal({ total, isPaid, isUnderReview, isRejected, isExpired }: { t
                 ? 'bg-red-50 text-red-600 border-red-200'
                 : 'bg-amber-50 text-amber-600 border-amber-200'
         )}>
-          {isPaid ? 'Pagado' : isUnderReview ? 'Revisión' : isRejected ? 'Rechazado' : isExpired ? 'Expirado' : 'Pendiente'}
+          {isPaid ? 'Pagado' : isUnderReview ? 'RevisiÃƒÂ³n' : isRejected ? 'Rechazado' : isExpired ? 'Expirado' : 'Pendiente'}
         </span>
       </div>
     </div>
@@ -420,7 +420,7 @@ function BrebPaymentPanel({
           <div className="w-full rounded-2xl border border-zinc-200 bg-white p-3 text-left">
             <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Destino</div>
             <div className="mt-1 text-sm font-black text-zinc-950">{config.merchantDisplayName || 'Tienda'}</div>
-            <div className="text-xs font-semibold text-zinc-500">{config.bankProvider || 'Bre-B'} · {config.participantId}</div>
+            <div className="text-xs font-semibold text-zinc-500">{config.bankProvider || 'Bre-B'} Ã‚Â· {config.participantId}</div>
           </div>
 
           <div className="w-full space-y-3">
@@ -498,12 +498,12 @@ function LegacyPaymentPanel({
 
         <button onClick={() => setShowQrOnMobile(!showQrOnMobile)} className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1">
           <QrCode className="w-4.5 h-4.5 shrink-0" />
-          <span>{showQrOnMobile ? 'Ocultar código QR' : 'Mostrar código QR'}</span>
+          <span>{showQrOnMobile ? 'Ocultar cÃƒÂ³digo QR' : 'Mostrar cÃƒÂ³digo QR'}</span>
         </button>
 
         {showQrOnMobile && (
           <div className="p-4 bg-white border border-zinc-200 rounded-xl inline-block mx-auto">
-            <img src={qrCodeUrl} alt="Código QR de pago" className="w-44 h-44 object-contain" />
+            <img src={qrCodeUrl} alt="CÃƒÂ³digo QR de pago" className="w-44 h-44 object-contain" />
             <span className="text-[9px] font-semibold text-zinc-400 block mt-2">Escanea para pagar desde otro dispositivo</span>
           </div>
         )}
@@ -511,13 +511,13 @@ function LegacyPaymentPanel({
 
       <div className="hidden md:flex flex-col items-center space-y-4">
         <div className="p-4 bg-white border border-zinc-200 rounded-xl">
-          <img src={qrCodeUrl} alt="Código QR de pago" className="w-48 h-48 object-contain" />
+          <img src={qrCodeUrl} alt="CÃƒÂ³digo QR de pago" className="w-48 h-48 object-contain" />
         </div>
 
         <div className="space-y-1">
           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Escanea el QR</span>
           <p className="text-xs text-zinc-500 font-semibold leading-normal max-w-[200px]">
-            Abre la cámara de tu celular o tu app bancaria para pagar.
+            Abre la cÃƒÂ¡mara de tu celular o tu app bancaria para pagar.
           </p>
         </div>
 

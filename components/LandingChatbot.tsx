@@ -26,36 +26,36 @@ interface Message {
 }
 
 const FAQS_PILLS = [
-  { text: '¿Cómo me ayuda FlashCheckout?' },
-  { text: '¿Qué integraciones ofrece?' },
-  { text: '¿Tienen un plan gratuito?' },
-  { text: '¿Cómo puedo probar la demo?' }
+  { text: 'Ã‚Â¿CÃƒÂ³mo me ayuda Flashcheckouts?' },
+  { text: 'Ã‚Â¿QuÃƒÂ© integraciones ofrece?' },
+  { text: 'Ã‚Â¿Tienen un plan gratuito?' },
+  { text: 'Ã‚Â¿CÃƒÂ³mo puedo probar la demo?' }
 ]
 
 const getBotResponse = (input: string): string => {
   const text = input.toLowerCase()
   
   if (text.includes('help') || text.includes('que es') || text.includes('how can') || text.includes('definicion') || (text.includes('flashcheckout') && !text.includes('precio') && !text.includes('gratis') && !text.includes('price') && !text.includes('free'))) {
-    return "👋 **FlashCheckout** is a conversational AI platform that automates your sales through WhatsApp.\n\nWe provide you with an optimized online catalog and an **AI Agent (Flashy)** that talks to your customers 24/7, answers stock questions, manages shopping carts, and sends direct secure checkout links to complete purchases automatically.";
+    return "Ã°Å¸â€˜â€¹ **Flashcheckouts** is a conversational AI platform that automates your sales through WhatsApp.\n\nWe provide you with an optimized online catalog and an **AI Agent (Flashy)** that talks to your customers 24/7, answers stock questions, manages shopping carts, and sends direct secure checkout links to complete purchases automatically.";
   }
   
   if (text.includes('integration') || text.includes('integraciones') || text.includes('stripe') || text.includes('mercadopago') || text.includes('whatsapp') || text.includes('connect')) {
-    return "🔌 **FlashCheckout offers native integrations with:**\n* **WhatsApp Business API & Evolution API** for conversational sales.\n* **Stripe & MercadoPago** for secure credit/debit card processing and local bank transfers.\n* Real-time stock synchronization with your digital catalog.";
+    return "Ã°Å¸â€Å’ **Flashcheckouts offers native integrations with:**\n* **WhatsApp Business API & Evolution API** for conversational sales.\n* **Stripe & MercadoPago** for secure credit/debit card processing and local bank transfers.\n* Real-time stock synchronization with your digital catalog.";
   }
   
   if (text.includes('free') || text.includes('gratis') || text.includes('pricing') || text.includes('precio') || text.includes('plan') || text.includes('planes') || text.includes('cost')) {
-    return "🎁 **Yes! We have a Free Plan (Free Terminal)** that allows you to sell up to 10 active products with our fast checkout.\n\nTo unlock **unlimited products**, your own custom **AI Agent for WhatsApp**, and automatic cart recovery campaigns, you can upgrade to the **Pro Plan** for just **$10/month** (or **$8/month** billed annually).";
+    return "Ã°Å¸Å½Â **Yes! We have a Free Plan (Free Terminal)** that allows you to sell up to 10 active products with our fast checkout.\n\nTo unlock **unlimited products**, your own custom **AI Agent for WhatsApp**, and automatic cart recovery campaigns, you can upgrade to the **Pro Plan** for just **$10/month** (or **$8/month** billed annually).";
   }
   
   if (text.includes('demo') || text.includes('book') || text.includes('probar') || text.includes('registro') || text.includes('cuenta') || text.includes('crear') || text.includes('comenzar') || text.includes('entrar') || text.includes('iniciar')) {
-    return "⚡ **Ready to experience it?** You don't need to book a long meeting. You can test FlashCheckout yourself completely free in less than 2 minutes!\n\n👉 [**Create your Free Store now**](/sign-up) and start testing the AI flow on your own WhatsApp.";
+    return "Ã¢Å¡Â¡ **Ready to experience it?** You don't need to book a long meeting. You can test Flashcheckouts yourself completely free in less than 2 minutes!\n\nÃ°Å¸â€˜â€° [**Create your Free Store now**](/sign-up) and start testing the AI flow on your own WhatsApp.";
   }
 
   if (text.includes('hola') || text.includes('hello') || text.includes('hi') || text.includes('hey') || text.includes('saludos')) {
-    return "👋 Hey! Welcome! Want to deploy a conversational AI agent for your store? Let me help you figure out if FlashCheckout is the right fit.";
+    return "Ã°Å¸â€˜â€¹ Hey! Welcome! Want to deploy a conversational AI agent for your store? Let me help you figure out if Flashcheckouts is the right fit.";
   }
   
-  return "💡 FlashCheckout helps e-commerce stores **increase sales and save time** by automating customer support and order generation via WhatsApp.\n\nAsk me about:\n* How it works or what it is.\n* Integrated payment gateways (Stripe/MercadoPago).\n* Free and Pro plan prices.\n* How to start testing it for free.";
+  return "Ã°Å¸â€™Â¡ Flashcheckouts helps e-commerce stores **increase sales and save time** by automating customer support and order generation via WhatsApp.\n\nAsk me about:\n* How it works or what it is.\n* Integrated payment gateways (Stripe/MercadoPago).\n* Free and Pro plan prices.\n* How to start testing it for free.";
 }
 
 const parseInlineMarkdown = (line: string) => {
@@ -129,13 +129,13 @@ export default function LandingChatbot() {
     {
       id: 'welcome-1',
       sender: 'bot',
-      text: '👋 ¡Hola! ¿Quieres activar un agente de inteligencia artificial en tu tienda?',
+      text: 'Ã°Å¸â€˜â€¹ Ã‚Â¡Hola! Ã‚Â¿Quieres activar un agente de inteligencia artificial en tu tienda?',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
     {
       id: 'welcome-2',
       sender: 'bot',
-      text: 'Déjame ayudarte a descubrir si FlashCheckout es la solución ideal para tu negocio.',
+      text: 'DÃƒÂ©jame ayudarte a descubrir si Flashcheckouts es la soluciÃƒÂ³n ideal para tu negocio.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ])
@@ -198,7 +198,7 @@ export default function LandingChatbot() {
       const botMsg: Message = {
         id: Math.random().toString(),
         sender: 'bot',
-        text: data.text || 'Disculpas, he tenido un inconveniente temporal para procesar tu consulta. ¿Me lo podrías repetir?',
+        text: data.text || 'Disculpas, he tenido un inconveniente temporal para procesar tu consulta. Ã‚Â¿Me lo podrÃƒÂ­as repetir?',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
       setMessages(prev => [...prev, botMsg])
@@ -235,8 +235,8 @@ export default function LandingChatbot() {
             className="mb-3 mr-1 bg-white border border-zinc-200 shadow-lg px-4 py-2.5 rounded-2xl text-xs font-bold text-zinc-700 flex items-center gap-2 cursor-pointer hover:border-zinc-300 transition-all select-none hover:shadow-xl group"
           >
             <div className="w-2 h-2 rounded-full bg-zinc-950 animate-pulse" />
-             <span>💬 Escríbeme y responderé tus dudas</span>
-            <span className="text-zinc-300 group-hover:text-zinc-500 transition-colors ml-1 font-normal">→</span>
+             <span>Ã°Å¸â€™Â¬ EscrÃƒÂ­beme y responderÃƒÂ© tus dudas</span>
+            <span className="text-zinc-300 group-hover:text-zinc-500 transition-colors ml-1 font-normal">Ã¢â€ â€™</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -273,12 +273,12 @@ export default function LandingChatbot() {
             {/* Header (Lightning Bolt Brand Logo integrated) */}
             <div className="bg-black text-white px-5 py-4 flex items-center justify-between shrink-0 select-none">
               <div className="flex items-center gap-3">
-                {/* Circular Brand Logo badge with FlashCheckout's Lightning Bolt */}
+                {/* Circular Brand Logo badge with Flashcheckouts's Lightning Bolt */}
                 <div className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800 text-white shadow-xs">
                   <Zap className="w-4.5 h-4.5 fill-white stroke-white" />
                 </div>
                 <h3 className="font-bold text-[15px] tracking-tight text-white">
-                  FlashCheckout AI Agent
+                  Flashcheckouts AI Agent
                 </h3>
               </div>
 
@@ -286,7 +286,7 @@ export default function LandingChatbot() {
                 <div
                   role="button"
                   onClick={() => {
-                    toast.info('FlashCheckout Agent', {
+                    toast.info('Flashcheckouts Agent', {
                       description: 'Este asistente de IA interactivo responde dudas sobre la plataforma.'
                     })
                   }}
@@ -357,7 +357,7 @@ export default function LandingChatbot() {
                   <Zap className="w-2.5 h-2.5 fill-white stroke-white" />
                 </div>
                 <span className="text-[10px] font-bold text-zinc-400 tracking-wide">
-                  Powered by FlashCheckout
+                  Powered by Flashcheckouts
                 </span>
               </div>
 
@@ -375,7 +375,7 @@ export default function LandingChatbot() {
                   <span>
                     Al chatear, aceptas nuestra{' '}
                     <Link href="/solutions/privacidad" className="underline text-zinc-650 hover:text-zinc-900 font-medium">
-                      política de privacidad
+                      polÃƒÂ­tica de privacidad
                     </Link>
                     .
                   </span>
@@ -396,7 +396,7 @@ export default function LandingChatbot() {
                   role="button"
                   onClick={() => {
                     toast.info('Archivos adjuntos', {
-                      description: 'Flashy no requiere adjuntar archivos para responder tus dudas sobre FlashCheckout.'
+                      description: 'Flashy no requiere adjuntar archivos para responder tus dudas sobre Flashcheckouts.'
                     })
                   }}
                   className="flex items-center justify-center cursor-pointer p-0.5"
@@ -407,7 +407,7 @@ export default function LandingChatbot() {
                 {/* Input text */}
                 <input
                   type="text"
-                  placeholder="Escribe tu pregunta sobre FlashCheckout..."
+                  placeholder="Escribe tu pregunta sobre Flashcheckouts..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -421,7 +421,7 @@ export default function LandingChatbot() {
                   role="button"
                   onClick={() => {
                     toast.info('Entrada de voz', {
-                      description: 'El reconocimiento de voz está desactivado para la demo de Flashy.'
+                      description: 'El reconocimiento de voz estÃƒÂ¡ desactivado para la demo de Flashy.'
                     })
                   }}
                   className="text-zinc-400 hover:text-zinc-650 cursor-pointer p-0.5"

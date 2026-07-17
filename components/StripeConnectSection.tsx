@@ -59,7 +59,7 @@ export default function StripeConnectSection() {
     load()
   }, [load])
 
-  /** Crea la cuenta en Stripe en segundo plano para abrir el modal más rápido. */
+  /** Crea la cuenta en Stripe en segundo plano para abrir el modal mÃƒÂ¡s rÃƒÂ¡pido. */
   useEffect(() => {
     if (loading || chargesEnabled || prefetchedRef.current) return
     prefetchedRef.current = true
@@ -79,7 +79,7 @@ export default function StripeConnectSection() {
       })
       const data = await res.json()
       if (!res.ok) {
-        const msg = data.error || 'No se pudo iniciar la sesión segura'
+        const msg = data.error || 'No se pudo iniciar la sesiÃƒÂ³n segura'
         setConnectBootError(msg)
         throw new Error(msg)
       }
@@ -169,26 +169,26 @@ export default function StripeConnectSection() {
       </div>
 
       <p className="text-sm text-zinc-400 font-bold tracking-widest mb-10 max-w-xl leading-relaxed uppercase">
-        Activa cobros globales sin salir de FlashCheckout. Integración nativa con Stripe para una experiencia de pago premium y segura.
+        Activa cobros globales sin salir de Flashcheckouts. IntegraciÃƒÂ³n nativa con Stripe para una experiencia de pago premium y segura.
       </p>
 
       <div className="rounded-2xl border border-black/[0.02] bg-zinc-50 p-6 text-xs font-bold text-zinc-400 tracking-widest mb-10 space-y-4 uppercase">
         <p className="text-black flex items-center gap-3 font-display">
           <Shield className="w-4 h-4 text-primary" />
-          Requisitos de verificación (Stripe)
+          Requisitos de verificaciÃƒÂ³n (Stripe)
         </p>
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-primary" />
-            Titular e Identificación
+            Titular e IdentificaciÃƒÂ³n
           </div>
           <div className="bg-white p-4 rounded-xl border border-black/[0.02] flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-primary" />
-            Cuenta Bancaria para Depósitos
+            Cuenta Bancaria para DepÃƒÂ³sitos
           </div>
         </div>
         <p className="text-[11px] opacity-60 leading-relaxed uppercase">
-          Solo solicitamos información esencial. Cumplimos con los más altos estándares internacionales de seguridad financiera.
+          Solo solicitamos informaciÃƒÂ³n esencial. Cumplimos con los mÃƒÂ¡s altos estÃƒÂ¡ndares internacionales de seguridad financiera.
         </p>
       </div>
 
@@ -221,12 +221,12 @@ export default function StripeConnectSection() {
           {chargesEnabled ? (
             <div className="flex items-center gap-4 rounded-2xl border border-primary/10 bg-primary/[0.02] px-6 py-5 text-sm font-bold tracking-widest text-primary animate-in fade-in uppercase">
               <CheckCircle2 className="w-5 h-5 shrink-0" />
-              <p>Tu terminal está lista para procesar cobros electrónicos.</p>
+              <p>Tu terminal estÃƒÂ¡ lista para procesar cobros electrÃƒÂ³nicos.</p>
             </div>
           ) : connected ? (
             <div className="flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-sm font-bold tracking-widest text-amber-700 animate-in zoom-in-95 uppercase">
               <AlertCircle className="w-5 h-5 shrink-0" />
-              <p>Falta validación adicional para activar los cobros.</p>
+              <p>Falta validaciÃƒÂ³n adicional para activar los cobros.</p>
             </div>
           ) : null}
 
@@ -254,7 +254,7 @@ export default function StripeConnectSection() {
               {chargesEnabled
                 ? 'Panel activo'
                 : connected
-                  ? 'Continuar configuración'
+                  ? 'Continuar configuraciÃƒÂ³n'
                   : 'Configurar pagos'}
             </button>
             <a
@@ -284,13 +284,13 @@ export default function StripeConnectSection() {
             <div className="flex items-start justify-between gap-6 px-10 py-10 border-b border-black/[0.02] bg-gradient-to-r from-primary/[0.03] to-transparent">
               <div>
                 <p className="text-xs font-bold tracking-widest text-primary mb-3 uppercase">
-                  FlashCheckout × Stripe
+                  Flashcheckouts Ãƒâ€” Stripe
                 </p>
                 <h3 className="text-2xl font-bold text-black tracking-tight font-display">
-                  Configuración segura
+                  ConfiguraciÃƒÂ³n segura
                 </h3>
                 <p className="text-xs text-zinc-400 font-bold tracking-widest mt-3 leading-relaxed max-w-sm uppercase">
-                  Proceso de validación internacional. Los datos están protegidos por el cifrado de Stripe.
+                  Proceso de validaciÃƒÂ³n internacional. Los datos estÃƒÂ¡n protegidos por el cifrado de Stripe.
                 </p>
               </div>
               <button
@@ -314,7 +314,7 @@ export default function StripeConnectSection() {
                 className="text-primary hover:text-zinc-600 ml-auto transition-colors"
                 disabled={bootingConnect}
               >
-                Reintentar Sesión
+                Reintentar SesiÃƒÂ³n
               </button>
             </div>
 

@@ -151,7 +151,7 @@ export default function DashboardClientContainer({
       }
 
       toast.info("Redirigiendo...", {
-        description: "Serás redirigido de forma segura al portal de facturación de Stripe."
+        description: "SerÃƒÂ¡s redirigido de forma segura al portal de facturaciÃƒÂ³n de Stripe."
       })
       window.location.href = data.url
     } catch (error: any) {
@@ -190,7 +190,7 @@ export default function DashboardClientContainer({
             setPollingStatus(false)
             setShowWhatsAppModal(false)
             setQrCodeBase64(null)
-            toast.success('¡WhatsApp vinculado exitosamente!')
+            toast.success('Ã‚Â¡WhatsApp vinculado exitosamente!')
           } else if (data.qr) {
             setQrCodeBase64(data.qr)
           }
@@ -221,7 +221,7 @@ export default function DashboardClientContainer({
   function handleCopyLink() {
     navigator.clipboard.writeText(storeUrl)
     setCopied(true)
-    toast.success('¡Enlace copiado al portapapeles!')
+    toast.success('Ã‚Â¡Enlace copiado al portapapeles!')
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -241,7 +241,7 @@ export default function DashboardClientContainer({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-zinc-900 leading-snug">{alert.title}</p>
           <p className="text-[10px] font-medium text-zinc-500 truncate mt-0.5 leading-none">
-            {alert.subtitle} {alert.type === 'whatsapp_disconnected' && <span className="text-rose-500 font-bold uppercase text-[9px] ml-1">Crítico</span>}
+            {alert.subtitle} {alert.type === 'whatsapp_disconnected' && <span className="text-rose-500 font-bold uppercase text-[9px] ml-1">CrÃƒÂ­tico</span>}
           </p>
           <span className={cn(
             "text-[9px] font-semibold block mt-1",
@@ -289,7 +289,7 @@ export default function DashboardClientContainer({
         toast.success('WhatsApp ya se encuentra conectado')
       }
     } catch (err) {
-      toast.error('Error al generar código QR de WhatsApp')
+      toast.error('Error al generar cÃƒÂ³digo QR de WhatsApp')
       console.error(err)
     } finally {
       setLoadingQr(false)
@@ -342,7 +342,7 @@ export default function DashboardClientContainer({
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 ">Panel de Control</h1>
           <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5 ">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Monitoreo Operativo — Gestionando <span className="text-zinc-900 font-bold">{storeName}</span>
+            Monitoreo Operativo Ã¢â‚¬â€ Gestionando <span className="text-zinc-900 font-bold">{storeName}</span>
           </div>
         </div>
 
@@ -353,7 +353,7 @@ export default function DashboardClientContainer({
               className="flex items-center justify-center gap-2 h-9 px-3.5 bg-white border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-95"
             >
               <Plus className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Acciones rápidas</span>
+              <span>Acciones rÃƒÂ¡pidas</span>
             </button>
             {showQuickActions && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-zinc-200 rounded-lg shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-200">
@@ -415,7 +415,7 @@ export default function DashboardClientContainer({
                 </div>
                 <div className="mt-4">
                   <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                    <span>▲ {Math.abs(stats.revenueGrowth || 0).toFixed(1)}%</span>
+                    <span>Ã¢â€“Â² {Math.abs(stats.revenueGrowth || 0).toFixed(1)}%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ export default function DashboardClientContainer({
                 </div>
                 <div className="mt-4">
                   <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                    <span>▲ {Math.abs(stats.ordersGrowth || 0).toFixed(1)}%</span>
+                    <span>Ã¢â€“Â² {Math.abs(stats.ordersGrowth || 0).toFixed(1)}%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
                 </div>
@@ -461,7 +461,7 @@ export default function DashboardClientContainer({
                 </div>
                 <div className="mt-4">
                   <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                    <span>▲ {Math.abs(stats.avgTicketGrowth || 0).toFixed(1)}%</span>
+                    <span>Ã¢â€“Â² {Math.abs(stats.avgTicketGrowth || 0).toFixed(1)}%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
                 </div>
@@ -484,7 +484,7 @@ export default function DashboardClientContainer({
                 </div>
                 <div className="mt-4">
                   <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                    <span>▲ 0.0%</span>
+                    <span>Ã¢â€“Â² 0.0%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
                 </div>
@@ -494,15 +494,15 @@ export default function DashboardClientContainer({
 
           {/* Row 2: Charts Side-by-side (Moved from Row 4 in mockup order) */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-            {/* Chart 1: Ventas últimos 7 días */}
+            {/* Chart 1: Ventas ÃƒÂºltimos 7 dÃƒÂ­as */}
             <div className="md:col-span-7 p-5 rounded-lg border border-zinc-200 bg-white flex flex-col justify-between h-[340px]">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-900 tracking-tight">Ventas últimos 7 días</h4>
+                  <h4 className="text-sm font-semibold text-zinc-900 tracking-tight">Ventas ÃƒÂºltimos 7 dÃƒÂ­as</h4>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
                   <span>${stats.totalRevenueVal.toLocaleString('es-CO')}</span>
-                  <span className="text-[10px]">▲ {stats.revenueGrowth.toFixed(1)}%</span>
+                  <span className="text-[10px]">Ã¢â€“Â² {stats.revenueGrowth.toFixed(1)}%</span>
                 </div>
               </div>
               <div className="flex-1 w-full h-full mt-4 min-h-[220px]">
@@ -543,7 +543,7 @@ export default function DashboardClientContainer({
             </div>
           </div>
 
-          {/* Row 3: Bento cards (Tu tienda online + Métricas rápidas side-by-side) */}
+          {/* Row 3: Bento cards (Tu tienda online + MÃƒÂ©tricas rÃƒÂ¡pidas side-by-side) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Left Card: Tu tienda online */}
             <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col sm:flex-row items-stretch gap-6 justify-between">
@@ -555,7 +555,7 @@ export default function DashboardClientContainer({
                     </div>
                     <span>Tu tienda online</span>
                   </div>
-                  <p className="text-xs text-zinc-400 font-medium leading-relaxed">Este es el enlace directo a tu catálogo inteligente para recibir pedidos autónomos.</p>
+                  <p className="text-xs text-zinc-400 font-medium leading-relaxed">Este es el enlace directo a tu catÃƒÂ¡logo inteligente para recibir pedidos autÃƒÂ³nomos.</p>
                   <div className="text-emerald-600 font-medium text-xs pt-2 truncate select-all">{storeUrl}</div>
                 </div>
 
@@ -573,7 +573,7 @@ export default function DashboardClientContainer({
                       if (navigator.share) {
                         navigator.share({
                           title: storeName,
-                          text: `Visita mi tienda en FlashCheckout`,
+                          text: `Visita mi tienda en Flashcheckouts`,
                           url: storeUrl
                         }).catch(console.error)
                       } else {
@@ -602,7 +602,7 @@ export default function DashboardClientContainer({
                 <div 
                   className="group/qr w-24 h-24 bg-white border border-zinc-200 rounded-lg flex items-center justify-center p-1 cursor-pointer relative overflow-hidden active:scale-[0.97] transition-all duration-300"
                   onClick={() => setShowQrModal(true)}
-                  title="Ampliar y descargar código QR"
+                  title="Ampliar y descargar cÃƒÂ³digo QR"
                 >
                   <QrGenerator url={storeUrl} storeName={storeName} inline={true} size={80} />
                   
@@ -617,15 +617,15 @@ export default function DashboardClientContainer({
                   className="text-[9px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                 >
                   <QrCode className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Ver Código QR</span>
+                  <span>Ver CÃƒÂ³digo QR</span>
                 </button>
               </div>
             </div>
 
-            {/* Right Card: Métricas rápidas */}
+            {/* Right Card: MÃƒÂ©tricas rÃƒÂ¡pidas */}
             <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between min-h-[180px]">
               <div>
-                <h4 className="text-sm font-semibold text-zinc-900 tracking-tight mb-4">Métricas rápidas</h4>
+                <h4 className="text-sm font-semibold text-zinc-900 tracking-tight mb-4">MÃƒÂ©tricas rÃƒÂ¡pidas</h4>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-semibold text-zinc-500">
                     <div className="flex items-center gap-2">
@@ -633,7 +633,7 @@ export default function DashboardClientContainer({
                       <span>Productos</span>
                     </div>
                     <span className="text-zinc-900 font-bold">
-                      {productsCount} / {isSubscribed ? 'Sin límite' : '10'}
+                      {productsCount} / {isSubscribed ? 'Sin lÃƒÂ­mite' : '10'}
                     </span>
                   </div>
                   
@@ -641,7 +641,7 @@ export default function DashboardClientContainer({
                     <div className="flex items-center justify-between text-xs font-semibold text-zinc-500">
                       <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-                         <span>Límite del plan {isSubscribed ? 'Premium' : 'gratuito'}</span>
+                         <span>LÃƒÂ­mite del plan {isSubscribed ? 'Premium' : 'gratuito'}</span>
                       </div>
                     </div>
                     <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
@@ -670,7 +670,7 @@ export default function DashboardClientContainer({
                   ) : (
                     <Settings className="w-3.5 h-3.5 text-zinc-400" />
                   )}
-                  <span>Gestionar Suscripción</span>
+                  <span>Gestionar SuscripciÃƒÂ³n</span>
                 </button>
               ) : (
                 <Link
@@ -694,7 +694,7 @@ export default function DashboardClientContainer({
                   </div>
                   <div className="text-left">
                     <span className="text-xs font-bold text-zinc-800 block">Sugerencia para ti</span>
-                    <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Comparte el enlace de tu tienda en Instagram y redes sociales para aumentar tus pedidos autónomos.</p>
+                    <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Comparte el enlace de tu tienda en Instagram y redes sociales para aumentar tus pedidos autÃƒÂ³nomos.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
@@ -703,7 +703,7 @@ export default function DashboardClientContainer({
                     className="h-8 px-3.5 bg-zinc-900 hover:bg-zinc-955 text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
                   >
                     <Settings className="w-3.5 h-3.5" />
-                    <span>Configuración</span>
+                    <span>ConfiguraciÃƒÂ³n</span>
                   </Link>
                   <button 
                     onClick={() => setShowSuggestionBanner(false)}
@@ -770,8 +770,8 @@ export default function DashboardClientContainer({
                 <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2.5">
                   <Check className="w-5 h-5 animate-bounce" />
                 </div>
-                <p className="text-xs font-bold text-zinc-900">¡Bandeja al día!</p>
-                <p className="text-[10px] text-zinc-400 mt-1 max-w-[200px] leading-relaxed">No tienes tareas pendientes que requieran tu atención inmediata.</p>
+                <p className="text-xs font-bold text-zinc-900">Ã‚Â¡Bandeja al dÃƒÂ­a!</p>
+                <p className="text-[10px] text-zinc-400 mt-1 max-w-[200px] leading-relaxed">No tienes tareas pendientes que requieran tu atenciÃƒÂ³n inmediata.</p>
               </div>
             ) : (
               <div className="space-y-3.5">
@@ -783,7 +783,7 @@ export default function DashboardClientContainer({
                     onClick={() => setShowAllAlertsModal(true)}
                     className="w-full mt-2 py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all text-center select-none cursor-pointer"
                   >
-                    Mostrar más
+                    Mostrar mÃƒÂ¡s
                   </button>
                 )}
               </div>
@@ -807,7 +807,7 @@ export default function DashboardClientContainer({
                   <Inbox className="w-5 h-5" />
                 </div>
                 <p className="text-xs font-bold text-zinc-955">Sin actividad reciente</p>
-                <p className="text-[10px] text-zinc-400 mt-1 max-w-[200px] leading-relaxed">Las actividades y pedidos de tu tienda aparecerán listados aquí.</p>
+                <p className="text-[10px] text-zinc-400 mt-1 max-w-[200px] leading-relaxed">Las actividades y pedidos de tu tienda aparecerÃƒÂ¡n listados aquÃƒÂ­.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -859,9 +859,9 @@ export default function DashboardClientContainer({
             </button>
 
             <div className="mb-4 mt-2">
-              <h3 className="font-bold text-base text-zinc-900">Código QR de la Tienda</h3>
+              <h3 className="font-bold text-base text-zinc-900">CÃƒÂ³digo QR de la Tienda</h3>
               <p className="text-xs text-zinc-500 mt-1 max-w-[240px] leading-relaxed">
-                Escanea o descarga este código QR para colocar en tu tienda física y dirigir a los compradores directos.
+                Escanea o descarga este cÃƒÂ³digo QR para colocar en tu tienda fÃƒÂ­sica y dirigir a los compradores directos.
               </p>
             </div>
 
@@ -925,7 +925,7 @@ export default function DashboardClientContainer({
             <div className="mb-4">
               <h3 className="font-bold text-lg text-zinc-900 tracking-tight">Vincular Celular</h3>
               <p className="text-xs text-zinc-400 mt-1 max-w-[280px] leading-relaxed">
-                Escanea el código QR desde tu WhatsApp para conectar el bot de IA.
+                Escanea el cÃƒÂ³digo QR desde tu WhatsApp para conectar el bot de IA.
               </p>
             </div>
 
@@ -933,7 +933,7 @@ export default function DashboardClientContainer({
               {loadingQr ? (
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="w-8 h-8 text-zinc-450 animate-spin" />
-                  <span className="text-[10px] font-bold text-zinc-400 tracking-wider animate-pulse">Generando código QR...</span>
+                  <span className="text-[10px] font-bold text-zinc-400 tracking-wider animate-pulse">Generando cÃƒÂ³digo QR...</span>
                 </div>
               ) : qrCodeBase64 ? (
                 <div className="flex flex-col items-center gap-3.5">
@@ -960,14 +960,14 @@ export default function DashboardClientContainer({
                     onClick={handleConnectWhatsApp}
                     className="h-9 px-4 bg-zinc-900 text-white hover:bg-zinc-950 border border-transparent rounded-lg text-[10px] font-bold tracking-wider transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-sm"
                   >
-                    Generar código QR
+                    Generar cÃƒÂ³digo QR
                   </button>
                 </div>
               )}
             </div>
 
             <div className="w-full bg-zinc-50/50 border border-zinc-200/60 p-4 rounded-lg text-left space-y-3">
-              <h5 className="text-[10px] font-bold text-zinc-800 tracking-wider">Pasos en tu teléfono:</h5>
+              <h5 className="text-[10px] font-bold text-zinc-800 tracking-wider">Pasos en tu telÃƒÂ©fono:</h5>
               <div className="space-y-2.5">
                 <div className="flex items-start gap-2.5 text-[10px] font-semibold text-zinc-500 leading-normal">
                   <div className="w-4.5 h-4.5 rounded-full bg-zinc-100 border border-zinc-200 text-[9px] font-bold text-zinc-500 flex items-center justify-center shrink-0">1</div>
@@ -979,7 +979,7 @@ export default function DashboardClientContainer({
                 </div>
                 <div className="flex items-start gap-2.5 text-[10px] font-semibold text-zinc-500 leading-normal">
                   <div className="w-4.5 h-4.5 rounded-full bg-zinc-100 border border-zinc-200 text-[9px] font-bold text-zinc-500 flex items-center justify-center shrink-0">3</div>
-                  <span>Escanea el código QR que se muestra arriba.</span>
+                  <span>Escanea el cÃƒÂ³digo QR que se muestra arriba.</span>
                 </div>
               </div>
             </div>
@@ -1001,7 +1001,7 @@ export default function DashboardClientContainer({
   )
 }
 
-// 7. ACCIONES RÁPIDAS CARD COMPONENT
+// 7. ACCIONES RÃƒÂPIDAS CARD COMPONENT
 export function QuickActionCard({
   icon: Icon,
   title,

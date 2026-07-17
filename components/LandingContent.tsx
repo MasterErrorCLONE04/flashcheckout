@@ -60,22 +60,22 @@ interface LandingContentProps {
   stores: any[]
 }
 
-const FlashCheckoutLogo = () => (
+const FlashcheckoutsLogo = () => (
   <Link href="/" className="flex items-center gap-2.5 group transition-all hover:opacity-80">
     <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm group-hover:scale-105 transition-transform">
       F
     </div>
-    <span className="text-[20px] font-medium tracking-tight text-[#111827]">FlashCheckout</span>
+    <span className="text-[20px] font-medium tracking-tight text-[#111827]">Flashcheckouts</span>
   </Link>
 )
 
 const INTEGRATIONS_ROW_1 = [
   { name: 'Make', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/make.png' },
-  { name: 'Zendesk', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/zendesk.png' },
-  { name: 'Notion', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/notion.png' },
-  { name: 'Slack', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/slack.png' },
-  { name: 'Stripe', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/stripe.png' },
-  { name: 'Salesforce', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/salesforce.png' },
+  { name: 'Soporte', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/zendesk.png' },
+  { name: 'CRM', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/notion.png' },
+  { name: 'Equipo', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/slack.png' },
+  { name: 'Bre-B', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/stripe.png' },
+  { name: 'Clientes', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/salesforce.png' },
   { name: 'Cloud', type: 'image', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/yellow-cloud.png' },
 ]
 
@@ -85,7 +85,7 @@ const INTEGRATIONS_ROW_2 = [
   { name: 'Calendly', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/calendly.png' },
   { name: 'WhatsApp', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/whatsapp.png' },
   { name: 'Zapier', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/zapier.png' },
-  { name: 'Messenger', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/messenger.png' },
+  { name: 'Chat', logo: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/features/integrations/messenger.png' },
 ]
 
 const IntegrationPill = ({ name, logo, type = 'pill' }: { name: string; logo: string; type?: 'pill' | 'image' }) => {
@@ -126,95 +126,95 @@ const IntegrationMarquee = ({ items, reverse = false, speed = 30 }: { items: any
 
 const FEATURE_CARDS = [
   {
-    title: 'Sync with real-time data',
-    description: 'Connect your agent to systems like order management tools, CRMs, helpdesk platforms, and more to seamlessly access data ranging from order details to active subscriptions and beyond.',
+    title: 'Pedidos y clientes en tiempo real',
+    description: 'Conecta conversaciones, ordenes, clientes, productos y pagos para que Nova responda con contexto real del negocio.',
     image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_sync_data_1775309099872.png',
     size: 'large'
   },
   {
-    title: 'Take actions and automate workflows',
-    description: 'Configure actions and omnichannel automation that your agent can perform within your systems, like updating a customer\'s subscription or changing their shipping address.',
+    title: 'Automatiza acciones comerciales',
+    description: 'Nova puede recomendar productos, crear pedidos, enviar checkout y derivar al vendedor cuando la conversacion lo necesita.',
     image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_automate_actions_1775309117411.png',
     size: 'large'
   },
   {
-    title: 'Compare AI models',
-    description: 'Experiment with various models and configurations to make sure you have the best setup for your specific payment use case.',
+    title: 'Agente IA para vender',
+    description: 'Ajusta el comportamiento de Nova para responder como tu tienda, con foco en convertir preguntas en pedidos.',
     image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_compare_models_1775309130449.png',
     size: 'small'
   },
   {
-    title: 'Smart escalation',
-    description: 'Give your agent instructions in natural language on when to escalate queries to human agents via live chat or helpdesk tickets.',
+    title: 'Desvio a humano',
+    description: 'Permite que el cliente pida ayuda humana cuando hay dudas complejas, reclamos o negociaciones especiales.',
     image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_smart_escalation_1775309143082.png',
     size: 'small'
   },
   {
-    title: 'Advanced reporting',
-    description: 'Gain insights and optimize agent performance with detailed analytics that correlate AI actions with actual revenue growth.',
+    title: 'Reportes comerciales',
+    description: 'Mide pedidos, ventas, clientes activos y resultados para saber que funciona y que debes mejorar.',
     image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_advanced_reporting_1775309157593.png',
     size: 'small'
   }
 ]
 
 const INTEGRATIONS = [
-  { name: 'Stripe', icon: CreditCard },
-  { name: 'Shopify', icon: Layout },
-  { name: 'Slack', icon: MessageSquare },
-  { name: 'Notion', icon: BookOpen },
-  { name: 'Salesforce', icon: ShieldCheck },
+  { name: 'Bre-B', icon: CreditCard },
+  { name: 'Catalogo', icon: Layout },
+  { name: 'Equipo', icon: MessageSquare },
+  { name: 'CRM', icon: BookOpen },
+  { name: 'Clientes', icon: ShieldCheck },
   { name: 'WhatsApp', icon: Phone },
-  { name: 'Zendesk', icon: LifeBuoy },
+  { name: 'Soporte', icon: LifeBuoy },
   { name: 'Zapier', icon: Zap },
   { name: 'Make', icon: Activity },
-  { name: 'Messenger', icon: MessageCircle }
+  { name: 'Chat', icon: MessageCircle }
 ]
 
 const EXPLORE_TABS = [
-  { id: 'playground', label: 'Playground', icon: Sparkles, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/playground.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/playground-mobile.png' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/analytics.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/analytics-mobile.png' },
-  { id: 'activity', label: 'Activity', icon: Globe, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/activity.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/activity-mobile.png' },
-  { id: 'sources', label: 'Sources', icon: Box, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/sources.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/sources-mobile.png' },
-  { id: 'actions', label: 'Actions', icon: GitCompare, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/actions.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/actions-mobile.png' }
+  { id: 'playground', label: 'Agente IA', icon: Sparkles, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/playground.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/playground-mobile.png' },
+  { id: 'analytics', label: 'Metricas', icon: BarChart3, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/analytics.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/analytics-mobile.png' },
+  { id: 'activity', label: 'Pedidos', icon: Globe, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/activity.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/activity-mobile.png' },
+  { id: 'sources', label: 'Catalogo', icon: Box, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/sources.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/sources-mobile.png' },
+  { id: 'actions', label: 'Pagos', icon: GitCompare, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/actions.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/actions-mobile.png' }
 ]
 
 const BENEFITS_DATA = [
   {
     id: 'personalized',
-    title: 'Personalized customer experience',
-    description: 'Deliver tailored interactions based on customer history and preferences.',
+    title: 'Atencion personalizada',
+    description: 'Responde con contexto del cliente, historial de compra y productos disponibles.',
     icon: Users,
     video: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/benefits/personalization.webm',
     poster: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/video-thumbnail.png'
   },
   {
     id: 'instant',
-    title: 'Instant actions and workflow automation',
-    description: 'Automate complex checkout flows and support tasks in real-time.',
+    title: 'Acciones instantaneas',
+    description: 'Crea pedidos, envia enlaces de pago y acelera el cierre desde WhatsApp.',
     icon: Timer,
     video: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/benefits/automation.webm',
     poster: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/video-thumbnail.png'
   },
   {
     id: 'empathetic',
-    title: 'Empathetic & on-brand',
-    description: 'AI that speaks your brand voice and understands customer sentiment.',
+    title: 'Tono de marca',
+    description: 'Nova puede hablar como tu negocio y mantener una experiencia cercana.',
     icon: Heart,
     video: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/benefits/empathy.webm',
     poster: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/video-thumbnail.png'
   },
   {
     id: 'escalations',
-    title: 'Smart escalations',
-    description: 'Seamlessly hand off complex issues to human agents when needed.',
+    title: 'Desvio a humanos',
+    description: 'Cuando el caso necesita criterio humano, el flujo deja contexto para continuar.',
     icon: Split,
     video: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/benefits/escalation.webm',
     poster: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/video-thumbnail.png'
   },
   {
     id: 'observability',
-    title: 'Observability',
-    description: 'See how your AI agent makes decisions and takes actions with full visibility into each step of the process.',
+    title: 'Visibilidad operativa',
+    description: 'Revisa conversaciones, pedidos, pagos y actividad para operar sin puntos ciegos.',
     icon: Eye,
     video: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/benefits/observability.webm',
     poster: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/video-thumbnail.png'
@@ -256,7 +256,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
   return (
     <div className="min-h-screen bg-[#FAFAFA] text-[#111827] font-sans selection:bg-black selection:text-white antialiased">
 
-      {/* Navigation (Chatbase Style) */}
+      {/* Navigation */}
       <Navbar userId={userId ?? undefined} />
 
       {/* Hero Section (New High-Fidelity Layout) */}
@@ -273,7 +273,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   transition={{ duration: 0.6 }}
                   className="font-medium text-[42px] text-zinc-950 leading-[2.9rem] tracking-tight lg:text-[4.4rem] lg:leading-[5rem]"
                 >
-                  Flash Automation for magical payment experiences
+                  Convierte chats de WhatsApp en pedidos pagados
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
@@ -282,7 +282,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   transition={{ duration: 0.6, delay: 0.1 }}
                   className="text-[18px] text-zinc-500 lg:w-[90%] font-normal leading-relaxed"
                 >
-                  FlashCheckout is the complete platform for building & deploying AI payment agents for your business.
+                  Flashcheckouts une agente IA, catalogo, checkout con QR Bre-B, pedidos, clientes y pagos para que tu tienda cierre ventas sin perseguir conversaciones.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -296,12 +296,12 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                       data-slot="button"
                       className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap font-medium outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 shadow-inner-sm rounded-md py-2 relative h-14 w-full sm:w-[320px] px-6 text-base bg-primary text-white hover:bg-primary/90"
                     >
-                      Build your agent for free
+                      Crear mi tienda gratis
                     </button>
                   </Link>
                   <div className="flex items-center gap-2 font-medium text-zinc-400 text-sm">
                     <CreditCard className="w-4 h-4 text-zinc-300" />
-                    No credit card required
+                    Sin tarjeta de credito
                   </div>
                 </motion.div>
               </div>
@@ -316,7 +316,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
               >
                 <img
                   src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_hero_ui_1775284071856.png"
-                  alt="FlashCheckout Dashboard Mockup"
+                  alt="Flashcheckouts Dashboard Mockup"
                   className="w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
                   loading="eager"
                 />
@@ -332,17 +332,17 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
             {/* Social Proof Section (Logos) */}
             <div className="flex w-full flex-col items-center gap-12 mt-32">
               <p className="font-medium text-base text-zinc-500 uppercase tracking-widest">
-                Trusted by <span className="mx-1 font-bold text-black font-sans">10,000+</span> businesses worldwide
+                Pensado para tiendas que venden por WhatsApp, catalogo y links de pago
               </p>
               <div className="w-full">
                 {/* Desktop Grid (Hidden on Mobile) */}
                 <div className="hidden items-center justify-center gap-16 lg:flex opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-                  <LogoItem alt="Shopify" src="https://www.vectorlogo.zone/logos/shopify/shopify-ar21.svg" />
-                  <LogoItem alt="Stripe" src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" />
-                  <LogoItem alt="Vercel" src="https://www.vectorlogo.zone/logos/vercel/vercel-ar21.svg" />
-                  <LogoItem alt="Google" src="https://www.vectorlogo.zone/logos/google/google-ar21.svg" />
-                  <LogoItem alt="Airbnb" src="https://www.vectorlogo.zone/logos/airbnb/airbnb-ar21.svg" />
-                  <LogoItem alt="Meta" src="https://www.vectorlogo.zone/logos/facebook/facebook-ar21.svg" />
+                  <LogoItem alt="Catalogo" src="https://www.vectorlogo.zone/logos/shopify/shopify-ar21.svg" />
+                  <LogoItem alt="Bre-B" src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" />
+                  <LogoItem alt="WhatsApp" src="https://www.vectorlogo.zone/logos/vercel/vercel-ar21.svg" />
+                  <LogoItem alt="Clientes" src="https://www.vectorlogo.zone/logos/google/google-ar21.svg" />
+                  <LogoItem alt="Pedidos" src="https://www.vectorlogo.zone/logos/airbnb/airbnb-ar21.svg" />
+                  <LogoItem alt="Nova IA" src="https://www.vectorlogo.zone/logos/facebook/facebook-ar21.svg" />
                 </div>
 
                 {/* Mobile Marquee (Hidden on Desktop) */}
@@ -355,11 +355,11 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   >
                     {[...Array(2)].map((_, i) => (
                       <div key={i} className="flex items-center gap-12 pr-12">
-                        <LogoItem alt="Shopify" src="https://www.vectorlogo.zone/logos/shopify/shopify-ar21.svg" />
-                        <LogoItem alt="Stripe" src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" />
-                        <LogoItem alt="Vercel" src="https://www.vectorlogo.zone/logos/vercel/vercel-ar21.svg" />
-                        <LogoItem alt="Google" src="https://www.vectorlogo.zone/logos/google/google-ar21.svg" />
-                        <LogoItem alt="Airbnb" src="https://www.vectorlogo.zone/logos/airbnb/airbnb-ar21.svg" />
+                        <LogoItem alt="Catalogo" src="https://www.vectorlogo.zone/logos/shopify/shopify-ar21.svg" />
+                        <LogoItem alt="Bre-B" src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" />
+                        <LogoItem alt="WhatsApp" src="https://www.vectorlogo.zone/logos/vercel/vercel-ar21.svg" />
+                        <LogoItem alt="Clientes" src="https://www.vectorlogo.zone/logos/google/google-ar21.svg" />
+                        <LogoItem alt="Pedidos" src="https://www.vectorlogo.zone/logos/airbnb/airbnb-ar21.svg" />
                       </div>
                     ))}
                   </motion.div>
@@ -395,7 +395,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   viewport={{ once: true }}
                   className="pt-6 pb-4 font-medium text-4xl text-white tracking-tight md:pt-0 md:pb-0 lg:text-5xl"
                 >
-                  Discover the FlashCheckout platform
+                  Explora lo que Flashcheckouts hace por tu tienda
                 </motion.h2>
               </div>
 
@@ -570,7 +570,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                 transition={{ duration: 0.6 }}
                 className="font-medium text-4xl text-zinc-950 tracking-tight leading-tight lg:text-5xl"
               >
-                Build the perfect customer-facing AI agent
+                Funcionalidades reales para vender, cobrar y operar
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -579,7 +579,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="max-w-[600px] text-lg text-muted-foreground font-normal leading-relaxed pb-2"
               >
-                FlashCheckout is designed for building AI payment agents that optimize conversions and automate your sales workflow with surgical precision.
+                Desde el primer mensaje hasta el despacho: Nova atiende, el catalogo organiza, el checkout cobra y el panel mantiene cada pedido bajo control.
               </motion.p>
             </div>
           </div>
@@ -595,15 +595,15 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
             >
               <div className="aspect-[784/800] overflow-hidden">
                 <img
-                  alt="Purpose-built for Payments"
+                  alt="Cobros con QR Bre-B y enlace seguro"
                   loading="lazy"
                   src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_ai_conversion_1775284300959.png"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
               <div className="space-y-2 px-6 pb-6 pt-6">
-                <h3 className="font-semibold text-xl text-zinc-950">Purpose-built for Payments</h3>
-                <p className="text-base text-muted-foreground">Advanced models with reasoning capabilities designed for friction-less transaction flows and real-time payment optimization.</p>
+                <h3 className="font-semibold text-xl text-zinc-950">Cobros con QR Bre-B y enlace seguro</h3>
+                <p className="text-base text-muted-foreground">Genera ordenes con valor exacto, referencia unica y una pantalla de pago lista para que el cliente pague sin errores.</p>
               </div>
             </motion.div>
 
@@ -617,15 +617,15 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
             >
               <div className="aspect-[784/800] overflow-hidden">
                 <img
-                  alt="One-Click Excellence"
+                  alt="Catalogo y carrito desde la conversacion"
                   loading="lazy"
                   src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_simplicity_ui_1775284311911.png"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
               <div className="space-y-2 px-6 pb-6 pt-6">
-                <h3 className="font-semibold text-xl text-zinc-950">Designed for One-Click</h3>
-                <p className="text-base text-muted-foreground">Automate complex checkout flows in minutes. Simple for you, magical for your customers.</p>
+                <h3 className="font-semibold text-xl text-zinc-950">Catalogo y carrito desde la conversacion</h3>
+                <p className="text-base text-muted-foreground">El cliente pregunta por un producto, Nova confirma datos, arma el pedido y envia el checkout sin friccion.</p>
               </div>
             </motion.div>
 
@@ -646,8 +646,8 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                 />
               </div>
               <div className="space-y-2 px-6 pb-6 pt-6">
-                <h3 className="font-semibold text-xl text-zinc-950">Security by Design</h3>
-                <p className="text-base text-muted-foreground">Encryption and strict compliance standards ensure every transaction is protected and enterprise-ready.</p>
+                <h3 className="font-semibold text-xl text-zinc-950">Pedidos, clientes y pagos trazables</h3>
+                <p className="text-base text-muted-foreground">Cada venta queda registrada con cliente, productos, estado, comprobante y contexto para gestionar entrega o seguimiento.</p>
               </div>
             </motion.div>
           </div>
@@ -670,7 +670,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
               </motion.div>
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-10">
                 <h2 className="font-medium text-4xl text-foreground tracking-tight md:max-w-[20ch] lg:text-5xl leading-tight">
-                  AI support agents that work like your best employees
+                  Un flujo comercial que trabaja aunque no estes conectado
                 </h2>
               </div>
             </div>
@@ -791,10 +791,10 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                 Features
               </div>
               <h2 className="font-medium text-4xl text-zinc-950 tracking-tight lg:text-[42px] max-w-[700px] leading-tight">
-                Build the perfect payment-focused AI agent
+                Todo lo que necesita una tienda que vende por chat
               </h2>
               <p className="max-w-[800px] text-lg text-zinc-500 leading-relaxed font-normal">
-                FlashCheckout gives you all the tools you need to train your perfect AI agent and connect it deeply to your sales and logistics systems.
+                Configura productos, activa Nova, recibe pedidos por WhatsApp, cobra por QR Bre-B o link de pago y gestiona clientes desde un solo panel.
               </p>
             </div>
 
@@ -837,8 +837,8 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
               <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-background">
                 <div className="hidden md:flex md:items-center md:justify-between p-10 pr-0">
                   <div className="flex flex-col gap-2">
-                    <h3 className="font-medium text-xl text-zinc-950 tracking-tight">Works with your tools</h3>
-                    <p className="max-w-[400px] text-base text-zinc-500 leading-relaxed font-normal">Integrate diverse data sources to enrich your agent's knowledge and capabilities.</p>
+                    <h3 className="font-medium text-xl text-zinc-950 tracking-tight">Conecta con tu operacion diaria</h3>
+                    <p className="max-w-[400px] text-base text-zinc-500 leading-relaxed font-normal">WhatsApp, catalogo, pedidos, pagos, clientes y automatizaciones trabajando en el mismo flujo.</p>
                   </div>
                   <div className="relative flex max-h-[180px] max-w-[60%] flex-col gap-3 overflow-x-auto lg:overflow-hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     <div className="flex gap-3">
@@ -861,22 +861,22 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   <div className="flex items-start gap-4">
                     <CodeXml className="h-6 w-6 text-zinc-400 shrink-0" />
                     <div className="flex flex-col gap-1">
-                      <h4 className="font-medium text-base text-zinc-950">Advanced API</h4>
-                      <p className="text-sm text-zinc-500 leading-relaxed font-normal">Deeply integrate support into your product with our comprehensive SDKs.</p>
+                      <h4 className="font-medium text-base text-zinc-950">Checkout y pagos</h4>
+                      <p className="text-sm text-zinc-500 leading-relaxed font-normal">Genera enlaces de pago, QR Bre-B y referencias para cada orden.</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <TextCursorInput className="h-6 w-6 text-zinc-400 shrink-0" />
                     <div className="flex flex-col gap-1">
-                      <h4 className="font-medium text-base text-zinc-950">Whitelabel</h4>
-                      <p className="text-sm text-zinc-500 leading-relaxed font-normal">Remove any FlashCheckout branding from the chat widget and user interface.</p>
+                      <h4 className="font-medium text-base text-zinc-950">Marca y tienda</h4>
+                      <p className="text-sm text-zinc-500 leading-relaxed font-normal">Publica tu catalogo, datos de negocio y experiencia de compra con identidad propia.</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <TrendingUp className="h-6 w-6 text-zinc-400 shrink-0" />
                     <div className="flex flex-col gap-1">
-                      <h4 className="font-medium text-base text-zinc-950">Always improving</h4>
-                      <p className="text-sm text-zinc-500 leading-relaxed font-normal">Syncs with your systems and learns from previous interactions to increase ROI.</p>
+                      <h4 className="font-medium text-base text-zinc-950">CRM y seguimiento</h4>
+                      <p className="text-sm text-zinc-500 leading-relaxed font-normal">Historial de clientes, compras e interacciones para vender mejor cada vez.</p>
                     </div>
                   </div>
                 </div>
@@ -886,15 +886,15 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
         </div>
       </section>
 
-      {/* CTA Section (FlashCheckout Style) */}
+      {/* CTA Section (Flashcheckouts Style) */}
       <div className="w-full px-0 md:px-8 md:bg-[linear-gradient(to_bottom,transparent_60%,black_40%)] lg:bg-[linear-gradient(to_bottom,transparent_50%,black_50%)]">
         <div className="relative flex w-full flex-col items-center justify-center gap-6 overflow-hidden border-zinc-200 border-t bg-[length:100%_auto] bg-bottom bg-white bg-no-repeat px-6 py-12 pb-30 md:gap-8 md:rounded-3xl md:border md:p-15 lg:p-25">
           <div className="flex flex-col gap-4 md:max-w-[850px] md:gap-6 relative z-10">
             <h2 className="text-center font-medium text-4xl text-foreground leading-tight tracking-tighter md:text-balance md:text-5xl lg:text-[54px]">
-              Haz de tus cierres tu ventaja competitiva
+              Haz que cada conversacion termine en una orden pagada
             </h2>
             <p className="text-center font-normal text-base text-zinc-600 tracking-[-0.4px] md:text-balance md:text-xl">
-              Usa FlashCheckout para automatizar tus ventas por WhatsApp y superar a la competencia con un cierre impecable.
+              Activa tu tienda, conecta tus productos, cobra por QR Bre-B o link seguro y opera tus pedidos desde un panel hecho para vender.
             </p>
           </div>
 
@@ -902,7 +902,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
             <div className="relative z-0 h-14 w-full md:w-fit group">
               <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 opacity-75 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200"></div>
               <Button asChild size="lg" className="relative h-full w-full bg-black text-white hover:bg-zinc-900 rounded-lg px-8">
-                <Link href="/sign-up">Crea tu checkout gratis</Link>
+                <Link href="/sign-up">Crear mi tienda gratis</Link>
               </Button>
             </div>
 
@@ -911,7 +911,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                 <path d="M14.6615 6.50521H14.6577M14.6577 6.50521H1.33185M14.6577 6.50521C14.6615 6.78028 14.6615 7.08895 14.6615 7.43854V9.50521M14.6577 6.50521C14.6455 5.60514 14.5934 5.06481 14.3708 4.6279C14.1151 4.12613 13.7072 3.71819 13.2054 3.46252C12.635 3.17188 11.8883 3.17188 10.3948 3.17188H5.59479C4.10132 3.17188 3.35458 3.17188 2.78415 3.46252C2.28238 3.71819 1.87444 4.12613 1.61877 4.6279C1.39616 5.06481 1.34405 5.60514 1.33185 6.50521M1.33185 6.50521H1.32812M1.33185 6.50521C1.32812 6.78028 1.32812 7.08895 1.32812 7.43854V9.57188C1.32812 11.0653 1.32812 11.8121 1.61877 12.3825C1.87444 12.8843 2.28238 13.2922 2.78415 13.5479C3.35458 13.8385 4.10132 13.8385 5.59479 13.8385H8.10677M5.99479 9.17188H3.99479"></path>
                 <path d="M11.2498 14.5786L12.6641 13.1644M12.6641 13.1644L14.0783 11.7502M12.6641 13.1644L11.2498 11.7502M12.6641 13.1644L14.0783 14.5786"></path>
               </svg>
-              <p>Sin tarjeta de crédito</p>
+              <p>Sin tarjeta de credito</p>
             </div>
           </div>
         </div>

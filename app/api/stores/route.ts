@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { error: 'Ese slug ya está en uso' },
+        { error: 'Ese slug ya estÃƒÂ¡ en uso' },
         { status: 409 }
       )
     }
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 
     if (activeStoresCount >= maxLimit) {
       return NextResponse.json(
-        { error: `Has alcanzado el límite de tu plan (${maxLimit} tienda${maxLimit > 1 ? 's' : ''}). Por favor actualiza a un plan superior para crear otra.` },
+        { error: `Has alcanzado el lÃƒÂ­mite de tu plan (${maxLimit} tienda${maxLimit > 1 ? 's' : ''}). Por favor actualiza a un plan superior para crear otra.` },
         { status: 403 }
       )
     }
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     try {
       await waClient.sendText(
         cleanWhatsapp,
-        `¡Hola! Tu código de verificación para FlashCheckout es: *${otpCode}*. Ingrésalo en tu panel para verificar tu cuenta.`
+        `Ã‚Â¡Hola! Tu cÃƒÂ³digo de verificaciÃƒÂ³n para Flashcheckouts es: *${otpCode}*. IngrÃƒÂ©salo en tu panel para verificar tu cuenta.`
       )
     } catch (err: unknown) {
       console.error('Error sending store OTP:', err)
@@ -164,7 +164,7 @@ export async function PUT(req: Request) {
         })
         if (existing) {
           return NextResponse.json(
-            { error: 'El subdominio ya está siendo utilizado por otro comercio' },
+            { error: 'El subdominio ya estÃƒÂ¡ siendo utilizado por otro comercio' },
             { status: 409 }
           )
         }

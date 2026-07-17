@@ -146,19 +146,19 @@ export default function SmartPayClient({
               {isPaid ? (
                 <div className="flex items-center gap-2 text-emerald-600">
                   <CheckCircle2 className="w-6 h-6 animate-in zoom-in duration-300 fill-current text-emerald-500 text-white" />
-                  <h1 className="text-xl font-black tracking-tight text-zinc-950">¡Pago Aprobado! 🎉</h1>
+                  <h1 className="text-xl font-black tracking-tight text-zinc-950">Ã‚Â¡Pago Aprobado! Ã°Å¸Å½â€°</h1>
                 </div>
               ) : isExpired ? (
-                <h1 className="text-xl font-black tracking-tight text-red-650">Pedido Expirado ⏰</h1>
+                <h1 className="text-xl font-black tracking-tight text-red-650">Pedido Expirado Ã¢ÂÂ°</h1>
               ) : (
                 <h1 className="text-xl font-black tracking-tight text-zinc-950">Completa tu pago</h1>
               )}
               <p className="text-xs font-semibold text-zinc-400">
                 {isPaid 
-                  ? 'Hemos recibido tu pago con éxito. Tu pedido ya está en preparación.'
+                  ? 'Hemos recibido tu pago con ÃƒÂ©xito. Tu pedido ya estÃƒÂ¡ en preparaciÃƒÂ³n.'
                   : isExpired 
-                    ? 'El tiempo límite para realizar el pago de este pedido ha expirado. Por favor, crea uno nuevo.'
-                    : 'Verifica los artículos de tu pedido y realiza el pago de forma segura.'}
+                    ? 'El tiempo lÃƒÂ­mite para realizar el pago de este pedido ha expirado. Por favor, crea uno nuevo.'
+                    : 'Verifica los artÃƒÂ­culos de tu pedido y realiza el pago de forma segura.'}
               </p>
             </div>
 
@@ -170,7 +170,7 @@ export default function SmartPayClient({
                   <div key={idx} className="p-3.5 flex items-center justify-between text-xs font-semibold bg-white">
                     <div className="min-w-0 pr-4">
                       <h5 className="font-bold text-zinc-900 truncate">{item.name}</h5>
-                      <span className="text-[10px] text-zinc-400 font-semibold block mt-0.5">Cant: {item.qty} × ${item.price.toLocaleString('es-CO')}</span>
+                      <span className="text-[10px] text-zinc-400 font-semibold block mt-0.5">Cant: {item.qty} Ãƒâ€” ${item.price.toLocaleString('es-CO')}</span>
                     </div>
                     <span className="font-bold text-zinc-950 shrink-0">${(item.price * item.qty).toLocaleString('es-CO')}</span>
                   </div>
@@ -213,7 +213,7 @@ export default function SmartPayClient({
                 <div>
                   <h3 className="font-extrabold text-zinc-950 text-sm">Pedido Confirmado</h3>
                   <p className="text-xs text-zinc-405 font-semibold mt-1 leading-normal max-w-[200px] mx-auto">
-                    Tu comprobante ha sido registrado. El comercio validará y despachará tu orden en breve.
+                    Tu comprobante ha sido registrado. El comercio validarÃƒÂ¡ y despacharÃƒÂ¡ tu orden en breve.
                   </p>
                 </div>
 
@@ -237,7 +237,7 @@ export default function SmartPayClient({
                 <div>
                   <h3 className="font-bold text-zinc-900 text-sm">Tiempo Expirado</h3>
                   <p className="text-xs text-zinc-400 font-semibold leading-normal max-w-[180px] mx-auto mt-1">
-                    El tiempo para pagar expiró. Comunícate con el vendedor para renovar la orden.
+                    El tiempo para pagar expirÃƒÂ³. ComunÃƒÂ­cate con el vendedor para renovar la orden.
                   </p>
                 </div>
               </div>
@@ -266,14 +266,14 @@ export default function SmartPayClient({
                     className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer select-none active:scale-[0.97]"
                   >
                     <QrCode className="w-4.5 h-4.5 shrink-0" />
-                    <span>{showQrOnMobile ? 'Ocultar Código QR' : 'Mostrar Código QR'}</span>
+                    <span>{showQrOnMobile ? 'Ocultar CÃƒÂ³digo QR' : 'Mostrar CÃƒÂ³digo QR'}</span>
                   </button>
 
                   {showQrOnMobile && (
                     <div className="p-4 bg-white border border-zinc-200 rounded-xl inline-block mx-auto animate-in zoom-in duration-200">
                       <img 
                         src={qrCodeUrl} 
-                        alt="Código QR de Pago" 
+                        alt="CÃƒÂ³digo QR de Pago" 
                         className="w-44 h-44 object-contain select-none"
                       />
                       <span className="text-[9px] font-semibold text-zinc-400 block mt-2">Escanea para pagar desde otro dispositivo</span>
@@ -286,7 +286,7 @@ export default function SmartPayClient({
                   <div className="p-4 bg-white border border-zinc-200 rounded-xl select-none">
                     <img 
                       src={qrCodeUrl} 
-                      alt="Código QR de Pago" 
+                      alt="CÃƒÂ³digo QR de Pago" 
                       className="w-48 h-48 object-contain"
                     />
                   </div>
@@ -294,7 +294,7 @@ export default function SmartPayClient({
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Escanea el QR</span>
                     <p className="text-xs text-zinc-405 font-semibold leading-normal max-w-[200px]">
-                      Abre la cámara de tu celular o tu app bancaria para pagar inmediatamente.
+                      Abre la cÃƒÂ¡mara de tu celular o tu app bancaria para pagar inmediatamente.
                     </p>
                   </div>
 
@@ -322,7 +322,7 @@ export default function SmartPayClient({
       {/* Footer disclaimer */}
       <footer className="text-center select-none">
         <span className="text-[10px] font-semibold text-zinc-400">
-          Procesado de forma segura por ⚡ FlashCheckout. Todos los derechos reservados.
+          Procesado de forma segura por Ã¢Å¡Â¡ Flashcheckouts. Todos los derechos reservados.
         </span>
       </footer>
 

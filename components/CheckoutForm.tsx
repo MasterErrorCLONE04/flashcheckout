@@ -167,7 +167,7 @@ export default function CheckoutForm({
         {/* Heading */}
         <div className="mb-10">
           <h1 className="text-5xl font-extrabold tracking-tighter text-foreground leading-none m-0">
-            Catálogo
+            CatÃƒÂ¡logo
           </h1>
           <p className="text-[10px] text-muted-foreground font-bold tracking-[0.1em] mt-2.5 mb-0">
             Suministros seleccionados de alta gama
@@ -296,7 +296,7 @@ interface ProductCardProps {
 }
 
 function StoreProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
-  // Datos calculados para la estética de la imagen
+  // Datos calculados para la estÃƒÂ©tica de la imagen
   const originalPrice = Math.floor(p.price * 1.15)
   
   return (
@@ -328,7 +328,7 @@ function StoreProductCard({ product: p, qty, onChangeQty }: ProductCardProps) {
       <div className="p-4 flex flex-col space-y-3">
         <div className="space-y-1">
           <p className="text-[10px] font-bold text-zinc-400">
-            Electrónica
+            ElectrÃƒÂ³nica
           </p>
           
           <h3 className="text-base font-bold text-[#111111] leading-tight line-clamp-2">
@@ -455,8 +455,8 @@ function CartModal({
   if (!isOpen) return null
 
   const fields = [
-    { key: 'customerName', label: 'Nombre de recibo', placeholder: 'Nombre de quién recibe', Icon: User },
-    { key: 'address', label: 'Dirección de entrega', placeholder: 'Calle, carrera, número...', Icon: MapPin },
+    { key: 'customerName', label: 'Nombre de recibo', placeholder: 'Nombre de quiÃƒÂ©n recibe', Icon: User },
+    { key: 'address', label: 'DirecciÃƒÂ³n de entrega', placeholder: 'Calle, carrera, nÃƒÂºmero...', Icon: MapPin },
     { key: 'city', label: 'Ciudad / municipio', placeholder: 'Ciudad o municipio', Icon: Globe },
   ] as const
 
@@ -471,14 +471,14 @@ function CartModal({
       {/* Modal Container */}
       <div className="relative w-full max-w-[540px] glass-premium rounded-t-[32px] sm:rounded-[32px] flex flex-col max-h-[95vh] sm:max-h-[90vh] overflow-hidden border border-white/40 shadow-2xl animate-in">
         
-        {/* Header: Más limpio y aireado */}
+        {/* Header: MÃƒÂ¡s limpio y aireado */}
         <div className="flex justify-between items-start p-8 pb-6 border-b border-white/20">
           <div>
             <h2 className="text-[32px] font-black tracking-tighter text-zinc-900 m-0 leading-tight">Tu pedido</h2>
             <div className="flex items-center gap-2 mt-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
               <p className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] uppercase m-0">
-                Revisión final de compra
+                RevisiÃƒÂ³n final de compra
               </p>
             </div>
           </div>
@@ -496,7 +496,7 @@ function CartModal({
           {/* Items Section */}
           <section>
             <div className="flex justify-between items-center mb-5">
-              <span className="text-[10px] font-black tracking-[0.15em] text-zinc-400">Resumen de ítems</span>
+              <span className="text-[10px] font-black tracking-[0.15em] text-zinc-400">Resumen de ÃƒÂ­tems</span>
               <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-tight">
                 {itemsInCart} {itemsInCart === 1 ? 'unidad' : 'unidades'}
               </span>
@@ -633,7 +633,7 @@ function CartModal({
                 {loadingAction === 'card' ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Segurizando sesión...</span>
+                    <span>Segurizando sesiÃƒÂ³n...</span>
                   </div>
                 ) : (
                   <>
@@ -655,7 +655,7 @@ function CartModal({
               ) : (
                 <>
                   <MessageCircle className="w-5 h-5" />
-                  <span>Confirmar vía WhatsApp</span>
+                  <span>Confirmar vÃƒÂ­a WhatsApp</span>
                 </>
               )}
             </button>
@@ -664,7 +664,7 @@ function CartModal({
           <div className="mt-5 flex items-center justify-center gap-2 opacity-30">
             <Zap className="w-3 h-3 text-zinc-900" />
             <p className="text-[10px] text-zinc-900 font-extrabold tracking-[0.2em] m-0">
-              Protocolo Seguro v2.0 • FlashCheckout
+              Protocolo Seguro v2.0 Ã¢â‚¬Â¢ Flashcheckouts
             </p>
           </div>
         </div>

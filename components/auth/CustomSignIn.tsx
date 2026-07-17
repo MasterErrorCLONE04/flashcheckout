@@ -82,10 +82,10 @@ const CustomSignIn = () => {
         window.location.href = '/productos'
       } else {
         console.log('SignIn status no completado. Estado:', result.status);
-        setError(`El inicio de sesión requiere pasos adicionales (${result.status}).`)
+        setError(`El inicio de sesiÃƒÂ³n requiere pasos adicionales (${result.status}).`)
       }
     } catch (err: any) {
-      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Email o contraseña incorrectos.'
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Email o contraseÃƒÂ±a incorrectos.'
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -106,7 +106,7 @@ const CustomSignIn = () => {
         <section className="flex h-full w-full flex-col justify-center gap-8 p-6 lg:p-20 lg:border-r animate-in">
           <div className="flex flex-col items-center justify-center gap-2 lg:items-start lg:justify-start">
             <h1 className="text-pretty text-center font-semibold text-[28px] leading-[130%] tracking-[-1.12px] lg:text-left">Welcome back</h1>
-            <p className="text-center text-heading-description text-sm leading-[140%] tracking-[-0.28px] lg:text-left">Log in to access your FlashCheckout account.</p>
+            <p className="text-center text-heading-description text-sm leading-[140%] tracking-[-0.28px] lg:text-left">Log in to access your Flashcheckouts account.</p>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -170,7 +170,7 @@ const CustomSignIn = () => {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••••"
+                    placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
                     className="-outline-offset-1 flex w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base transition-color selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-primary h-10 md:text-sm pr-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

@@ -18,12 +18,12 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-const FlashCheckoutLogo = () => (
+const FlashcheckoutsLogo = () => (
   <Link href="/" className="flex items-center gap-2.5 group transition-all hover:opacity-80">
     <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm group-hover:scale-105 transition-transform">
       F
     </div>
-    <span className="text-[20px] font-medium tracking-tight text-[#111827]">FlashCheckout</span>
+    <span className="text-[20px] font-medium tracking-tight text-[#111827]">Flashcheckouts</span>
   </Link>
 )
 
@@ -145,7 +145,7 @@ export default function Navbar({ userId }: { userId?: string }) {
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-white/80 backdrop-blur-md border-[#E5E7EB] py-3' : 'bg-white border-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <FlashCheckoutLogo />
+        <FlashcheckoutsLogo />
 
         <nav className="hidden lg:flex items-center gap-8 h-10">
           {NAVIGATION_CONFIG.map((item, i) => (
