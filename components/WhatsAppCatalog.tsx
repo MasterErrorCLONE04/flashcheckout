@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { SiVisa, SiMastercard } from 'react-icons/si'
+import type { PublicCheckoutStore } from '@/lib/checkout/types'
 
 const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
@@ -63,7 +64,7 @@ type Product = {
   imageUrl: string | null
   category?: string
   description?: string
-  options?: ProductOption[] | string
+  options?: unknown
 }
 
 type CatalogSettings = {
@@ -167,17 +168,7 @@ type CatalogSettings = {
   }
 }
 
-type Store = {
-  id: string
-  name: string
-  whatsapp: string
-  products: Product[]
-  logoUrl: string | null
-  cardPaymentsEnabled: boolean
-  bio?: string | null
-  aiSettings?: CatalogSettings
-  bannerUrl?: string | null
-}
+type Store = PublicCheckoutStore
 
 type NavLink = {
   label: string
@@ -209,7 +200,7 @@ function parseCartKey(cartKey: string) {
   return { productId, variations }
 }
 
-function normalizeProductOptions(options: Product['options']): ProductOption[] {
+function normalizeProductOptions(options: unknown): ProductOption[] {
   if (!options) return []
 
   const parsed = typeof options === 'string'
@@ -314,7 +305,7 @@ export default function WhatsAppCatalog({
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Configuración de apariencia dinámica proveniente del administrador
-  const aiSettings: CatalogSettings = store.aiSettings || {}
+  const aiSettings = (store.aiSettings as CatalogSettings) || {}
   const colors = {
     primario: aiSettings.colors?.primario || '#059669', // Emerald 600 default
     secundario: aiSettings.colors?.secundario || '#D97706', // Amber 600 default
@@ -955,9 +946,9 @@ export default function WhatsAppCatalog({
               {/* Redes Sociales en cabecera (Desktop) */}
               {socialsShowInCatalog && (
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {store.aiSettings?.socials?.instagram && (
+                  {aiSettings.socials?.instagram && (
                     <a 
-                      href={store.aiSettings.socials.instagram} 
+                      href={aiSettings.socials.instagram} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
@@ -966,9 +957,9 @@ export default function WhatsAppCatalog({
                       <InstagramIcon />
                     </a>
                   )}
-                  {store.aiSettings?.socials?.facebook && (
+                  {aiSettings.socials?.facebook && (
                     <a 
-                      href={store.aiSettings.socials.facebook} 
+                      href={aiSettings.socials.facebook} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
@@ -977,9 +968,9 @@ export default function WhatsAppCatalog({
                       <FacebookIcon />
                     </a>
                   )}
-                  {store.aiSettings?.socials?.twitter && (
+                  {aiSettings.socials?.twitter && (
                     <a 
-                      href={store.aiSettings.socials.twitter} 
+                      href={aiSettings.socials.twitter} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
@@ -988,9 +979,9 @@ export default function WhatsAppCatalog({
                       <TwitterIcon />
                     </a>
                   )}
-                  {store.aiSettings?.socials?.tiktok && (
+                  {aiSettings.socials?.tiktok && (
                     <a 
-                      href={store.aiSettings.socials.tiktok} 
+                      href={aiSettings.socials.tiktok} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
@@ -1992,23 +1983,23 @@ export default function WhatsAppCatalog({
                 <div className="space-y-2 pt-2">
                   <h4 className="font-extrabold text-[10px] text-white/50 uppercase tracking-wider">Síguenos</h4>
                   <div className="flex gap-2.5">
-                    {store.aiSettings?.socials?.instagram && (
-                      <a href={store.aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Instagram">
+                    {aiSettings.socials?.instagram && (
+                      <a href={aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Instagram">
                         <InstagramIcon />
                       </a>
                     )}
-                    {store.aiSettings?.socials?.facebook && (
-                      <a href={store.aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Facebook">
+                    {aiSettings.socials?.facebook && (
+                      <a href={aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Facebook">
                         <FacebookIcon />
                       </a>
                     )}
-                    {store.aiSettings?.socials?.twitter && (
-                      <a href={store.aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Twitter / X">
+                    {aiSettings.socials?.twitter && (
+                      <a href={aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="Twitter / X">
                         <TwitterIcon />
                       </a>
                     )}
-                    {store.aiSettings?.socials?.tiktok && (
-                      <a href={store.aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="TikTok">
+                    {aiSettings.socials?.tiktok && (
+                      <a href={aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors" title="TikTok">
                         <TikTokIcon />
                       </a>
                     )}
@@ -2583,23 +2574,23 @@ export default function WhatsAppCatalog({
                 
                 {socialsShowInCatalog && (
                   <div className="flex gap-3 text-zinc-400">
-                    {store.aiSettings?.socials?.instagram && (
-                      <a href={store.aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="Instagram">
+                    {aiSettings.socials?.instagram && (
+                      <a href={aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="Instagram">
                         <InstagramIcon />
                       </a>
                     )}
-                    {store.aiSettings?.socials?.facebook && (
-                      <a href={store.aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="Facebook">
+                    {aiSettings.socials?.facebook && (
+                      <a href={aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="Facebook">
                         <FacebookIcon />
                       </a>
                     )}
-                    {store.aiSettings?.socials?.twitter && (
-                      <a href={store.aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="Twitter / X">
+                    {aiSettings.socials?.twitter && (
+                      <a href={aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="Twitter / X">
                         <TwitterIcon />
                       </a>
                     )}
-                    {store.aiSettings?.socials?.tiktok && (
-                      <a href={store.aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="TikTok">
+                    {aiSettings.socials?.tiktok && (
+                      <a href={aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 transition-colors" title="TikTok">
                         <TikTokIcon />
                       </a>
                     )}
@@ -3073,27 +3064,27 @@ export default function WhatsAppCatalog({
               )}
 
               {/* Socials Links (Mobile menu) */}
-              {socialsShowInCatalog && (store.aiSettings?.socials?.instagram || store.aiSettings?.socials?.facebook || store.aiSettings?.socials?.twitter || store.aiSettings?.socials?.tiktok) && (
+              {socialsShowInCatalog && (aiSettings.socials?.instagram || aiSettings.socials?.facebook || aiSettings.socials?.twitter || aiSettings.socials?.tiktok) && (
                 <div className="space-y-2 pt-4 border-t border-zinc-100 text-left">
                   <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Redes sociales</h4>
                   <div className="flex gap-2 px-1">
-                    {store.aiSettings.socials.instagram && (
-                      <a href={store.aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Instagram">
+                    {aiSettings.socials?.instagram && (
+                      <a href={aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Instagram">
                         <InstagramIcon />
                       </a>
                     )}
-                    {store.aiSettings.socials.facebook && (
-                      <a href={store.aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Facebook">
+                    {aiSettings.socials?.facebook && (
+                      <a href={aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Facebook">
                         <FacebookIcon />
                       </a>
                     )}
-                    {store.aiSettings.socials.twitter && (
-                      <a href={store.aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Twitter / X">
+                    {aiSettings.socials?.twitter && (
+                      <a href={aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Twitter / X">
                         <TwitterIcon />
                       </a>
                     )}
-                    {store.aiSettings.socials.tiktok && (
-                      <a href={store.aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="TikTok">
+                    {aiSettings.socials?.tiktok && (
+                      <a href={aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="TikTok">
                         <TikTokIcon />
                       </a>
                     )}

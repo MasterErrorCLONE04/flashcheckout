@@ -1,7 +1,15 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { waClient as officialWaClient } from '@/lib/whatsapp/cloud-api';
-import { emptyCartState, normalizeChatMessages } from '@/lib/whatsapp/session-state';
+import {
+  buildCartState,
+  cartStateToLines,
+  emptyCartState,
+  normalizeChatMessages,
+  type CartLine,
+  type CartState,
+  type WhatsAppChatMessage,
+} from '@/lib/whatsapp/session-state';
 import { parseIntent } from './intent-engine';
 import { searchGlobalProducts } from './search-service';
 import { mpPreference } from '@/lib/mercadopago';
@@ -9,9 +17,6 @@ import { uploadProofImage } from '@/lib/supabase';
 
 type SessionRecord = NonNullable<Awaited<ReturnType<typeof prisma.whatsAppSession.findUnique>>>;
 type StoreRecord = NonNullable<Awaited<ReturnType<typeof prisma.store.findUnique>>>;
-type ChatMessage = { sender: 'user' | 'bot'; text: string; time: string; timestamp: number };
-type CartItem = { id: string; name: string; price: number; qty: number; storeId?: string };
-type CartState = { items: Record<string, CartItem> };
 type BotClient = {
   sendText: (to: string, msg: string) => Promise<unknown>;
   sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => Promise<unknown>;
@@ -19,49 +24,14 @@ type BotClient = {
   sendImage: (to: string, img: string, cap: string) => Promise<unknown>;
   sendDocument: (to: string, doc: string, fn: string) => Promise<unknown>;
   sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => Promise<unknown>;
-  sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: any, header?: string, body?: string) => Promise<unknown>;
+  sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string) => Promise<unknown>;
 };
+
+type ChatMessage = WhatsAppChatMessage
+type CartItem = CartLine
 
 function toChatMessages(value: unknown): ChatMessage[] {
   return normalizeChatMessages(value);
-}
-
-function toCartState(value: unknown): CartState {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return { items: {} };
-  const maybeCart = value as { items?: Record<string, unknown> };
-  if (!maybeCart.items || typeof maybeCart.items !== 'object') return { items: {} };
-
-  const items: Record<string, CartItem> = {};
-  for (const [key, raw] of Object.entries(maybeCart.items)) {
-    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-      const item = raw as Partial<CartItem>;
-      if (typeof item.id === 'string' && typeof item.name === 'string' && typeof item.price === 'number' && typeof item.qty === 'number') {
-        const normalizedItem: CartItem = {
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          qty: item.qty,
-        };
-        if (typeof item.storeId === 'string') {
-          normalizedItem.storeId = item.storeId;
-        }
-        items[key] = normalizedItem;
-      }
-    }
-  }
-  return { items };
-}
-
-function toCartItems(cart: CartState): CartItem[] {
-  return Object.values(cart.items).filter((item): item is CartItem => {
-    return Boolean(
-      item &&
-      typeof item.id === 'string' &&
-      typeof item.name === 'string' &&
-      typeof item.price === 'number' &&
-      typeof item.qty === 'number'
-    );
-  });
 }
 
 type DownloadableWhatsAppClient = {
@@ -113,8 +83,7 @@ function createDownloadableClient(
 }
 
 async function getCartItemsForSession(session: SessionRecord): Promise<CartItem[]> {
-  const cart = toCartState(session.cart);
-  const items = toCartItems(cart);
+  const items = cartStateToLines(session.cart);
 
   if (items.length > 0) {
     return items;
@@ -141,7 +110,7 @@ async function getCartItemsForSession(session: SessionRecord): Promise<CartItem[
     }
   }
 
-  return items
+  return []
 }
 
 async function findWhatsAppSession(phoneNumber: string, storeId: string): Promise<SessionRecord | null> {
@@ -421,7 +390,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       // Estructura esperada del Flow de Catálogo: { selections: ["prod_1", "prod_2"] }
       // Nota: Para cantidades más complejas, el Flow devolvería un array de objetos.
       if (response.selections && Array.isArray(response.selections)) {
-        let currentCart = toCartState(session.cart);
+        let currentCart: CartState = buildCartState(cartStateToLines(session.cart));
 
         for (const prodId of response.selections) {
           const product = await prisma.product.findUnique({ where: { id: prodId } });
@@ -705,7 +674,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     const p = await prisma.product.findUnique({ where: { id: productId } });
 
     if (p) {
-      let currentCart = toCartState(session.cart);
+      let currentCart: CartState = buildCartState(cartStateToLines(session.cart));
       
       currentCart.items[p.id] = {
         id: p.id,

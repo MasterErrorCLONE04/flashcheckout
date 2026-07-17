@@ -31,6 +31,7 @@ import {
 import { toast } from 'sonner'
 import Link from 'next/link'
 import WhatsAppCatalog from '@/components/WhatsAppCatalog'
+import type { PublicCheckoutStore } from '@/lib/checkout/types'
 
 interface Product {
   id: string
@@ -38,6 +39,106 @@ interface Product {
   price: number
   imageUrl: string | null
   stock: number
+}
+
+type TiendaSettings = {
+  colors?: {
+    primario?: string
+    secundario?: string
+    acento?: string
+    fondo?: string
+    texto?: string
+  }
+  sections?: Record<string, boolean | undefined>
+  bentoHighlights?: {
+    title?: string
+    items?: Array<{ emoji: string; title: string; desc: string }>
+  }
+  visualCategories?: Array<{ category: string; imageUrl: string }>
+  processTimeline?: {
+    title?: string
+    items?: Array<{ step: string; title: string; desc: string }>
+  }
+  lifestyleGallery?: string[]
+  newsletterWidget?: {
+    title?: string
+    subtitle?: string
+    placeholder?: string
+    btnText?: string
+    bgColor?: string
+    textColor?: string
+  }
+  navbarLinks?: Array<{ label: string; action: 'scroll-banner' | 'scroll-products' | 'scroll-story' | 'whatsapp' | 'link'; link: string }>
+  accordionSpecs?: {
+    tabs?: Array<{ title: string; content: string }>
+  }
+  brandStory?: {
+    title?: string
+    desc?: string
+    bgUrl?: string
+    btnText?: string
+    btnLink?: string
+  }
+  brandStoryPage?: {
+    headerTrayectoria?: string
+    headerPerfil?: string
+    narrativeP1?: string
+    narrativeP2?: string
+    imageHeritage?: string
+    pillarsTitle?: string
+    pillar1Icon?: string
+    pillar1Title?: string
+    pillar1Desc?: string
+    pillar2Icon?: string
+    pillar2Title?: string
+    pillar2Desc?: string
+    leadership?: Array<{ name: string; role: string; icon: string }>
+    values?: Array<{ title: string; desc: string }>
+  }
+  bannerUrl?: string
+  bannerTitle?: string
+  bannerSubtitle?: string
+  announcement?: {
+    enabled?: boolean
+    text?: string
+    bgColor?: string
+    textColor?: string
+  }
+  bannerButton?: {
+    text?: string
+    action?: 'scroll' | 'whatsapp' | 'link'
+    link?: string
+  }
+  benefits?: {
+    items?: Array<{ icon: 'Truck' | 'ShieldCheck' | 'Award' | 'Clock' | 'Gift' | 'Star'; label: string; desc: string }>
+  }
+  socialsShowInCatalog?: boolean
+  schedule?: {
+    enabled?: boolean
+    text?: string
+    alwaysOpen?: boolean
+  }
+  heroType?: string
+  heroVideoUrl?: string
+  ingredientsSection?: {
+    title?: string
+    leftTitle?: string
+    leftDesc?: string
+    centerImageUrl?: string
+    rightTitle?: string
+    rightDesc?: string
+  }
+  freeShipping?: {
+    enabled?: boolean
+    threshold?: number
+  }
+  socials?: {
+    instagram?: string
+    facebook?: string
+    tiktok?: string
+    twitter?: string
+    web?: string
+  }
 }
 
 interface TiendaClientProps {
@@ -49,7 +150,7 @@ interface TiendaClientProps {
     whatsapp: string
     bio: string | null
     logoUrl: string | null
-    aiSettings: any
+    aiSettings: Record<string, unknown>
     active: boolean
   }
   products: Product[]
@@ -83,8 +184,8 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   }, [])
 
   // Parse initial settings
-  const parsedSettings = initialStore.aiSettings && typeof initialStore.aiSettings === 'object' 
-    ? initialStore.aiSettings 
+  const parsedSettings: TiendaSettings = initialStore.aiSettings && typeof initialStore.aiSettings === 'object'
+    ? (initialStore.aiSettings as TiendaSettings)
     : {}
 
   // Color Theme state
@@ -343,6 +444,51 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
     refunds: parsedSettings.policies?.refunds || ''
   })
 
+  const previewStore: PublicCheckoutStore = {
+    ...initialStore,
+    name: storeInfo.name,
+    whatsapp: storeInfo.whatsapp,
+    logoUrl: logoUrl || null,
+    bio: storeInfo.desc,
+    products,
+    cardPaymentsEnabled: true,
+    aiSettings: {
+      colors,
+      sections,
+      bannerUrl,
+      bannerTitle,
+      bannerSubtitle,
+      announcement,
+      bannerButton,
+      benefits,
+      socialsShowInCatalog,
+      schedule,
+      whatsappTemplate,
+      socials,
+      policies,
+      typography,
+      info: {
+        address: storeInfo.address,
+      },
+      bentoHighlights,
+      accordionSpecs: {
+        tabs: accordionSpecs,
+      },
+      brandStory,
+      brandStoryPage,
+      visualCategories,
+      processTimeline,
+      lifestyleGallery,
+      newsletterWidget,
+      navbarLinks,
+      heroType,
+      heroVideoUrl,
+      ingredientsSection,
+      freeShipping,
+    },
+    bannerUrl: bannerUrl || null,
+  }
+
   const isImageUrl = (url: string) => {
     return url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))
   }
@@ -529,7 +675,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={`pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === tab.id 
                 ? 'border-emerald-500 text-emerald-800' 
@@ -724,7 +870,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Acción del botón</label>
                       <select 
                         value={bannerButton.action}
-                        onChange={e => setBannerButton(prev => ({ ...prev, action: e.target.value as any }))}
+                        onChange={e => setBannerButton(prev => ({ ...prev, action: e.target.value as 'scroll' | 'whatsapp' | 'link' }))}
                         className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                       >
                         <option value="scroll">Hacer scroll a los productos</option>
@@ -1733,7 +1879,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                             value={item.action}
                             onChange={e => {
                               const newLinks = [...navbarLinks]
-                              newLinks[idx] = { ...item, action: e.target.value as any }
+                              newLinks[idx] = { ...item, action: e.target.value as 'scroll-banner' | 'scroll-products' | 'scroll-story' | 'whatsapp' | 'link' }
                               setNavbarLinks(newLinks)
                             }}
                             className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
@@ -2216,7 +2362,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   <span>{item.label}</span>
                   
                   <button
-                    onClick={() => handleSectionToggle(item.id as any)}
+                    onClick={() => handleSectionToggle(item.id as keyof typeof sections)}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0",
                       sections[item.id as keyof typeof sections] ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
@@ -2308,7 +2454,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   return (
                     <button
                       key={dev.id}
-                      onClick={() => setDevice(dev.id as any)}
+                      onClick={() => setDevice(dev.id as 'escritorio' | 'tablet' | 'movil')}
                       className={`p-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 text-[10px] xl:text-xs font-bold ${
                         device === dev.id 
                           ? 'bg-white text-zinc-955 shadow-sm border border-zinc-200/40' 
@@ -2349,48 +2495,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   )}
 
                   <WhatsAppCatalog 
-                    store={{
-                      ...initialStore,
-                      name: storeInfo.name,
-                      whatsapp: storeInfo.whatsapp,
-                      logoUrl: logoUrl || null,
-                      bio: storeInfo.desc,
-                      products: products,
-                      aiSettings: {
-                        colors,
-                        sections,
-                        bannerUrl,
-                        bannerTitle,
-                        bannerSubtitle,
-                        announcement,
-                        bannerButton,
-                        benefits,
-                        socialsShowInCatalog,
-                        schedule,
-                        whatsappTemplate,
-                        socials,
-                        policies,
-                        typography,
-                        info: {
-                          address: storeInfo.address
-                        },
-                         bentoHighlights,
-                         accordionSpecs: {
-                           tabs: accordionSpecs
-                         },
-                          brandStory,
-                          brandStoryPage,
-                          visualCategories,
-                         processTimeline,
-                         lifestyleGallery,
-                         newsletterWidget,
-                         navbarLinks,
-                         heroType,
-                         heroVideoUrl,
-                         ingredientsSection,
-                         freeShipping
-                        }
-                    } as any}
+                    store={previewStore}
                     device={device}
                   />
                 </div>

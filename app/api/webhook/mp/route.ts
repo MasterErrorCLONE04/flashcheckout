@@ -3,6 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { mpPayment } from '@/lib/mercadopago'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import { sendInvoiceToWhatsApp } from '@/lib/whatsapp/send-invoice'
+import {
+  logWebhookError,
+  logWebhookEvent,
+  logWebhookWarn,
+  parseJsonBody,
+  verifyMercadoPagoWebhookSignature,
+} from '@/lib/webhooks'
 
 type WhatsAppNotifier = {
   sendText: (to: string, message: string) => Promise<unknown>
@@ -26,38 +33,153 @@ type StoreNotificationTarget = {
   whatsappConnected: boolean
 }
 
+type MercadoPagoWebhookBody = {
+  action?: string
+  api_version?: string
+  data?: {
+    id?: string | number
+  }
+  date_created?: string
+  id?: string | number
+  live_mode?: boolean
+  type?: string
+  user_id?: string | number
+}
+
+const MERCADOPAGO_WEBHOOK_SECRET =
+  process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim() || ''
+
+function toStringId(value: string | number | undefined | null) {
+  return value == null ? null : String(value)
+}
+
+function resolvePaymentStatus(status: string) {
+  if (status === 'approved') {
+    return { paymentStatus: 'PAID' as const, legacyStatus: 'paid' }
+  }
+
+  if (['rejected', 'cancelled'].includes(status || '')) {
+    return { paymentStatus: 'FAILED' as const, legacyStatus: 'cancelled' }
+  }
+
+  return { paymentStatus: 'PENDING' as const, legacyStatus: 'pending_payment' }
+}
+
 export async function POST(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const type = searchParams.get('type') || searchParams.get('topic')
-    const id = searchParams.get('data.id') || searchParams.get('id')
+    const dataId = searchParams.get('data.id') || searchParams.get('id')
+    const xSignature = req.headers.get('x-signature')
+    const xRequestId = req.headers.get('x-request-id')
+    const rawBody = await req.text()
+    const body = parseJsonBody<MercadoPagoWebhookBody>(rawBody)
 
-    console.log(`[MP Webhook] Received notification: type=${type}, id=${id}`)
+    logWebhookEvent('mercadopago', 'received', {
+      topic: type,
+      dataId,
+      requestId: xRequestId,
+      notificationId: toStringId(body?.id),
+      action: body?.action,
+    })
 
-    if (type !== 'payment' || !id) {
+    if (!type) {
+      logWebhookWarn('mercadopago', 'missing_type', {
+        requestId: xRequestId,
+        dataId,
+      })
+      return NextResponse.json({ error: 'Missing notification type' }, { status: 400 })
+    }
+
+    if (type !== 'payment') {
+      logWebhookEvent('mercadopago', 'ignored', {
+        reason: 'unsupported_topic',
+        topic: type,
+        requestId: xRequestId,
+      })
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
-    const payment = await mpPayment.get({ id })
+    if (!dataId) {
+      logWebhookWarn('mercadopago', 'missing_data_id', {
+        requestId: xRequestId,
+        topic: type,
+      })
+      return NextResponse.json({ error: 'Missing data.id' }, { status: 400 })
+    }
+
+    if (!body) {
+      logWebhookWarn('mercadopago', 'invalid_json', {
+        requestId: xRequestId,
+        dataId,
+      })
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    }
+
+    if (!MERCADOPAGO_WEBHOOK_SECRET && process.env.NODE_ENV === 'production') {
+      logWebhookError('mercadopago', 'missing_webhook_secret', {
+        requestId: xRequestId,
+        dataId,
+      })
+      return NextResponse.json({ error: 'Webhook config error' }, { status: 500 })
+    }
+
+    if (
+      MERCADOPAGO_WEBHOOK_SECRET &&
+      !verifyMercadoPagoWebhookSignature({
+        dataId,
+        secret: MERCADOPAGO_WEBHOOK_SECRET,
+        xRequestId,
+        xSignature,
+      })
+    ) {
+      logWebhookWarn('mercadopago', 'signature_rejected', {
+        requestId: xRequestId,
+        dataId,
+        hasSignature: Boolean(xSignature),
+      })
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+    }
+
+    if (!MERCADOPAGO_WEBHOOK_SECRET) {
+      logWebhookWarn('mercadopago', 'signature_skipped', {
+        requestId: xRequestId,
+        dataId,
+        reason: 'missing_secret',
+      })
+    }
+
+    const payment = await mpPayment.get({ id: dataId })
     const orderId = payment.external_reference
     const status = payment.status
 
     if (!orderId) {
-      console.error('[MP Webhook] No external_reference found in payment', id)
-      return new Response('No order reference', { status: 400 })
+      logWebhookWarn('mercadopago', 'missing_order_reference', {
+        requestId: xRequestId,
+        dataId,
+        paymentStatus: status,
+      })
+      return NextResponse.json({ error: 'No order reference' }, { status: 400 })
     }
 
-    console.log(`[MP Webhook] Processing Order ${orderId}: Status is ${status}`)
+    const { paymentStatus: newStatus, legacyStatus } = resolvePaymentStatus(status)
 
-    let newStatus: 'PAID' | 'FAILED' | 'PENDING' = 'PENDING'
-    let legacyStatus = 'pending_payment'
+    logWebhookEvent('mercadopago', 'processing', {
+      requestId: xRequestId,
+      dataId,
+      orderId,
+      paymentStatus: status,
+    })
 
-    if (status === 'approved') {
-      newStatus = 'PAID'
-      legacyStatus = 'paid'
-    } else if (['rejected', 'cancelled'].includes(status || '')) {
-      newStatus = 'FAILED'
-      legacyStatus = 'cancelled'
+    if (newStatus === 'PENDING') {
+      logWebhookEvent('mercadopago', 'ignored', {
+        requestId: xRequestId,
+        dataId,
+        orderId,
+        paymentStatus: status,
+        reason: 'non_terminal_status',
+      })
+      return NextResponse.json({ received: true }, { status: 200 })
     }
 
     const currentOrder = await prisma.order.findUnique({
@@ -77,12 +199,22 @@ export async function POST(req: Request) {
     })
 
     if (!currentOrder) {
-      console.warn(`[MP Webhook] Order not found: ${orderId}`)
+      logWebhookWarn('mercadopago', 'order_not_found', {
+        requestId: xRequestId,
+        dataId,
+        orderId,
+      })
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
-    if (currentOrder.mpPaymentId === String(id) && currentOrder.paymentStatus === newStatus) {
-      console.log(`[MP Webhook] Duplicate notification ignored for order ${orderId} and payment ${id}`)
+    if (currentOrder.mpPaymentId === String(dataId) && currentOrder.paymentStatus === newStatus) {
+      logWebhookEvent('mercadopago', 'duplicate', {
+        requestId: xRequestId,
+        dataId,
+        orderId,
+        paymentId: dataId,
+        paymentStatus: newStatus,
+      })
       return NextResponse.json({ received: true, duplicate: true }, { status: 200 })
     }
 
@@ -91,8 +223,16 @@ export async function POST(req: Request) {
       data: {
         paymentStatus: newStatus,
         status: legacyStatus,
-        mpPaymentId: String(id),
+        mpPaymentId: String(dataId),
       },
+    })
+
+    logWebhookEvent('mercadopago', 'order_updated', {
+      requestId: xRequestId,
+      dataId,
+      orderId: order.id,
+      paymentStatus: newStatus,
+      legacyStatus,
     })
 
     let clientToUse: WhatsAppNotifier = waClient
@@ -124,7 +264,11 @@ export async function POST(req: Request) {
         }
       }
     } catch (err) {
-      console.error('[MP Webhook] Error resolving dynamic waClient:', err)
+      logWebhookError('mercadopago', 'client_resolution_failed', {
+        requestId: xRequestId,
+        dataId,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      })
     }
 
     if (newStatus === 'PAID') {
@@ -140,7 +284,8 @@ export async function POST(req: Request) {
 
         const recipient = order.customerPhone || order.customerWhatsAppId
         if (aut && recipient) {
-          const defaultMsg = '¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!'
+          const defaultMsg =
+            '¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!'
           const template = aut.customTemplate || defaultMsg
           const formattedMsg = template
             .replace(/{{cliente}}/g, order.customerName || 'Cliente')
@@ -157,7 +302,11 @@ export async function POST(req: Request) {
 
         await sendInvoiceToWhatsApp(orderId)
       } catch (error) {
-        console.error('[MP Webhook] Failed to send WhatsApp confirmation', error)
+        logWebhookError('mercadopago', 'payment_confirmation_failed', {
+          requestId: xRequestId,
+          dataId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
       }
     }
 
@@ -177,13 +326,27 @@ export async function POST(req: Request) {
           ]
         )
       } catch (error) {
-        console.error('[MP Webhook] Failed to notify store owner via WhatsApp', error)
+        logWebhookError('mercadopago', 'store_notification_failed', {
+          requestId: xRequestId,
+          dataId,
+          orderId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
       }
     }
 
+    logWebhookEvent('mercadopago', 'processed', {
+      requestId: xRequestId,
+      dataId,
+      orderId,
+      paymentStatus: newStatus,
+    })
+
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (error) {
-    console.error('[MP Webhook Error]', error)
+    logWebhookError('mercadopago', 'handler_error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
     return NextResponse.json({ error: 'Webhook failed' }, { status: 500 })
   }
 }

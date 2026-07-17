@@ -31,7 +31,10 @@ interface StoreData {
   whatsapp: string | null
   whatsappConnected: boolean
   mpConnected: boolean
-  settings: any
+  settings: {
+    customAgents?: Agent[]
+    officeLayout?: LayoutItem[]
+  }
 }
 
 interface LayoutItem {
@@ -264,7 +267,7 @@ export default function TheOfficeClient({
   outOfStockCount?: number
 }) {
   const [customAgents, setCustomAgents] = useState<Agent[]>(() => {
-    const loaded = store.settings?.customAgents || []
+    const loaded: Agent[] = store.settings?.customAgents || []
     // Assign desk coords to match concept
     const slots = [
       { top: '78%', left: '26%' },
@@ -272,7 +275,7 @@ export default function TheOfficeClient({
       { top: '56%', left: '78%' },
       { top: '78%', left: '50%' }
     ]
-    return loaded.map((a: any, idx: number) => {
+    return loaded.map((a, idx: number) => {
       let sittingDeskUrl = '/images/desk_l_vacant.png'
       let spriteUrl = '/images/sprite_sales.png'
       if (a.color === 'emerald') {
@@ -304,8 +307,8 @@ export default function TheOfficeClient({
 
   // Layout States for Grid Customizer
   const [layoutItems, setLayoutItems] = useState<LayoutItem[]>(() => {
-    const rawItems = store.settings?.officeLayout || DEFAULT_LAYOUT_ITEMS
-    return rawItems.map((it: any) => {
+    const rawItems: LayoutItem[] = store.settings?.officeLayout || DEFAULT_LAYOUT_ITEMS
+    return rawItems.map((it) => {
       const row = it.row < 3 ? 3 : it.row
       const isDesk = it.type === 'desk'
       const w = isDesk ? 3 : it.w
@@ -368,8 +371,8 @@ export default function TheOfficeClient({
   // Handle coordinates for all agents
   const [agentPositions, setAgentPositions] = useState<Record<string, { top: string; left: string }>>(() => {
     const coords: Record<string, { top: string; left: string }> = {}
-    const rawLayout = store.settings?.officeLayout || DEFAULT_LAYOUT_ITEMS
-    const initialLayout = rawLayout.map((it: any) => {
+    const rawLayout: LayoutItem[] = store.settings?.officeLayout || DEFAULT_LAYOUT_ITEMS
+    const initialLayout = rawLayout.map((it) => {
       const row = it.row < 3 ? 3 : it.row
       const isDesk = it.type === 'desk'
       const w = isDesk ? 3 : it.w
@@ -377,7 +380,7 @@ export default function TheOfficeClient({
       return { ...it, row, w, h }
     })
     BASE_AGENTS.forEach(a => {
-      const desk = initialLayout.find((it: any) => it.type === 'desk' && it.agentId === a.id)
+      const desk = initialLayout.find((it) => it.type === 'desk' && it.agentId === a.id)
       if (desk) {
         const left = desk.col * 4.166 + (desk.w / 2) * 4.166
         const top = desk.row * 8.333 + (desk.h / 2) * 8.333
@@ -386,8 +389,8 @@ export default function TheOfficeClient({
         coords[a.id] = { ...a.deskPosition }
       }
     })
-    customAgents.forEach((a: any) => {
-      const desk = initialLayout.find((it: any) => it.type === 'desk' && it.agentId === a.id)
+    customAgents.forEach((a) => {
+      const desk = initialLayout.find((it) => it.type === 'desk' && it.agentId === a.id)
       if (desk) {
         const left = desk.col * 4.166 + (desk.w / 2) * 4.166
         const top = desk.row * 8.333 + (desk.h / 2) * 8.333
@@ -414,7 +417,7 @@ export default function TheOfficeClient({
   const [terminalLogs, setTerminalLogs] = useState<Record<string, string[]>>(() => {
     const logs: Record<string, string[]> = {}
     BASE_AGENTS.forEach(a => { logs[a.id] = [...a.initialLogs] })
-    customAgents.forEach((a: any) => {
+    customAgents.forEach((a) => {
       logs[a.id] = [
         `Agente personalizado ${a.name} inicializado.`,
         `Rol: ${a.role}`,
@@ -741,8 +744,8 @@ export default function TheOfficeClient({
       if (!res.ok) throw new Error('Error al guardar diseño')
       toast.success('¡Diseño de la oficina guardado exitosamente!')
       setIsEditingLayout(false)
-    } catch (e: any) {
-      toast.error(e.message || 'Error de conexión')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error de conexion')
     }
   }
 
@@ -998,10 +1001,10 @@ export default function TheOfficeClient({
         })
       })
 
-      const data = await res.json()
+      const data = (await res.json()) as { customAgents?: Agent[]; error?: string }
       if (!res.ok) throw new Error(data.error || 'Failed creation')
 
-      const updatedCustoms = data.customAgents.map((a: any) => {
+      const updatedCustoms = (data.customAgents || []).map((a) => {
         let sittingDeskUrl = '/images/desk_l_vacant.png'
         let spriteUrl = '/images/sprite_sales.png'
         if (a.color === 'emerald') {
@@ -1101,7 +1104,7 @@ export default function TheOfficeClient({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed deletion')
 
-      const updatedCustoms = data.customAgents.map((a: any) => {
+      const updatedCustoms = (data.customAgents || []).map((a) => {
         let sittingDeskUrl = '/images/desk_l_vacant.png'
         let spriteUrl = '/images/sprite_sales.png'
         if (a.color === 'emerald') {

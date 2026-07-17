@@ -21,19 +21,24 @@ const VALID_KEY_TYPES: BrebKeyType[] = ['PHONE', 'EMAIL', 'DOCUMENT', 'ALPHANUME
 const BREB_SETTINGS_KEY = 'brebConfig'
 
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) return unauthorized('No autorizado')
+  try {
+    const { userId } = await auth()
+    if (!userId) return unauthorized('No autorizado')
 
-  const store = await getActiveStore(userId)
-  if (!store) return NextResponse.json({ config: null })
+    const store = await getActiveStore(userId)
+    if (!store) return NextResponse.json({ config: null })
 
-  const tableConfig = await prisma.brebPaymentConfig.findUnique({
-    where: { storeId: store.id },
-  })
-  const settings = getStoreSettings(store.settings)
-  const config = tableConfig || settings[BREB_SETTINGS_KEY] || null
+    const tableConfig = await prisma.brebPaymentConfig.findUnique({
+      where: { storeId: store.id },
+    })
+    const settings = getStoreSettings(store.settings)
+    const config = tableConfig || settings[BREB_SETTINGS_KEY] || null
 
-  return NextResponse.json({ config })
+    return NextResponse.json({ config })
+  } catch (error) {
+    console.error('[Bre-B Config GET Error]', error)
+    return internalServerError(getErrorMessage(error, 'Error al obtener la configuración de Bre-B'))
+  }
 }
 
 export async function PUT(req: Request) {

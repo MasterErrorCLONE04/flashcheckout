@@ -5,6 +5,11 @@ import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { sendInvoiceToWhatsApp } from '@/lib/whatsapp/send-invoice'
 import { waClient } from '@/lib/whatsapp/cloud-api'
+import {
+  logWebhookError,
+  logWebhookEvent,
+  logWebhookWarn,
+} from '@/lib/webhooks'
 
 type OrderItemJson = {
   productId: string
@@ -26,6 +31,8 @@ type WhatsAppNotifier = {
     buttons: Array<{ id: string; title: string }>
   ) => Promise<unknown>
 }
+
+type PaymentProcessingOutcome = 'processed' | 'duplicate' | 'amount_mismatch' | 'missing_order_id'
 
 function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   const fromParent = invoice.parent?.subscription_details?.subscription
@@ -56,12 +63,26 @@ function subscriptionPeriodAndPrice(sub: Stripe.Subscription) {
   }
 }
 
-async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
+async function fulfillStoreOrderPayment(
+  session: Stripe.Checkout.Session,
+  context: { eventId: string }
+) : Promise<PaymentProcessingOutcome> {
   const orderId = session.metadata?.orderId
   if (!orderId) {
-    console.error('Webhook: orderId faltante en metadata')
-    return
+    logWebhookWarn('stripe', 'missing_order_id', {
+      eventId: context.eventId,
+      sessionId: session.id,
+    })
+    return 'missing_order_id'
   }
+
+  logWebhookEvent('stripe', 'processing_payment', {
+    eventId: context.eventId,
+    orderId,
+    sessionId: session.id,
+  })
+
+  let outcome: PaymentProcessingOutcome = 'processed'
 
   await prisma.$transaction(async tx => {
     const order = await tx.order.findUnique({
@@ -74,6 +95,7 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
       order.stripeCheckoutSessionId === session.id ||
       order.paymentStatus === 'PAID'
     ) {
+      outcome = 'duplicate'
       return
     }
 
@@ -82,11 +104,7 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
       session.currency === 'cop' &&
       session.amount_total !== order.total
     ) {
-      console.error(
-        'Webhook: total no coincide con el pedido',
-        session.amount_total,
-        order.total
-      )
+      outcome = 'amount_mismatch'
       return
     }
 
@@ -107,6 +125,24 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
     })
   })
 
+  if (outcome !== 'processed') {
+    if (outcome === 'duplicate') {
+      logWebhookEvent('stripe', 'duplicate', {
+        eventId: context.eventId,
+        orderId,
+        sessionId: session.id,
+      })
+    } else if (outcome === 'amount_mismatch') {
+      logWebhookWarn('stripe', 'amount_mismatch', {
+        eventId: context.eventId,
+        orderId,
+        sessionId: session.id,
+      })
+    }
+
+    return outcome
+  }
+
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -125,7 +161,8 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
 
       const recipient = order.customerPhone || order.customerWhatsAppId
       if (aut && recipient) {
-        const defaultMsg = '¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!'
+        const defaultMsg =
+          '¡Pago confirmado!\n\nTu pedido *#{{pedido_id}}* por un total de ${{total}} en *{{tienda}}* ha sido procesado exitosamente. ¡Gracias por tu compra!'
         const template = aut.customTemplate || defaultMsg
         const formattedMsg = template
           .replace(/{{cliente}}/g, order.customerName || 'Cliente')
@@ -151,13 +188,21 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
       }
     }
   } catch (error) {
-    console.error('[Stripe Webhook] Failed to send WhatsApp payment confirmation text', error)
+    logWebhookError('stripe', 'payment_confirmation_failed', {
+      eventId: context.eventId,
+      orderId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
 
   try {
     await sendInvoiceToWhatsApp(orderId)
   } catch (error) {
-    console.error('[Stripe Webhook] Failed to send WhatsApp confirmation / invoice', error)
+    logWebhookError('stripe', 'invoice_delivery_failed', {
+      eventId: context.eventId,
+      orderId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
 
   try {
@@ -185,8 +230,14 @@ async function fulfillStoreOrderPayment(session: Stripe.Checkout.Session) {
       }
     }
   } catch (error) {
-    console.error('[Stripe Webhook] Failed to notify store owner via WhatsApp', error)
+    logWebhookError('stripe', 'store_notification_failed', {
+      eventId: context.eventId,
+      orderId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
+
+  return 'processed'
 }
 
 export async function POST(req: Request) {
@@ -212,16 +263,30 @@ export async function POST(req: Request) {
     )
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Unknown'
+    logWebhookWarn('stripe', 'signature_rejected', {
+      error: msg,
+    })
     return new NextResponse(`Webhook Error: ${msg}`, { status: 400 })
   }
 
   try {
+    logWebhookEvent('stripe', 'received', {
+      eventId: event.id,
+      eventType: event.type,
+      livemode: event.livemode,
+    })
+
     if (event.type === 'account.updated') {
       const account = event.data.object as Stripe.Account
       if (account.id) {
         await prisma.store.updateMany({
           where: { stripeConnectAccountId: account.id },
           data: { stripeConnectChargesEnabled: !!account.charges_enabled },
+        })
+        logWebhookEvent('stripe', 'account_updated', {
+          eventId: event.id,
+          accountId: account.id,
+          chargesEnabled: !!account.charges_enabled,
         })
       }
       return new NextResponse(null, { status: 200 })
@@ -231,7 +296,22 @@ export async function POST(req: Request) {
       const session = event.data.object as Stripe.Checkout.Session
 
       if (session.mode === 'payment' && session.metadata?.orderId) {
-        await fulfillStoreOrderPayment(session)
+        const outcome = await fulfillStoreOrderPayment(session, { eventId: event.id })
+        if (outcome !== 'processed') {
+          logWebhookEvent('stripe', 'ignored', {
+            eventId: event.id,
+            eventType: event.type,
+            reason: outcome,
+            orderId: session.metadata.orderId,
+          })
+          return new NextResponse(null, { status: 200 })
+        }
+        logWebhookEvent('stripe', 'processed', {
+          eventId: event.id,
+          eventType: event.type,
+          mode: session.mode,
+          orderId: session.metadata.orderId,
+        })
         return new NextResponse(null, { status: 200 })
       }
 
@@ -255,9 +335,19 @@ export async function POST(req: Request) {
             stripeCurrentPeriodEnd: stripeCurrentPeriodEnd ?? undefined,
           },
         })
+        logWebhookEvent('stripe', 'subscription_updated', {
+          eventId: event.id,
+          subscriptionId: subscription.id,
+          storeId: session.metadata.storeId,
+        })
         return new NextResponse(null, { status: 200 })
       }
 
+      logWebhookEvent('stripe', 'ignored', {
+        eventId: event.id,
+        eventType: event.type,
+        reason: 'unsupported_checkout_session',
+      })
       return new NextResponse(null, { status: 200 })
     }
 
@@ -265,6 +355,10 @@ export async function POST(req: Request) {
       const invoice = event.data.object as Stripe.Invoice
       const subId = invoiceSubscriptionId(invoice)
       if (!subId) {
+        logWebhookWarn('stripe', 'missing_subscription_id', {
+          eventId: event.id,
+          eventType: event.type,
+        })
         return new NextResponse(null, { status: 200 })
       }
 
@@ -279,10 +373,24 @@ export async function POST(req: Request) {
           stripeCurrentPeriodEnd: stripeCurrentPeriodEnd ?? undefined,
         },
       })
+      logWebhookEvent('stripe', 'invoice_processed', {
+        eventId: event.id,
+        subscriptionId: subscription.id,
+      })
       return new NextResponse(null, { status: 200 })
     }
-  } catch (e) {
-    console.error('STRIPE_WEBHOOK_HANDLER', e)
+
+    logWebhookEvent('stripe', 'ignored', {
+      eventId: event.id,
+      eventType: event.type,
+      reason: 'unsupported_event_type',
+    })
+  } catch (error) {
+    logWebhookError('stripe', 'handler_error', {
+      eventId: event.id,
+      eventType: event.type,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
     return new NextResponse('Webhook handler error', { status: 500 })
   }
 

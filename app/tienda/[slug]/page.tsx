@@ -2,36 +2,41 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import WhatsAppCatalog from '@/components/WhatsAppCatalog'
 import type { Metadata } from 'next'
+import {
+  buildInitialCheckoutCart,
+  buildInitialCheckoutSessionData,
+  buildPublicCheckoutStore,
+} from '@/lib/checkout/public-store'
 
 export const dynamic = 'force-dynamic'
 
 type Props = {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ wa?: string; layout?: string; uid?: string }>
+  searchParams: Promise<{ wa?: string; uid?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const store = await prisma.store.findUnique({
-    where: { slug, active: true },
+    where: { slug },
     select: { name: true },
   })
 
   if (!store) return { title: 'Tienda no encontrada' }
 
   return {
-    title: `${store.name} — FlashCheckout`,
-    description: `Compra en ${store.name} y recibe tu pedido rápido. Checkout por WhatsApp en 30 segundos.`,
+    title: `${store.name} - FlashCheckout`,
+    description: `Compra en ${store.name} y recibe tu pedido rapido. Checkout por WhatsApp en 30 segundos.`,
   }
 }
 
 export default async function StorePage({ params, searchParams }: Props) {
   const { slug } = await params
-  const { wa, layout, uid } = await searchParams
+  const { wa, uid } = await searchParams
   const identity = uid || wa
 
   const store = await prisma.store.findUnique({
-    where: { slug, active: true },
+    where: { slug },
     include: {
       products: {
         where: { active: true },
@@ -44,77 +49,45 @@ export default async function StorePage({ params, searchParams }: Props) {
 
   if (!store.active) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 text-center select-none font-sans">
-        <div className="bg-white border border-zinc-200 rounded-2xl p-8 max-w-sm space-y-4">
-          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
-          <h1 className="text-lg font-black text-zinc-900">Tienda Pausada</h1>
-          <p className="text-xs font-semibold text-zinc-400 leading-normal">
-            Esta tienda online está temporalmente inactiva. Vuelve a visitarnos más tarde.
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6 text-center font-sans select-none">
+        <div className="max-w-sm space-y-4 rounded-2xl border border-zinc-200 bg-white p-8">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-500">
+            !
+          </div>
+          <h1 className="text-lg font-black text-zinc-900">Tienda pausada</h1>
+          <p className="text-xs font-semibold leading-normal text-zinc-400">
+            Esta tienda online esta temporalmente inactiva. Vuelve a visitarnos mas tarde.
           </p>
         </div>
       </div>
     )
   }
 
-  const cardPaymentsEnabled = true 
+  const storeData = buildPublicCheckoutStore(store, true)
 
-  const aiSettings = store.aiSettings && typeof store.aiSettings === 'object' ? (store.aiSettings as any) : {}
-  const storeData = {
-    id: store.id,
-    name: store.name,
-    whatsapp: store.whatsapp,
-    products: store.products.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: Number(p.price),
-      stock: p.stock,
-      imageUrl: p.imageUrl,
-      category: p.category || undefined,
-      description: p.description || undefined,
-      options: p.options ? (p.options as any) : undefined
-    })),
-    logoUrl: store.logoUrl,
-    bio: store.bio,
-    cardPaymentsEnabled,
-    aiSettings: store.aiSettings as any,
-    bannerUrl: aiSettings.bannerUrl || null
-  }
-
-  // Intentar recuperar la sesión de WhatsApp para restaurar carrito y datos si existen
-  let initialCart = {}
-  let sessionData = { customerName: '', address: '' }
+  let initialCart: Record<string, number> = {}
+  let sessionData = buildInitialCheckoutSessionData('', '')
 
   if (identity) {
-    const session = await (prisma as any).whatsAppSession.findUnique({
+    const session = await prisma.whatsAppSession.findUnique({
       where: {
         phoneNumber_storeId: {
           phoneNumber: identity,
-          storeId: store.id
-        }
-      }
+          storeId: store.id,
+        },
+      },
     })
+
     if (session) {
-      const items = (session.cart as any)?.items || {}
-      initialCart = Object.fromEntries(
-        Object.entries(items)
-          .map(([id, item]: [string, any]): [string, number] => {
-            const qty = item && typeof item === 'object' && 'qty' in item ? Number(item.qty) : Number(item)
-            return [id, qty]
-          })
-          .filter(([_, qty]) => !isNaN(qty) && qty > 0)
-      )
-      sessionData = {
-        customerName: session.customerName || '',
-        address: session.address || ''
-      }
+      initialCart = buildInitialCheckoutCart(session.cart)
+      sessionData = buildInitialCheckoutSessionData(session.customerName, session.address)
     }
   }
 
-  // Usar exclusivamente el diseño nativo Pro (Catalog) para todas las vistas
   return (
-    <WhatsAppCatalog 
-      initialPhone={identity} 
-      store={storeData} 
+    <WhatsAppCatalog
+      initialPhone={identity}
+      store={storeData}
       initialCart={initialCart}
       initialName={sessionData.customerName}
       initialAddress={sessionData.address}
