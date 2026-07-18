@@ -327,25 +327,27 @@ export default function CustomerCRM({
           </div>
 
           {/* Customer CRM Table */}
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse text-xs">
+          <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
+            <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm">
               <thead>
-                <tr className="border-b border-zinc-200/60 text-zinc-800 font-bold tracking-tight bg-transparent">
-                  <th className="py-4 px-4 font-bold text-zinc-800">Cliente</th>
-                  <th className="py-4 px-3 font-bold text-zinc-800">Contacto</th>
-                  <th className="py-4 px-3 font-bold text-zinc-800">Última interacción</th>
-                  <th className="py-4 px-3 font-bold text-zinc-800">Pedidos</th>
-                  <th className="py-4 px-3 font-bold text-zinc-800">Ingresos (Lifetime Value)</th>
-                  <th className="py-4 px-3 font-bold text-zinc-800">Estado</th>
-                  <th className="py-4 px-4 w-12 text-center"></th>
+                <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
+                  <th className="py-3 px-2.5 xl:px-4">Cliente</th>
+                  <th className="py-3 px-2.5 xl:px-4">Contacto</th>
+                  <th className="py-3 px-2.5 xl:px-4">Última interacción</th>
+                  <th className="py-3 px-2.5 xl:px-4">Pedidos</th>
+                  <th className="py-3 px-2.5 xl:px-4">Ingresos (Lifetime Value)</th>
+                  <th className="py-3 px-2.5 xl:px-4">Estado</th>
+                  <th className="py-3 px-2.5 xl:px-4 text-center"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 font-semibold text-zinc-800">
+              <tbody className="divide-y divide-zinc-100 font-semibold text-zinc-700">
                 {paginatedCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-16 text-center text-zinc-400">
-                      <User className="w-8 h-8 mx-auto mb-2 text-zinc-200" />
-                      No se encontraron clientes registrados en el directorio
+                    <td colSpan={7} className="py-12 text-center text-zinc-400 font-medium select-none">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <User className="w-8 h-8 text-zinc-200" />
+                        <span>No se encontraron clientes registrados en el directorio</span>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -361,22 +363,22 @@ export default function CustomerCRM({
                         )}
                       >
                         {/* Name & Avatar */}
-                        <td className="py-4 px-4">
+                        <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-extrabold text-zinc-650 flex items-center justify-center  shrink-0">
-                              {c.name.slice(0, 2)}
+                            <div className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-extrabold text-zinc-650 flex items-center justify-center shrink-0 select-none">
+                              {c.name.slice(0, 2).toUpperCase()}
                             </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-zinc-955 font-bold truncate max-w-[140px] leading-tight">{c.name}</span>
-                              <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[140px] mt-0.5">{c.email || 'Sin email registrado'}</span>
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-zinc-900 leading-tight text-xs xl:text-sm truncate max-w-[160px]">{c.name}</h4>
+                              <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 mt-0.5 truncate max-w-[160px]">{c.email || 'Sin email registrado'}</p>
                             </div>
                           </div>
                         </td>
 
                         {/* WhatsApp Phone */}
-                        <td className="py-4 px-3">
+                        <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                           {c.phone ? (
-                            <div className="flex items-center gap-1.5 text-zinc-700">
+                            <div className="flex items-center gap-1.5 text-zinc-850">
                               <MessageCircle className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500/10" />
                               <span className="tabular-nums">+{c.phone}</span>
                             </div>
@@ -386,7 +388,7 @@ export default function CustomerCRM({
                         </td>
 
                         {/* Last order date */}
-                        <td className="py-4 px-3 text-zinc-450 font-medium">
+                        <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-650">
                           {new Date(c.lastOrderDate).toLocaleDateString('es-CO', {
                             day: '2-digit',
                             month: 'short',
@@ -396,28 +398,28 @@ export default function CustomerCRM({
                         </td>
 
                         {/* Order count */}
-                        <td className="py-4 px-3 text-zinc-800 tabular-nums">
+                        <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-800 tabular-nums">
                           {c.totalOrders}
                         </td>
 
                         {/* Lifetime Value LTV */}
-                        <td className="py-4 px-3 font-bold text-zinc-955 tabular-nums">
+                        <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap font-bold text-zinc-900 text-xs xl:text-sm tabular-nums">
                           ${c.totalSpent.toLocaleString('es-CO')}
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-3">
+                        <td className="py-3 px-2.5 xl:px-4">
                           <span className={cn(
-                            "px-2 py-0.5 rounded-md border text-[10px] font-extrabold leading-none",
+                            "px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none border",
                             c.status === 'Activo' 
-                              ? "text-emerald-600 bg-emerald-50 border-emerald-200/50" 
-                              : "text-zinc-500 bg-zinc-50 border-zinc-200/60"
+                              ? "bg-emerald-50 border-emerald-100 text-emerald-700" 
+                              : "bg-zinc-50 border-zinc-200 text-zinc-650"
                           )}>
                             {c.status}
                           </span>
                         </td>
 
-                        <td className="py-4 px-4 text-center" />
+                        <td className="py-3 px-2.5 xl:px-4 text-center" />
                       </tr>
                     )
                   })

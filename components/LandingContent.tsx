@@ -15,6 +15,7 @@ import {
   Star,
   CheckCircle2,
   Lock,
+  ChevronLeft,
   ChevronRight,
   Play,
   CreditCard,
@@ -178,6 +179,51 @@ const EXPLORE_TABS = [
   { id: 'actions', label: 'Pagos', icon: GitCompare, image: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/desktop/actions.png', mobileImage: 'https://backend.chatbase.co/storage/v1/object/public/chatbase/landing/explore/mobile/actions-mobile.png' }
 ]
 
+const HIGHLIGHT_CARDS = [
+  {
+    alt: "Cobros con QR Bre-B y enlace seguro",
+    src: "file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_ai_conversion_1775284300959.png",
+    title: "Cobros con QR Bre-B y enlace seguro",
+    desc: "Genera ordenes con valor exacto, referencia unica y una pantalla de pago lista para que el cliente pague sin errores.",
+    delay: 0
+  },
+  {
+    alt: "Catalogo y carrito desde la conversacion",
+    src: "file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_simplicity_ui_1775284311911.png",
+    title: "Catalogo y carrito desde la conversacion",
+    desc: "El cliente pregunta por un producto, Nova confirma datos, arma el pedido y envia el checkout sin friccion.",
+    delay: 0.1
+  },
+  {
+    alt: "Bank-Grade Infrastructure",
+    src: "file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_secure_infra_1775284323707.png",
+    title: "Pedidos, clientes y pagos trazables",
+    desc: "Cada venta queda registrada con cliente, productos, estado, comprobante y contexto para gestionar entrega o seguimiento.",
+    delay: 0.2
+  },
+  {
+    alt: "Agente de Ventas Conversacional Nova",
+    src: "/nova_ai_whatsapp.png",
+    title: "Agente de Ventas Conversacional (Nova)",
+    desc: "Nova chatea directamente con tus clientes en WhatsApp, resuelve dudas sobre tus productos y envía enlaces de pago al instante.",
+    delay: 0
+  },
+  {
+    alt: "Panel de Analíticas y Control",
+    src: "/analytics_dashboard_card.png",
+    title: "Panel de Analíticas y Control",
+    desc: "Monitorea tus ingresos totales, tasa de conversión y el rendimiento general de tus canales digitales en tiempo real.",
+    delay: 0.1
+  },
+  {
+    alt: "Gestor de Envíos y Logística",
+    src: "/shipping_logistics_card.png",
+    title: "Gestor de Envíos y Logística",
+    desc: "Genera guías de despacho y rastrea el estado de entrega de cada paquete de manera automatizada y sin fricciones.",
+    delay: 0.2
+  }
+]
+
 const BENEFITS_DATA = [
   {
     id: 'personalized',
@@ -228,6 +274,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
   const [isPlaying, setIsPlaying] = useState(true)
   const [progress, setProgress] = useState(0)
   const videoRef = React.useRef<HTMLVideoElement>(null)
+
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -572,84 +619,45 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
               >
                 Funcionalidades reales para vender, cobrar y operar
               </motion.h2>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="max-w-[600px] text-lg text-muted-foreground font-normal leading-relaxed pb-2"
-              >
-                Desde el primer mensaje hasta el despacho: Nova atiende, el catalogo organiza, el checkout cobra y el panel mantiene cada pedido bajo control.
-              </motion.p>
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 w-full">
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="max-w-[600px] text-lg text-muted-foreground font-normal leading-relaxed"
+                >
+                  Desde el primer mensaje hasta el despacho: Nova atiende, el catalogo organiza, el checkout cobra y el panel mantiene cada pedido bajo control.
+                </motion.p>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="grid gap-8 pt-12 md:grid-cols-2 lg:grid-cols-3">
-            {/* Highlight Card 1 */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white transition-all duration-300 hover:border-zinc-300 hover:shadow-xl group"
-            >
-              <div className="aspect-[784/800] overflow-hidden">
-                <img
-                  alt="Cobros con QR Bre-B y enlace seguro"
-                  loading="lazy"
-                  src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_ai_conversion_1775284300959.png"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+        {/* Carousel Slider */}
+        <div className="relative w-full overflow-hidden">
+          <div className="flex w-max gap-6 pt-12 pb-6 px-6 animate-marquee pause-marquee">
+            {[...HIGHLIGHT_CARDS, ...HIGHLIGHT_CARDS].map((card, idx) => (
+              <div
+                key={idx}
+                className="relative flex flex-col shrink-0 w-[290px] sm:w-[380px] overflow-hidden rounded-3xl border border-zinc-200 bg-white transition-all duration-300 hover:border-zinc-300 hover:shadow-xl group"
+              >
+                <div className="aspect-[784/800] overflow-hidden">
+                  <img
+                    alt={card.alt}
+                    loading="lazy"
+                    src={card.src}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+                <div className="space-y-2 px-6 pb-6 pt-6 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-xl text-zinc-950">{card.title}</h3>
+                    <p className="text-base text-muted-foreground mt-2">{card.desc}</p>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2 px-6 pb-6 pt-6">
-                <h3 className="font-semibold text-xl text-zinc-950">Cobros con QR Bre-B y enlace seguro</h3>
-                <p className="text-base text-muted-foreground">Genera ordenes con valor exacto, referencia unica y una pantalla de pago lista para que el cliente pague sin errores.</p>
-              </div>
-            </motion.div>
-
-            {/* Highlight Card 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white transition-all duration-300 hover:border-zinc-300 hover:shadow-xl group"
-            >
-              <div className="aspect-[784/800] overflow-hidden">
-                <img
-                  alt="Catalogo y carrito desde la conversacion"
-                  loading="lazy"
-                  src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_simplicity_ui_1775284311911.png"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="space-y-2 px-6 pb-6 pt-6">
-                <h3 className="font-semibold text-xl text-zinc-950">Catalogo y carrito desde la conversacion</h3>
-                <p className="text-base text-muted-foreground">El cliente pregunta por un producto, Nova confirma datos, arma el pedido y envia el checkout sin friccion.</p>
-              </div>
-            </motion.div>
-
-            {/* Highlight Card 3 */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white transition-all duration-300 hover:border-zinc-300 hover:shadow-xl group"
-            >
-              <div className="aspect-[784/800] overflow-hidden">
-                <img
-                  alt="Bank-Grade Infrastructure"
-                  loading="lazy"
-                  src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_secure_infra_1775284323707.png"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="space-y-2 px-6 pb-6 pt-6">
-                <h3 className="font-semibold text-xl text-zinc-950">Pedidos, clientes y pagos trazables</h3>
-                <p className="text-base text-muted-foreground">Cada venta queda registrada con cliente, productos, estado, comprobante y contexto para gestionar entrega o seguimiento.</p>
-              </div>
-            </motion.div>
+            ))}
           </div>
         </div>
       </section>

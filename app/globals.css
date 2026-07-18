@@ -49,6 +49,12 @@
   --font-display: "Circular", "Circular Std", var(--font-plus-jakarta), var(--font-geist), system-ui, -apple-system, sans-serif;
   --font-geist: var(--font-geist), system-ui, -apple-system, sans-serif;
   --font-inter: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --animate-marquee: marquee 35s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-50% - 12px)); }
+  }
 }
 
 @layer base {
@@ -113,6 +119,12 @@
 
 .animate-in {
   animation: fade-in-up 0.4s ease-out forwards;
+}
+
+
+
+.pause-marquee:hover {
+  animation-play-state: paused;
 }
 
 /* 📱 WebView Optimization */
