@@ -83,9 +83,9 @@ const Footer = () => {
       { label: 'Afiliados', href: '#' },
     ],
     RESOURCES: [
-      { label: 'ContÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ctanos', href: '#' },
+      { label: 'Contáctanos', href: '#' },
       { label: 'API', href: '#' },
-      { label: 'GuÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a', href: '#' },
+      { label: 'Guía', href: '#' },
       { label: 'Blog', href: '#' },
       { label: 'Changelog', href: '#' },
     ],
@@ -94,7 +94,7 @@ const Footer = () => {
       { label: 'Politica de privacidad', href: '#' },
       { label: 'Terminos de servicio', href: '#' },
       { label: 'DPA', href: '#' },
-      { label: 'PolÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­tica de cookies', href: '#' },
+      { label: 'Política de cookies', href: '#' },
       { label: 'Trust Center', href: '#' },
     ]
   }

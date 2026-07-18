@@ -82,10 +82,10 @@ const CustomSignIn = () => {
         window.location.href = '/productos'
       } else {
         console.log('SignIn status no completado. Estado:', result.status);
-        setError(`El inicio de sesiÃƒÂ³n requiere pasos adicionales (${result.status}).`)
+        setError(`El inicio de sesión requiere pasos adicionales (${result.status}).`)
       }
     } catch (err: any) {
-      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Email o contraseÃƒÂ±a incorrectos.'
+      const errorMessage = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err.message || 'Email o contraseña incorrectos.'
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -170,7 +170,7 @@ const CustomSignIn = () => {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
+                    placeholder="••••••••••"
                     className="-outline-offset-1 flex w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base transition-color selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-primary h-10 md:text-sm pr-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

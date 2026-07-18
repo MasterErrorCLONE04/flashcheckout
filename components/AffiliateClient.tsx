@@ -52,7 +52,7 @@ export default function AffiliateClient({
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Programa de Afiliados</h1>
             <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Recomienda Flashcheckouts a otros comerciantes y gana el 10% de comisiÃƒÂ³n en cada Pase Beta vendido.</span>
+              <span>Recomienda Flashcheckouts a otros comerciantes y gana el 10% de comisión en cada Pase Beta vendido.</span>
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function AffiliateClient({
               <Gift className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase leading-none mb-1">Enlace de afiliado ÃƒÂºnico</p>
+              <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase leading-none mb-1">Enlace de afiliado único</p>
               <h3 className="text-base font-bold text-zinc-900">Comparte este link para empezar a ganar</h3>
             </div>
           </div>
@@ -143,19 +143,19 @@ export default function AffiliateClient({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
         {/* How it works */}
         <div className="p-8 bg-zinc-50 border border-zinc-200/80 rounded-2xl space-y-6">
-          <h4 className="text-sm font-bold tracking-wider text-zinc-400 uppercase">Ã‚Â¿CÃƒÂ³mo funciona el programa?</h4>
+          <h4 className="text-sm font-bold tracking-wider text-zinc-400 uppercase">¿Cómo funciona el programa?</h4>
           <div className="space-y-4 font-medium text-zinc-600 text-xs">
             <div className="flex gap-4">
               <span className="w-6 h-6 rounded-full bg-zinc-900 text-white font-bold flex items-center justify-center shrink-0">1</span>
-              <p className="leading-relaxed pt-0.5">Comparte tu enlace de afiliado con marcas independientes en MedellÃƒÂ­n, BogotÃƒÂ¡ o cualquier ciudad.</p>
+              <p className="leading-relaxed pt-0.5">Comparte tu enlace de afiliado con marcas independientes en Medellín, Bogotá o cualquier ciudad.</p>
             </div>
             <div className="flex gap-4">
               <span className="w-6 h-6 rounded-full bg-zinc-900 text-white font-bold flex items-center justify-center shrink-0">2</span>
-              <p className="leading-relaxed pt-0.5">El comerciante se registra y compra nuestro Pase de Beta Tester por un valor ÃƒÂºnico de $30 USD (aprox. $120.000 COP).</p>
+              <p className="leading-relaxed pt-0.5">El comerciante se registra y compra nuestro Pase de Beta Tester por un valor único de $30 USD (aprox. $120.000 COP).</p>
             </div>
             <div className="flex gap-4">
               <span className="w-6 h-6 rounded-full bg-zinc-900 text-white font-bold flex items-center justify-center shrink-0">3</span>
-              <p className="leading-relaxed pt-0.5">TÃƒÂº ganas el 10% de comisiÃƒÂ³n ($12.000 COP) por cada referido exitoso, transferido semanalmente a tu cuenta Nequi o Bancolombia.</p>
+              <p className="leading-relaxed pt-0.5">Tú ganas el 10% de comisión ($12.000 COP) por cada referido exitoso, transferido semanalmente a tu cuenta Nequi o Bancolombia.</p>
             </div>
           </div>
         </div>
@@ -163,21 +163,21 @@ export default function AffiliateClient({
         {/* Affiliate guidelines */}
         <div className="premium-card p-8 bg-white border border-zinc-200 flex flex-col justify-between">
           <div className="space-y-4">
-            <h4 className="text-sm font-bold tracking-wider text-zinc-400 uppercase">CoordinaciÃƒÂ³n de Pagos</h4>
+            <h4 className="text-sm font-bold tracking-wider text-zinc-400 uppercase">Coordinación de Pagos</h4>
             <p className="text-zinc-500 text-xs leading-relaxed font-medium">
-              Los balances se cortan los dÃƒÂ­as viernes. Si tienes comisiones acumuladas por transferir, nuestro equipo te escribirÃƒÂ¡ directamente a tu WhatsApp configurado para realizarte el depÃƒÂ³sito sin cargos administrativos.
+              Los balances se cortan los días viernes. Si tienes comisiones acumuladas por transferir, nuestro equipo te escribirá directamente a tu WhatsApp configurado para realizarte el depósito sin cargos administrativos.
             </p>
           </div>
 
           <div className="pt-6 border-t border-zinc-100 flex items-center gap-3">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase">Ã‚Â¿Tienes dudas?</span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase">¿Tienes dudas?</span>
             <a
               href="https://wa.me/573001234567?text=Tengo%20una%20duda%20sobre%20el%20programa%20de%20afiliados%20de%20Flashcheckouts"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-bold text-[#2563EB] hover:text-blue-700 flex items-center gap-1 cursor-pointer font-bold"
             >
-              EscrÃƒÂ­benos <ArrowUpRight className="w-3.5 h-3.5" />
+              Escríbenos <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function AffiliateClient({
                   <th className="pb-3.5 pl-2">Tienda</th>
                   <th className="pb-3.5">Fecha de Registro</th>
                   <th className="pb-3.5">Estado de Pago</th>
-                  <th className="pb-3.5 text-right pr-2">ComisiÃƒÂ³n</th>
+                  <th className="pb-3.5 text-right pr-2">Comisión</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 font-semibold text-zinc-700">
@@ -223,8 +223,8 @@ export default function AffiliateClient({
         ) : (
           <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-zinc-200 rounded-xl bg-zinc-50/20">
             <Gift className="w-8 h-8 text-zinc-300 mb-2.5" />
-            <p className="text-xs font-bold text-zinc-900">AÃƒÂºn no tienes tiendas registradas</p>
-            <p className="text-[10px] text-zinc-400 mt-1 max-w-[280px] leading-relaxed">Comparte tu enlace ÃƒÂºnico con otros comercios para empezar a verlos listados aquÃƒÂ­.</p>
+            <p className="text-xs font-bold text-zinc-900">Aún no tienes tiendas registradas</p>
+            <p className="text-[10px] text-zinc-400 mt-1 max-w-[280px] leading-relaxed">Comparte tu enlace único con otros comercios para empezar a verlos listados aquí.</p>
           </div>
         )}
       </div>

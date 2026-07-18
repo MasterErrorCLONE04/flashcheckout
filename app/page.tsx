@@ -1,14 +1,5 @@
-import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
-import LandingContent from '@/components/LandingContent'
+import HomePageContent from '@/components/pages/HomePageContent'
 
-export default async function HomePage() {
-  const { userId } = await auth()
-  const stores = await prisma.store.findMany({
-    where: { active: true },
-    orderBy: { createdAt: 'desc' },
-    take: 12
-  })
-
-  return <LandingContent userId={userId ?? undefined} stores={stores} />
+export default function HomePage() {
+  return <HomePageContent />
 }

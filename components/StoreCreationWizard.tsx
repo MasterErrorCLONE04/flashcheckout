@@ -42,13 +42,13 @@ type StepType = {
 
 const STEPS: StepType[] = [
   { num: 1, label: 'Bienvenido', desc: 'Paso 1 de 8' },
-  { num: 2, label: 'InformaciÃƒÂ³n de tu negocio', desc: 'Paso 2 de 8' },
+  { num: 2, label: 'Información de tu negocio', desc: 'Paso 2 de 8' },
   { num: 3, label: 'Conecta WhatsApp', desc: 'Paso 3 de 8' },
-  { num: 4, label: 'CatÃƒÂ¡logo de productos', desc: 'Paso 4 de 8' },
-  { num: 5, label: 'MÃƒÂ©todos de pago', desc: 'Paso 5 de 8' },
+  { num: 4, label: 'Catálogo de productos', desc: 'Paso 4 de 8' },
+  { num: 5, label: 'Métodos de pago', desc: 'Paso 5 de 8' },
   { num: 6, label: 'Preferencias de tienda', desc: 'Paso 6 de 8' },
   { num: 7, label: 'Revisa y confirma', desc: 'Paso 7 de 8' },
-  { num: 8, label: 'Ã‚Â¡Listo!', desc: 'Paso 8 de 8' }
+  { num: 8, label: '¡Listo!', desc: 'Paso 8 de 8' }
 ]
 
 export default function StoreCreationWizard({ 
@@ -101,8 +101,8 @@ export default function StoreCreationWizard({
 
   // Store Preferences / Bot Settings
   const [preferences, setPreferences] = useState({
-    welcomeMessage: 'Ã‚Â¡Hola! Bienvenido a nuestra tienda de WhatsApp. Ã°Å¸Â¤â€“ Ã‚Â¿En quÃƒÂ© te puedo ayudar hoy?',
-    systemPrompt: 'Eres Nova, un asistente de ventas de WhatsApp empÃƒÂ¡tico y proactivo. Tu objetivo es guiar al cliente por el catÃƒÂ¡logo, ayudarle a armar su carrito y motivarlo a concretar el pago mediante Smart Pay.',
+    welcomeMessage: '¡Hola! Bienvenido a nuestra tienda de WhatsApp. 🤖 ¿En qué te puedo ayudar hoy?',
+    systemPrompt: 'Eres Nova, un asistente de ventas de WhatsApp empático y proactivo. Tu objetivo es guiar al cliente por el catálogo, ayudarle a armar su carrito y motivarlo a concretar el pago mediante Smart Pay.',
     businessHours: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     themeColor: 'emerald'
   })
@@ -236,7 +236,7 @@ export default function StoreCreationWizard({
             setWhatsappStatus('CONNECTED')
             stopWhatsappPolling()
             stopQrTimer()
-            toast.success('Ã‚Â¡WhatsApp conectado con ÃƒÂ©xito! Ã°Å¸Å½â€°')
+            toast.success('¡WhatsApp conectado con éxito! 🎉')
           } else if (data.status === 'QRCODE' && data.base64) {
             setWhatsappStatus('QRCODE')
             setQrCodeBase64(data.base64)
@@ -265,7 +265,7 @@ export default function StoreCreationWizard({
       
       if (data.connected || data.status === 'CONNECTED') {
         setWhatsappStatus('CONNECTED')
-        toast.success('Ã‚Â¡WhatsApp conectado!')
+        toast.success('¡WhatsApp conectado!')
       } else if (data.status === 'QRCODE') {
         setWhatsappStatus('QRCODE')
         setQrCodeBase64(data.base64 || data.qr)
@@ -302,7 +302,7 @@ export default function StoreCreationWizard({
         }
       } catch (err) {
         console.error(err)
-        toast.error('Fallo de conexiÃƒÂ³n al subir imagen.')
+        toast.error('Fallo de conexión al subir imagen.')
       } finally {
         setUploadingImage(false)
       }
@@ -337,7 +337,7 @@ export default function StoreCreationWizard({
           description: '',
           imageUrl: '',
         })
-        toast.success('Producto aÃƒÂ±adido al catÃƒÂ¡logo.')
+        toast.success('Producto añadido al catálogo.')
       } else {
         toast.error('Error al guardar el producto.')
       }
@@ -370,16 +370,16 @@ export default function StoreCreationWizard({
 
         if (!res.ok) {
           const data = await res.json()
-          setError(data.error || 'Fallo al inicializar la tienda. El slug ya podrÃƒÂ­a estar en uso.')
+          setError(data.error || 'Fallo al inicializar la tienda. El slug ya podría estar en uso.')
           setLoading(false)
           return
         }
 
         const data = await res.json()
         setCreatedStore(data.store)
-        toast.success('Ã‚Â¡Negocio configurado con ÃƒÂ©xito! Ã°Å¸ÂÂª')
+        toast.success('¡Negocio configurado con éxito! 🏪')
       } catch (err) {
-        setError('Error al registrar la informaciÃƒÂ³n del negocio.')
+        setError('Error al registrar la información del negocio.')
         setLoading(false)
         return
       } finally {
@@ -389,7 +389,7 @@ export default function StoreCreationWizard({
 
     // Step 4 Catalog protection: Must have at least 1 product
     if (currentStep === 4 && addedProducts.length === 0) {
-      toast.warning('Por favor aÃƒÂ±ade al menos 1 producto a tu catÃƒÂ¡logo para continuar.')
+      toast.warning('Por favor añade al menos 1 producto a tu catálogo para continuar.')
       return
     }
 
@@ -473,7 +473,7 @@ export default function StoreCreationWizard({
           <div className="space-y-2">
             <h2 className="text-xl font-extrabold text-zinc-900">Actualiza a Pro</h2>
             <p className="text-sm font-medium text-zinc-500">
-              Has alcanzado el lÃƒÂ­mite de 1 tienda en el plan Gratuito. Para crear y administrar mÃƒÂºltiples tiendas en tu workspace, actualiza tu suscripciÃƒÂ³n.
+              Has alcanzado el límite de 1 tienda en el plan Gratuito. Para crear y administrar múltiples tiendas en tu workspace, actualiza tu suscripción.
             </p>
           </div>
 
@@ -484,7 +484,7 @@ export default function StoreCreationWizard({
               }}
               className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-sm rounded-lg transition-all active:scale-[0.98] cursor-pointer"
             >
-              Ver planes de suscripciÃƒÂ³n
+              Ver planes de suscripción
             </button>
             
             <button 
@@ -585,7 +585,7 @@ export default function StoreCreationWizard({
       {/* 2. MIDDLE COLUMN (MOCK WHATSAPP PREVIEW - ONLY IN STEP 1) */}
       {currentStep === 1 && (
         <div className="hidden xl:flex w-[350px] xl:w-[400px] 2xl:w-[460px] border-r border-zinc-200 p-8 xl:p-10 flex-col justify-center items-center text-center shrink-0 select-none animate-in slide-in-from-left duration-300 bg-[#FAFAFA] h-full">
-          <h4 className="text-[11px] xl:text-xs font-bold text-zinc-500 tracking-wide mb-5">AsÃƒÂ­ vende Nova por ti en WhatsApp</h4>
+          <h4 className="text-[11px] xl:text-xs font-bold text-zinc-500 tracking-wide mb-5">Así vende Nova por ti en WhatsApp</h4>
           
           {/* Smart Phone Frame */}
           <div className="w-[280px] xl:w-[300px] bg-white rounded-[24px] overflow-hidden border border-zinc-200 flex flex-col aspect-[9/17.5] relative">
@@ -601,7 +601,7 @@ export default function StoreCreationWizard({
                     <span className="text-[10px] font-bold leading-none">Nova</span>
                     <CheckCircle2 className="w-3 h-3 text-[#25D366] fill-white stroke-[2px]" />
                   </div>
-                  <span className="text-[7px] text-zinc-200 block mt-0.5">En lÃƒÂ­nea</span>
+                  <span className="text-[7px] text-zinc-200 block mt-0.5">En línea</span>
                 </div>
               </div>
               <MoreHorizontal className="w-3.5 h-3.5 text-zinc-200" />
@@ -611,16 +611,16 @@ export default function StoreCreationWizard({
             <div className="flex-grow p-2 space-y-2 overflow-y-auto custom-scrollbar flex flex-col justify-end bg-zinc-50">
               {/* Message 1: User */}
               <div className="bg-[#E1F3D4] self-end rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col text-left">
-                <p className="leading-tight">Hola, quiero ver el catÃƒÂ¡logo por favor Ã°Å¸â€˜â€¹</p>
+                <p className="leading-tight">Hola, quiero ver el catálogo por favor 👋</p>
                 <div className="self-end flex items-center gap-0.5 mt-0.5">
                   <span className="text-[7px] text-zinc-400">10:00 AM</span>
-                  <span className="text-[8px] text-[#34B7F1] font-bold">Ã¢Å“â€œÃ¢Å“â€œ</span>
+                  <span className="text-[8px] text-[#34B7F1] font-bold">✓✓</span>
                 </div>
               </div>
 
               {/* Message 2: Nova */}
               <div className="bg-white self-start rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col gap-1 text-left border border-zinc-150">
-                <p className="leading-tight">Ã‚Â¡Hola! Bienvenido a Boutique Bella Vista Ã°Å¸Å’Â¸ AquÃƒÂ­ tienes nuestro catÃƒÂ¡logo:</p>
+                <p className="leading-tight">¡Hola! Bienvenido a Boutique Bella Vista 🌸 Aquí tienes nuestro catálogo:</p>
                 
                 {/* Store link card */}
                 <div className="bg-zinc-50 border border-zinc-150 rounded p-1 flex items-center gap-1.5">
@@ -628,7 +628,7 @@ export default function StoreCreationWizard({
                     <Store className="w-3 h-3" />
                   </div>
                   <div className="min-w-0">
-                    <h6 className="text-[8px] font-bold text-zinc-900 leading-tight">Ver catÃƒÂ¡logo</h6>
+                    <h6 className="text-[8px] font-bold text-zinc-900 leading-tight">Ver catálogo</h6>
                     <p className="text-[7px] text-zinc-400 truncate">boutique-bella.flashcheckout.co</p>
                   </div>
                 </div>
@@ -640,13 +640,13 @@ export default function StoreCreationWizard({
                 <p className="leading-tight">Me interesa el vestido floral rojo en talla M.</p>
                 <div className="self-end flex items-center gap-0.5 mt-0.5">
                   <span className="text-[7px] text-zinc-400">10:01 AM</span>
-                  <span className="text-[8px] text-[#34B7F1] font-bold">Ã¢Å“â€œÃ¢Å“â€œ</span>
+                  <span className="text-[8px] text-[#34B7F1] font-bold">✓✓</span>
                 </div>
               </div>
 
               {/* Message 4: Nova with product card */}
               <div className="bg-white self-start rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col gap-1 text-left border border-zinc-150">
-                <p className="leading-tight">Ã‚Â¡Excelente elecciÃƒÂ³n! Ã°Å¸Å’Â¸ Nos quedan 3 en stock. Para confirmar tu pedido, puedes pagar de forma segura aquÃƒÂ­:</p>
+                <p className="leading-tight">¡Excelente elección! 🌸 Nos quedan 3 en stock. Para confirmar tu pedido, puedes pagar de forma segura aquí:</p>
                 
                 {/* Product Card */}
                 <div className="bg-zinc-50 border border-zinc-150 rounded p-1 flex flex-col gap-1.5">
@@ -752,10 +752,10 @@ export default function StoreCreationWizard({
                   Bienvenido a Flashcheckouts
                 </h2>
                 <p className="text-sm font-semibold text-zinc-800">
-                  La plataforma AI First para vender mÃƒÂ¡s por WhatsApp.
+                  La plataforma AI First para vender más por WhatsApp.
                 </p>
                 <p className="text-xs text-zinc-500 font-semibold leading-relaxed">
-                  En pocos minutos tendrÃƒÂ¡s tu tienda lista para empezar a vender.
+                  En pocos minutos tendrás tu tienda lista para empezar a vender.
                 </p>
               </div>
 
@@ -768,7 +768,7 @@ export default function StoreCreationWizard({
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-zinc-900 leading-none">Vende 24/7 por WhatsApp</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Nova responde y vende automÃƒÂ¡ticamente mientras tÃƒÂº te enfocas en tu negocio.</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Nova responde y vende automáticamente mientras tú te enfocas en tu negocio.</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
@@ -780,8 +780,8 @@ export default function StoreCreationWizard({
                       <ImageIcon className="w-5 h-5 text-zinc-900" />
                     </div>
                     <div>
-                      <h5 className="text-xs font-bold text-zinc-900 leading-none">CatÃƒÂ¡logo inteligente</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Crea tu catÃƒÂ¡logo en segundos con IA y mantenlo siempre actualizado.</p>
+                      <h5 className="text-xs font-bold text-zinc-900 leading-none">Catálogo inteligente</h5>
+                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Crea tu catálogo en segundos con IA y mantenlo siempre actualizado.</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
@@ -794,7 +794,7 @@ export default function StoreCreationWizard({
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-zinc-900 leading-none">Cobros seguros</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Recibe pagos fÃƒÂ¡cilmente con mÃƒÂºltiples mÃƒÂ©todos de pago integrados.</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Recibe pagos fácilmente con múltiples métodos de pago integrados.</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
@@ -807,7 +807,7 @@ export default function StoreCreationWizard({
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-zinc-900 leading-none">Todo en un solo lugar</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Gestiona pedidos, clientes, productos y anÃƒÂ¡lisis desde tu dashboard.</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Gestiona pedidos, clientes, productos y análisis desde tu dashboard.</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
@@ -820,10 +820,10 @@ export default function StoreCreationWizard({
                   <Sparkles className="w-5 h-5 text-zinc-900 shrink-0" />
                   <div>
                     <p className="text-xs text-zinc-900 font-bold leading-none">
-                      En menos de 5 minutos tendrÃƒÂ¡s tu tienda lista para empezar a vender.
+                      En menos de 5 minutos tendrás tu tienda lista para empezar a vender.
                     </p>
                     <p className="text-[10px] text-zinc-400 font-semibold mt-1">
-                      FÃƒÂ¡cil, rÃƒÂ¡pido y sin complicaciones.
+                      Fácil, rápido y sin complicaciones.
                     </p>
                   </div>
                 </div>
@@ -846,7 +846,7 @@ export default function StoreCreationWizard({
 
                 <p className="text-[10px] text-zinc-450 font-semibold flex items-center justify-center gap-1">
                   <Lock className="w-3.5 h-3.5 text-zinc-400" />
-                  Es gratis. Configura tu tienda sin tarjeta de crÃƒÂ©dito.
+                  Es gratis. Configura tu tienda sin tarjeta de crédito.
                 </p>
               </div>
             </div>
@@ -856,7 +856,7 @@ export default function StoreCreationWizard({
           {currentStep === 2 && (
             <div className="max-w-md mx-auto space-y-6 animate-in fade-in duration-300 text-left w-full">
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">InformaciÃƒÂ³n de tu negocio</h3>
+                <h3 className="text-xl font-bold text-zinc-900">Información de tu negocio</h3>
                 <p className="text-[10px] text-zinc-400 font-bold tracking-wider uppercase">Establece tu identidad digital</p>
               </div>
 
@@ -882,7 +882,7 @@ export default function StoreCreationWizard({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="storeSlug" className="text-[11px] font-bold text-zinc-500">DirecciÃƒÂ³n web ÃƒÂºnica (Slug)</label>
+                  <label htmlFor="storeSlug" className="text-[11px] font-bold text-zinc-500">Dirección web única (Slug)</label>
                   <div className="flex items-center bg-white border border-zinc-200 rounded-lg overflow-hidden focus-within:border-zinc-950 transition-all">
                     <span className="pl-3 text-xs font-semibold text-zinc-400 select-none shrink-0">flash.checkout/tienda/</span>
                     <input
@@ -908,15 +908,15 @@ export default function StoreCreationWizard({
                     value={storeForm.whatsapp}
                     onChange={e => setStoreForm(f => ({ ...f, whatsapp: e.target.value.replace(/\D/g, '') }))}
                   />
-                  <p className="text-[10px] text-zinc-400 font-semibold mt-1">Incluye el cÃƒÂ³digo de paÃƒÂ­s sin el sÃƒÂ­mbolo "+" (Ej: Colombia: 57)</p>
+                  <p className="text-[10px] text-zinc-400 font-semibold mt-1">Incluye el código de país sin el símbolo "+" (Ej: Colombia: 57)</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-zinc-500">CategorÃƒÂ­a comercial</label>
+                  <label className="text-[11px] font-bold text-zinc-500">Categoría comercial</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: 'Moda', icon: Shirt, label: 'Moda' },
-                      { id: 'TecnologÃƒÂ­a', icon: Smartphone, label: 'TecnologÃƒÂ­a' },
+                      { id: 'Tecnología', icon: Smartphone, label: 'Tecnología' },
                       { id: 'Hogar', icon: Home, label: 'Hogar' },
                       { id: 'Comida', icon: Utensils, label: 'Comida' },
                       { id: 'Deportes', icon: Dumbbell, label: 'Deportes' },
@@ -959,7 +959,7 @@ export default function StoreCreationWizard({
                   <Smartphone className="w-5 h-5 text-zinc-900" />
                 </h3>
                 <p className="text-xs text-zinc-500 font-semibold leading-relaxed">
-                  Escanea el cÃƒÂ³digo QR con tu WhatsApp Business para conectar tu nÃƒÂºmero y activar tu bot de ventas automatizado.
+                  Escanea el código QR con tu WhatsApp Business para conectar tu número y activar tu bot de ventas automatizado.
                 </p>
               </div>
 
@@ -975,7 +975,7 @@ export default function StoreCreationWizard({
                       whatsappStatus === 'CONNECTED' ? 'bg-emerald-500' : 'bg-amber-500'
                     )} />
                     <span className="text-xs font-bold text-zinc-800">
-                      Estado: {whatsappStatus === 'CONNECTED' ? 'Conectado' : 'Esperando conexiÃƒÂ³n'}
+                      Estado: {whatsappStatus === 'CONNECTED' ? 'Conectado' : 'Esperando conexión'}
                     </span>
                   </div>
 
@@ -991,7 +991,7 @@ export default function StoreCreationWizard({
                         <div className="relative border border-zinc-200 rounded-lg p-2 bg-white">
                           <img 
                             src={qrCodeBase64.startsWith('data:') ? qrCodeBase64 : `data:image/png;base64,${qrCodeBase64}`} 
-                            alt="QR de conexiÃƒÂ³n de WhatsApp" 
+                            alt="QR de conexión de WhatsApp" 
                             className="w-40 h-40 object-contain"
                           />
                         </div>
@@ -999,13 +999,13 @@ export default function StoreCreationWizard({
                         {/* Expiration Timer badge */}
                         <div className="bg-zinc-50 border border-zinc-200 px-3 py-1 rounded-full flex items-center gap-1.5 text-zinc-900 text-xs font-bold select-none">
                           <Clock className="w-3.5 h-3.5 text-zinc-650" />
-                          <span>El cÃƒÂ³digo expirarÃƒÂ¡ en {formatTime(qrExpiresIn)}</span>
+                          <span>El código expirará en {formatTime(qrExpiresIn)}</span>
                         </div>
                       </div>
                     ) : whatsappStatus === 'CONNECTED' ? (
                       <div className="flex flex-col items-center gap-2 text-zinc-900">
                         <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                        <span className="text-xs font-bold">Ã‚Â¡WhatsApp Vinculado!</span>
+                        <span className="text-xs font-bold">¡WhatsApp Vinculado!</span>
                       </div>
                     ) : (
                       <button 
@@ -1013,7 +1013,7 @@ export default function StoreCreationWizard({
                         className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg px-5 py-2.5 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                       >
                         <Zap className="w-3.5 h-3.5 fill-current" />
-                        Generar cÃƒÂ³digo QR
+                        Generar código QR
                       </button>
                     )}
                   </div>
@@ -1024,8 +1024,8 @@ export default function StoreCreationWizard({
                     <div className="space-y-1.5">
                       {[
                         "Abre WhatsApp Business en tu celular.",
-                        "Ve a ConfiguraciÃƒÂ³n > Dispositivos vinculados.",
-                        "Escanea este cÃƒÂ³digo QR con la cÃƒÂ¡mara."
+                        "Ve a Configuración > Dispositivos vinculados.",
+                        "Escanea este código QR con la cámara."
                       ].map((step, i) => (
                         <div key={i} className="flex items-center gap-2 text-xs text-zinc-600 font-semibold">
                           <span className="w-4.5 h-4.5 rounded-full bg-zinc-100 text-zinc-900 font-bold text-[10px] flex items-center justify-center shrink-0">{i + 1}</span>
@@ -1056,12 +1056,12 @@ export default function StoreCreationWizard({
 
                     <div>
                       <h4 className="text-sm font-bold text-zinc-900">
-                        {whatsappStatus === 'CONNECTED' ? 'Ã‚Â¡WhatsApp conectado!' : 'Esperando VinculaciÃƒÂ³n'}
+                        {whatsappStatus === 'CONNECTED' ? '¡WhatsApp conectado!' : 'Esperando Vinculación'}
                       </h4>
                       <p className="text-[11px] text-zinc-500 font-semibold mt-0.5">
                         {whatsappStatus === 'CONNECTED' 
-                          ? `Tu nÃƒÂºmero +${storeForm.whatsapp} ha sido conectado correctamente.`
-                          : 'Escanea el cÃƒÂ³digo con tu celular para activar el bot de ventas Nova.'}
+                          ? `Tu número +${storeForm.whatsapp} ha sido conectado correctamente.`
+                          : 'Escanea el código con tu celular para activar el bot de ventas Nova.'}
                       </p>
                     </div>
                   </div>
@@ -1073,8 +1073,8 @@ export default function StoreCreationWizard({
                         <MessageSquare className="w-4 h-4" />
                       </div>
                       <div>
-                        <h5 className="text-[11px] font-bold text-zinc-900 leading-none">Nova estÃƒÂ¡ lista para conversar</h5>
-                        <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">ResponderÃƒÂ¡ a tus clientes e ingresarÃƒÂ¡ pedidos al instante.</p>
+                        <h5 className="text-[11px] font-bold text-zinc-900 leading-none">Nova está lista para conversar</h5>
+                        <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Responderá a tus clientes e ingresará pedidos al instante.</p>
                       </div>
                     </div>
 
@@ -1083,8 +1083,8 @@ export default function StoreCreationWizard({
                         <Clock className="w-4 h-4" />
                       </div>
                       <div>
-                        <h5 className="text-[11px] font-bold text-zinc-900 leading-none">AtenciÃƒÂ³n 24/7 sin lÃƒÂ­mites</h5>
-                        <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Tus compradores serÃƒÂ¡n atendidos a cualquier hora del dÃƒÂ­a.</p>
+                        <h5 className="text-[11px] font-bold text-zinc-900 leading-none">Atención 24/7 sin límites</h5>
+                        <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Tus compradores serán atendidos a cualquier hora del día.</p>
                       </div>
                     </div>
                   </div>
@@ -1097,8 +1097,8 @@ export default function StoreCreationWizard({
           {currentStep === 4 && (
             <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300 w-full text-left">
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">CatÃƒÂ¡logo de productos</h3>
-                <p className="text-xs text-zinc-500 font-semibold">Crea el primer producto de tu menÃƒÂº visual</p>
+                <h3 className="text-xl font-bold text-zinc-900">Catálogo de productos</h3>
+                <p className="text-xs text-zinc-500 font-semibold">Crea el primer producto de tu menú visual</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -1130,7 +1130,7 @@ export default function StoreCreationWizard({
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="prodStock" className="text-[11px] font-bold text-zinc-500">Stock fÃƒÂ­sico</label>
+                      <label htmlFor="prodStock" className="text-[11px] font-bold text-zinc-500">Stock físico</label>
                       <input
                         id="prodStock"
                         type="number"
@@ -1143,10 +1143,10 @@ export default function StoreCreationWizard({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="prodDesc" className="text-[11px] font-bold text-zinc-500">DescripciÃƒÂ³n (Opcional)</label>
+                    <label htmlFor="prodDesc" className="text-[11px] font-bold text-zinc-500">Descripción (Opcional)</label>
                     <textarea
                       id="prodDesc"
-                      placeholder="Ingredientes, tallas, colores o detalles importantes del artÃƒÂ­culo..."
+                      placeholder="Ingredientes, tallas, colores o detalles importantes del artículo..."
                       rows={2}
                       className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all resize-none leading-relaxed"
                       value={productForm.description}
@@ -1178,7 +1178,7 @@ export default function StoreCreationWizard({
                     className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg py-2.5 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all disabled:opacity-40 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    AÃƒÂ±adir al CatÃƒÂ¡logo
+                    Añadir al Catálogo
                   </button>
                 </div>
 
@@ -1186,7 +1186,7 @@ export default function StoreCreationWizard({
                 <div className="md:col-span-5 bg-zinc-50 border border-zinc-200 rounded-lg p-5 flex flex-col justify-between h-full min-h-[300px]">
                   <div className="space-y-3 flex-1">
                     <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
-                      <h4 className="text-[10px] font-extrabold text-zinc-800 uppercase tracking-wider">CatÃƒÂ¡logo preliminar</h4>
+                      <h4 className="text-[10px] font-extrabold text-zinc-800 uppercase tracking-wider">Catálogo preliminar</h4>
                       <span className="px-2 py-0.5 rounded bg-white border border-zinc-200 text-[10px] font-bold text-zinc-700">
                         {addedProducts.length} productos
                       </span>
@@ -1196,7 +1196,7 @@ export default function StoreCreationWizard({
                       {addedProducts.length === 0 ? (
                         <div className="text-center py-10 text-zinc-400 flex flex-col items-center justify-center gap-2">
                           <ImageIcon className="w-8 h-8 stroke-[1.5px]" />
-                          <p className="text-[10px] font-bold uppercase tracking-wider">Tu menÃƒÂº estÃƒÂ¡ vacÃƒÂ­o</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider">Tu menú está vacío</p>
                         </div>
                       ) : (
                         addedProducts.map((p, idx) => (
@@ -1224,7 +1224,7 @@ export default function StoreCreationWizard({
                   </div>
 
                   <div className="p-3 bg-zinc-100/50 border border-zinc-200 rounded-lg text-[10px] text-zinc-500 leading-normal font-semibold">
-                    Ã°Å¸â€™Â¡ Agrega tus productos estrella para que Nova empiece a recomendarlos a tus clientes desde el dÃƒÂ­a uno.
+                    💡 Agrega tus productos estrella para que Nova empiece a recomendarlos a tus clientes desde el día uno.
                   </div>
                 </div>
               </div>
@@ -1235,8 +1235,8 @@ export default function StoreCreationWizard({
           {currentStep === 5 && (
             <div className="max-w-md mx-auto space-y-6 animate-in fade-in duration-300 text-left w-full">
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">MÃƒÂ©todos de pago</h3>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Elige cÃƒÂ³mo te pagarÃƒÂ¡n tus clientes</p>
+                <h3 className="text-xl font-bold text-zinc-900">Métodos de pago</h3>
+                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Elige cómo te pagarán tus clientes</p>
               </div>
 
               <div className="space-y-4">
@@ -1254,7 +1254,7 @@ export default function StoreCreationWizard({
                       <span className="bg-emerald-50 text-emerald-700 border border-emerald-250 text-[9px] font-bold px-1.5 py-0.5 rounded">Recomendado</span>
                     </span>
                     <p className="text-[11px] text-zinc-400 font-semibold leading-relaxed">
-                      Tus clientes adjuntarÃƒÂ¡n la captura de la transferencia en el chat y tÃƒÂº auditarÃƒÂ¡s y aprobarÃƒÂ¡s manualmente el pago desde el panel.
+                      Tus clientes adjuntarán la captura de la transferencia en el chat y tú auditarás y aprobarás manualmente el pago desde el panel.
                     </p>
                   </div>
                 </label>
@@ -1273,7 +1273,7 @@ export default function StoreCreationWizard({
                       <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
                     </span>
                     <p className="text-[11px] text-zinc-400 font-semibold leading-relaxed">
-                      Permite cobros con tarjetas de crÃƒÂ©dito, PSE y efectivo. PodrÃƒÂ¡s vincular tu cuenta real de Mercado Pago fÃƒÂ¡cilmente desde el panel una vez finalices la configuraciÃƒÂ³n.
+                      Permite cobros con tarjetas de crédito, PSE y efectivo. Podrás vincular tu cuenta real de Mercado Pago fácilmente desde el panel una vez finalices la configuración.
                     </p>
                   </div>
                 </label>
@@ -1292,13 +1292,13 @@ export default function StoreCreationWizard({
               <div className="space-y-4">
                 {/* Memoria de Negocio Form Cards */}
                 <div className="bg-zinc-50 p-4 border border-zinc-150 rounded-xl space-y-3.5 select-none mb-3 text-left animate-in fade-in duration-300">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Ã°Å¸Â§Â  Memoria del Negocio (Contexto para Nova)</span>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">🧠 Memoria del Negocio (Contexto para Nova)</span>
                   
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 block">Ã‚Â¿QuÃƒÂ© tipo de productos vendes? (Nicho)</label>
+                    <label className="text-[10px] font-bold text-zinc-500 block">¿Qué tipo de productos vendes? (Nicho)</label>
                     <input 
                       type="text"
-                      placeholder="Ej: DÃƒÂ¡tiles rellenos premium y chocolates artesanales"
+                      placeholder="Ej: Dátiles rellenos premium y chocolates artesanales"
                       value={businessProfile.niche}
                       onChange={e => setBusinessProfile(prev => ({ ...prev, niche: e.target.value }))}
                       className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950"
@@ -1306,10 +1306,10 @@ export default function StoreCreationWizard({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 block">Ã‚Â¿QuiÃƒÂ©n es tu pÃƒÂºblico objetivo?</label>
+                    <label className="text-[10px] font-bold text-zinc-500 block">¿Quién es tu público objetivo?</label>
                     <input 
                       type="text"
-                      placeholder="Ej: Personas de 25-50 aÃƒÂ±os que compran regalos gourmet"
+                      placeholder="Ej: Personas de 25-50 años que compran regalos gourmet"
                       value={businessProfile.targetAudience}
                       onChange={e => setBusinessProfile(prev => ({ ...prev, targetAudience: e.target.value }))}
                       className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950"
@@ -1319,7 +1319,7 @@ export default function StoreCreationWizard({
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-zinc-500 block">Propuesta de Valor / Historia</label>
                     <textarea 
-                      placeholder="Ej: Fusionamos dÃƒÂ¡tiles naturales con chocolate belga fino para crear confiterÃƒÂ­a de lujo."
+                      placeholder="Ej: Fusionamos dátiles naturales con chocolate belga fino para crear confitería de lujo."
                       value={businessProfile.coreProposition}
                       onChange={e => setBusinessProfile(prev => ({ ...prev, coreProposition: e.target.value }))}
                       rows={2}
@@ -1343,7 +1343,7 @@ export default function StoreCreationWizard({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="welcomeMessage" className="text-[11px] font-bold text-zinc-500">Mensaje de bienvenida automÃƒÂ¡tico</label>
+                  <label htmlFor="welcomeMessage" className="text-[11px] font-bold text-zinc-500">Mensaje de bienvenida automático</label>
                   <textarea
                     id="welcomeMessage"
                     rows={2}
@@ -1365,7 +1365,7 @@ export default function StoreCreationWizard({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="businessHours" className="text-[11px] font-bold text-zinc-500">Horarios de atenciÃƒÂ³n comercial</label>
+                  <label htmlFor="businessHours" className="text-[11px] font-bold text-zinc-500">Horarios de atención comercial</label>
                   <input
                     id="businessHours"
                     type="text"
@@ -1392,7 +1392,7 @@ export default function StoreCreationWizard({
                   <span className="font-bold text-zinc-900">{storeForm.name}</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5 border-b border-zinc-200 gap-4">
-                  <span className="text-zinc-500">Enlace pÃƒÂºblico</span>
+                  <span className="text-zinc-500">Enlace público</span>
                   <span className="font-bold text-zinc-900 break-all text-right max-w-[65%]">flash.checkout/tienda/{storeForm.slug}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-zinc-200">
@@ -1401,15 +1401,15 @@ export default function StoreCreationWizard({
                     "font-bold",
                     whatsappStatus === 'CONNECTED' ? "text-emerald-600" : "text-amber-600"
                   )}>
-                    {whatsappStatus === 'CONNECTED' ? 'SÃƒÂ­ (Conectado)' : 'No (Omitido por ahora)'}
+                    {whatsappStatus === 'CONNECTED' ? 'Sí (Conectado)' : 'No (Omitido por ahora)'}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-zinc-200">
-                  <span className="text-zinc-500">CatÃƒÂ¡logo inicial</span>
+                  <span className="text-zinc-500">Catálogo inicial</span>
                   <span className="font-bold text-zinc-900">{addedProducts.length} productos registrados</span>
                 </div>
                 <div className="flex justify-between py-1.5">
-                  <span className="text-zinc-500">MÃƒÂ©todos de Pago</span>
+                  <span className="text-zinc-500">Métodos de Pago</span>
                   <span className="font-bold text-zinc-900">
                     {payments.manual && 'Manual '}
                     {payments.mercadopago && 'Mercado Pago'}
@@ -1427,14 +1427,14 @@ export default function StoreCreationWizard({
               </div>
               <div className="space-y-1">
                 <h3 className="text-2xl font-bold tracking-tight text-zinc-900">
-                  Ã‚Â¡Todo listo y configurado!
+                  ¡Todo listo y configurado!
                 </h3>
                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
-                  Tu tienda digital ha sido lanzada en producciÃƒÂ³n
+                  Tu tienda digital ha sido lanzada en producción
                 </p>
               </div>
               <p className="text-xs text-zinc-500 leading-relaxed font-semibold">
-                Has completado exitosamente la configuraciÃƒÂ³n de tu tienda. Nova ya estÃƒÂ¡ lista para recibir mensajes, interactuar y cerrar ventas en tiempo real.
+                Has completado exitosamente la configuración de tu tienda. Nova ya está lista para recibir mensajes, interactuar y cerrar ventas en tiempo real.
               </p>
 
               <div className="pt-4">

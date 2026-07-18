@@ -72,10 +72,10 @@ const BASE_AGENTS: Agent[] = [
   {
     id: 'Nova',
     name: 'Nova',
-    role: 'Copiloto de AdministraciÃƒÂ³n',
+    role: 'Copiloto de Administración',
     color: 'emerald',
     avatarBg: 'bg-emerald-500',
-    avatarEmoji: 'Ã°Å¸Â¤â€“',
+    avatarEmoji: '🤖',
     spriteUrl: '/images/sprite_nova.png',
     sittingDeskUrl: '/images/deskt2/01-Photoroom.png',
     deskPosition: { top: '56%', left: '52%' }, // Escritorio central
@@ -83,13 +83,13 @@ const BASE_AGENTS: Agent[] = [
     tokensUsed: 42350,
     accuracy: '98.5%',
     latency: '1.4s',
-    description: 'Gestiona la configuraciÃƒÂ³n de la tienda, stock de catÃƒÂ¡logo, mÃƒÂ©tricas comerciales y diseÃƒÂ±o del constructor.',
+    description: 'Gestiona la configuración de la tienda, stock de catálogo, métricas comerciales y diseño del constructor.',
     tools: ['search_products', 'update_product', 'list_orders', 'update_order_status', 'create_coupon', 'update_builder_layout'],
     initialLogs: [
       'Nova inicializada correctamente.',
-      'Escaneando base de datos del catÃƒÂ¡logo... OK.',
-      'Sincronizada con el constructor de pÃƒÂ¡ginas en http://localhost:3000/tienda',
-      'Esperando ÃƒÂ³rdenes del comerciante...'
+      'Escaneando base de datos del catálogo... OK.',
+      'Sincronizada con el constructor de páginas en http://localhost:3000/tienda',
+      'Esperando órdenes del comerciante...'
     ]
   },
   {
@@ -98,7 +98,7 @@ const BASE_AGENTS: Agent[] = [
     role: 'Vendedor de WhatsApp',
     color: 'teal',
     avatarBg: 'bg-teal-500',
-    avatarEmoji: 'Ã°Å¸â€˜Â©Ã¢â‚¬ÂÃ°Å¸â€™Â¼',
+    avatarEmoji: '👩‍💼',
     spriteUrl: '/images/sprite_sales.png',
     sittingDeskUrl: '/images/deskt/01-Photoroom.png',
     deskPosition: { top: '38%', left: '32%' }, // Escritorio superior izquierda
@@ -109,7 +109,7 @@ const BASE_AGENTS: Agent[] = [
     description: 'Responde chats entrantes de WhatsApp de clientes finales, recomienda productos y motiva cierres de carritos.',
     tools: ['search_products'],
     initialLogs: [
-      'SalesBot en lÃƒÂ­nea en instancia WhatsApp.',
+      'SalesBot en línea en instancia WhatsApp.',
       'Monitoreando mensajes de chat entrantes...',
       'Cargando plantillas de respuesta automatizadas...',
       'Sistema listo para capturar carritos de compra.'
@@ -118,10 +118,10 @@ const BASE_AGENTS: Agent[] = [
   {
     id: 'Logistics',
     name: 'Logistics',
-    role: 'Coordinador de EnvÃƒÂ­os',
+    role: 'Coordinador de Envíos',
     color: 'blue',
     avatarBg: 'bg-blue-500',
-    avatarEmoji: 'Ã°Å¸â€œÂ¦',
+    avatarEmoji: '📦',
     spriteUrl: '/images/sprite_logistics.png',
     sittingDeskUrl: '/images/deskt3/01-Photoroom.png',
     deskPosition: { top: '38%', left: '68%' }, // Escritorio superior derecha
@@ -129,10 +129,10 @@ const BASE_AGENTS: Agent[] = [
     tokensUsed: 15300,
     accuracy: '99.1%',
     latency: '1.8s',
-    description: 'Monitorea pedidos completados, asigna repartidores locales y gestiona el flujo logÃƒÂ­stico de despachos.',
+    description: 'Monitorea pedidos completados, asigna repartidores locales y gestiona el flujo logístico de despachos.',
     tools: ['list_orders', 'update_order_status'],
     initialLogs: [
-      'LogisticAgent en lÃƒÂ­nea.',
+      'LogisticAgent en línea.',
       'Escaneando lista de pedidos pendientes de entrega...',
       'Verificando cobertura de zonas de reparto... OK.',
       'Listando repartidores de turno... Esperando cambios de estado.'
@@ -144,7 +144,7 @@ const BASE_AGENTS: Agent[] = [
     role: 'Estratega de Marketing',
     color: 'amber',
     avatarBg: 'bg-amber-500',
-    avatarEmoji: 'Ã°Å¸Å¡â‚¬',
+    avatarEmoji: '🚀',
     spriteUrl: '/images/sprite_growth.png',
     sittingDeskUrl: '/images/deskt4/01.png',
     deskPosition: { top: '78%', left: '76%' }, // Escritorio inferior derecha
@@ -152,13 +152,13 @@ const BASE_AGENTS: Agent[] = [
     tokensUsed: 62400,
     accuracy: '96.8%',
     latency: '1.2s',
-    description: 'Analiza mÃƒÂ©tricas de retenciÃƒÂ³n, diseÃƒÂ±a cupones de promociÃƒÂ³n y redacta copys publicitarios de alta conversiÃƒÂ³n.',
+    description: 'Analiza métricas de retención, diseña cupones de promoción y redacta copys publicitarios de alta conversión.',
     tools: ['create_coupon', 'search_products'],
     initialLogs: [
       'GrowthAgent activo.',
       'Analizando tasa de rebote del checkout... calculado 18.5%',
-      'Generando propuestas de copywriting para campaÃƒÂ±as...',
-      'Listo para diseÃƒÂ±ar promociones de temporada.'
+      'Generando propuestas de copywriting para campañas...',
+      'Listo para diseñar promociones de temporada.'
     ]
   }
 ]
@@ -208,12 +208,12 @@ const OFFICE_ASSET_URLS = {
 }
 
 const AVAILABLE_TOOLS = [
-  { name: 'search_products', label: 'Ã°Å¸â€Â Buscar Productos' },
-  { name: 'update_product', label: 'Ã°Å¸â€Â§ Editar Productos' },
-  { name: 'list_orders', label: 'Ã°Å¸â€œâ€¹ Listar Pedidos' },
-  { name: 'update_order_status', label: 'Ã°Å¸Å¡Å¡ Despachar Pedidos' },
-  { name: 'create_coupon', label: 'Ã°Å¸Å½Å¸Ã¯Â¸Â Crear Cupones' },
-  { name: 'update_builder_layout', label: 'Ã°Å¸â€“Â¥Ã¯Â¸Â Modificar Constructor' }
+  { name: 'search_products', label: '🔍 Buscar Productos' },
+  { name: 'update_product', label: '🔧 Editar Productos' },
+  { name: 'list_orders', label: '📋 Listar Pedidos' },
+  { name: 'update_order_status', label: '🚚 Despachar Pedidos' },
+  { name: 'create_coupon', label: '🎟️ Crear Cupones' },
+  { name: 'update_builder_layout', label: '🖥️ Modificar Constructor' }
 ]
 
 const removeWhiteBg = (url: string): Promise<string> => {
@@ -409,8 +409,8 @@ export default function TheOfficeClient({
   const [agentBubbles, setAgentBubbles] = useState<Record<string, string>>({
     Nova: 'Sincronizada con base de datos. Lista.',
     SalesBot: 'Monitoreando WhatsApp en tiempo real.',
-    Logistics: 'Esperando pedidos listos para envÃƒÂ­o.',
-    Growth: 'Ideando campaÃƒÂ±as de conversiÃƒÂ³n...'
+    Logistics: 'Esperando pedidos listos para envío.',
+    Growth: 'Ideando campañas de conversión...'
   })
 
   // Agent console logs
@@ -435,7 +435,7 @@ export default function TheOfficeClient({
   const [instruction, setInstruction] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [consolidatedLogs, setConsolidatedLogs] = useState<string[]>([
-    `[${new Date().toLocaleTimeString()}] [The Office] Espacio agÃƒÂ©ntico inicializado para tienda: ${store.name}`,
+    `[${new Date().toLocaleTimeString()}] [The Office] Espacio agéntico inicializado para tienda: ${store.name}`,
     `[${new Date().toLocaleTimeString()}] [System] Todos los agentes de IA se han reportado a sus puestos de trabajo.`
   ])
 
@@ -453,7 +453,7 @@ export default function TheOfficeClient({
   const [newModel, setNewModel] = useState('meta-llama/llama-3.1-8b-instruct')
   const [newDescription, setNewDescription] = useState('')
   const [newSystemPrompt, setNewSystemPrompt] = useState('')
-  const [newAvatarEmoji, setNewAvatarEmoji] = useState('Ã°Å¸â€¢ÂµÃ¯Â¸Â')
+  const [newAvatarEmoji, setNewAvatarEmoji] = useState('🕵️')
   const [newTools, setNewTools] = useState<string[]>([])
   const [creating, setCreating] = useState(false)
   const [logsModalOpen, setLogsModalOpen] = useState(false)
@@ -548,7 +548,7 @@ export default function TheOfficeClient({
         printer: { action: 'Imprimiendo documentos...', log: 'Imprimiendo reportes de operaciones...' },
         water: { action: 'Tomando agua...', log: 'Tomando un descanso en el dispensador de agua...' },
         whiteboard: { action: 'Revisando planes...', log: 'Analizando diagramas de flujo de trabajo...' },
-        coffee: { action: 'Preparando cafÃƒÂ©...', log: 'Tomando una taza de cafÃƒÂ© en el break...' }
+        coffee: { action: 'Preparando café...', log: 'Tomando una taza de café en el break...' }
       }
 
       const activity = activities[destType]
@@ -665,7 +665,7 @@ export default function TheOfficeClient({
           item.row + item.h > it.row
         )
         if (isOverlap) {
-          toast.warning("Hay superposiciÃƒÂ³n con otro objeto, intenta ubicarlo en una zona libre.")
+          toast.warning("Hay superposición con otro objeto, intenta ubicarlo en una zona libre.")
         }
       }
       setIsDragging(false)
@@ -681,7 +681,7 @@ export default function TheOfficeClient({
       }
       return it
     }))
-    toast.success('Elemento rotado 90Ã‚Â°')
+    toast.success('Elemento rotado 90°')
   }
 
   const handleDeleteItem = (itemId: string) => {
@@ -689,11 +689,11 @@ export default function TheOfficeClient({
     if (!item) return
     
     if (item.agentId) {
-      toast.error(`No puedes eliminar este escritorio porque estÃƒÂ¡ asignado a ${item.agentId}. Despide o desvincula al agente primero.`)
+      toast.error(`No puedes eliminar este escritorio porque está asignado a ${item.agentId}. Despide o desvincula al agente primero.`)
       return
     }
     
-    if (confirm(`Ã‚Â¿EstÃƒÂ¡s seguro de que deseas eliminar "${item.name}"?`)) {
+    if (confirm(`¿Estás seguro de que deseas eliminar "${item.name}"?`)) {
       setLayoutItems(prev => prev.filter(it => it.id !== itemId))
       setSelectedItemId(null)
       toast.success(`${item.name} eliminado de la oficina.`)
@@ -714,7 +714,7 @@ export default function TheOfficeClient({
     } else if (type === 'plant') {
       w = 1; h = 1; name = 'Planta'
     } else if (type === 'shelf') {
-      w = 2; h = 2; name = 'EstanterÃƒÂ­a'
+      w = 2; h = 2; name = 'Estantería'
     }
     
     const newItem: LayoutItem = {
@@ -731,7 +731,7 @@ export default function TheOfficeClient({
     setLayoutItems(prev => [...prev, newItem])
     setSelectedItemId(newItem.id)
     setEditMode('move')
-    toast.success(`Ã‚Â¡${name} agregado! ArrÃƒÂ¡stralo por la cuadrÃƒÂ­cula para ubicarlo.`);
+    toast.success(`¡${name} agregado! Arrástralo por la cuadrícula para ubicarlo.`);
   }
 
   const handleSaveLayout = async () => {
@@ -741,8 +741,8 @@ export default function TheOfficeClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ layoutItems })
       })
-      if (!res.ok) throw new Error('Error al guardar diseÃƒÂ±o')
-      toast.success('Ã‚Â¡DiseÃƒÂ±o de la oficina guardado exitosamente!')
+      if (!res.ok) throw new Error('Error al guardar diseño')
+      toast.success('¡Diseño de la oficina guardado exitosamente!')
       setIsEditingLayout(false)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Error de conexion')
@@ -757,7 +757,7 @@ export default function TheOfficeClient({
     }
     const idleAgents = list.filter(a => !agentStatus[a.id] || agentStatus[a.id] === 'idle')
     if (idleAgents.length < 2) {
-      toast.warning('Los agentes estÃƒÂ¡n muy ocupados ahora. IntÃƒÂ©ntalo mÃƒÂ¡s tarde.')
+      toast.warning('Los agentes están muy ocupados ahora. Inténtalo más tarde.')
       return
     }
     
@@ -781,7 +781,7 @@ export default function TheOfficeClient({
     walkAgent(
       agentA.id,
       { top: `${topVal}%`, left: `${leftVal + 2}%` },
-      'Conversando... Ã¢Ëœâ€¢',
+      'Conversando... ☕',
       'De vuelta en mi puesto.',
       () => {},
       () => {}
@@ -790,15 +790,15 @@ export default function TheOfficeClient({
     walkAgent(
       agentB.id,
       { top: `${topVal}%`, left: `${leftVal + 6}%` },
-      'Escuchando... Ã°Å¸â€™Â¬',
+      'Escuchando... 💬',
       'De vuelta en mi puesto.',
       () => {
         setTimeout(() => {
-          setAgentBubbles(prev => ({ ...prev, [agentA.id]: 'Ã‚Â¡Hola! Ã‚Â¿CÃƒÂ³mo va todo hoy?' }))
+          setAgentBubbles(prev => ({ ...prev, [agentA.id]: '¡Hola! ¿Cómo va todo hoy?' }))
           setTimeout(() => {
-            setAgentBubbles(prev => ({ ...prev, [agentB.id]: 'Ã‚Â¡Hola! Todo sÃƒÂºper, procesando las ventas con ÃƒÂ©xito Ã°Å¸Å¡â‚¬' }))
+            setAgentBubbles(prev => ({ ...prev, [agentB.id]: '¡Hola! Todo súper, procesando las ventas con éxito 🚀' }))
             setTimeout(() => {
-              setAgentBubbles(prev => ({ ...prev, [agentA.id]: 'Ã‚Â¡Excelente! Sigamos trabajando en equipo. Ã°Å¸â€˜Â' }))
+              setAgentBubbles(prev => ({ ...prev, [agentA.id]: '¡Excelente! Sigamos trabajando en equipo. 👍' }))
             }, 2000)
           }, 2000)
         }, 1000)
@@ -815,7 +815,7 @@ export default function TheOfficeClient({
     if (!agent) return
 
     if (agentStatus[selectedAgentId] && agentStatus[selectedAgentId] !== 'idle') {
-      toast.warning(`${selectedAgentId} estÃƒÂ¡ realizando otra tarea. Espera a que regrese.`)
+      toast.warning(`${selectedAgentId} está realizando otra tarea. Espera a que regrese.`)
       return
     }
 
@@ -851,7 +851,7 @@ export default function TheOfficeClient({
 
     // Set temporary thinking bubble at their desk
     setAgentStatus(prev => ({ ...prev, [selectedAgentId]: 'working' }))
-    setAgentBubbles(prev => ({ ...prev, [selectedAgentId]: 'Pensando... Ã°Å¸Â§Â ' }))
+    setAgentBubbles(prev => ({ ...prev, [selectedAgentId]: 'Pensando... 🧠' }))
 
     try {
       const res = await fetch('/api/agent/office', {
@@ -880,50 +880,50 @@ export default function TheOfficeClient({
 
       // Determine visual destination based on the tool executed
       let destination = getStationCoordinates('whiteboard')
-      let actionText = 'Escribiendo reporte... Ã¢Å“ÂÃ¯Â¸Â'
-      let logText = 'Procesando anÃƒÂ¡lisis en la pizarra principal...'
+      let actionText = 'Escribiendo reporte... ✍️'
+      let logText = 'Procesando análisis en la pizarra principal...'
  
       const toolType = data.action?.type
       if (toolType && toolType !== 'NONE') {
         if (toolType === 'create_coupon') {
           destination = getStationCoordinates('printer')
-          actionText = 'Imprimiendo cupÃƒÂ³n... Ã°Å¸Å½Å¸Ã¯Â¸Â'
-          logText = 'Imprimiendo cupÃƒÂ³n de descuento en la impresora...'
+          actionText = 'Imprimiendo cupón... 🎟️'
+          logText = 'Imprimiendo cupón de descuento en la impresora...'
           
           setPrintedTickets(prev => [
             {
               time: finishTime,
               agent: selectedAgentId,
-              action: 'Crear CupÃƒÂ³n Ã°Å¸Å½Å¸Ã¯Â¸Â',
-              details: `CupÃƒÂ³n creado exitosamente. Respuesta: ${data.text.slice(0, 60)}...`
+              action: 'Crear Cupón 🎟️',
+              details: `Cupón creado exitosamente. Respuesta: ${data.text.slice(0, 60)}...`
             },
             ...prev
           ])
         } else if (toolType === 'list_orders' || toolType === 'update_order_status') {
           destination = getStationCoordinates('meeting') // Despacho (Shipping station)
-          actionText = 'Procesando despachos... Ã°Å¸â€œÂ¦'
-          logText = 'Gestionando estado de pedidos en la estaciÃƒÂ³n de envÃƒÂ­os...'
+          actionText = 'Procesando despachos... 📦'
+          logText = 'Gestionando estado de pedidos en la estación de envíos...'
           
           setPrintedTickets(prev => [
             {
               time: finishTime,
               agent: selectedAgentId,
-              action: 'LogÃƒÂ­stica / Pedidos Ã°Å¸â€œÂ¦',
-              details: `GestiÃƒÂ³n de despacho o listado de ÃƒÂ³rdenes. Respuesta: ${data.text.slice(0, 60)}...`
+              action: 'Logística / Pedidos 📦',
+              details: `Gestión de despacho o listado de órdenes. Respuesta: ${data.text.slice(0, 60)}...`
             },
             ...prev
           ])
         } else if (toolType === 'update_builder_layout' || toolType === 'update_product' || toolType === 'create_product') {
           destination = getStationCoordinates('whiteboard')
-          actionText = 'Actualizando catÃƒÂ¡logo... Ã°Å¸â€“Â¥Ã¯Â¸Â'
-          logText = 'Modificando elementos del catÃƒÂ¡logo o constructor de pÃƒÂ¡ginas...'
+          actionText = 'Actualizando catálogo... 🖥️'
+          logText = 'Modificando elementos del catálogo o constructor de páginas...'
           
           setPrintedTickets(prev => [
             {
               time: finishTime,
               agent: selectedAgentId,
-              action: 'Modificar CatÃƒÂ¡logo Ã°Å¸â€“Â¥Ã¯Â¸Â',
-              details: `Actualizando catÃƒÂ¡logo o constructor. Respuesta: ${data.text.slice(0, 60)}...`
+              action: 'Modificar Catálogo 🖥️',
+              details: `Actualizando catálogo o constructor. Respuesta: ${data.text.slice(0, 60)}...`
             },
             ...prev
           ])
@@ -938,7 +938,7 @@ export default function TheOfficeClient({
         'Orden completada. Esperando comandos.',
         () => {
           const toolActionLog = toolType && toolType !== 'NONE'
-            ? `[${finishTime}] [Herramienta] AcciÃƒÂ³n de base de datos ejecutada: ${toolType}.`
+            ? `[${finishTime}] [Herramienta] Acción de base de datos ejecutada: ${toolType}.`
             : null
 
           setTerminalLogs(prev => {
@@ -955,7 +955,7 @@ export default function TheOfficeClient({
             const list = [...prev]
             if (toolActionLog) list.push(`[${finishTime}] [${selectedAgentId}] ${toolActionLog}`)
             list.push(`[${finishTime}] [${selectedAgentId}] ${logText}`)
-            list.push(`[${finishTime}] [${selectedAgentId}] FinalizÃƒÂ³ procesamiento: "${data.text.slice(0, 80)}..."`)
+            list.push(`[${finishTime}] [${selectedAgentId}] Finalizó procesamiento: "${data.text.slice(0, 80)}..."`)
             return list
           })
         },
@@ -970,7 +970,7 @@ export default function TheOfficeClient({
         ...prev,
         [selectedAgentId]: [
           ...(prev[selectedAgentId] || []),
-          `[${errorTime}] [ERROR] FallÃƒÂ³ procesamiento: ${err.message || 'Error de conexiÃƒÂ³n'}`
+          `[${errorTime}] [ERROR] Falló procesamiento: ${err.message || 'Error de conexión'}`
         ]
       }))
       setAgentStatus(prev => ({ ...prev, [selectedAgentId]: 'idle' }))
@@ -1079,7 +1079,7 @@ export default function TheOfficeClient({
         return nextLayout
       })
 
-      toast.success(`Ã‚Â¡Agente ${newName} contratado exitosamente!`)
+      toast.success(`¡Agente ${newName} contratado exitosamente!`)
       setHiringModalOpen(false)
       setNewName('')
       setNewRole('')
@@ -1087,7 +1087,7 @@ export default function TheOfficeClient({
       setNewSystemPrompt('')
       setNewTools([])
     } catch (e: any) {
-      toast.error(e.message || 'Fallo de conexiÃƒÂ³n')
+      toast.error(e.message || 'Fallo de conexión')
     } finally {
       setCreating(false)
     }
@@ -1095,7 +1095,7 @@ export default function TheOfficeClient({
 
   // Dismiss custom agent
   const handleDismissAgent = async (agentId: string) => {
-    if (!confirm('Ã‚Â¿EstÃƒÂ¡s seguro de que deseas despedir a este agente de la oficina?')) return
+    if (!confirm('¿Estás seguro de que deseas despedir a este agente de la oficina?')) return
 
     try {
       const res = await fetch(`/api/agent/office/custom?id=${agentId}`, {
@@ -1151,9 +1151,9 @@ export default function TheOfficeClient({
         return nextLayout
       })
 
-      toast.success('Agente despedido con ÃƒÂ©xito.')
+      toast.success('Agente despedido con éxito.')
     } catch (e: any) {
-      toast.error(e.message || 'Fallo de conexiÃƒÂ³n')
+      toast.error(e.message || 'Fallo de conexión')
     }
   }
 
@@ -1172,7 +1172,7 @@ export default function TheOfficeClient({
   ]
 
   const handleCustomizeOffice = () => {
-    toast.success('Ã‚Â¡Entorno modular personalizable listo! Haz clic en cualquier escritorio o contrata agentes.')
+    toast.success('¡Entorno modular personalizable listo! Haz clic en cualquier escritorio o contrata agentes.')
   }
 
   return (
@@ -1261,7 +1261,7 @@ export default function TheOfficeClient({
             </div>
             <div>
               <h1 className="text-xl font-bold text-zinc-950">The Office</h1>
-              <p className="text-xs text-zinc-400 font-semibold tracking-wider uppercase mt-0.5">Centro AgÃƒÂ©ntico de Operaciones de {store.name}</p>
+              <p className="text-xs text-zinc-400 font-semibold tracking-wider uppercase mt-0.5">Centro Agéntico de Operaciones de {store.name}</p>
             </div>
           </div>
         </div>
@@ -1272,7 +1272,7 @@ export default function TheOfficeClient({
             onClick={() => {
               setIsEditingLayout(!isEditingLayout)
               setSelectedItemId(null)
-              toast.info(isEditingLayout ? 'PersonalizaciÃƒÂ³n cerrada.' : 'Ã‚Â¡Modo de maquetaciÃƒÂ³n activo! Utiliza la cuadrÃƒÂ­cula para reordenar tu oficina.')
+              toast.info(isEditingLayout ? 'Personalización cerrada.' : '¡Modo de maquetación activo! Utiliza la cuadrícula para reordenar tu oficina.')
             }}
             className={cn(
               "text-xs font-bold rounded-xl px-4 py-2.5 flex items-center gap-1.5 shadow-sm active:scale-98 transition-all select-none cursor-pointer border",
@@ -1283,7 +1283,7 @@ export default function TheOfficeClient({
             style={isEditingLayout ? { backgroundColor: '#7c3aed', color: '#ffffff', borderColor: '#6d28d9' } : {}}
           >
             <Sliders className="w-4 h-4" />
-            <span>{isEditingLayout ? 'Salir de EdiciÃƒÂ³n' : 'Personalizar oficina'}</span>
+            <span>{isEditingLayout ? 'Salir de Edición' : 'Personalizar oficina'}</span>
           </button>
 
           <button 
@@ -1450,9 +1450,9 @@ export default function TheOfficeClient({
                     const timeStr = new Date().toLocaleTimeString()
                     setConsolidatedLogs(prev => [
                       ...prev,
-                      `[${timeStr}] [System] Inspeccionando Pizarra: CatÃƒÂ¡logo con ${productsCount} productos y logs operativos.`
+                      `[${timeStr}] [System] Inspeccionando Pizarra: Catálogo con ${productsCount} productos y logs operativos.`
                     ])
-                    toast.info('Pizarra: Todo el equipo agÃƒÂ©ntico sincronizado.')
+                    toast.info('Pizarra: Todo el equipo agéntico sincronizado.')
                   }
                 }
               }
@@ -1518,7 +1518,7 @@ export default function TheOfficeClient({
                         toast.info('Coordinador seleccionado. Ejecuta la orden para despachar.')
                       }}
                     >
-                      <span>Ã°Å¸â€œÂ¦ {pendingOrdersCount}</span>
+                      <span>📦 {pendingOrdersCount}</span>
                     </div>
                   )}
 
@@ -1532,7 +1532,7 @@ export default function TheOfficeClient({
                         toast.info('Agente seleccionado. Ejecuta la orden para ver stock.')
                       }}
                     >
-                      <span>Ã¢Å¡Â Ã¯Â¸Â {outOfStockCount}</span>
+                      <span>⚠️ {outOfStockCount}</span>
                     </div>
                   )}
 
@@ -1570,7 +1570,7 @@ export default function TheOfficeClient({
                   ) : (
                     <div className="w-[85%] h-[80%] bg-zinc-900 border border-zinc-800 rounded-lg flex flex-col items-center justify-center text-center">
                       <span className="text-xl">
-                        {item.type === 'meeting' ? 'Ã°Å¸â€˜Â¥' : item.type === 'shelf' ? 'Ã°Å¸â€œÅ¡' : 'Ã°Å¸â€œÂ¦'}
+                        {item.type === 'meeting' ? '👥' : item.type === 'shelf' ? '📚' : '📦'}
                       </span>
                       <span className="text-[6.5px] text-zinc-500 font-black uppercase mt-0.5">{item.name}</span>
                     </div>
@@ -1650,17 +1650,17 @@ export default function TheOfficeClient({
                     onChange={() => setShowGrid(!showGrid)}
                     className="rounded border-zinc-800 bg-zinc-900 text-purple-500 focus:ring-0 cursor-pointer"
                   />
-                  <span>Mostrar cuadrÃƒÂ­cula</span>
+                  <span>Mostrar cuadrícula</span>
                 </label>
                 <div>
-                  <span className="text-[8px] text-zinc-500 uppercase font-black block mb-1">TamaÃƒÂ±o de cuadrÃƒÂ­cula</span>
+                  <span className="text-[8px] text-zinc-500 uppercase font-black block mb-1">Tamaño de cuadrícula</span>
                   <select
                     value={gridSize}
                     onChange={e => setGridSize(Number(e.target.value))}
                     className="w-full bg-zinc-900 border border-zinc-850 rounded-lg px-2.5 py-1 text-[9px] text-white focus:outline-none"
                   >
                     <option value={16}>16px</option>
-                    <option value={32}>32px (EstÃƒÂ¡ndar)</option>
+                    <option value={32}>32px (Estándar)</option>
                     <option value={48}>48px</option>
                   </select>
                 </div>
@@ -1734,7 +1734,7 @@ export default function TheOfficeClient({
                   className="bg-emerald-600 hover:bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-lg active:scale-95 cursor-pointer transition-all flex items-center gap-1 shadow-md"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>Guardar diseÃƒÂ±o</span>
+                  <span>Guardar diseño</span>
                 </button>
               </div>
             )}
@@ -1759,11 +1759,11 @@ export default function TheOfficeClient({
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
-                    <span className="text-lg">Ã°Å¸â€“Â¥Ã¯Â¸Â</span>
+                    <span className="text-lg">🖥️</span>
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none">Escritorio</span>
-                    <span className="text-[9px] text-zinc-500 mt-1 block">TamaÃƒÂ±o: 3x3</span>
+                    <span className="text-[9px] text-zinc-500 mt-1 block">Tamaño: 3x3</span>
                   </div>
                 </div>
                 <Plus className="w-3.5 h-3.5 text-zinc-500" />
@@ -1775,11 +1775,11 @@ export default function TheOfficeClient({
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
-                    <span className="text-lg">Ã°Å¸â€˜Â¥</span>
+                    <span className="text-lg">👥</span>
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none">Mesa grande</span>
-                    <span className="text-[9px] text-zinc-500 mt-1 block">TamaÃƒÂ±o: 3x2</span>
+                    <span className="text-[9px] text-zinc-500 mt-1 block">Tamaño: 3x2</span>
                   </div>
                 </div>
                 <Plus className="w-3.5 h-3.5 text-zinc-500" />
@@ -1791,11 +1791,11 @@ export default function TheOfficeClient({
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
-                    <span className="text-lg">Ã°Å¸â€ºâ€¹Ã¯Â¸Â</span>
+                    <span className="text-lg">🛋️</span>
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none">Lounge</span>
-                    <span className="text-[9px] text-zinc-500 mt-1 block">TamaÃƒÂ±o: 4x2</span>
+                    <span className="text-[9px] text-zinc-500 mt-1 block">Tamaño: 4x2</span>
                   </div>
                 </div>
                 <Plus className="w-3.5 h-3.5 text-zinc-500" />
@@ -1807,11 +1807,11 @@ export default function TheOfficeClient({
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
-                    <span className="text-lg">Ã°Å¸ÂªÂ´</span>
+                    <span className="text-lg">🪴</span>
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block leading-none">Planta</span>
-                    <span className="text-[9px] text-zinc-500 mt-1 block">TamaÃƒÂ±o: 1x1</span>
+                    <span className="text-[9px] text-zinc-500 mt-1 block">Tamaño: 1x1</span>
                   </div>
                 </div>
                 <Plus className="w-3.5 h-3.5 text-zinc-500" />
@@ -1823,11 +1823,11 @@ export default function TheOfficeClient({
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
-                    <span className="text-lg">Ã°Å¸â€œÅ¡</span>
+                    <span className="text-lg">📚</span>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-white block leading-none">EstanterÃƒÂ­a</span>
-                    <span className="text-[9px] text-zinc-500 mt-1 block">TamaÃƒÂ±o: 2x2</span>
+                    <span className="text-xs font-bold text-white block leading-none">Estantería</span>
+                    <span className="text-[9px] text-zinc-500 mt-1 block">Tamaño: 2x2</span>
                   </div>
                 </div>
                 <Plus className="w-3.5 h-3.5 text-zinc-500" />
@@ -1835,8 +1835,8 @@ export default function TheOfficeClient({
             </div>
 
             <div className="mt-6 bg-zinc-900/40 border border-zinc-800 p-3.5 rounded-xl text-[10px] text-zinc-400 font-semibold leading-relaxed">
-              <span className="text-[8px] uppercase tracking-wider font-black text-amber-500 block mb-1">Ã°Å¸â€™Â¡ Consejo</span>
-              <span>Cada puesto ocupa un espacio determinado. Planifica tu oficina estratÃƒÂ©gicamente.</span>
+              <span className="text-[8px] uppercase tracking-wider font-black text-amber-500 block mb-1">💡 Consejo</span>
+              <span>Cada puesto ocupa un espacio determinado. Planifica tu oficina estratégicamente.</span>
             </div>
           </div>
         )}
@@ -1870,7 +1870,7 @@ export default function TheOfficeClient({
                 <div className="flex items-center gap-2">
                   <h3 className="font-black text-zinc-900 text-sm xl:text-base">{selectedAgent.name}</h3>
                   <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-250 rounded-full text-[9px] font-black uppercase tracking-wider animate-pulse">
-                    En lÃƒÂ­nea
+                    En línea
                   </span>
                 </div>
                 <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">{selectedAgent.role}</p>
@@ -1916,7 +1916,7 @@ export default function TheOfficeClient({
                   {terminalLogs[selectedAgent.id]?.map((log, index) => {
                     const isOrder = log.includes('> ORDEN')
                     const isError = log.includes('[ERROR]')
-                    const isSystem = log.includes('[System]') || log.includes('inicializada') || log.includes('activo') || log.includes('en lÃƒÂ­nea')
+                    const isSystem = log.includes('[System]') || log.includes('inicializada') || log.includes('activo') || log.includes('en línea')
                     
                     return (
                       <div 
@@ -1938,7 +1938,7 @@ export default function TheOfficeClient({
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
-                      <span>{selectedAgent.name} estÃƒÂ¡ procesando...</span>
+                      <span>{selectedAgent.name} está procesando...</span>
                     </div>
                   )}
                   <div ref={terminalEndRef} />
@@ -1948,7 +1948,7 @@ export default function TheOfficeClient({
               /* Technical Specs Profile cards */
               <div className="space-y-5 text-left text-zinc-700">
                 <div>
-                  <h4 className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">DescripciÃƒÂ³n del Agente</h4>
+                  <h4 className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Descripción del Agente</h4>
                   <p className="text-xs text-zinc-600 leading-relaxed font-semibold mt-1.5">{selectedAgent.description}</p>
                 </div>
 
@@ -1996,7 +1996,7 @@ export default function TheOfficeClient({
                   <div className="flex flex-wrap gap-1.5 mb-5">
                     {selectedAgent.tools.map((t, idx) => (
                       <span key={idx} className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-zinc-650 font-mono text-[10px] rounded-lg">
-                        Ã°Å¸â€Â§ {t}
+                        🔧 {t}
                       </span>
                     ))}
                   </div>
@@ -2026,7 +2026,7 @@ export default function TheOfficeClient({
                   onChange={e => setInstruction(e.target.value)}
                   placeholder={
                     agentStatus[selectedAgent.id] && agentStatus[selectedAgent.id] !== 'idle'
-                      ? `${selectedAgent.name} estÃƒÂ¡ ocupado moviÃƒÂ©ndose...`
+                      ? `${selectedAgent.name} está ocupado moviéndose...`
                       : `Enviar orden a ${selectedAgent.name}...`
                   }
                   disabled={submitting || (agentStatus[selectedAgent.id] && agentStatus[selectedAgent.id] !== 'idle')}
@@ -2042,7 +2042,7 @@ export default function TheOfficeClient({
               </form>
             ) : (
               <div className="py-2.5 text-center text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
-                VisualizaciÃƒÂ³n de Especificaciones TÃƒÂ©cnicas
+                Visualización de Especificaciones Técnicas
               </div>
             )}
           </div>
@@ -2085,7 +2085,7 @@ export default function TheOfficeClient({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Asistente de CatÃƒÂ¡logo"
+                    placeholder="e.g. Asistente de Catálogo"
                     value={newRole}
                     onChange={e => setNewRole(e.target.value)}
                     className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-400 focus:bg-white rounded-xl px-3.5 py-2 text-xs text-zinc-900 focus:outline-none transition-all placeholder:text-zinc-400"
@@ -2113,22 +2113,22 @@ export default function TheOfficeClient({
                     onChange={e => setNewAvatarEmoji(e.target.value)}
                     className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-400 focus:bg-white rounded-xl px-3.5 py-2 text-xs text-zinc-900 focus:outline-none cursor-pointer transition-all"
                   >
-                    <option value="Ã°Å¸â€¢ÂµÃ¯Â¸Â">Ã°Å¸â€¢ÂµÃ¯Â¸Â Detective (Analista)</option>
-                    <option value="Ã°Å¸Â§â„¢">Ã°Å¸Â§â„¢ Mago (Creativo)</option>
-                    <option value="Ã°Å¸Â§â€˜Ã¢â‚¬ÂÃ°Å¸â€™Â»">Ã°Å¸Â§â€˜Ã¢â‚¬ÂÃ°Å¸â€™Â» Programador (Soporte)</option>
-                    <option value="Ã°Å¸â€˜Â©Ã¢â‚¬ÂÃ°Å¸Å½Â¨">Ã°Å¸â€˜Â©Ã¢â‚¬ÂÃ°Å¸Å½Â¨ Artista (Copywriter)</option>
-                    <option value="Ã°Å¸Â¤â€“">Ã°Å¸Â¤â€“ Robot (Operaciones)</option>
-                    <option value="Ã°Å¸Â¦Â">Ã°Å¸Â¦Â LeÃƒÂ³n (Ventas)</option>
-                    <option value="Ã°Å¸â€˜Â½">Ã°Å¸â€˜Â½ Alien (Especialista)</option>
+                    <option value="🕵️">🕵️ Detective (Analista)</option>
+                    <option value="🧙">🧙 Mago (Creativo)</option>
+                    <option value="🧑‍💻">🧑‍💻 Programador (Soporte)</option>
+                    <option value="👩‍🎨">👩‍🎨 Artista (Copywriter)</option>
+                    <option value="🤖">🤖 Robot (Operaciones)</option>
+                    <option value="🦁">🦁 León (Ventas)</option>
+                    <option value="👽">👽 Alien (Especialista)</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="text-[9px] text-zinc-500 uppercase font-black block mb-1">DescripciÃƒÂ³n Breve</label>
+                <label className="text-[9px] text-zinc-500 uppercase font-black block mb-1">Descripción Breve</label>
                 <input
                   type="text"
-                  placeholder="e.g. Asiste en tareas de catalogaciÃƒÂ³n de productos y ofertas..."
+                  placeholder="e.g. Asiste en tareas de catalogación de productos y ofertas..."
                   value={newDescription}
                   onChange={e => setNewDescription(e.target.value)}
                   className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-400 focus:bg-white rounded-xl px-3.5 py-2 text-xs text-zinc-900 focus:outline-none transition-all placeholder:text-zinc-400"
@@ -2136,11 +2136,11 @@ export default function TheOfficeClient({
               </div>
 
               <div>
-                <label className="text-[9px] text-zinc-500 uppercase font-black block mb-1">System Prompt (InstrucciÃƒÂ³n Base/Personalidad)</label>
+                <label className="text-[9px] text-zinc-500 uppercase font-black block mb-1">System Prompt (Instrucción Base/Personalidad)</label>
                 <textarea
                   required
                   rows={3}
-                  placeholder="e.g. Eres un agente enfocado en la atenciÃƒÂ³n y redacciÃƒÂ³n. Responde siempre con tono ejecutivo..."
+                  placeholder="e.g. Eres un agente enfocado en la atención y redacción. Responde siempre con tono ejecutivo..."
                   value={newSystemPrompt}
                   onChange={e => setNewSystemPrompt(e.target.value)}
                   className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-400 focus:bg-white rounded-xl px-3.5 py-2 text-xs text-zinc-900 focus:outline-none resize-none font-mono transition-all placeholder:text-zinc-400"
@@ -2184,7 +2184,7 @@ export default function TheOfficeClient({
                   disabled={creating || !newName || !newRole || !newSystemPrompt}
                   className="flex-1 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold rounded-xl py-2.5 text-center cursor-pointer transition-all active:scale-[0.98] disabled:bg-zinc-100 disabled:text-zinc-400 disabled:scale-100 border border-zinc-800 disabled:border-zinc-200 disabled:cursor-not-allowed"
                 >
-                  {creating ? 'Contratando...' : 'Confirmar ContrataciÃƒÂ³n'}
+                  {creating ? 'Contratando...' : 'Confirmar Contratación'}
                 </button>
               </div>
 
@@ -2207,11 +2207,11 @@ export default function TheOfficeClient({
 
             <div className="flex items-center gap-2 mb-4 select-none">
               <Coffee className="w-5 h-5 text-amber-500" />
-              <h2 className="text-base font-extrabold tracking-tight text-zinc-900">Bar de CafÃƒÂ© Premium</h2>
+              <h2 className="text-base font-extrabold tracking-tight text-zinc-900">Bar de Café Premium</h2>
             </div>
 
             <p className="text-xs text-zinc-500 mb-4 font-semibold">
-              Invita una taza de cafÃƒÂ© reciÃƒÂ©n preparado a tus agentes para optimizar sus tiempos de respuesta y darles un empujÃƒÂ³n de energÃƒÂ­a.
+              Invita una taza de café recién preparado a tus agentes para optimizar sus tiempos de respuesta y darles un empujón de energía.
             </p>
 
             <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
@@ -2231,10 +2231,10 @@ export default function TheOfficeClient({
                       onClick={() => {
                         const timeStr = new Date().toLocaleTimeString()
                         setBoostedAgents(prev => ({ ...prev, [agent.id]: true }))
-                        setAgentBubbles(prev => ({ ...prev, [agent.id]: 'Ã‚Â¡Gracias por el cafÃƒÂ©! Ã¢Ëœâ€¢Ã¯Â¸Â Latencia optimizada.' }))
+                        setAgentBubbles(prev => ({ ...prev, [agent.id]: '¡Gracias por el café! ☕️ Latencia optimizada.' }))
                         setConsolidatedLogs(prev => [
                           ...prev,
-                          `[${timeStr}] [System] Has invitado un cafÃƒÂ© premium a ${agent.name}.`
+                          `[${timeStr}] [System] Has invitado un café premium a ${agent.name}.`
                         ])
                         
                         setAgentsList(prev => prev.map(a => {
@@ -2244,7 +2244,7 @@ export default function TheOfficeClient({
                           return a
                         }))
                         
-                        toast.success(`Ã‚Â¡CafÃƒÂ© enviado a ${agent.name}!`)
+                        toast.success(`¡Café enviado a ${agent.name}!`)
                         setCoffeeModalOpen(false)
                       }}
                       disabled={isBoosted}
@@ -2255,7 +2255,7 @@ export default function TheOfficeClient({
                           : "bg-amber-600 hover:bg-amber-500 text-white shadow-sm"
                       )}
                     >
-                      {isBoosted ? 'Con CafeÃƒÂ­na Ã¢Å¡Â¡' : 'Invitar CafÃƒÂ© Ã¢Ëœâ€¢'}
+                      {isBoosted ? 'Con Cafeína ⚡' : 'Invitar Café ☕'}
                     </button>
                   </div>
                 )
@@ -2280,17 +2280,17 @@ export default function TheOfficeClient({
 
             <div className="flex items-center gap-2 mb-4 select-none">
               <Printer className="w-5 h-5 text-zinc-800" />
-              <h2 className="text-base font-extrabold tracking-tight text-zinc-900">Tickets de OperaciÃƒÂ³n Impresos</h2>
+              <h2 className="text-base font-extrabold tracking-tight text-zinc-900">Tickets de Operación Impresos</h2>
             </div>
 
             <p className="text-xs text-zinc-500 mb-4 font-semibold">
-              Registro fÃƒÂ­sico simulado de las operaciones de base de datos exitosas realizadas por el equipo de agentes.
+              Registro físico simulado de las operaciones de base de datos exitosas realizadas por el equipo de agentes.
             </p>
 
             <div className="bg-zinc-50 p-4 border border-zinc-200 rounded-xl max-h-80 overflow-y-auto space-y-3.5 font-mono text-[10px] text-zinc-650">
               {printedTickets.length === 0 ? (
                 <div className="text-center py-8 text-zinc-500 font-semibold">
-                  No hay tickets impresos en esta sesiÃƒÂ³n. EnvÃƒÂ­a comandos con herramientas para generar recibos.
+                  No hay tickets impresos en esta sesión. Envía comandos con herramientas para generar recibos.
                 </div>
               ) : (
                 printedTickets.map((t, idx) => (
@@ -2341,7 +2341,7 @@ export default function TheOfficeClient({
             <div className="bg-zinc-50 p-4 border border-zinc-200 rounded-xl max-h-96 overflow-y-auto space-y-2 font-mono text-[10.5px] text-zinc-650">
               {consolidatedLogs.length === 0 ? (
                 <div className="text-center py-8 text-zinc-400 font-semibold">
-                  No hay actividades registradas aÃƒÂºn.
+                  No hay actividades registradas aún.
                 </div>
               ) : (
                 consolidatedLogs.map((log, idx) => {

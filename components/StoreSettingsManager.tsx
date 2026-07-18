@@ -80,10 +80,10 @@ const TABS = [
 const SCHEDULE_DAYS = [
   { key: 'lunes',    label: 'Lunes',    from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
   { key: 'martes',   label: 'Martes',   from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
-  { key: 'miercoles',label: 'MiÃƒÂ©rcoles',from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
+  { key: 'miercoles',label: 'Miércoles',from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
   { key: 'jueves',   label: 'Jueves',   from: '7:00 a. m.', to: '8:00 p. m.', enabled: true },
   { key: 'viernes',  label: 'Viernes',  from: '7:00 a. m.', to: '9:00 p. m.', enabled: true },
-  { key: 'sabado',   label: 'SÃƒÂ¡bado',   from: '8:00 a. m.', to: '9:00 p. m.', enabled: true },
+  { key: 'sabado',   label: 'Sábado',   from: '8:00 a. m.', to: '9:00 p. m.', enabled: true },
   { key: 'domingo',  label: 'Domingo',  from: '8:00 a. m.', to: '6:00 p. m.', enabled: true },
 ]
 
@@ -116,7 +116,7 @@ export default function StoreSettingsManager({
     autoReply: storeSettings.autoReply ?? true,
     humanHandoff: storeSettings.humanHandoff ?? true,
     address: storeSettings.address || 'Calle 70 # 45-23',
-    city: storeSettings.city || 'MedellÃƒÂ­n',
+    city: storeSettings.city || 'Medellín',
     department: storeSettings.department || 'Antioquia',
     postalCode: storeSettings.postalCode || '050021',
     country: storeSettings.country || 'Colombia',
@@ -143,7 +143,7 @@ export default function StoreSettingsManager({
 
   const defaultTeam = [
     { name: initialStore.name + ' Admin', email: 'admin@tiendawebs.com', role: 'Propietario', active: true },
-    { name: 'Diana GÃƒÂ³mez', email: 'diana@tiendawebs.com', role: 'Administrador', active: true },
+    { name: 'Diana Gómez', email: 'diana@tiendawebs.com', role: 'Administrador', active: true },
     { name: 'Soporte Ventas', email: 'ventas@tiendawebs.com', role: 'Soporte / Chat', active: false }
   ]
   const [team, setTeam] = useState<any[]>(storeSettings.team || defaultTeam)
@@ -153,8 +153,8 @@ export default function StoreSettingsManager({
   const [apiToken, setApiToken] = useState<string>(storeSettings.security?.apiToken || 'flash_token_live_38294hjda8921jkdskla')
 
   const defaultLogs = [
-    { event: 'Inicio de sesiÃƒÂ³n exitoso', detail: 'Ingreso desde MedellÃƒÂ­n, CO (Chrome/Windows)', user: initialStore.name + ' Admin', time: 'Hoy, 08:34 a. m.' },
-    { event: 'Panel configurado', detail: 'Se cargaron los ajustes de inicializaciÃƒÂ³n', user: 'Sistema', time: 'Hace unos instantes' }
+    { event: 'Inicio de sesión exitoso', detail: 'Ingreso desde Medellín, CO (Chrome/Windows)', user: initialStore.name + ' Admin', time: 'Hoy, 08:34 a. m.' },
+    { event: 'Panel configurado', detail: 'Se cargaron los ajustes de inicialización', user: 'Sistema', time: 'Hace unos instantes' }
   ]
   const [activityLog, setActivityLog] = useState<any[]>(storeSettings.activityLog || defaultLogs)
 
@@ -231,14 +231,14 @@ export default function StoreSettingsManager({
       const mpConnectedParam = params.get('mp_connected')
       if (mpConnectedParam === 'success') {
         setMpConnected(true)
-        toast.success("Ã‚Â¡Mercado Pago conectado!", {
-          description: "Tu pasarela de Mercado Pago estÃƒÂ¡ lista para procesar transacciones."
+        toast.success("¡Mercado Pago conectado!", {
+          description: "Tu pasarela de Mercado Pago está lista para procesar transacciones."
         })
         window.history.replaceState({}, '', window.location.pathname)
       } else if (mpConnectedParam === 'error') {
         const reason = params.get('error_reason')
         toast.error("Error al conectar Mercado Pago", {
-          description: `OcurriÃƒÂ³ un problema: ${reason || 'error_desconocido'}. IntÃƒÂ©ntalo de nuevo.`
+          description: `Ocurrió un problema: ${reason || 'error_desconocido'}. Inténtalo de nuevo.`
         })
         window.history.replaceState({}, '', window.location.pathname)
       }
@@ -308,8 +308,8 @@ export default function StoreSettingsManager({
             setWhatsappConnected(true);
             setQrCodeBase64(null);
             setPollingStatus(false);
-            toast.success("Ã‚Â¡WhatsApp enlazado con ÃƒÂ©xito! Ã¢Å“â€¦", {
-              description: "Tu nÃƒÂºmero celular ahora estÃƒÂ¡ vinculado a Flashcheckouts y respondiendo de forma automÃƒÂ¡tica."
+            toast.success("¡WhatsApp enlazado con éxito! ✅", {
+              description: "Tu número celular ahora está vinculado a Flashcheckouts y respondiendo de forma automática."
             });
           } else if (data.status === 'QRCODE') {
             if (data.base64 && data.base64 !== qrCodeBase64) {
@@ -337,15 +337,15 @@ export default function StoreSettingsManager({
       const data = await res.json();
       if (data.status === 'CONNECTED') {
         setWhatsappConnected(true);
-        toast.success("Ã‚Â¡WhatsApp ya estÃƒÂ¡ conectado! Ã¢Å“â€¦");
+        toast.success("¡WhatsApp ya está conectado! ✅");
       } else {
         setQrCodeBase64(data.base64 || null);
         setQrCodeText(data.code || null);
         setPollingStatus(true);
-        toast.info("CÃƒÂ³digo QR generado. EscanÃƒÂ©alo desde tu WhatsApp.");
+        toast.info("Código QR generado. Escanéalo desde tu WhatsApp.");
       }
     } catch (err) {
-      toast.error("Error al iniciar conexiÃƒÂ³n de WhatsApp");
+      toast.error("Error al iniciar conexión de WhatsApp");
     } finally {
       setLoadingQr(false);
     }
@@ -371,8 +371,8 @@ export default function StoreSettingsManager({
   function handleConnectMercadoPago() {
     const appId = process.env.NEXT_PUBLIC_MERCADOPAGO_APP_ID || ''
     if (!appId) {
-      toast.error("ConfiguraciÃƒÂ³n incompleta", {
-        description: "NEXT_PUBLIC_MERCADOPAGO_APP_ID no estÃƒÂ¡ configurado en las variables de entorno."
+      toast.error("Configuración incompleta", {
+        description: "NEXT_PUBLIC_MERCADOPAGO_APP_ID no está configurado en las variables de entorno."
       })
       return
     }
@@ -391,7 +391,7 @@ export default function StoreSettingsManager({
       setMpPublicKey('')
       toast.success("Mercado Pago desconectado", { description: "Se han removido las credenciales del comercio." })
     } catch (error) {
-      toast.error("Error al desconectar", { description: "No se pudo desconectar tu cuenta de Mercado Pago. IntÃƒÂ©ntalo de nuevo." })
+      toast.error("Error al desconectar", { description: "No se pudo desconectar tu cuenta de Mercado Pago. Inténtalo de nuevo." })
     } finally {
       setDisconnectingMp(false)
     }
@@ -451,7 +451,7 @@ export default function StoreSettingsManager({
         const formData = new FormData()
         formData.append('file', form.logoFile)
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
-        if (!uploadRes.ok) throw new Error('FallÃƒÂ³ subida')
+        if (!uploadRes.ok) throw new Error('Falló subida')
         const uploadData = await uploadRes.json()
         finalLogoUrl = uploadData.url
       } else if (logoPreview === null) {
@@ -490,7 +490,7 @@ export default function StoreSettingsManager({
         country: form.country,
         activityLog: [
           {
-            event: 'ConfiguraciÃƒÂ³n guardada',
+            event: 'Configuración guardada',
             detail: 'Se actualizaron los ajustes de la tienda',
             user: initialStore.name + ' Admin',
             time: 'Hace unos instantes'
@@ -517,11 +517,11 @@ export default function StoreSettingsManager({
       if (!res.ok) throw new Error('Fallo guardando datos')
       setForm(prev => ({ ...prev, logoFile: null }))
       setSuccess(true)
-      toast.success("ConfiguraciÃƒÂ³n sincronizada", { description: "Los cambios ya son visibles en tu tienda pÃƒÂºblica." })
+      toast.success("Configuración sincronizada", { description: "Los cambios ya son visibles en tu tienda pública." })
       setTimeout(() => setSuccess(false), 3000)
     } catch (error) {
       console.error(error)
-      toast.error("Error de sincronizaciÃƒÂ³n", { description: "No pudimos guardar los cambios. Revisa tu conexiÃƒÂ³n e intenta de nuevo." })
+      toast.error("Error de sincronización", { description: "No pudimos guardar los cambios. Revisa tu conexión e intenta de nuevo." })
     } finally {
       setLoading(false)
     }
@@ -530,7 +530,7 @@ export default function StoreSettingsManager({
   const handleInviteUser = () => {
     const name = prompt('Ingrese el nombre del nuevo miembro:')
     if (!name) return
-    const email = prompt('Ingrese el correo electrÃƒÂ³nico del miembro:')
+    const email = prompt('Ingrese el correo electrónico del miembro:')
     if (!email) return
     
     const newUser = {
@@ -557,15 +557,15 @@ export default function StoreSettingsManager({
   const handleRegenerateToken = () => {
     const newToken = 'flash_token_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     setApiToken(newToken)
-    toast.success('Nuevo Token de API generado. Ã‚Â¡Guarda los cambios para aplicarlo!')
+    toast.success('Nuevo Token de API generado. ¡Guarda los cambios para aplicarlo!')
   }
 
   function handleCopyLink() {
     navigator.clipboard.writeText(storefrontUrl)
-    toast.success("Ã‚Â¡Enlace copiado!", { description: "El enlace a tu tienda ha sido copiado al portapapeles." })
+    toast.success("¡Enlace copiado!", { description: "El enlace a tu tienda ha sido copiado al portapapeles." })
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Toggle helper Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ─── Toggle helper ───────────────────────────────────────────
   function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
     return (
       <button
@@ -588,10 +588,10 @@ export default function StoreSettingsManager({
 
   return (
     <div className="space-y-6 pb-12 animate-in duration-300 font-sans text-left">
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Header ────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 select-none">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">ConfiguraciÃƒÂ³n</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Configuración</h1>
           <p className="text-[12px] font-medium text-zinc-500 mt-1">Administra los ajustes generales de tu negocio.</p>
         </div>
         <button
@@ -604,7 +604,7 @@ export default function StoreSettingsManager({
         </button>
       </div>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Tab Navigation Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Tab Navigation ────────────────────────────────── */}
       <div className="flex border-b border-zinc-200 overflow-x-auto scrollbar-none whitespace-nowrap gap-6 select-none">
         {TABS.map(tab => (
           <button
@@ -622,13 +622,13 @@ export default function StoreSettingsManager({
         ))}
       </div>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Main Two-Column Layout Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Main Two-Column Layout ──────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ LEFT / CENTER CONTENT Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ─── LEFT / CENTER CONTENT ─── */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: GENERAL Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: GENERAL ════════ */}
           {activeTab === 'general' && (
             <>
               {/* Perfil del negocio */}
@@ -636,7 +636,7 @@ export default function StoreSettingsManager({
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
                   <div>
                     <h3 className="text-sm font-bold text-zinc-900">Perfil del negocio</h3>
-                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">InformaciÃƒÂ³n bÃƒÂ¡sica de tu tienda.</p>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Información básica de tu tienda.</p>
                   </div>
                   <button
                     type="button"
@@ -644,7 +644,7 @@ export default function StoreSettingsManager({
                     className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
                   >
                     <Pencil className="w-3.5 h-3.5" />
-                    Editar informaciÃƒÂ³n
+                    Editar información
                   </button>
                 </div>
 
@@ -683,7 +683,7 @@ export default function StoreSettingsManager({
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-zinc-500 block">Correo electrÃƒÂ³nico</label>
+                        <label className="text-[11px] font-bold text-zinc-500 block">Correo electrónico</label>
                         {editingProfile ? (
                           <input
                             type="email"
@@ -697,7 +697,7 @@ export default function StoreSettingsManager({
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-zinc-500 block">TelÃƒÂ©fono</label>
+                        <label className="text-[11px] font-bold text-zinc-500 block">Teléfono</label>
                         {editingProfile ? (
                           <input
                             type="text"
@@ -711,7 +711,7 @@ export default function StoreSettingsManager({
                       </div>
 
                       <div className="space-y-1.5 sm:col-span-2">
-                        <label className="text-[11px] font-bold text-zinc-500 block">DescripciÃƒÂ³n</label>
+                        <label className="text-[11px] font-bold text-zinc-500 block">Descripción</label>
                         {editingProfile ? (
                           <div className="relative">
                             <textarea
@@ -723,7 +723,7 @@ export default function StoreSettingsManager({
                             <div className="absolute bottom-2 right-3 text-[9px] font-bold text-zinc-400">{form.bio.length}/160</div>
                           </div>
                         ) : (
-                          <p className="text-sm font-semibold text-zinc-800">{form.bio || <span className="text-zinc-400">Sin descripciÃƒÂ³n</span>}</p>
+                          <p className="text-sm font-semibold text-zinc-800">{form.bio || <span className="text-zinc-400">Sin descripción</span>}</p>
                         )}
                       </div>
                     </div>
@@ -731,12 +731,12 @@ export default function StoreSettingsManager({
                 </div>
               </div>
 
-              {/* DirecciÃƒÂ³n del negocio */}
+              {/* Dirección del negocio */}
               <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-900">DirecciÃƒÂ³n del negocio</h3>
-                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Esta informaciÃƒÂ³n se mostrarÃƒÂ¡ en tu tienda y documentos.</p>
+                    <h3 className="text-sm font-bold text-zinc-900">Dirección del negocio</h3>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Esta información se mostrará en tu tienda y documentos.</p>
                   </div>
                   <button
                     type="button"
@@ -751,11 +751,11 @@ export default function StoreSettingsManager({
                   {editingAddress ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {[
-                        { key: 'address', label: 'DirecciÃƒÂ³n' },
-                        { key: 'country', label: 'PaÃƒÂ­s' },
+                        { key: 'address', label: 'Dirección' },
+                        { key: 'country', label: 'País' },
                         { key: 'city', label: 'Ciudad' },
                         { key: 'department', label: 'Departamento' },
-                        { key: 'postalCode', label: 'CÃƒÂ³digo postal' },
+                        { key: 'postalCode', label: 'Código postal' },
                       ].map(f => (
                         <div key={f.key} className="space-y-1.5">
                           <label className="text-[11px] font-bold text-zinc-500 block">{f.label}</label>
@@ -771,11 +771,11 @@ export default function StoreSettingsManager({
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
                       {[
-                        { label: 'DirecciÃƒÂ³n', value: form.address },
-                        { label: 'PaÃƒÂ­s', value: form.country },
+                        { label: 'Dirección', value: form.address },
+                        { label: 'País', value: form.country },
                         { label: 'Ciudad', value: form.city },
                         { label: 'Departamento', value: form.department },
-                        { label: 'CÃƒÂ³digo postal', value: form.postalCode },
+                        { label: 'Código postal', value: form.postalCode },
                       ].map(item => (
                         <div key={item.label}>
                           <p className="text-[11px] font-bold text-zinc-400 mb-0.5">{item.label}</p>
@@ -787,12 +787,12 @@ export default function StoreSettingsManager({
                 </div>
               </div>
 
-              {/* Horario de atenciÃƒÂ³n */}
+              {/* Horario de atención */}
               <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-900">Horario de atenciÃƒÂ³n</h3>
-                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Configura los horarios en los que tu negocio estÃƒÂ¡ disponible.</p>
+                    <h3 className="text-sm font-bold text-zinc-900">Horario de atención</h3>
+                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Configura los horarios en los que tu negocio está disponible.</p>
                   </div>
                   <button
                     type="button"
@@ -821,11 +821,11 @@ export default function StoreSettingsManager({
             </>
           )}
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: PAGOS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: PAGOS ════════ */}
           {activeTab === 'pagos' && (
             <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
               <div className="px-6 py-4 border-b border-zinc-100">
-                <h3 className="text-sm font-bold text-zinc-900">MÃƒÂ©todos de Pago</h3>
+                <h3 className="text-sm font-bold text-zinc-900">Métodos de Pago</h3>
                 <p className="text-xs text-zinc-500 mt-1">Conecta tus pasarelas para recaudar fondos directamente de las compras de tus clientes.</p>
               </div>
               <div className="p-6 space-y-4">
@@ -837,7 +837,7 @@ export default function StoreSettingsManager({
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-zinc-900">Stripe Connect</h4>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Global Ã‚Â· Tarjetas, Apple Pay, Google Pay</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Global · Tarjetas, Apple Pay, Google Pay</p>
                     </div>
                   </div>
                   {initialStore.stripeConnectAccountId ? (
@@ -858,7 +858,7 @@ export default function StoreSettingsManager({
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-zinc-900">Mercado Pago Connect</h4>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Local Ã‚Â· PSE, Efecty y mÃƒÂ¡s</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Local · PSE, Efecty y más</p>
                     </div>
                   </div>
                   {mpConnected ? (
@@ -1041,11 +1041,11 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: PERFIL Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: PERFIL ════════ */}
           {activeTab === 'perfil' && (
             <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900">Perfil y PersonalizaciÃƒÂ³n</h3>
+                <h3 className="text-sm font-bold text-zinc-900">Perfil y Personalización</h3>
                 <p className="text-xs text-zinc-500 mt-1">Personaliza la apariencia visual de tu tienda y redes sociales.</p>
               </div>
 
@@ -1075,10 +1075,10 @@ export default function StoreSettingsManager({
                 <div className="flex items-center gap-3">
                   {[
                     { hex: '#10B981', name: 'Esmeralda' },
-                    { hex: '#635BFF', name: 'ÃƒÂndigo' },
+                    { hex: '#635BFF', name: 'Índigo' },
                     { hex: '#EF4444', name: 'Rojo' },
                     { hex: '#3B82F6', name: 'Azul' },
-                    { hex: '#F59E0B', name: 'ÃƒÂmbar' },
+                    { hex: '#F59E0B', name: 'Ámbar' },
                     { hex: '#18181B', name: 'Zinc' }
                   ].map(color => (
                     <button
@@ -1170,25 +1170,25 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: NOTIFICACIONES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: NOTIFICACIONES ════════ */}
           {activeTab === 'notificaciones' && (
             <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900">Ajustes de Notificaciones</h3>
-                <p className="text-xs text-zinc-500 mt-1">Configura quÃƒÂ© eventos y canales te alertarÃƒÂ¡n sobre la actividad de tu negocio.</p>
+                <p className="text-xs text-zinc-500 mt-1">Configura qué eventos y canales te alertarán sobre la actividad de tu negocio.</p>
               </div>
 
               <div className="space-y-4 divide-y divide-zinc-100">
                 {[
                   {
                     title: 'Nuevos Pedidos por WhatsApp',
-                    desc: 'Enviar una alerta instantÃƒÂ¡nea a tu WhatsApp de administrador cuando un cliente realice un pedido.',
+                    desc: 'Enviar una alerta instantánea a tu WhatsApp de administrador cuando un cliente realice un pedido.',
                     whatsappKey: 'orderWhatsapp',
                     emailKey: 'orderEmail'
                   },
                   {
                     title: 'Resumen de Ventas Diario',
-                    desc: 'Recibir un correo electrÃƒÂ³nico todas las noches con el balance de ventas de tu tienda.',
+                    desc: 'Recibir un correo electrónico todas las noches con el balance de ventas de tu tienda.',
                     whatsappKey: 'resumenWhatsapp',
                     emailKey: 'resumenEmail'
                   },
@@ -1200,7 +1200,7 @@ export default function StoreSettingsManager({
                   },
                   {
                     title: 'Mensajes de Clientes en Espera',
-                    desc: 'Notificar por WhatsApp cuando un cliente solicite atenciÃƒÂ³n humana o pase mÃƒÂ¡s de 10 minutos sin responder.',
+                    desc: 'Notificar por WhatsApp cuando un cliente solicite atención humana o pase más de 10 minutos sin responder.',
                     whatsappKey: 'esperaWhatsapp',
                     emailKey: 'esperaEmail'
                   }
@@ -1236,7 +1236,7 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: USUARIOS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: USUARIOS ════════ */}
           {activeTab === 'usuarios' && (
             <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
               <div className="flex items-center justify-between gap-4">
@@ -1276,7 +1276,7 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: SEGURIDAD Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: SEGURIDAD ════════ */}
           {activeTab === 'seguridad' && (
             <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
               <div>
@@ -1326,16 +1326,16 @@ export default function StoreSettingsManager({
                 <div className="divide-y divide-zinc-100">
                   <div className="flex items-center justify-between py-3">
                     <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-zinc-850">Doble Factor de AutenticaciÃƒÂ³n (2FA)</p>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Requiere un cÃƒÂ³digo temporal para iniciar sesiÃƒÂ³n en el panel.</p>
+                      <p className="text-xs font-bold text-zinc-850">Doble Factor de Autenticación (2FA)</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Requiere un código temporal para iniciar sesión en el panel.</p>
                     </div>
                     <Toggle checked={doubleFactor} onChange={setDoubleFactor} />
                   </div>
                   
                   <div className="flex items-center justify-between py-3">
                     <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-zinc-850">Cerrar SesiÃƒÂ³n por Inactividad</p>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Desconectar automÃƒÂ¡ticamente del panel tras 30 minutos sin actividad.</p>
+                      <p className="text-xs font-bold text-zinc-850">Cerrar Sesión por Inactividad</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold">Desconectar automáticamente del panel tras 30 minutos sin actividad.</p>
                     </div>
                     <Toggle checked={autologout} onChange={setAutologout} />
                   </div>
@@ -1344,12 +1344,12 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TAB: ACTIVIDAD Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+          {/* ════════ TAB: ACTIVIDAD ════════ */}
           {activeTab === 'actividad' && (
             <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900">Registro de Actividad</h3>
-                <p className="text-xs text-zinc-500 mt-1">Historial detallado de las operaciones de administraciÃƒÂ³n de tu tienda.</p>
+                <p className="text-xs text-zinc-500 mt-1">Historial detallado de las operaciones de administración de tu tienda.</p>
               </div>
 
               <div className="relative pl-6 border-l border-zinc-150 space-y-6">
@@ -1373,7 +1373,7 @@ export default function StoreSettingsManager({
           )}
         </div>
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ RIGHT SIDEBAR Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ─── RIGHT SIDEBAR ─── */}
         <div className="lg:col-span-4 space-y-5">
 
           {/* Preferencias generales */}
@@ -1388,7 +1388,7 @@ export default function StoreSettingsManager({
                   label: 'Idioma',
                   key: 'language',
                   options: [
-                    { value: 'es', label: 'EspaÃƒÂ±ol' },
+                    { value: 'es', label: 'Español' },
                     { value: 'en', label: 'English' },
                   ]
                 },
@@ -1397,7 +1397,7 @@ export default function StoreSettingsManager({
                   key: 'currency',
                   options: [
                     { value: 'COP', label: 'Peso colombiano (COP)' },
-                    { value: 'USD', label: 'DÃƒÂ³lar Americano (USD)' },
+                    { value: 'USD', label: 'Dólar Americano (USD)' },
                     { value: 'MXN', label: 'Peso Mexicano (MXN)' },
                     { value: 'EUR', label: 'Euro (EUR)' },
                   ]
@@ -1406,8 +1406,8 @@ export default function StoreSettingsManager({
                   label: 'Zona horaria',
                   key: 'timezone',
                   options: [
-                    { value: 'GMT-05:00', label: '(GMT-5) BogotÃƒÂ¡, Lima, Quito' },
-                    { value: 'GMT-06:00', label: '(GMT-6) Ciudad de MÃƒÂ©xico' },
+                    { value: 'GMT-05:00', label: '(GMT-5) Bogotá, Lima, Quito' },
+                    { value: 'GMT-06:00', label: '(GMT-6) Ciudad de México' },
                     { value: 'GMT-04:00', label: '(GMT-4) Caracas, La Paz' },
                     { value: 'GMT-03:00', label: '(GMT-3) Buenos Aires' },
                   ]
@@ -1470,16 +1470,16 @@ export default function StoreSettingsManager({
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-zinc-800">Respuesta automÃƒÂ¡tica</p>
-                    <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Nova responde automÃƒÂ¡ticamente a tus clientes.</p>
+                    <p className="text-xs font-bold text-zinc-800">Respuesta automática</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Nova responde automáticamente a tus clientes.</p>
                   </div>
                   <Toggle checked={form.autoReply} onChange={v => setForm(f => ({ ...f, autoReply: v }))} />
                 </div>
 
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-zinc-800">DesvÃƒÂ­o a humano</p>
-                    <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Permitir que los clientes soliciten atenciÃƒÂ³n humana.</p>
+                    <p className="text-xs font-bold text-zinc-800">Desvío a humano</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Permitir que los clientes soliciten atención humana.</p>
                   </div>
                   <Toggle checked={form.humanHandoff} onChange={v => setForm(f => ({ ...f, humanHandoff: v }))} />
                 </div>
@@ -1495,10 +1495,10 @@ export default function StoreSettingsManager({
             </div>
           </div>
 
-          {/* InformaciÃƒÂ³n del plan */}
+          {/* Información del plan */}
           <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
             <div className="px-5 py-4 border-b border-zinc-100">
-              <h3 className="text-sm font-bold text-zinc-900">InformaciÃƒÂ³n del plan</h3>
+              <h3 className="text-sm font-bold text-zinc-900">Información del plan</h3>
             </div>
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
@@ -1521,7 +1521,7 @@ export default function StoreSettingsManager({
 
               <div className="space-y-2 border-t border-zinc-100 pt-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-zinc-500">RenovaciÃƒÂ³n</span>
+                  <span className="font-semibold text-zinc-500">Renovación</span>
                   <span className="font-bold text-zinc-800">15 de junio de 2025</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">

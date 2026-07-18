@@ -38,7 +38,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
       </main>
 
       <footer className="flex items-center justify-center gap-2 px-8 py-4">
-        <p className="text-paragraph-3 text-sm">Ã‚Â© 2026 Flashcheckouts, inc.</p>
+        <p className="text-paragraph-3 text-sm">© 2026 Flashcheckouts, inc.</p>
       </footer>
     </div>
   );

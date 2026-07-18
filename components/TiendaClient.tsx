@@ -226,16 +226,16 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   const [bentoHighlights, setBentoHighlights] = useState({
     title: parsedSettings.bentoHighlights?.title || 'Nuestros Ingredientes Premium',
     items: parsedSettings.bentoHighlights?.items || [
-      { emoji: 'Ã°Å¸Å’Â´', title: 'DÃƒÂ¡tiles de FaraÃƒÂ³n', desc: 'Dulces, carnosos y naturales' },
-      { emoji: 'Ã°Å¸Â¥Å“', title: 'Almendras Tostadas', desc: 'Crujientes y seleccionadas a mano' },
-      { emoji: 'Ã°Å¸ÂÂ«', title: 'Chocolate Belga', desc: 'Cobertura suave de cacao puro' }
+      { emoji: '🌴', title: 'Dátiles de Faraón', desc: 'Dulces, carnosos y naturales' },
+      { emoji: '🥜', title: 'Almendras Tostadas', desc: 'Crujientes y seleccionadas a mano' },
+      { emoji: '🍫', title: 'Chocolate Belga', desc: 'Cobertura suave de cacao puro' }
     ]
   })
 
-  // CategorÃƒÂ­as Visuales (Visual PDP Grid)
+  // Categorías Visuales (Visual PDP Grid)
   const [visualCategories, setVisualCategories] = useState<Array<{ category: string; imageUrl: string }>>(() => {
     return parsedSettings.visualCategories || [
-      { category: 'CafÃƒÂ©', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
+      { category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300&auto=format&fit=crop' },
       { category: 'Accesorios', imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300&auto=format&fit=crop' },
       { category: 'Combos', imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=300&auto=format&fit=crop' }
     ]
@@ -243,15 +243,15 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
 
   // Proceso Paso a Paso (Timeline)
   const [processTimeline, setProcessTimeline] = useState({
-    title: parsedSettings.processTimeline?.title || 'Ã‚Â¿CÃƒÂ³mo Comprar en Flashcheckouts?',
+    title: parsedSettings.processTimeline?.title || '¿Cómo Comprar en Flashcheckouts?',
     items: parsedSettings.processTimeline?.items || [
-      { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catÃƒÂ¡logo y agrÃƒÂ©galos al carrito.' },
-      { step: '2', title: 'Datos de EnvÃƒÂ­o', desc: 'Ingresa tu direcciÃƒÂ³n de entrega y ubÃƒÂ­cate en el mapa interactivo.' },
+      { step: '1', title: 'Explora y Agrega', desc: 'Selecciona tus productos favoritos del catálogo y agrégalos al carrito.' },
+      { step: '2', title: 'Datos de Envío', desc: 'Ingresa tu dirección de entrega y ubícate en el mapa interactivo.' },
       { step: '3', title: 'Completa en WhatsApp', desc: 'Finaliza el pedido enviando el mensaje estructurado de WhatsApp al vendedor.' }
     ]
   })
 
-  // GalerÃƒÂ­a de fotos reales de estilo de vida (Lifestyle)
+  // Galería de fotos reales de estilo de vida (Lifestyle)
   const [lifestyleGallery, setLifestyleGallery] = useState<string[]>(() => {
     return parsedSettings.lifestyleGallery || [
       'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=400&auto=format&fit=crop',
@@ -263,15 +263,15 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
 
   // Newsletter Widget Premium
   const [newsletterWidget, setNewsletterWidget] = useState({
-    title: parsedSettings.newsletterWidget?.title || 'ÃƒÅ¡nete a Nuestro Club Gourmet',
-    subtitle: parsedSettings.newsletterWidget?.subtitle || 'EntÃƒÂ©rate antes que nadie de nuestros lanzamientos, descuentos exclusivos y recetas especiales.',
-    placeholder: parsedSettings.newsletterWidget?.placeholder || 'Ingresa tu correo electrÃƒÂ³nico',
+    title: parsedSettings.newsletterWidget?.title || 'Únete a Nuestro Club Gourmet',
+    subtitle: parsedSettings.newsletterWidget?.subtitle || 'Entérate antes que nadie de nuestros lanzamientos, descuentos exclusivos y recetas especiales.',
+    placeholder: parsedSettings.newsletterWidget?.placeholder || 'Ingresa tu correo electrónico',
     btnText: parsedSettings.newsletterWidget?.btnText || 'Suscribirme',
     bgColor: parsedSettings.newsletterWidget?.bgColor || '#111827',
     textColor: parsedSettings.newsletterWidget?.textColor || '#FFFFFF'
   })
 
-  // MenÃƒÂº de navegaciÃƒÂ³n superior (Navbar links)
+  // Menú de navegación superior (Navbar links)
   const [navbarLinks, setNavbarLinks] = useState<Array<{ label: string; action: 'scroll-banner' | 'scroll-products' | 'scroll-story' | 'whatsapp' | 'link'; link: string }>>(() => {
     return parsedSettings.navbarLinks || [
       { label: 'Inicio', action: 'scroll-banner', link: '' },
@@ -281,20 +281,20 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
     ]
   })
 
-  // Accordion Specs (Ficha tÃƒÂ©cnica, nutricional, etc.)
+  // Accordion Specs (Ficha técnica, nutricional, etc.)
   const [accordionSpecs, setAccordionSpecs] = useState<Array<{ title: string; content: string }>>(() => {
     return parsedSettings.accordionSpecs?.tabs || [
-      { title: 'Ficha Nutricional', content: 'CalorÃƒÂ­as: 140 kcal | Grasas: 4g | Carbohidratos: 22g | ProteÃƒÂ­nas: 2g por porciÃƒÂ³n.' },
-      { title: 'MÃƒÂ©todo de EnvÃƒÂ­o', content: 'Empacado con tecnologÃƒÂ­a tÃƒÂ©rmica para conservar el chocolate fresco hasta tu puerta.' }
+      { title: 'Ficha Nutricional', content: 'Calorías: 140 kcal | Grasas: 4g | Carbohidratos: 22g | Proteínas: 2g por porción.' },
+      { title: 'Método de Envío', content: 'Empacado con tecnología térmica para conservar el chocolate fresco hasta tu puerta.' }
     ]
   })
 
   // Brand Story narrative section
   const [brandStory, setBrandStory] = useState({
     title: parsedSettings.brandStory?.title || 'Nuestra Historia de Sabor',
-    desc: parsedSettings.brandStory?.desc || 'Fundada con la visiÃƒÂ³n de combinar frutos del desierto y chocolate fino, creamos una experiencia ÃƒÂºnica de confiterÃƒÂ­a artesanal.',
+    desc: parsedSettings.brandStory?.desc || 'Fundada con la visión de combinar frutos del desierto y chocolate fino, creamos una experiencia única de confitería artesanal.',
     bgUrl: parsedSettings.brandStory?.bgUrl || 'https://images.unsplash.com/photo-1549007994-cb92ca71450a?q=80&w=800&auto=format&fit=crop',
-    btnText: parsedSettings.brandStory?.btnText || 'Saber mÃƒÂ¡s',
+    btnText: parsedSettings.brandStory?.btnText || 'Saber más',
     btnLink: parsedSettings.brandStory?.btnLink || ''
   })
 
@@ -302,25 +302,25 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   const [brandStoryPage, setBrandStoryPage] = useState({
     headerTrayectoria: parsedSettings.brandStoryPage?.headerTrayectoria || 'Nuestra Trayectoria',
     headerPerfil: parsedSettings.brandStoryPage?.headerPerfil || 'Perfil de la Empresa',
-    narrativeP1: parsedSettings.brandStoryPage?.narrativeP1 || 'Fundada en 1992 por el visionario Fawaz Masri, Chocodate naciÃƒÂ³ en el corazÃƒÂ³n de los Emiratos ÃƒÂrabes Unidos con una misiÃƒÂ³n singular: elevar la humilde y nutritiva fruta del dÃƒÂ¡til de Arabia a una experiencia de confiterÃƒÂ­a de clase mundial.',
-    narrativeP2: parsedSettings.brandStoryPage?.narrativeP2 || 'Al combinar el dulzor natural y la riqueza en fibra de los mejores dÃƒÂ¡tiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prÃƒÂ©mium, creamos una golosina ÃƒÂºnica que trasciende fronteras. Hoy en dÃƒÂ­a, nuestros productos se disfrutan en mÃƒÂ¡s de 50 paÃƒÂ­ses alrededor del mundo.',
+    narrativeP1: parsedSettings.brandStoryPage?.narrativeP1 || 'Fundada en 1992 por el visionario Fawaz Masri, Chocodate nació en el corazón de los Emiratos Árabes Unidos con una misión singular: elevar la humilde y nutritiva fruta del dátil de Arabia a una experiencia de confitería de clase mundial.',
+    narrativeP2: parsedSettings.brandStoryPage?.narrativeP2 || 'Al combinar el dulzor natural y la riqueza en fibra de los mejores dátiles seleccionados a mano con el crujido de una almendra tostada en su interior, y envolverlo todo en una generosa capa de chocolate belga prémium, creamos una golosina única que trasciende fronteras. Hoy en día, nuestros productos se disfrutan en más de 50 países alrededor del mundo.',
     imageHeritage: parsedSettings.brandStoryPage?.imageHeritage || 'https://images.unsplash.com/photo-1606312440799-b4f0c4013a21?q=80&w=800&auto=format&fit=crop',
     pillarsTitle: parsedSettings.brandStoryPage?.pillarsTitle || 'Nuestras Dos Grandes Columnas',
-    pillar1Icon: parsedSettings.brandStoryPage?.pillar1Icon || 'Ã°Å¸ÂÂ­',
-    pillar1Title: parsedSettings.brandStoryPage?.pillar1Title || 'FÃƒÂ¡brica La Ronda (DubÃƒÂ¡i, EAU)',
-    pillar1Desc: parsedSettings.brandStoryPage?.pillar1Desc || 'Nuestra planta principal con tecnologÃƒÂ­a de punta dedicada exclusivamente al procesamiento de dÃƒÂ¡tiles frescos, tostado de almendras y la formulaciÃƒÂ³n del chocolate belga. Cumple con las mÃƒÂ¡s estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).',
-    pillar2Icon: parsedSettings.brandStoryPage?.pillar2Icon || 'Ã°Å¸Å’Â´',
+    pillar1Icon: parsedSettings.brandStoryPage?.pillar1Icon || '🏭',
+    pillar1Title: parsedSettings.brandStoryPage?.pillar1Title || 'Fábrica La Ronda (Dubái, EAU)',
+    pillar1Desc: parsedSettings.brandStoryPage?.pillar1Desc || 'Nuestra planta principal con tecnología de punta dedicada exclusivamente al procesamiento de dátiles frescos, tostado de almendras y la formulación del chocolate belga. Cumple con las más estrictas certificaciones internacionales de calidad alimentaria (HACCP, ISO 22000 y Halal).',
+    pillar2Icon: parsedSettings.brandStoryPage?.pillar2Icon || '🌴',
     pillar2Title: parsedSettings.brandStoryPage?.pillar2Title || 'Star Foods (KSA)',
-    pillar2Desc: parsedSettings.brandStoryPage?.pillar2Desc || 'Nuestra sucursal agrÃƒÂ­cola y de procesamiento ubicada en Arabia Saudita, encargada de la recolecciÃƒÂ³n y selecciÃƒÂ³n de los dÃƒÂ¡tiles en su momento justo de maduraciÃƒÂ³n, garantizando una cadena de suministro sostenible y local.',
+    pillar2Desc: parsedSettings.brandStoryPage?.pillar2Desc || 'Nuestra sucursal agrícola y de procesamiento ubicada en Arabia Saudita, encargada de la recolección y selección de los dátiles en su momento justo de maduración, garantizando una cadena de suministro sostenible y local.',
     leadership: parsedSettings.brandStoryPage?.leadership || [
-      { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: 'Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸â€™Â¼' },
-      { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: 'Ã°Å¸â€˜Â©Ã¢â‚¬ÂÃ°Å¸â€™Â¼' },
-      { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: 'Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸â€™Â»' },
-      { name: 'Hazem Al-Masri', role: 'Gerente General', icon: 'Ã°Å¸â€˜Â¨Ã¢â‚¬ÂÃ°Å¸â€Â§' }
+      { name: 'Fawaz Al-Masri', role: 'Fundador & CEO', icon: '👨‍💼' },
+      { name: 'Razan Al-Masri', role: 'Directora de Desarrollo (CBDO)', icon: '👩‍💼' },
+      { name: 'Omar Al-Masri', role: 'Director de Operaciones (COO)', icon: '👨‍💻' },
+      { name: 'Hazem Al-Masri', role: 'Gerente General', icon: '👨‍🔧' }
     ],
     values: parsedSettings.brandStoryPage?.values || [
-      { title: 'RazÃƒÂ³n & PasiÃƒÂ³n', desc: 'Equilibramos la toma de decisiones basada en datos cientÃƒÂ­ficos con la pasiÃƒÂ³n por la reposterÃƒÂ­a fina.' },
-      { title: 'TradiciÃƒÂ³n & Modernidad', desc: 'Respetamos el legado histÃƒÂ³rico del dÃƒÂ¡til del desierto mientras aplicamos tecnologÃƒÂ­a de punta en empaque y producciÃƒÂ³n.' },
+      { title: 'Razón & Pasión', desc: 'Equilibramos la toma de decisiones basada en datos científicos con la pasión por la repostería fina.' },
+      { title: 'Tradición & Modernidad', desc: 'Respetamos el legado histórico del dátil del desierto mientras aplicamos tecnología de punta en empaque y producción.' },
       { title: 'Familia & Comunidad', desc: 'Operamos como una empresa familiar que apoya a los agricultores locales y cuida de sus empleados.' }
     ]
   })
@@ -331,7 +331,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
     parsedSettings.bannerUrl || 'https://images.unsplash.com/photo-1507133750040-4a8f57021571?q=80&w=800&auto=format&fit=crop'
   )
   const [bannerTitle, setBannerTitle] = useState(
-    parsedSettings.bannerTitle || 'El mejor cafÃƒÂ©, directo a tu puerta'
+    parsedSettings.bannerTitle || 'El mejor café, directo a tu puerta'
   )
   const [bannerSubtitle, setBannerSubtitle] = useState(
     parsedSettings.bannerSubtitle || 'Descubre nuestros productos de especialidad cultivados con amor y tostados frescos.'
@@ -346,7 +346,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   // 3-Column Ingredients section state (Chocodate Style)
   const [ingredientsSection, setIngredientsSection] = useState({
     title: parsedSettings.ingredientsSection?.title || 'Nuestros Ingredientes Premium',
-    leftTitle: parsedSettings.ingredientsSection?.leftTitle || 'DÃƒÂ¡tiles de FaraÃƒÂ³n',
+    leftTitle: parsedSettings.ingredientsSection?.leftTitle || 'Dátiles de Faraón',
     leftDesc: parsedSettings.ingredientsSection?.leftDesc || 'Dulces, carnosos, naturales y recolectados en su punto de madurez.',
     centerImageUrl: parsedSettings.ingredientsSection?.centerImageUrl || 'https://www.chocodate.com/assets/img/central-product.png',
     rightTitle: parsedSettings.ingredientsSection?.rightTitle || 'Chocolate Belga Puro',
@@ -362,7 +362,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   // Announcement Bar state
   const [announcement, setAnnouncement] = useState({
     enabled: parsedSettings.announcement?.enabled || false,
-    text: parsedSettings.announcement?.text || 'Ã°Å¸Å¡Å¡ Ã‚Â¡EnvÃƒÂ­os gratis por compras superiores a $100.000!',
+    text: parsedSettings.announcement?.text || '🚚 ¡Envíos gratis por compras superiores a $100.000!',
     bgColor: parsedSettings.announcement?.bgColor || '#059669',
     textColor: parsedSettings.announcement?.textColor || '#FFFFFF'
   })
@@ -377,10 +377,10 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   // Benefits Custom items
   const [benefits, setBenefits] = useState({
     items: parsedSettings.benefits?.items || [
-      { icon: 'Truck', label: 'EnvÃƒÂ­os rÃƒÂ¡pidos', desc: 'A todo el paÃƒÂ­s' },
-      { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'MÃƒÂºltiples mÃƒÂ©todos' },
-      { icon: 'Award', label: 'CafÃƒÂ© de calidad', desc: 'Granos seleccionados' },
-      { icon: 'Clock', label: 'AtenciÃƒÂ³n 24/7', desc: 'Siempre disponibles' }
+      { icon: 'Truck', label: 'Envíos rápidos', desc: 'A todo el país' },
+      { icon: 'ShieldCheck', label: 'Pagos seguros', desc: 'Múltiples métodos' },
+      { icon: 'Award', label: 'Café de calidad', desc: 'Granos seleccionados' },
+      { icon: 'Clock', label: 'Atención 24/7', desc: 'Siempre disponibles' }
     ]
   })
 
@@ -399,7 +399,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   // Custom WhatsApp message template
   const [whatsappTemplate, setWhatsappTemplate] = useState(
     parsedSettings.whatsappTemplate || 
-    'Hola! Vengo de tu tienda online y quiero realizar el siguiente pedido:\n\n*Productos:*\n{lista_productos}\n\n*Total:* {monto_total}\n\n*Datos de entrega:*\nNombre: {cliente_nombre}\nDirecciÃƒÂ³n: {direccion}'
+    'Hola! Vengo de tu tienda online y quiero realizar el siguiente pedido:\n\n*Productos:*\n{lista_productos}\n\n*Total:* {monto_total}\n\n*Datos de entrega:*\nNombre: {cliente_nombre}\nDirección: {direccion}'
   )
   
   // Typography State
@@ -429,7 +429,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   })
 
   const [seo, setSeo] = useState({
-    title: parsedSettings.seo?.title || `${initialStore.name} | CatÃƒÂ¡logo`,
+    title: parsedSettings.seo?.title || `${initialStore.name} | Catálogo`,
     desc: parsedSettings.seo?.desc || `Compra online y haz tu pedido por WhatsApp.`
   })
 
@@ -604,12 +604,12 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
         throw new Error(errorData.error || 'Error al guardar los cambios')
       }
 
-      toast.success('Ã‚Â¡Cambios guardados con ÃƒÂ©xito!', {
-        description: 'La configuraciÃƒÂ³n y diseÃƒÂ±o de tu tienda online han sido guardados.'
+      toast.success('¡Cambios guardados con éxito!', {
+        description: 'La configuración y diseño de tu tienda online han sido guardados.'
       })
     } catch (err: any) {
       console.error(err)
-      toast.error(err.message || 'OcurriÃƒÂ³ un error al guardar los ajustes.')
+      toast.error(err.message || 'Ocurrió un error al guardar los ajustes.')
     } finally {
       setIsSaving(false)
     }
@@ -667,11 +667,11 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
         {[
           { id: 'apariencia', label: 'Apariencia' },
           { id: 'premium', label: 'Secciones Premium (PDP)' },
-          { id: 'info', label: 'InformaciÃƒÂ³n de la tienda' },
+          { id: 'info', label: 'Información de la tienda' },
           { id: 'dominios', label: 'Dominios' },
           { id: 'seo', label: 'SEO' },
           { id: 'redes', label: 'Redes sociales' },
-          { id: 'politicas', label: 'PolÃƒÂ­ticas' }
+          { id: 'politicas', label: 'Políticas' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -716,7 +716,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
 
                 <div className="text-left space-y-0.5">
                   <h3 className="text-sm font-black text-zinc-900 leading-none">Logo de la tienda</h3>
-                  <p className="text-[11px] font-semibold text-zinc-400">Este logo se mostrarÃƒÂ¡ en tu tienda online y enlaces de pago.</p>
+                  <p className="text-[11px] font-semibold text-zinc-400">Este logo se mostrará en tu tienda online y enlaces de pago.</p>
                 </div>
 
                 <div className="border border-zinc-150 rounded-lg p-6 flex flex-col items-center justify-center bg-zinc-50/30 min-h-[96px]">
@@ -725,7 +725,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       <img src={logoUrl} className="max-h-16 max-w-full object-contain" alt="Logo" />
                     ) : (
                       <div className="text-sm font-black text-zinc-900 border border-zinc-200 px-4 py-2 rounded bg-white tracking-wider flex items-center gap-1.5">
-                        <span>Ã¢Ëœâ€¢</span>
+                        <span>☕</span>
                         <span>{logoUrl.toUpperCase()}</span>
                       </div>
                     )
@@ -832,18 +832,18 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {/* Banner Texts Inputs */}
                 <div className="space-y-3.5 pt-2 border-t border-zinc-100 text-left">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo del banner</label>
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título del banner</label>
                     <input 
                       type="text"
                       value={bannerTitle}
                       onChange={e => setBannerTitle(e.target.value)}
-                      placeholder="Ej: El mejor cafÃƒÂ©, directo a tu puerta"
+                      placeholder="Ej: El mejor café, directo a tu puerta"
                       className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">DescripciÃƒÂ³n del banner</label>
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Descripción del banner</label>
                     <textarea 
                       value={bannerSubtitle}
                       onChange={e => setBannerSubtitle(e.target.value)}
@@ -856,7 +856,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   {/* Banner Button Customization */}
                   <div className="space-y-3 pt-2.5 border-t border-zinc-100">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Texto del botÃƒÂ³n</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Texto del botón</label>
                       <input 
                         type="text"
                         value={bannerButton.text}
@@ -867,7 +867,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">AcciÃƒÂ³n del botÃƒÂ³n</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Acción del botón</label>
                       <select 
                         value={bannerButton.action}
                         onChange={e => setBannerButton(prev => ({ ...prev, action: e.target.value as 'scroll' | 'whatsapp' | 'link' }))}
@@ -881,7 +881,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
 
                     {bannerButton.action === 'link' && (
                       <div className="space-y-1.5 animate-in fade-in duration-300">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Enlace del botÃƒÂ³n</label>
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Enlace del botón</label>
                         <input 
                           type="text"
                           value={bannerButton.link}
@@ -921,7 +921,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         type="text"
                         value={announcement.text}
                         onChange={e => setAnnouncement(prev => ({ ...prev, text: e.target.value }))}
-                        placeholder="Ej: Ã‚Â¡EnvÃƒÂ­os gratis por compras superiores a $100.000!"
+                        placeholder="Ej: ¡Envíos gratis por compras superiores a $100.000!"
                         className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none focus:border-zinc-950"
                       />
                     </div>
@@ -975,7 +975,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                             }}
                             className="w-full bg-white border border-zinc-200 rounded-lg px-1.5 py-1.5 text-[10px] font-bold text-zinc-800 focus:outline-none"
                           >
-                            <option value="Truck">CamiÃƒÂ³n</option>
+                            <option value="Truck">Camión</option>
                             <option value="ShieldCheck">Escudo</option>
                             <option value="Award">Medalla</option>
                             <option value="Clock">Reloj</option>
@@ -985,7 +985,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         </div>
 
                         <div className="col-span-8 space-y-1">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={item.label}
@@ -994,14 +994,14 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                               newItems[idx] = { ...item, label: e.target.value }
                               setBenefits({ items: newItems })
                             }}
-                            placeholder="Ej: EnvÃƒÂ­os rÃƒÂ¡pidos"
+                            placeholder="Ej: Envíos rápidos"
                             className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-[10px] font-bold text-zinc-800 focus:outline-none"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">SubtÃƒÂ­tulo / Bajada</label>
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Subtítulo / Bajada</label>
                         <input 
                           type="text"
                           value={item.desc}
@@ -1010,7 +1010,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                             newItems[idx] = { ...item, desc: e.target.value }
                             setBenefits({ items: newItems })
                           }}
-                          placeholder="Ej: A todo el paÃƒÂ­s"
+                          placeholder="Ej: A todo el país"
                           className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1.5 text-[10px] font-bold text-zinc-800 focus:outline-none"
                         />
                       </div>
@@ -1091,8 +1091,8 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               {/* Typography Card */}
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="text-left space-y-0.5">
-                  <h3 className="text-sm font-black text-zinc-900 leading-none">TipografÃƒÂ­a</h3>
-                  <p className="text-[11px] font-semibold text-zinc-400">Selecciona la tipografÃƒÂ­a de tu tienda.</p>
+                  <h3 className="text-sm font-black text-zinc-900 leading-none">Tipografía</h3>
+                  <p className="text-[11px] font-semibold text-zinc-400">Selecciona la tipografía de tu tienda.</p>
                 </div>
 
                  <div className="flex gap-2">
@@ -1113,7 +1113,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     className="px-4 py-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none whitespace-nowrap shrink-0"
                   >
                     <Type className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Cambiar tipografÃƒÂ­a</span>
+                    <span>Cambiar tipografía</span>
                   </button>
                 </div>
               </div>
@@ -1130,7 +1130,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
                     <h3 className="text-sm font-black text-zinc-900 leading-none">Bento Grid de Destacados</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">Destaca caracterÃƒÂ­sticas o ingredientes clave con tarjetas.</p>
+                    <p className="text-[11px] font-semibold text-zinc-400">Destaca características o ingredientes clave con tarjetas.</p>
                   </div>
                   <button
                     onClick={() => handleSectionToggle('bentoHighlights')}
@@ -1146,7 +1146,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {sections.bentoHighlights && (
                   <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo de la secciÃƒÂ³n</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de la sección</label>
                       <input 
                         type="text"
                         value={bentoHighlights.title}
@@ -1176,7 +1176,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                               />
                             </div>
                             <div className="col-span-9 space-y-1">
-                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                               <input 
                                 type="text"
                                 value={item.title}
@@ -1191,7 +1191,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n corta</label>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción corta</label>
                             <input 
                               type="text"
                               value={item.desc}
@@ -1215,7 +1215,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
                     <h3 className="text-sm font-black text-zinc-900 leading-none">Acordeones de Ficha / Specs</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">PestaÃƒÂ±as desplegables para alÃƒÂ©rgenos, envÃƒÂ­os o garantÃƒÂ­as.</p>
+                    <p className="text-[11px] font-semibold text-zinc-400">Pestañas desplegables para alérgenos, envíos o garantías.</p>
                   </div>
                   <button
                     onClick={() => handleSectionToggle('accordionSpecs')}
@@ -1237,14 +1237,14 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                             setAccordionSpecs(prev => prev.filter((_, i) => i !== idx))
                           }}
                           className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-red-500 p-1 rounded hover:bg-zinc-200/50 transition-colors cursor-pointer border-0 bg-transparent"
-                          title="Eliminar pestaÃƒÂ±a"
+                          title="Eliminar pestaña"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">PestaÃƒÂ±a #{idx + 1}</span>
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Pestaña #{idx + 1}</span>
 
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={tab.title}
@@ -1274,10 +1274,10 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     ))}
 
                     <button
-                      onClick={() => setAccordionSpecs(prev => [...prev, { title: 'Nueva PestaÃƒÂ±a', content: 'Detalles...' }])}
+                      onClick={() => setAccordionSpecs(prev => [...prev, { title: 'Nueva Pestaña', content: 'Detalles...' }])}
                       className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none"
                     >
-                      <span>+ AÃƒÂ±adir PestaÃƒÂ±a</span>
+                      <span>+ Añadir Pestaña</span>
                     </button>
                   </div>
                 )}
@@ -1288,7 +1288,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
                     <h3 className="text-sm font-black text-zinc-900 leading-none">Historia de Marca / Storytelling</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">Franja de ancho completo para contar tu pasiÃƒÂ³n al comprador.</p>
+                    <p className="text-[11px] font-semibold text-zinc-400">Franja de ancho completo para contar tu pasión al comprador.</p>
                   </div>
                   <button
                     onClick={() => handleSectionToggle('brandStory')}
@@ -1304,7 +1304,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {sections.brandStory && (
                   <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo del banner</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título del banner</label>
                       <input 
                         type="text"
                         value={brandStory.title}
@@ -1314,7 +1314,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">DescripciÃƒÂ³n narrativa</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Descripción narrativa</label>
                       <textarea 
                         value={brandStory.desc}
                         onChange={e => setBrandStory(prev => ({ ...prev, desc: e.target.value }))}
@@ -1335,7 +1335,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Texto botÃƒÂ³n</label>
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Texto botón</label>
                         <input 
                           type="text"
                           value={brandStory.btnText}
@@ -1344,7 +1344,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Enlace botÃƒÂ³n (Opcional)</label>
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Enlace botón (Opcional)</label>
                         <input 
                           type="text"
                           value={brandStory.btnLink}
@@ -1357,15 +1357,15 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 )}
               </div>
 
-              {/* PÃƒÂ¡gina de Historia Completa Editor Card */}
+              {/* Página de Historia Completa Editor Card */}
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="text-left space-y-0.5">
-                  <h3 className="text-sm font-black text-zinc-900 leading-none">PÃƒÂ¡gina de Historia Completa</h3>
-                  <p className="text-[11px] font-semibold text-zinc-400">Personaliza la secciÃƒÂ³n de "Historia" (Nuestra trayectoria, perfil, pilares, equipo y valores).</p>
+                  <h3 className="text-sm font-black text-zinc-900 leading-none">Página de Historia Completa</h3>
+                  <p className="text-[11px] font-semibold text-zinc-400">Personaliza la sección de "Historia" (Nuestra trayectoria, perfil, pilares, equipo y valores).</p>
                 </div>
 
                 <div className="space-y-4 pt-1.5 text-left">
-                  {/* TÃƒÂ­tulos */}
+                  {/* Títulos */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Etiqueta Superior</label>
@@ -1377,7 +1377,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo Principal</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título Principal</label>
                       <input 
                         type="text"
                         value={brandStoryPage.headerPerfil}
@@ -1389,7 +1389,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
 
                   {/* Narrativas */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">PÃƒÂ¡rrafo Narrativo 1</label>
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Párrafo Narrativo 1</label>
                     <textarea 
                       value={brandStoryPage.narrativeP1}
                       onChange={e => setBrandStoryPage(prev => ({ ...prev, narrativeP1: e.target.value }))}
@@ -1399,7 +1399,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">PÃƒÂ¡rrafo Narrativo 2</label>
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Párrafo Narrativo 2</label>
                     <textarea 
                       value={brandStoryPage.narrativeP2}
                       onChange={e => setBrandStoryPage(prev => ({ ...prev, narrativeP2: e.target.value }))}
@@ -1423,7 +1423,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Pilares / Instalaciones</h4>
                     
                     <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo de la secciÃƒÂ³n</label>
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título de la sección</label>
                       <input 
                         type="text"
                         value={brandStoryPage.pillarsTitle}
@@ -1446,7 +1446,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           />
                         </div>
                         <div className="col-span-8 space-y-1">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={brandStoryPage.pillar1Title}
@@ -1456,7 +1456,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n</label>
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
                         <textarea 
                           value={brandStoryPage.pillar1Desc}
                           onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar1Desc: e.target.value }))}
@@ -1480,7 +1480,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           />
                         </div>
                         <div className="col-span-8 space-y-1">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={brandStoryPage.pillar2Title}
@@ -1490,7 +1490,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n</label>
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
                         <textarea 
                           value={brandStoryPage.pillar2Desc}
                           onChange={e => setBrandStoryPage(prev => ({ ...prev, pillar2Desc: e.target.value }))}
@@ -1559,7 +1559,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
                         <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Valor #{idx + 1}</span>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={val.title}
@@ -1572,7 +1572,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
                           <textarea 
                             value={val.desc}
                             onChange={e => {
@@ -1591,12 +1591,12 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 </div>
               </div>
 
-              {/* CategorÃƒÂ­as Visuales Card */}
+              {/* Categorías Visuales Card */}
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-black text-zinc-900 leading-none">CategorÃƒÂ­as Visuales (PDP Grid)</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">Muestra una cuadrÃƒÂ­cula de imÃƒÂ¡genes para navegar categorÃƒÂ­as.</p>
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Categorías Visuales (PDP Grid)</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra una cuadrícula de imágenes para navegar categorías.</p>
                   </div>
                   <button
                     onClick={() => handleSectionToggle('visualCategories')}
@@ -1613,7 +1613,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
                     {visualCategories.map((catItem, idx) => (
                       <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2 relative">
-                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">CategorÃƒÂ­a #{idx + 1}</span>
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Categoría #{idx + 1}</span>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="space-y-1.5">
                             <label className="text-[9px] font-bold text-zinc-400 uppercase block">Nombre</label>
@@ -1652,8 +1652,8 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-black text-zinc-900 leading-none">LÃƒÂ­nea de Proceso (Paso a Paso)</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">Muestra los pasos de compra o elaboraciÃƒÂ³n de tu producto.</p>
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Línea de Proceso (Paso a Paso)</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra los pasos de compra o elaboración de tu producto.</p>
                   </div>
                   <button
                     onClick={() => handleSectionToggle('processTimeline')}
@@ -1669,7 +1669,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {sections.processTimeline && (
                   <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo de la secciÃƒÂ³n</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de la sección</label>
                       <input 
                         type="text"
                         value={processTimeline.title}
@@ -1685,7 +1685,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           
                           <div className="grid grid-cols-12 gap-2">
                             <div className="col-span-3 space-y-1">
-                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">NÃƒÂºmero</label>
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Número</label>
                               <input 
                                 type="text"
                                 value={stepItem.step}
@@ -1698,7 +1698,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                               />
                             </div>
                             <div className="col-span-9 space-y-1">
-                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo del Paso</label>
+                              <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título del Paso</label>
                               <input 
                                 type="text"
                                 value={stepItem.title}
@@ -1713,7 +1713,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n del Paso</label>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción del Paso</label>
                             <input 
                               type="text"
                               value={stepItem.desc}
@@ -1736,7 +1736,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-black text-zinc-900 leading-none">GalerÃƒÂ­a de Estilo de Vida</h3>
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Galería de Estilo de Vida</h3>
                     <p className="text-[11px] font-semibold text-zinc-400">Muestra hasta 4 fotos reales (estilo Instagram) de tu marca.</p>
                   </div>
                   <button
@@ -1792,7 +1792,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {sections.newsletterWidget && (
                   <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo del newsletter</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título del newsletter</label>
                       <input 
                         type="text"
                         value={newsletterWidget.title}
@@ -1802,7 +1802,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">SubtÃƒÂ­tulo descriptivo</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Subtítulo descriptivo</label>
                       <textarea 
                         value={newsletterWidget.subtitle}
                         onChange={e => setNewsletterWidget(prev => ({ ...prev, subtitle: e.target.value }))}
@@ -1836,11 +1836,11 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 )}
               </div>
 
-              {/* MenÃƒÂº de NavegaciÃƒÂ³n del Encabezado Card */}
+              {/* Menú de Navegación del Encabezado Card */}
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="text-left space-y-0.5">
-                  <h3 className="text-sm font-black text-zinc-900 leading-none">MenÃƒÂº de NavegaciÃƒÂ³n de Cabecera</h3>
-                  <p className="text-[11px] font-semibold text-zinc-400">Personaliza hasta 5 enlaces rÃƒÂ¡pidos en la barra superior de tu catÃƒÂ¡logo.</p>
+                  <h3 className="text-sm font-black text-zinc-900 leading-none">Menú de Navegación de Cabecera</h3>
+                  <p className="text-[11px] font-semibold text-zinc-400">Personaliza hasta 5 enlaces rápidos en la barra superior de tu catálogo.</p>
                 </div>
 
                 <div className="space-y-4 pt-1 text-left">
@@ -1874,7 +1874,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">AcciÃƒÂ³n</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Acción</label>
                           <select 
                             value={item.action}
                             onChange={e => {
@@ -1885,7 +1885,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                             className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-800 focus:outline-none"
                           >
                             <option value="scroll-banner">Scroll a Portada</option>
-                            <option value="scroll-products">Scroll a CatÃƒÂ¡logo</option>
+                            <option value="scroll-products">Scroll a Catálogo</option>
                             <option value="scroll-story">Scroll a Historia</option>
                             <option value="whatsapp">Abrir WhatsApp</option>
                             <option value="link">Enlace Externo</option>
@@ -1917,7 +1917,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       onClick={() => setNavbarLinks(prev => [...prev, { label: 'Nuevo Enlace', action: 'scroll-products', link: '' }])}
                       className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none"
                     >
-                      <span>+ AÃƒÂ±adir Enlace</span>
+                      <span>+ Añadir Enlace</span>
                     </button>
                   )}
                 </div>
@@ -1928,7 +1928,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
                     <h3 className="text-sm font-black text-zinc-900 leading-none">Ingredientes Premium (3 Columnas)</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">Layout simÃƒÂ©trico con imagen en medio y caracterÃƒÂ­sticas explicativas a los lados.</p>
+                    <p className="text-[11px] font-semibold text-zinc-400">Layout simétrico con imagen en medio y características explicativas a los lados.</p>
                   </div>
                   <button
                     onClick={() => handleSectionToggle('ingredientsSection')}
@@ -1944,7 +1944,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {sections.ingredientsSection && (
                   <div className="space-y-3.5 pt-1 text-left animate-in fade-in duration-300">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TÃƒÂ­tulo de SecciÃƒÂ³n</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de Sección</label>
                       <input 
                         type="text"
                         value={ingredientsSection.title}
@@ -1957,7 +1957,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       <div className="space-y-1.5 p-3 bg-zinc-50 rounded-lg">
                         <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Columna Izquierda</span>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={ingredientsSection.leftTitle}
@@ -1966,7 +1966,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
                           <textarea 
                             value={ingredientsSection.leftDesc}
                             onChange={e => setIngredientsSection(prev => ({ ...prev, leftDesc: e.target.value }))}
@@ -1979,7 +1979,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       <div className="space-y-1.5 p-3 bg-zinc-50 rounded-lg">
                         <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Columna Derecha</span>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">TÃƒÂ­tulo</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>
                           <input 
                             type="text"
                             value={ingredientsSection.rightTitle}
@@ -1988,7 +1988,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">DescripciÃƒÂ³n</label>
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase block">Descripción</label>
                           <textarea 
                             value={ingredientsSection.rightDesc}
                             onChange={e => setIngredientsSection(prev => ({ ...prev, rightDesc: e.target.value }))}
@@ -2016,8 +2016,8 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="flex justify-between items-center text-left">
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-black text-zinc-900 leading-none">Progreso de EnvÃƒÂ­o Gratis</h3>
-                    <p className="text-[11px] font-semibold text-zinc-400">Muestra una barra dinÃƒÂ¡mica en el carrito incentivando mÃƒÂ¡s compras.</p>
+                    <h3 className="text-sm font-black text-zinc-900 leading-none">Progreso de Envío Gratis</h3>
+                    <p className="text-[11px] font-semibold text-zinc-400">Muestra una barra dinámica en el carrito incentivando más compras.</p>
                   </div>
                   <button
                     onClick={() => setFreeShipping(prev => ({ ...prev, enabled: !prev.enabled }))}
@@ -2033,7 +2033,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {freeShipping.enabled && (
                   <div className="space-y-3.5 pt-1 text-left animate-in fade-in duration-300">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Monto mÃƒÂ­nimo para EnvÃƒÂ­o Gratis</label>
+                      <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Monto mínimo para Envío Gratis</label>
                       <input 
                         type="number"
                         value={freeShipping.threshold}
@@ -2048,13 +2048,13 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             </div>
           )}
 
-          {/* TAB 2: INFORMACIÃƒâ€œN DE LA TIENDA */}
+          {/* TAB 2: INFORMACIÓN DE LA TIENDA */}
           {activeTab === 'info' && (
             <div className="space-y-6">
               <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
                 <div className="text-left space-y-0.5">
                 <h3 className="text-sm font-black text-zinc-900 leading-none">Datos del comercio</h3>
-                <p className="text-[11px] font-semibold text-zinc-400">Edita la descripciÃƒÂ³n, contacto y localizaciÃƒÂ³n de la tienda.</p>
+                <p className="text-[11px] font-semibold text-zinc-400">Edita la descripción, contacto y localización de la tienda.</p>
               </div>
 
               <div className="space-y-4">
@@ -2069,7 +2069,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">TelÃƒÂ©fono / WhatsApp</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Teléfono / WhatsApp</label>
                   <input 
                     type="text"
                     value={storeInfo.whatsapp}
@@ -2079,18 +2079,18 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">DirecciÃƒÂ³n fÃƒÂ­sica</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Dirección física</label>
                   <input 
                     type="text"
                     value={storeInfo.address}
                     onChange={e => setStoreInfo(prev => ({ ...prev, address: e.target.value }))}
                     className="w-full bg-white border border-zinc-200 focus:border-zinc-950 rounded-lg px-3.5 py-2.5 text-xs xl:text-sm font-semibold text-zinc-800 focus:outline-none"
-                    placeholder="ej: Calle 10 # 43 - 21, MedellÃƒÂ­n, Colombia"
+                    placeholder="ej: Calle 10 # 43 - 21, Medellín, Colombia"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">BiografÃƒÂ­a / PresentaciÃƒÂ³n</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Biografía / Presentación</label>
                   <textarea 
                     value={storeInfo.desc}
                     onChange={e => setStoreInfo(prev => ({ ...prev, desc: e.target.value }))}
@@ -2101,12 +2101,12 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               </div>
             </div>
 
-            {/* Horario de atenciÃƒÂ³n Card */}
+            {/* Horario de atención Card */}
             <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
               <div className="flex justify-between items-center text-left">
                 <div className="space-y-0.5">
-                  <h3 className="text-sm font-black text-zinc-900 leading-none">Horario de atenciÃƒÂ³n</h3>
-                  <p className="text-[11px] font-semibold text-zinc-400">Configura cuÃƒÂ¡ndo estÃƒÂ¡ abierta tu tienda.</p>
+                  <h3 className="text-sm font-black text-zinc-900 leading-none">Horario de atención</h3>
+                  <p className="text-[11px] font-semibold text-zinc-400">Configura cuándo está abierta tu tienda.</p>
                 </div>
                 <button
                   onClick={() => setSchedule(prev => ({ ...prev, enabled: !prev.enabled }))}
@@ -2124,7 +2124,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   <div className="flex items-center justify-between py-1 select-none text-left">
                     <div className="space-y-0.5">
                       <span className="text-xs font-bold text-zinc-800 block">Abierto 24/7 (Siempre abierto)</span>
-                      <p className="text-[10px] font-semibold text-zinc-400">Tu comercio no cierra en ningÃƒÂºn horario.</p>
+                      <p className="text-[10px] font-semibold text-zinc-400">Tu comercio no cierra en ningún horario.</p>
                     </div>
                     <button
                       onClick={() => setSchedule(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
@@ -2157,7 +2157,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
               <div className="text-left space-y-0.5">
                 <h3 className="text-sm font-black text-zinc-900 leading-none">Plantilla de WhatsApp</h3>
-                <p className="text-[11px] font-semibold text-zinc-400">Personaliza el formato del mensaje que te envÃƒÂ­an tus clientes.</p>
+                <p className="text-[11px] font-semibold text-zinc-400">Personaliza el formato del mensaje que te envían tus clientes.</p>
               </div>
 
               <div className="space-y-3.5 text-left">
@@ -2177,7 +2177,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     <div><code className="bg-zinc-200 px-1 rounded text-zinc-700 font-bold">{'{cliente_nombre}'}</code> - Nombre</div>
                     <div><code className="bg-zinc-200 px-1 rounded text-zinc-700 font-bold">{'{lista_productos}'}</code> - Productos</div>
                     <div><code className="bg-zinc-200 px-1 rounded text-zinc-700 font-bold">{'{monto_total}'}</code> - Total compra</div>
-                    <div><code className="bg-zinc-200 px-1 rounded text-zinc-700 font-bold">{'{direccion}'}</code> - DirecciÃƒÂ³n</div>
+                    <div><code className="bg-zinc-200 px-1 rounded text-zinc-700 font-bold">{'{direccion}'}</code> - Dirección</div>
                   </div>
                 </div>
               </div>
@@ -2189,7 +2189,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
           {activeTab === 'dominios' && (
             <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
               <div className="text-left space-y-0.5">
-                <h3 className="text-sm font-black text-zinc-900 leading-none">Dominios pÃƒÂºblicos</h3>
+                <h3 className="text-sm font-black text-zinc-900 leading-none">Dominios públicos</h3>
                 <p className="text-[11px] font-semibold text-zinc-400">Configura el slug o vincula un dominio propio.</p>
               </div>
 
@@ -2228,12 +2228,12 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
               <div className="text-left space-y-0.5">
                 <h3 className="text-sm font-black text-zinc-900 leading-none">Meta Tags SEO</h3>
-                <p className="text-[11px] font-semibold text-zinc-400">CÃƒÂ³mo se verÃƒÂ¡ el catÃƒÂ¡logo al listarse en buscadores o chats.</p>
+                <p className="text-[11px] font-semibold text-zinc-400">Cómo se verá el catálogo al listarse en buscadores o chats.</p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">TÃƒÂ­tulo del sitio (Title)</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Título del sitio (Title)</label>
                   <input 
                     type="text"
                     value={seo.title}
@@ -2243,7 +2243,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">DescripciÃƒÂ³n (Meta Description)</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Descripción (Meta Description)</label>
                   <textarea 
                     value={seo.desc}
                     onChange={e => setSeo(prev => ({ ...prev, desc: e.target.value }))}
@@ -2260,13 +2260,13 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
               <div className="text-left space-y-0.5">
                 <h3 className="text-sm font-black text-zinc-900 leading-none">Redes Sociales</h3>
-                <p className="text-[11px] font-semibold text-zinc-400">Enlaces a tus canales de comunicaciÃƒÂ³n de redes.</p>
+                <p className="text-[11px] font-semibold text-zinc-400">Enlaces a tus canales de comunicación de redes.</p>
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-left pb-3.5 border-b border-zinc-100 select-none">
                   <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-zinc-800 block leading-tight">Mostrar en el catÃƒÂ¡logo</span>
+                    <span className="text-xs font-bold text-zinc-800 block leading-tight">Mostrar en el catálogo</span>
                     <p className="text-[10px] font-semibold text-zinc-400">Mostrar accesos directos a tus redes en la tienda.</p>
                   </div>
                   <button
@@ -2304,33 +2304,33 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             </div>
           )}
 
-          {/* TAB 6: POLÃƒÂTICAS */}
+          {/* TAB 6: POLÍTICAS */}
           {activeTab === 'politicas' && (
             <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
               <div className="text-left space-y-0.5">
-                <h3 className="text-sm font-black text-zinc-900 leading-none">PolÃƒÂ­ticas de la tienda</h3>
-                <p className="text-[11px] font-semibold text-zinc-400">TÃƒÂ©rminos y condiciones legales para tus clientes.</p>
+                <h3 className="text-sm font-black text-zinc-900 leading-none">Políticas de la tienda</h3>
+                <p className="text-[11px] font-semibold text-zinc-400">Términos y condiciones legales para tus clientes.</p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">PolÃƒÂ­ticas de devoluciÃƒÂ³n</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Políticas de devolución</label>
                   <textarea 
                     value={policies.refunds}
                     onChange={e => setPolicies(prev => ({ ...prev, refunds: e.target.value }))}
                     rows={4}
-                    placeholder="Describe los tÃƒÂ©rminos para reembolsos o devoluciones de productos..."
+                    placeholder="Describe los términos para reembolsos o devoluciones de productos..."
                     className="w-full bg-white border border-zinc-200 focus:border-zinc-950 rounded-lg px-3.5 py-2.5 text-xs xl:text-sm font-semibold text-zinc-800 focus:outline-none resize-none"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-zinc-500 block">TÃƒÂ©rminos de servicio</label>
+                  <label className="text-[11px] font-bold text-zinc-500 block">Términos de servicio</label>
                   <textarea 
                     value={policies.terms}
                     onChange={e => setPolicies(prev => ({ ...prev, terms: e.target.value }))}
                     rows={4}
-                    placeholder="Describe las condiciones de uso y tÃƒÂ©rminos de despacho..."
+                    placeholder="Describe las condiciones de uso y términos de despacho..."
                     className="w-full bg-white border border-zinc-200 focus:border-zinc-950 rounded-lg px-3.5 py-2.5 text-xs xl:text-sm font-semibold text-zinc-800 focus:outline-none resize-none"
                   />
                 </div>
@@ -2353,7 +2353,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               {[
                 { id: 'banner', label: 'Banner principal' },
                 { id: 'destacados', label: 'Productos destacados' },
-                { id: 'categorias', label: 'CategorÃƒÂ­as' },
+                { id: 'categorias', label: 'Categorías' },
                 { id: 'beneficios', label: 'Beneficios' },
                 { id: 'testimonios', label: 'Testimonios' },
                 { id: 'newsletter', label: 'Newsletter' }
@@ -2414,7 +2414,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             </div>
 
             <p className="text-[11px] font-semibold text-zinc-400">
-              {storeActive ? 'Tu tienda estÃƒÂ¡ visible para todos los clientes.' : 'Tu tienda estÃƒÂ¡ pausada. Los clientes no podrÃƒÂ¡n crear pedidos.'}
+              {storeActive ? 'Tu tienda está visible para todos los clientes.' : 'Tu tienda está pausada. Los clientes no podrán crear pedidos.'}
             </p>
 
             <button
@@ -2448,7 +2448,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 {[
                   { id: 'escritorio', icon: Monitor, label: 'Escritorio' },
                   { id: 'tablet', icon: Tablet, label: 'Tablet' },
-                  { id: 'movil', icon: Smartphone, label: 'MÃƒÂ³vil' }
+                  { id: 'movil', icon: Smartphone, label: 'Móvil' }
                 ].map(dev => {
                   const Icon = dev.icon
                   return (
