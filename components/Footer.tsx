@@ -243,7 +243,7 @@ const Footer = () => {
               strokeLinecap="round"
               paintOrder="stroke fill"
               className="text-[540px] font-medium tracking-normal"
-              style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}
+              style={{ fontFamily: 'var(--font-inter), Arial, sans-serif' }}
             >
               Flashcheckouts
             </text>
