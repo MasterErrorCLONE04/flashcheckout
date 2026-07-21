@@ -291,24 +291,24 @@ function BackToDashboardButton() {
     </div>
   )
 }
-unction renderDocContent(slug: string) {
+function renderDocContent(slug: string) {
   switch (slug) {
     case 'inicio-rapido':
       return (
         <div className="space-y-10 animate-in">
           <div className="space-y-4">
             <h1 className="text-3xl font-extrabold tracking-tight text-white">
-              GuÃ­a de Inicio RÃ¡pido
+              Guía de Inicio Rápido
             </h1>
             <p className="text-sm font-semibold leading-relaxed text-zinc-400 max-w-2xl">
-              Despliega tu propia terminal comercial en cuestiÃ³n de minutos. Nuestro ecosistema estÃ¡ diseÃ±ado para acelerar la conversiÃ³n, estructurar las ventas de WhatsApp y automatizar cobros.
+              Despliega tu propia terminal comercial en cuestión de minutos. Nuestro ecosistema está diseñado para acelerar la conversión, estructurar las ventas de WhatsApp y automatizar cobros.
             </p>
           </div>
 
           <div className="border border-emerald-950/40 bg-emerald-950/10 p-5 rounded-xl">
              <p className="text-xs font-semibold text-emerald-300 leading-relaxed max-w-2xl flex items-center gap-2.5">
                <Zap className="w-5 h-5 text-[#10B981] fill-current shrink-0 animate-pulse" />
-               EstÃ¡s navegando la documentaciÃ³n actualizada v2.0. Conoce a los agentes autÃ³nomos de IA, las automatizaciones por eventos y los nuevos sistemas de pago.
+               Estás navegando la documentación actualizada v2.0. Conoce a los agentes autónomos de IA, las automatizaciones por eventos y los nuevos sistemas de pago.
              </p>
           </div>
 
@@ -318,14 +318,14 @@ unction renderDocContent(slug: string) {
                     <Settings className="w-4 h-4" />
                  </div>
                  <h4 className="font-bold text-sm text-white">Panel Integrado</h4>
-                 <p className="text-xs text-zinc-400 font-semibold leading-relaxed">Configura en un solo lugar pasarelas de pago, campaÃ±as de cupones y tus copilotos de inteligencia artificial.</p>
+                 <p className="text-xs text-zinc-400 font-semibold leading-relaxed">Configura en un solo lugar pasarelas de pago, campañas de cupones y tus copilotos de inteligencia artificial.</p>
               </div>
               <div className="p-5 border border-zinc-900 bg-zinc-950/30 rounded-xl flex flex-col gap-3">
                  <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
                     <LayoutIcon className="w-4 h-4" />
                  </div>
-                 <h4 className="font-bold text-sm text-white">Storefront AutÃ³nomo</h4>
-                 <p className="text-xs text-zinc-400 font-semibold leading-relaxed">Tu tienda se genera visualmente al instante y se adapta a mÃ³viles con optimizaciones de carga extrema.</p>
+                 <h4 className="font-bold text-sm text-white">Storefront Autónomo</h4>
+                 <p className="text-xs text-zinc-400 font-semibold leading-relaxed">Tu tienda se genera visualmente al instante y se adapta a móviles con optimizaciones de carga extrema.</p>
               </div>
           </div>
 
