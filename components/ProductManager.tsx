@@ -385,7 +385,7 @@ export default function ProductManager({
             
             <div className="flex items-center justify-between mb-8 relative z-10">
               <div>
-                <p className="text-[12px] font-bold tracking-[0.05em] text-emerald-600 mb-1">Editor de inventario</p>
+                <p className="text-[11px] font-bold tracking-[0.08em] text-zinc-400 uppercase mb-1">Editor de inventario</p>
                 <h3 className="text-2xl font-semibold text-zinc-955 tracking-tight font-display">
                   {editingId ? 'Modificar producto' : 'Nuevo registro'}
                 </h3>
@@ -405,10 +405,10 @@ export default function ProductManager({
                   <div className="space-y-2">
                     <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Nombre del producto</label>
                     <div className="relative group">
-                      <Type className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                      <Type className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                       <input
                         type="text"
-                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all"
+                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all"
                         placeholder="Ej: AirPods Max"
                         value={form.name}
                         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -422,7 +422,7 @@ export default function ProductManager({
                     <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Descripción y Características</label>
                     <div className="relative group">
                       <textarea
-                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg px-5 py-3 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all min-h-[120px] resize-y"
+                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg px-5 py-3 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all min-h-[120px] resize-y"
                         placeholder="Describe tu producto detalladamente. Puedes añadir características usando viñetas o guiones."
                         value={form.description}
                         onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -434,9 +434,9 @@ export default function ProductManager({
                   <div className="space-y-2">
                     <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Categoría</label>
                     <div className="relative group">
-                      <Package className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                      <Package className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                       <select
-                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-semibold text-black appearance-none focus:outline-none focus:border-primary/30 transition-all"
+                        className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-semibold text-black appearance-none focus:outline-none focus:border-zinc-400 focus:bg-white transition-all"
                         value={form.category}
                         onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                       >
@@ -465,10 +465,10 @@ export default function ProductManager({
                     <div className="space-y-2">
                       <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Precio unitario</label>
                       <div className="relative group">
-                        <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                        <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                         <input
                           type="number"
-                          className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all tabular-nums"
+                          className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all tabular-nums"
                           placeholder="0"
                           value={form.price}
                           onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
@@ -482,10 +482,10 @@ export default function ProductManager({
                     <div className="space-y-2">
                       <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Stock disponible</label>
                       <div className="relative group">
-                        <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                        <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                         <input
                           type="number"
-                          className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-emerald-500/30 transition-all tabular-nums"
+                          className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all tabular-nums"
                           placeholder="0"
                           value={form.stock}
                           onChange={e => {
@@ -584,7 +584,7 @@ export default function ProductManager({
                         key={img.id}
                         className={cn(
                           "relative aspect-square rounded-xl overflow-hidden border border-zinc-200 group bg-zinc-50 shadow-sm transition-all duration-300",
-                          idx === 0 && "ring-2 ring-emerald-500 ring-offset-2"
+                          idx === 0 && "ring-2 ring-zinc-950 ring-offset-2"
                         )}
                       >
                         <img 
@@ -595,7 +595,7 @@ export default function ProductManager({
                         
                         {/* Principal Badge */}
                         {idx === 0 && (
-                          <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-sm tracking-wider z-20">
+                          <div className="absolute top-2 left-2 bg-zinc-950 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-sm tracking-wider z-20">
                             Principal
                           </div>
                         )}
@@ -652,7 +652,7 @@ export default function ProductManager({
 
                     {/* Upload Trigger card if images < 5 */}
                     {productImages.length < 5 && (
-                      <label className="border-2 border-dashed border-zinc-200 hover:border-emerald-500/50 hover:bg-zinc-50/50 aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group relative">
+                      <label className="border-2 border-dashed border-zinc-200 hover:border-zinc-950 hover:bg-zinc-50/50 aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group relative">
                         <input 
                           type="file" 
                           className="hidden" 
@@ -660,10 +660,10 @@ export default function ProductManager({
                           multiple
                           onChange={handleImageSelect} 
                         />
-                        <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all shadow-sm">
-                          <Plus className="w-5 h-5 text-zinc-400 group-hover:text-emerald-600" />
+                        <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-zinc-100 group-hover:text-zinc-805 transition-all shadow-sm">
+                          <Plus className="w-5 h-5 text-zinc-400 group-hover:text-zinc-805" />
                         </div>
-                        <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors text-center px-2">
+                        <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-650 transition-colors text-center px-2">
                           Añadir imagen
                         </span>
                       </label>

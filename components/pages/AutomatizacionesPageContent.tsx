@@ -229,14 +229,14 @@ export default function AutomatizacionesPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Automatizaciones</h1>
           <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
             Activa y gestiona las automatizaciones de tu negocio.
           </div>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-1.5 h-10 px-4 bg-emerald-500 hover:bg-emerald-600 text-white text-xs xl:text-sm font-bold rounded-lg transition-all shadow-none select-none shrink-0 cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 h-10 px-4 bg-zinc-900 hover:bg-zinc-800 text-white text-xs xl:text-sm font-bold rounded-lg transition-all shadow-none select-none shrink-0 cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Nueva automatización</span>
@@ -249,31 +249,31 @@ export default function AutomatizacionesPage() {
           onClick={() => setFilterTab('all')}
           className={cn(
             "pb-2.5 px-2 relative transition-colors shrink-0 cursor-pointer",
-            filterTab === 'all' ? "text-emerald-600 font-extrabold" : "hover:text-zinc-900"
+            filterTab === 'all' ? "text-zinc-900 font-extrabold" : "hover:text-zinc-900"
           )}
         >
           Todas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{totalCount}</span>
-          {filterTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+          {filterTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900 rounded-full" />}
         </button>
         <button
           onClick={() => setFilterTab('active')}
           className={cn(
             "pb-2.5 px-2 relative transition-colors shrink-0 cursor-pointer",
-            filterTab === 'active' ? "text-emerald-600 font-extrabold" : "hover:text-zinc-900"
+            filterTab === 'active' ? "text-zinc-900 font-extrabold" : "hover:text-zinc-900"
           )}
         >
           Activas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{activeCount}</span>
-          {filterTab === 'active' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+          {filterTab === 'active' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900 rounded-full" />}
         </button>
         <button
           onClick={() => setFilterTab('inactive')}
           className={cn(
             "pb-2.5 px-2 relative transition-colors shrink-0 cursor-pointer",
-            filterTab === 'inactive' ? "text-emerald-600 font-extrabold" : "hover:text-zinc-900"
+            filterTab === 'inactive' ? "text-zinc-900 font-extrabold" : "hover:text-zinc-900"
           )}
         >
           Inactivas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{inactiveCount}</span>
-          {filterTab === 'inactive' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
+          {filterTab === 'inactive' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900 rounded-full" />}
         </button>
       </div>
 
@@ -282,10 +282,9 @@ export default function AutomatizacionesPage() {
         
         {/* Left Column: Automation List */}
         <div className="lg:col-span-8 space-y-4">
-          
           {loading ? (
             <div className="bg-white border border-zinc-200 rounded-lg p-16 flex flex-col items-center justify-center text-zinc-400 select-none">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
+              <Loader2 className="w-8 h-8 animate-spin text-zinc-500 mb-2" />
               <span className="text-xs font-semibold">Cargando automatizaciones del negocio...</span>
             </div>
           ) : filtered.length === 0 ? (
@@ -307,11 +306,11 @@ export default function AutomatizacionesPage() {
                   </div>
                   <div className="space-y-1.5 min-w-0">
                     <div className="flex items-center flex-wrap gap-2">
-                      <h3 className="font-bold text-zinc-950 text-sm leading-none">{item.name}</h3>
+                      <h3 className="font-bold text-zinc-955 text-sm leading-none">{item.name}</h3>
                       <span className={cn(
                         "px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide leading-none border scale-95",
                         item.active 
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-250"
+                          ? "bg-zinc-100 text-zinc-700 border-zinc-200"
                           : "bg-zinc-50 text-zinc-400 border-zinc-200"
                       )}>
                         {item.active ? 'Activa' : 'Inactiva'}
@@ -354,7 +353,7 @@ export default function AutomatizacionesPage() {
                       onClick={() => handleToggle(item.id, item.active)}
                       className={cn(
                         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-0",
-                        item.active ? "bg-emerald-500" : "bg-zinc-200"
+                        item.active ? "bg-zinc-900" : "bg-zinc-200"
                       )}
                     >
                       <span
@@ -370,14 +369,14 @@ export default function AutomatizacionesPage() {
                   <div className="flex items-center gap-6 text-left shrink-0">
                     <div className="space-y-0.5">
                       <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block select-none">Enviados hoy</span>
-                      <span className="text-sm font-bold text-zinc-950 tabular-nums">{item.sentToday}</span>
+                      <span className="text-sm font-bold text-zinc-955 tabular-nums">{item.sentToday}</span>
                     </div>
 
                     <div className="space-y-0.5">
                       <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block select-none">{item.rateLabel}</span>
                       <span className={cn(
                         "text-sm font-bold tabular-nums",
-                        item.active && parseInt(item.rate) > 0 ? "text-emerald-600" : "text-zinc-650"
+                        item.active && parseInt(item.rate) > 0 ? "text-zinc-900" : "text-zinc-650"
                       )}>{item.rate}</span>
                     </div>
                   </div>
@@ -405,7 +404,7 @@ export default function AutomatizacionesPage() {
             <HelpCircle className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
             <p className="text-[11px] text-zinc-500 font-semibold leading-relaxed">
               Las automatizaciones se ejecutan según las reglas configuradas y la disponibilidad de los canales conectados.{' '}
-              <a href="#" className="text-emerald-600 hover:underline inline-flex items-center gap-0.5 font-bold">
+              <a href="#" className="text-zinc-700 hover:underline inline-flex items-center gap-0.5 font-bold">
                 Ver documentación <ChevronRight className="w-3 h-3 inline-block" />
               </a>
             </p>
@@ -467,8 +466,8 @@ export default function AutomatizacionesPage() {
               {/* Stat 1 */}
               <div className="space-y-1">
                 <span className="text-[10px] font-semibold text-zinc-400 block select-none">Mensajes enviados</span>
-                <span className="text-2xl font-bold text-zinc-950 block leading-none tabular-nums">{totalSentToday + 28}</span>
-                <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 select-none">
+                <span className="text-2xl font-bold text-zinc-955 block leading-none tabular-nums">{totalSentToday + 28}</span>
+                <div className="flex items-center gap-1 text-[9px] font-bold text-zinc-500 select-none">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>18% <span className="text-zinc-400 font-semibold">vs mes anterior</span></span>
                 </div>
@@ -478,8 +477,8 @@ export default function AutomatizacionesPage() {
               <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-50">
                 <div className="space-y-1">
                   <span className="text-[9px] font-semibold text-zinc-400 block select-none">Tasa prom. apertura</span>
-                  <span className="text-lg font-bold text-zinc-950 block leading-none tabular-nums">{averageRate > 0 ? `${averageRate}%` : '94%'}</span>
-                  <div className="flex items-center gap-0.5 text-[8px] font-bold text-emerald-600 select-none">
+                  <span className="text-lg font-bold text-zinc-955 block leading-none tabular-nums">{averageRate > 0 ? `${averageRate}%` : '94%'}</span>
+                  <div className="flex items-center gap-0.5 text-[8px] font-bold text-zinc-500 select-none">
                     <TrendingUp className="w-3 h-3" />
                     <span>6% <span className="text-zinc-400 font-semibold">vs mes</span></span>
                   </div>
@@ -487,8 +486,8 @@ export default function AutomatizacionesPage() {
 
                 <div className="space-y-1">
                   <span className="text-[9px] font-semibold text-zinc-400 block select-none">Tasa prom. conversión</span>
-                  <span className="text-lg font-bold text-zinc-950 block leading-none tabular-nums">23%</span>
-                  <div className="flex items-center gap-0.5 text-[8px] font-bold text-emerald-600 select-none">
+                  <span className="text-lg font-bold text-zinc-955 block leading-none tabular-nums">23%</span>
+                  <div className="flex items-center gap-0.5 text-[8px] font-bold text-zinc-500 select-none">
                     <TrendingUp className="w-3 h-3" />
                     <span>4% <span className="text-zinc-400 font-semibold">vs mes</span></span>
                   </div>
@@ -507,7 +506,7 @@ export default function AutomatizacionesPage() {
               </p>
               <button
                 onClick={() => router.push('/hablar-con-nova')}
-                className="h-8.5 px-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer select-none active:scale-95"
+                className="h-8.5 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer select-none active:scale-95"
               >
                 <MessageSquare className="w-3.5 h-3.5 fill-current" />
                 <span>Hablar con Nova</span>
@@ -587,7 +586,7 @@ export default function AutomatizacionesPage() {
                           if (e.target.checked) setNewChannels(prev => [...prev, 'WhatsApp'])
                           else setNewChannels(prev => prev.filter(c => c !== 'WhatsApp'))
                         }}
-                        className="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 shrink-0 cursor-pointer"
+                        className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 shrink-0 cursor-pointer"
                       />
                       <span>WhatsApp</span>
                     </label>
@@ -600,7 +599,7 @@ export default function AutomatizacionesPage() {
                           if (e.target.checked) setNewChannels(prev => [...prev, 'Email'])
                           else setNewChannels(prev => prev.filter(c => c !== 'Email'))
                         }}
-                        className="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 shrink-0 cursor-pointer"
+                        className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 shrink-0 cursor-pointer"
                       />
                       <span>Email</span>
                     </label>
@@ -612,7 +611,7 @@ export default function AutomatizacionesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-grow py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  className="flex-grow py-2.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Guardar regla</span>
@@ -689,7 +688,7 @@ export default function AutomatizacionesPage() {
                       }}
                       className="p-1.5 px-2 bg-white border border-zinc-205 rounded-lg hover:border-zinc-300 cursor-pointer flex items-center justify-between text-[10px] font-bold text-zinc-800 active:scale-95 transition-all"
                     >
-                      <code className="text-emerald-600 font-mono font-extrabold">{place.tag}</code>
+                      <code className="text-zinc-700 font-mono font-extrabold">{place.tag}</code>
                       <span className="text-[8px] text-zinc-400 font-bold">{place.label}</span>
                     </div>
                   ))}
@@ -700,7 +699,7 @@ export default function AutomatizacionesPage() {
                 <button
                   type="submit"
                   disabled={updatingTemplate}
-                  className="flex-grow py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 border-0"
+                  className="flex-grow py-2.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 border-0"
                 >
                   {updatingTemplate && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Guardar Plantilla</span>

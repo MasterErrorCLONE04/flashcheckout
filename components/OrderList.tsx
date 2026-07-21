@@ -54,7 +54,7 @@ const STATUS_OPTIONS = [
   { value: 'pending', label: 'Nuevo', color: 'text-amber-700 bg-amber-50 border-amber-200' },
   { value: 'confirmed', label: 'Confirmado', color: 'text-sky-700 bg-sky-50 border-sky-200' },
   { value: 'shipped', label: 'En camino', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
-  { value: 'delivered', label: 'Entregado', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  { value: 'delivered', label: 'Entregado', color: 'text-zinc-700 bg-zinc-50 border-zinc-200' },
   { value: 'cancelled', label: 'Cancelado', color: 'text-rose-700 bg-rose-50 border-rose-200' },
 ]
 
@@ -227,7 +227,7 @@ export default function OrderList({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Listado de Pedidos</h1>
           <div className="text-[12px] font-medium text-zinc-500 mt-2 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
             Monitoreo y gestion de pedidos en tiempo real.
           </div>
         </div>
@@ -248,49 +248,49 @@ export default function OrderList({
       {/* 1. Bento KPI Metric Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Card: Total Revenue */}
-        <div className="rounded-lg p-5 bg-zinc-950 text-white border border-zinc-900 flex items-center justify-between group  transition-all hover:-translate-y-0.5">
+        <div className="rounded-lg p-5 bg-white border border-zinc-200/80 flex items-center justify-between group transition-all hover:-translate-y-0.5">
           <div className="space-y-1.5">
             <p className="text-[10px] font-bold tracking-widest text-zinc-400">Ventas Netas</p>
-            <h3 className="text-2xl font-semibold text-white tracking-tight tabular-nums">{formatCurrency(totalRevenue)}</h3>
-            <p className="text-[10px] font-semibold text-zinc-500">Pedidos no cancelados</p>
+            <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight tabular-nums">{formatCurrency(totalRevenue)}</h3>
+            <p className="text-[10px] font-semibold text-zinc-400">Pedidos no cancelados</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-white/10 border border-white/10 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <WalletCards className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card: Pending */}
-        <div className="rounded-lg p-5 bg-white border border-amber-100 flex items-center justify-between group hover:border-amber-200 transition-all hover:-translate-y-0.5 ">
+        <div className="rounded-lg p-5 bg-white border border-zinc-200/80 flex items-center justify-between group hover:border-zinc-300 transition-all hover:-translate-y-0.5">
           <div className="space-y-1.5">
             <p className="text-[10px] font-bold tracking-widest text-zinc-400">Pedidos Nuevos</p>
-            <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight tabular-nums">{pendingCount}</h3>
+            <h3 className="text-2xl font-semibold text-zinc-955 tracking-tight tabular-nums">{pendingCount}</h3>
             <p className="text-[10px] font-semibold text-zinc-400">Esperando confirmacion</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card: Shipped */}
-        <div className="rounded-lg p-5 bg-white border border-indigo-100 flex items-center justify-between group hover:border-indigo-200 transition-all hover:-translate-y-0.5 ">
+        <div className="rounded-lg p-5 bg-white border border-zinc-200/80 flex items-center justify-between group hover:border-zinc-300 transition-all hover:-translate-y-0.5">
           <div className="space-y-1.5">
             <p className="text-[10px] font-bold tracking-widest text-zinc-400">En Reparto</p>
-            <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight tabular-nums">{shippedCount}</h3>
+            <h3 className="text-2xl font-semibold text-zinc-955 tracking-tight tabular-nums">{shippedCount}</h3>
             <p className="text-[10px] font-semibold text-zinc-400">Despacho activo</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <Route className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card: Delivered */}
-        <div className="rounded-lg p-5 bg-white border border-emerald-100 flex items-center justify-between group hover:border-emerald-200 transition-all hover:-translate-y-0.5 ">
+        <div className="rounded-lg p-5 bg-white border border-zinc-200/80 flex items-center justify-between group hover:border-zinc-300 transition-all hover:-translate-y-0.5">
           <div className="space-y-1.5">
             <p className="text-[10px] font-bold tracking-widest text-zinc-400">Entregados</p>
-            <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight tabular-nums">{deliveredCount}</h3>
+            <h3 className="text-2xl font-semibold text-zinc-955 tracking-tight tabular-nums">{deliveredCount}</h3>
             <p className="text-[10px] font-semibold text-zinc-400">Cerrados correctamente</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <CheckCircle className="w-5 h-5" />
           </div>
         </div>
@@ -469,7 +469,7 @@ export default function OrderList({
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#20ba56] text-white rounded-lg font-semibold text-xs tracking-wider h-11 transition-all active:scale-95 cursor-pointer shadow-sm"
+                      className="flex items-center justify-center gap-2 w-full bg-zinc-900 hover:bg-zinc-955 text-white rounded-lg font-semibold text-xs tracking-wider h-11 transition-all active:scale-95 cursor-pointer shadow-sm"
                     >
                       <MessageCircle className="w-4 h-4 fill-current" />
                       Chat de WhatsApp
@@ -541,9 +541,9 @@ export default function OrderList({
                       href={`https://wa.me/${activeOrder.driver.phoneNumber.replace(/\D/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-600 hover:text-zinc-950 transition-colors px-3 py-2 bg-white rounded-lg border border-gray-200 active:scale-95"
+                      className="flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-650 hover:text-zinc-950 transition-colors px-3 py-2 bg-white rounded-lg border border-gray-200 active:scale-95"
                     >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-500 fill-current" />
+                      <MessageCircle className="w-3.5 h-3.5 text-zinc-500 fill-current" />
                       Contactar Repartidor
                     </a>
                   </div>
@@ -626,7 +626,7 @@ export default function OrderList({
                     className={cn(
                       "text-[10px] font-semibold tracking-wider px-3.5 py-2.5 rounded-xl border transition-all active:scale-95",
                       activeOrder.status === 'delivered'
-                        ? "text-emerald-600 bg-emerald-50/50 border-emerald-200/50"
+                        ? "text-zinc-600 bg-zinc-50 border-zinc-200/60"
                         : "bg-white border-gray-200 text-zinc-500 hover:text-zinc-955 hover:bg-zinc-50"
                     )}
                   >

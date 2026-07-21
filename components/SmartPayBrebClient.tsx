@@ -58,6 +58,7 @@ interface SmartPayBrebClientProps {
   }>
   paymentUrl: string
   brebConfig?: BrebConfig
+  initialTimeLeft?: number
 }
 
 export default function SmartPayBrebClient({
@@ -66,9 +67,10 @@ export default function SmartPayBrebClient({
   items,
   paymentUrl,
   brebConfig = null,
+  initialTimeLeft,
 }: SmartPayBrebClientProps) {
   const [paymentStatus, setPaymentStatus] = useState(order.paymentStatus)
-  const [timeLeft, setTimeLeft] = useState(900)
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft ?? 900)
   const [showQrOnMobile, setShowQrOnMobile] = useState(false)
   const [brebIntent, setBrebIntent] = useState<BrebPaymentIntent | null>(null)
   const [brebError, setBrebError] = useState<string | null>(null)
@@ -111,12 +113,12 @@ export default function SmartPayBrebClient({
   useEffect(() => {
     if (isPaid) return
 
-    const createdTime = new Date(order.createdAt).getTime()
-    const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000)
-    const initialTimeLeft = Math.max(0, 900 - elapsedSeconds)
+    const timeStart = initialTimeLeft !== undefined 
+      ? initialTimeLeft 
+      : Math.max(0, 900 - Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 1000));
 
-    setTimeLeft(initialTimeLeft)
-    if (initialTimeLeft <= 0) return
+    setTimeLeft(timeStart)
+    if (timeStart <= 0) return
 
     const timerId = setInterval(() => {
       setTimeLeft(prev => {

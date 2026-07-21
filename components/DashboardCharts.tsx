@@ -70,7 +70,7 @@ export function StackedBarChart({ data }: { data: BarChartItem[] }) {
           <div className="space-y-1.5 text-xs font-semibold text-zinc-800">
             <div className="flex items-center justify-between gap-8">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded bg-[#10B981]" />
+                <div className="w-2.5 h-2.5 rounded bg-[#71717A]" />
                 <span>Ventas WhatsApp</span>
               </div>
               <span className="font-bold tabular-nums text-zinc-950">${whatsapp.toLocaleString('es-CO')}</span>
@@ -85,7 +85,7 @@ export function StackedBarChart({ data }: { data: BarChartItem[] }) {
             <div className="h-px bg-zinc-100 my-1 w-full" />
             <div className="flex items-center justify-between gap-8 text-[13px] font-extrabold text-zinc-950">
               <span>Total del Día</span>
-              <span className="tabular-nums text-emerald-600">${total.toLocaleString('es-CO')}</span>
+              <span className="tabular-nums text-zinc-950">${total.toLocaleString('es-CO')}</span>
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@ export function StackedBarChart({ data }: { data: BarChartItem[] }) {
             dataKey="whatsappSales" 
             name="whatsappSales" 
             stackId="a" 
-            fill="#10B981" 
+            fill="#71717A" 
             radius={[4, 4, 0, 0]} 
             barSize={24}
           />
@@ -151,7 +151,7 @@ export function SalesChannelDonut({ whatsappTotal, webTotal }: DonutProps) {
 
   const total = whatsappTotal + webTotal
   const data = [
-    { name: 'WhatsApp', value: whatsappTotal || 1, color: '#10B981' },
+    { name: 'WhatsApp', value: whatsappTotal || 1, color: '#71717A' },
     { name: 'Web', value: webTotal || 1, color: '#18181B' }
   ]
 
@@ -205,7 +205,7 @@ type SparklineItem = {
   value: number
 }
 
-export function MiniSparkline({ data, strokeColor = '#10B981' }: { data: SparklineItem[], strokeColor?: string }) {
+export function MiniSparkline({ data, strokeColor = '#71717A' }: { data: SparklineItem[], strokeColor?: string }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -269,7 +269,7 @@ export function GeneralScoreCircle({ score = 97 }: { score?: number }) {
           cx="50"
           cy="50"
           r={radius}
-          className="stroke-emerald-500 transition-all duration-1000 ease-out"
+          className="stroke-zinc-500 transition-all duration-1000 ease-out"
           strokeWidth="8"
           fill="transparent"
           strokeDasharray={circumference}
@@ -290,11 +290,11 @@ export function BotStatusCircle({ isOnline = true }: { isOnline?: boolean }) {
   return (
     <div className="relative w-20 h-20 flex items-center justify-center">
       {isOnline && (
-        <div className="absolute inset-0 rounded-full bg-emerald-500/5 border border-emerald-500/15 animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-zinc-500/5 border border-zinc-500/15 animate-pulse" />
       )}
       
       <div className="relative w-14 h-14 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center z-10">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isOnline ? 'bg-emerald-50/60 text-emerald-600' : 'bg-rose-50/60 text-rose-600'}`}>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isOnline ? 'bg-zinc-100 text-zinc-600' : 'bg-rose-50/60 text-rose-600'}`}>
           <svg
             viewBox="0 0 24 24"
             className="w-5 h-5 fill-current"
@@ -342,8 +342,8 @@ export function WeeklySalesAreaChart({ data }: { data: WeeklySalesItem[] }) {
         <AreaChart data={data} margin={{ top: 15, right: 5, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
-              <stop offset="95%" stopColor="#10B981" stopOpacity={0.0}/>
+              <stop offset="5%" stopColor="#71717A" stopOpacity={0.2}/>
+              <stop offset="95%" stopColor="#71717A" stopOpacity={0.0}/>
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" />
@@ -371,11 +371,11 @@ export function WeeklySalesAreaChart({ data }: { data: WeeklySalesItem[] }) {
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#10B981"
+            stroke="#71717A"
             strokeWidth={2}
             fill="none"
-            dot={{ r: 3, stroke: '#10B981', strokeWidth: 1, fill: '#FFF' }}
-            activeDot={{ r: 5, stroke: '#10B981', strokeWidth: 2, fill: '#FFF' }}
+            dot={{ r: 3, stroke: '#71717A', strokeWidth: 1, fill: '#FFF' }}
+            activeDot={{ r: 5, stroke: '#71717A', strokeWidth: 2, fill: '#FFF' }}
           />
         </AreaChart>
       </ResponsiveContainer>

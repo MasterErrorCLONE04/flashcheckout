@@ -891,7 +891,10 @@ export default function WhatsAppCatalog({
             {/* Logo o Nombre de la Tienda */}
             <div className="flex items-center gap-3">
               {store.logoUrl ? (
-                <img src={store.logoUrl} alt={formattedStoreName} className="h-8 max-w-[150px] object-contain shrink-0" />
+                <div className="flex items-center gap-3">
+                  <img src={store.logoUrl} alt={formattedStoreName} className="h-8 max-w-[120px] object-contain shrink-0 rounded-md" />
+                  <span className="font-black text-sm text-zinc-955 uppercase tracking-tight">{formattedStoreName}</span>
+                </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[10px] text-emerald-600">
@@ -2029,54 +2032,58 @@ export default function WhatsAppCatalog({
         )}
 
         {/* Cabecera Móvil */}
-        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-16 flex items-center justify-between px-4 shadow-none">
-          <div className="flex items-center gap-2.5">
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-16 flex items-center justify-between px-4 shadow-none relative">
+          <div className="flex items-center w-10">
             <button onClick={() => setIsMobileMenuOpen(true)} className="text-zinc-650 hover:text-zinc-900 cursor-pointer">
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2">
-              {store.logoUrl ? (
-                <div className="flex items-center gap-1.5">
-                  <img src={store.logoUrl} alt={formattedStoreName} className="h-6 max-w-[100px] object-contain shrink-0" />
-                  
-                  {/* Schedule Badge (Mobile with Logo) */}
-                  {schedule?.enabled && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-[#EEF2F0] text-emerald-700 select-none scale-90 origin-left shrink-0">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5.5 h-5.5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[9px] text-emerald-600">
-                    ☕
-                  </div>
-                  <span className="font-black text-xs text-zinc-950 uppercase tracking-tight">{formattedStoreName}</span>
-
-                  {/* Schedule Badge (Mobile without Logo) */}
-                  {schedule?.enabled && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-[#EEF2F0] text-emerald-700 select-none scale-90 origin-left shrink-0">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
 
-          <button 
-            onClick={() => handleMobileTabClick('carrito')}
-            className="w-10 h-10 flex items-center justify-center relative bg-transparent border-0 cursor-pointer"
-          >
-            <ShoppingCart className="w-5 h-5 text-zinc-700" />
-            {itemsInCart > 0 && (
-              <span className="absolute top-1.5 right-1.5 bg-emerald-500 text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
-                {itemsInCart}
-              </span>
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 pointer-events-none">
+            {store.logoUrl ? (
+              <div className="flex items-center gap-2">
+                <img src={store.logoUrl} alt={formattedStoreName} className="h-6 max-w-[80px] object-contain shrink-0 rounded" />
+                <span className="font-black text-xs text-zinc-950 uppercase tracking-tight">{formattedStoreName}</span>
+                
+                {/* Schedule Badge (Mobile with Logo) */}
+                {schedule?.enabled && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-[#EEF2F0] text-emerald-700 select-none scale-90 origin-left shrink-0">
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <div className="w-5.5 h-5.5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center font-bold text-[9px] text-emerald-600">
+                  ☕
+                </div>
+                <span className="font-black text-xs text-zinc-955 uppercase tracking-tight">{formattedStoreName}</span>
+
+                {/* Schedule Badge (Mobile without Logo) */}
+                {schedule?.enabled && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-[#EEF2F0] text-emerald-700 select-none scale-90 origin-left shrink-0">
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
+                  </span>
+                )}
+              </div>
             )}
-          </button>
+          </div>
+
+          <div className="flex items-center justify-end w-10">
+            <button 
+              onClick={() => handleMobileTabClick('carrito')}
+              className="w-10 h-10 flex items-center justify-center relative bg-transparent border-0 cursor-pointer"
+            >
+              <ShoppingCart className="w-5 h-5 text-zinc-700" />
+              {itemsInCart > 0 && (
+                <span className="absolute top-1.5 right-1.5 bg-emerald-500 text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
+                  {itemsInCart}
+                </span>
+              )}
+            </button>
+          </div>
         </header>
 
         {/* Cuerpo del Catálogo Móvil */}

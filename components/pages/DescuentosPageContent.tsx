@@ -218,7 +218,7 @@ export default function DescuentosPage() {
 
   const getIconStyles = (tipoDesc: string) => {
     if (tipoDesc === 'Porcentaje') return 'bg-purple-50 border-purple-100 text-purple-600'
-    if (tipoDesc === 'Envío gratis') return 'bg-emerald-50 border-emerald-100 text-emerald-655'
+    if (tipoDesc === 'Envío gratis') return 'bg-zinc-50 border-zinc-200 text-zinc-600'
     return 'bg-blue-50 border-blue-100 text-blue-600'
   }
 
@@ -279,7 +279,7 @@ export default function DescuentosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Descuentos</h1>
           <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
             Crea y gestiona descuentos y cupones para tu negocio.
           </div>
         </div>
@@ -309,7 +309,7 @@ export default function DescuentosPage() {
               setEstado('Activo')
               setIsModalOpen(true)
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs xl:text-sm font-bold rounded-lg transition-all shadow-none active:scale-98 cursor-pointer select-none"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs xl:text-sm font-bold rounded-lg transition-all shadow-none active:scale-98 cursor-pointer select-none"
           >
             <Plus className="w-4 h-4" />
             Nuevo descuento
@@ -333,14 +333,14 @@ export default function DescuentosPage() {
             }}
             className={`pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === tab.id 
-                ? 'border-emerald-500 text-emerald-800' 
+                ? 'border-zinc-900 text-zinc-900' 
                 : 'border-transparent text-zinc-500 hover:text-zinc-900'
             }`}
           >
             {tab.label}
             <span className={cn(
               "px-1.5 py-0.2 rounded text-[10px] font-extrabold",
-              activeTab === tab.id ? "bg-emerald-50 border border-emerald-100 text-emerald-850" : "bg-zinc-100 text-zinc-500"
+              activeTab === tab.id ? "bg-zinc-100 border border-zinc-250 text-zinc-800" : "bg-zinc-100 text-zinc-500"
             )}>
               {tab.count}
             </span>
@@ -518,7 +518,7 @@ export default function DescuentosPage() {
                   <tr>
                     <td colSpan={8} className="py-12 text-center text-zinc-400 font-medium">
                       <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />
+                        <Loader2 className="w-5 h-5 text-zinc-500 animate-spin" />
                         <span>Cargando descuentos...</span>
                       </div>
                     </td>
@@ -571,7 +571,7 @@ export default function DescuentosPage() {
                             onClick={() => handleToggleStatus(c)}
                             className={cn(
                               "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold select-none cursor-pointer border hover:opacity-85 transition-all",
-                              c.estado === 'Activo' && 'bg-emerald-50 border-emerald-100 text-emerald-700',
+                              c.estado === 'Activo' && 'bg-zinc-100 border-zinc-200 text-zinc-800',
                               c.estado === 'Programado' && 'bg-amber-50 border-amber-100 text-amber-700',
                               c.estado === 'Inactivo' && 'bg-zinc-100 border-zinc-200 text-zinc-500'
                             )}
@@ -639,7 +639,7 @@ export default function DescuentosPage() {
                   className={cn(
                     "px-2.5 py-1 rounded border transition-all cursor-pointer",
                     currentPage === i + 1
-                      ? "bg-emerald-50 border-emerald-150 text-emerald-800"
+                      ? "bg-zinc-100 border-zinc-200 text-zinc-800"
                       : "border-zinc-200 hover:bg-zinc-50"
                   )}
                 >
@@ -723,7 +723,7 @@ export default function DescuentosPage() {
                         cy="50" 
                         r="40" 
                         fill="transparent" 
-                        stroke="#22C55E" 
+                        stroke="#71717A" 
                         strokeWidth="11" 
                         strokeDasharray="251.327" 
                         strokeDashoffset={251.327 * (1 - freeShipPercent / 100)}
@@ -768,7 +768,7 @@ export default function DescuentosPage() {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#71717A] shrink-0" />
                       <span className="truncate text-zinc-655">Envío gratis</span>
                     </div>
                     <span className="text-zinc-955 font-extrabold ml-2">
@@ -808,7 +808,7 @@ export default function DescuentosPage() {
                   </div>
                   {/* Custom Progress Bar */}
                   <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-550 rounded-full" style={{ width: `${mostUsedPercent}%` }} />
+                    <div className="h-full bg-zinc-800 rounded-full" style={{ width: `${mostUsedPercent}%` }} />
                   </div>
                 </div>
               ) : (
@@ -825,7 +825,7 @@ export default function DescuentosPage() {
               {coupons.length > 0 ? (
                 coupons.slice(0, 3).map((c, idx) => {
                   const stateColors = {
-                    Activo: 'bg-emerald-500',
+                    Activo: 'bg-zinc-500',
                     Programado: 'bg-amber-500',
                     Inactivo: 'bg-zinc-400'
                   }
@@ -846,7 +846,7 @@ export default function DescuentosPage() {
 
             <div className="h-px w-full bg-zinc-100 pt-1" />
 
-            <button className="text-xs xl:text-sm font-bold text-emerald-600 hover:text-emerald-700 flex items-center justify-between w-full px-1 pt-1 cursor-pointer select-none border-none bg-transparent">
+            <button className="text-xs xl:text-sm font-bold text-zinc-700 hover:text-zinc-950 flex items-center justify-between w-full px-1 pt-1 cursor-pointer select-none border-none bg-transparent">
               <span>Ver toda la actividad</span>
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -856,18 +856,18 @@ export default function DescuentosPage() {
           <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none relative overflow-hidden flex flex-col justify-between min-h-[160px]">
             <div className="flex gap-4">
               <div className="flex-1 space-y-1.5">
-                <h4 className="text-xs xl:text-sm font-black text-zinc-950 tracking-tight leading-tight">¿Necesitas ayuda con descuentos?</h4>
+                <h4 className="text-xs xl:text-sm font-black text-zinc-955 tracking-tight leading-tight">¿Necesitas ayuda con descuentos?</h4>
                 <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 leading-relaxed">Nova puede ayudarte a crear estrategias de descuentos efectivas.</p>
               </div>
               <div className="shrink-0 select-none">
-                <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700">
                   <Bot className="w-7 h-7" />
                 </div>
               </div>
             </div>
 
             <Link href="/hablar-con-nova" className="w-full select-none">
-              <button className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg shadow-none flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 transition-all border-none">
+              <button className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold text-xs rounded-lg shadow-none flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 transition-all border-none">
                 <MessageCircle className="w-4.5 h-4.5 fill-current" />
                 Hablar con Nova
               </button>
@@ -1001,7 +1001,7 @@ export default function DescuentosPage() {
                 <button 
                   type="submit"
                   disabled={formLoading}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {formLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {formLoading ? 'Guardando...' : editingId ? 'Guardar Cambios' : 'Crear Descuento'}

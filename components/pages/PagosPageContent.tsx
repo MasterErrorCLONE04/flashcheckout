@@ -103,7 +103,7 @@ export default function PagosPage() {
           'bg-purple-100 text-purple-750', 
           'bg-blue-100 text-blue-750', 
           'bg-pink-100 text-pink-750', 
-          'bg-emerald-100 text-emerald-750', 
+          'bg-zinc-100 text-zinc-700', 
           'bg-amber-100 text-amber-750', 
           'bg-rose-100 text-rose-750'
         ]
@@ -139,8 +139,8 @@ export default function PagosPage() {
           } else if (order.proofImageUrl) {
             metodoLabel = 'Transferencia'
             MetodoIcon = Landmark
-            iconBg = 'bg-emerald-50 border-emerald-100'
-            iconColor = 'text-emerald-650'
+            iconBg = 'bg-zinc-100 border-zinc-200'
+            iconColor = 'text-zinc-650'
           }
 
           let prodCount = 1
@@ -357,7 +357,7 @@ export default function PagosPage() {
     { name: 'Nequi', count: countNequi, value: sumNequi, icon: Wallet, color: 'bg-indigo-650' },
     { name: 'PSE', count: countPSE, value: sumPSE, icon: Globe, color: 'bg-teal-500' },
     { name: 'Contra Entrega', count: countContraEntrega, value: sumContraEntrega, icon: Wallet, color: 'bg-zinc-500' },
-    { name: 'Transferencia', count: countTransferencia, value: sumTransferencia, icon: Landmark, color: 'bg-emerald-500' },
+    { name: 'Transferencia', count: countTransferencia, value: sumTransferencia, icon: Landmark, color: 'bg-zinc-600' },
   ].filter(item => item.count > 0)
 
   const totalCount = payments.length
@@ -402,7 +402,7 @@ export default function PagosPage() {
               <span className="text-[10px] font-bold text-zinc-300 leading-none">ⓘ</span>
             </div>
             <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">${formatCurrency(totalVolume)}</span>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 mt-1 select-none">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 mt-1 select-none">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>15% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
             </div>
@@ -420,7 +420,7 @@ export default function PagosPage() {
               <span className="text-[10px] font-bold text-zinc-300 leading-none">ⓘ</span>
             </div>
             <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">{countExitosos}</span>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 mt-1 select-none">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 mt-1 select-none">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>14% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
             </div>
@@ -573,7 +573,7 @@ export default function PagosPage() {
                           {/* Payment reference */}
                           <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
-                              {p.estado === 'Exitoso' && <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />}
+                              {p.estado === 'Exitoso' && <CheckCircle className="w-4 h-4 text-zinc-500 shrink-0" />}
                               {p.estado === 'Pendiente' && <Clock className="w-4 h-4 text-amber-500 shrink-0" />}
                               {p.estado === 'Fallido' && <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />}
                               <div className="min-w-0">
@@ -618,7 +618,7 @@ export default function PagosPage() {
                           <td className="py-3 px-2.5 xl:px-4">
                             <span className={cn(
                               "px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none",
-                              p.estado === 'Exitoso' && 'bg-emerald-50 border border-emerald-100 text-emerald-700',
+                              p.estado === 'Exitoso' && 'bg-zinc-100 border border-zinc-200 text-zinc-800',
                               p.estado === 'Pendiente' && 'bg-amber-50 border border-amber-100 text-amber-700',
                               p.estado === 'Fallido' && 'bg-red-50 border border-red-100 text-red-700'
                             )}>
@@ -674,7 +674,7 @@ export default function PagosPage() {
                     className={cn(
                       "px-2.5 py-1 rounded transition-all cursor-pointer text-xs font-bold",
                       currentPage === page 
-                        ? "bg-emerald-50 border border-emerald-150 text-emerald-800 font-extrabold" 
+                        ? "bg-zinc-900 border border-zinc-900 text-white font-extrabold" 
                         : "border border-zinc-200 hover:bg-zinc-50"
                     )}
                   >
@@ -716,7 +716,7 @@ export default function PagosPage() {
           {/* Banner bottom: Optimiza tus cobros */}
           <div className="bg-zinc-50 border border-zinc-200/80 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-start gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650 shrink-0 select-none">
+              <div className="w-10 h-10 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-600 shrink-0 select-none">
                 <Landmark className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
@@ -726,7 +726,7 @@ export default function PagosPage() {
             </div>
             
             <Link href="/integraciones" className="shrink-0 select-none">
-              <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer active:scale-98">
+              <button className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-lg transition-all cursor-pointer active:scale-98">
                 Gestionar métodos de pago
               </button>
             </Link>
@@ -760,7 +760,7 @@ export default function PagosPage() {
                     <div className="flex items-center gap-2">
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none",
-                        selectedPayment.estado === 'Exitoso' && 'bg-emerald-50 border border-emerald-100 text-emerald-700',
+                        selectedPayment.estado === 'Exitoso' && 'bg-zinc-100 border border-zinc-200 text-zinc-800',
                         selectedPayment.estado === 'Pendiente' && 'bg-amber-50 border border-amber-100 text-amber-700',
                         selectedPayment.estado === 'Fallido' && 'bg-red-50 border border-red-100 text-red-700'
                       )}>
@@ -842,7 +842,7 @@ export default function PagosPage() {
                         className="inline-flex items-center gap-1.5 font-bold text-[#6F42C1] hover:underline cursor-pointer"
                       >
                         <span>{selectedPayment.ref}</span>
-                        {copiedRef ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+                        {copiedRef ? <Check className="w-3.5 h-3.5 text-zinc-850" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
                       </button>
                     </div>
                     <div className="flex justify-between p-3">

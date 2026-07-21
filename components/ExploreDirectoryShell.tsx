@@ -1,9 +1,22 @@
-import { Search, Store } from 'lucide-react'
-import ExploreAssistantPanel from '@/components/ExploreAssistantPanelAI'
-import ExploreHeader from '@/components/ExploreHeader'
-import ExploreHero from '@/components/ExploreHero'
-import ExploreSidebar from '@/components/ExploreSidebar'
-import ExploreStoreCard from '@/components/ExploreStoreCard'
+'use client'
+
+import { useState } from 'react'
+import ExploreHeaderBar from '@/components/explorar/ExploreHeaderBar'
+import ExploreSearchHero from '@/components/explorar/ExploreSearchHero'
+import ExploreQuickServicesBar from '@/components/explorar/ExploreQuickServicesBar'
+import ExploreCategoryNav from '@/components/explorar/ExploreCategoryNav'
+import ExploreLiveAndTrendsWidget from '@/components/explorar/ExploreLiveAndTrendsWidget'
+import ExploreTopRankedWidget from '@/components/explorar/ExploreTopRankedWidget'
+import ExploreUserProfileCard from '@/components/explorar/ExploreUserProfileCard'
+import ExploreCategoryFilterStrip from '@/components/explorar/ExploreCategoryFilterStrip'
+import ExploreResultsGrid from '@/components/explorar/ExploreResultsGrid'
+import {
+  ImageSearchModal,
+  QuoteRequestModal,
+  LiveStreamsModal,
+  FlashProtectModal,
+} from '@/components/explorar/ExploreModals'
+import ExploreStoreB2BConfigModal from '@/components/explorar/ExploreStoreB2BConfigModal'
 import type { ExploreStore, ExploreTheme } from '@/components/ExploreTypes'
 
 type ExploreDirectoryShellProps = {
@@ -23,73 +36,110 @@ export default function ExploreDirectoryShell({
   totalStores,
   query,
   selectedCategory,
-  minPrice,
-  maxPrice,
   sort,
   theme,
   userId,
 }: ExploreDirectoryShellProps) {
+  const [isImageSearchOpen, setIsImageSearchOpen] = useState(false)
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
+  const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
+  const [isProtectModalOpen, setIsProtectModalOpen] = useState(false)
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
+  const [activeToast, setActiveToast] = useState<string | null>(null)
+
+  const showToast = (msg: string) => {
+    setActiveToast(msg)
+    setTimeout(() => setActiveToast(null), 3000)
+  }
+
+  // Find user's own store if present in stores list
+  const userStore = stores[0]
+
   return (
     <div className={theme === 'dark' ? 'dark' : ''}>
-      <div className="min-h-screen bg-[#fbfbfa] text-zinc-950 dark:bg-zinc-950 dark:text-white">
-        <ExploreHeader query={query} userId={userId} theme={theme} />
+      <div className="min-h-screen bg-[#f4f5f7] text-[#111827] dark:bg-zinc-950 dark:text-white transition-colors relative font-sans">
+        {/* Toast Notification */}
+        {activeToast && (
+          <div className="fixed bottom-6 right-6 z-50 rounded-2xl bg-zinc-900 px-5 py-3 text-xs font-bold text-white shadow-2xl dark:bg-white dark:text-zinc-950 animate-in fade-in slide-in-from-bottom-3">
+            {activeToast}
+          </div>
+        )}
 
-        <div className="mx-auto grid max-w-[1800px] grid-cols-1 xl:grid-cols-[330px_minmax(0,1fr)_390px]">
-          <ExploreSidebar
+        {/* Header Bar */}
+        <ExploreHeaderBar
+          userId={userId}
+          theme={theme}
+          onOpenCart={() => showToast('🛒 Carrito: 2 productos guardados.')}
+          onOpenFavorites={() => showToast('❤️ Favoritos: 13 productos guardados.')}
+        />
+
+        {/* Hero Search Section */}
+        <ExploreSearchHero
+          initialQuery={query}
+          onOpenImageSearch={() => setIsImageSearchOpen(true)}
+        />
+
+        {/* Quick Services Bar */}
+        <ExploreQuickServicesBar
+          userName={userId ? 'David' : 'David'}
+          onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
+          onOpenLiveModal={() => setIsLiveModalOpen(true)}
+          onOpenProtectModal={() => setIsProtectModalOpen(true)}
+        />
+
+        <div className="mx-auto max-w-[1560px] px-4 sm:px-6 py-4 space-y-6">
+          {/* Main 4-Column Showcase Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+            <ExploreCategoryNav selectedCategory={selectedCategory} />
+            <ExploreLiveAndTrendsWidget onOpenLiveModal={() => setIsLiveModalOpen(true)} />
+            <ExploreTopRankedWidget />
+            <ExploreUserProfileCard
+              userName={userId ? 'David Velasquez' : 'David Velasquez'}
+              onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
+              onOpenFavorites={() => showToast('❤️ 13 Productos favoritos')}
+              onOpenConfigModal={() => setIsConfigModalOpen(true)}
+            />
+          </div>
+
+          {/* Bottom Category Tabs & Tag Pills Strip */}
+          <ExploreCategoryFilterStrip
             selectedCategory={selectedCategory}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            sort={sort}
-            theme={theme}
+            currentSort={sort}
           />
 
-          <main className="border-x border-zinc-200/70 px-6 py-9 dark:border-white/10 md:px-8 lg:px-10 lg:py-11">
-            <div className="mb-9 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h1 className="text-3xl font-black tracking-[-0.055em] text-zinc-950 dark:text-white lg:text-[34px]">
-                  Descubre <span className="text-emerald-600">tiendas increíbles</span>
-                </h1>
-                <p className="mt-2 text-base font-medium text-zinc-500 dark:text-zinc-400">Explora negocios verificados y encuentra lo que necesitas.</p>
-              </div>
-              <div className="inline-flex w-fit items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-bold text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
-                <Store className="size-4 text-zinc-500 dark:text-zinc-300" />
-                <span className="underline decoration-zinc-400 underline-offset-2">{totalStores}</span>
-                tiendas disponibles
-              </div>
-            </div>
-
-            <ExploreHero />
-
-            <section id="resultados">
-              <div className="mb-7 flex items-end justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-black tracking-[-0.045em] text-zinc-950 dark:text-white">Tiendas destacadas</h2>
-                  <p className="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                    {query ? `Resultados para "${query}"` : 'Recomendadas para ti'}
-                  </p>
-                </div>
-              </div>
-
-              {stores.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
-                  {stores.map((store) => (
-                    <ExploreStoreCard key={store.id} store={store} />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-[28px] border border-zinc-200 bg-white p-16 text-center shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
-                  <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-300 dark:bg-white/10">
-                    <Search className="size-8" />
-                  </div>
-                  <h3 className="text-xl font-black tracking-[-0.04em] text-zinc-950 dark:text-white">No encontramos coincidencias</h3>
-                  <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-6 text-zinc-500 dark:text-zinc-400">Prueba ajustando filtros o buscando una marca, categoría o producto más general.</p>
-                </div>
-              )}
-            </section>
+          {/* Main Results Grid */}
+          <main>
+            <ExploreResultsGrid
+              stores={stores}
+              totalStores={totalStores}
+              query={query}
+              selectedCategory={selectedCategory}
+            />
           </main>
-
-          <ExploreAssistantPanel />
         </div>
+
+        {/* Modals */}
+        <ImageSearchModal
+          isOpen={isImageSearchOpen}
+          onClose={() => setIsImageSearchOpen(false)}
+        />
+        <QuoteRequestModal
+          isOpen={isQuoteModalOpen}
+          onClose={() => setIsQuoteModalOpen(false)}
+        />
+        <LiveStreamsModal
+          isOpen={isLiveModalOpen}
+          onClose={() => setIsLiveModalOpen(false)}
+        />
+        <FlashProtectModal
+          isOpen={isProtectModalOpen}
+          onClose={() => setIsProtectModalOpen(false)}
+        />
+        <ExploreStoreB2BConfigModal
+          isOpen={isConfigModalOpen}
+          onClose={() => setIsConfigModalOpen(false)}
+          store={userStore}
+        />
       </div>
     </div>
   )

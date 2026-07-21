@@ -143,7 +143,7 @@ export default function Navbar({ userId }: { userId?: string }) {
   }, [])
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-white/80 backdrop-blur-md border-[#E5E7EB] py-3' : 'bg-white border-transparent py-5'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-white/75 backdrop-blur-md border-b border-zinc-200/50 py-3 shadow-[0_2px_20px_0_rgba(0,0,0,0.02)]' : 'bg-transparent border-b border-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <FlashcheckoutsLogo />
 

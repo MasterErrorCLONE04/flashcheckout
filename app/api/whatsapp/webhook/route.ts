@@ -215,8 +215,8 @@ function extractEvolutionText(messageType: string, message: PlainObject): string
 }
 
 function formatLocationText(location: PlainObject): string {
-  const latitude = typeof location.latitude === 'number' ? location.latitude : null
-  const longitude = typeof location.longitude === 'number' ? location.longitude : null
+  const latitude = typeof location.latitude === 'number' ? location.latitude : (typeof location.degreesLatitude === 'number' ? location.degreesLatitude : null)
+  const longitude = typeof location.longitude === 'number' ? location.longitude : (typeof location.degreesLongitude === 'number' ? location.degreesLongitude : null)
 
   if (latitude === null || longitude === null) {
     return ''
@@ -495,6 +495,58 @@ async function handleEvolutionWebhook(body: EvolutionWebhookBody) {
         typeof imagePayload?.mimetype === 'string' ? imagePayload.mimetype : 'image/jpeg'
 
       await handleWhatsAppImage(from, key, mimeType, store.id, instanceName, message)
+    } else if (messageType === 'locationMessage') {
+      const location = isPlainObject(message.locationMessage) ? message.locationMessage : null
+
+      // Aceptar la ubicación si el paso es AWAITING_ADDRESS O si hay artículos en el carrito (la IA puede
+      // haber pedido la ubicación conversacionalmente sin actualizar el step en la BD a AWAITING_ADDRESS)
+      const cartObj = session.cart as any
+      const hasCartItems = cartObj && cartObj.items && Object.keys(cartObj.items).length > 0
+      const shouldAcceptLocation = (session.step === 'AWAITING_ADDRESS' || hasCartItems) && location
+
+      if (shouldAcceptLocation && location) {
+        const addressText = formatLocationText(location)
+
+        if (addressText) {
+          logWebhookEvent('whatsapp', 'location_received', {
+            transport: 'evolution',
+            from,
+            addressText,
+            step: session.step,
+          })
+
+          // Si el paso no era AWAITING_ADDRESS, forzar el estado para que el handler lo procese correctamente
+          if (session.step !== 'AWAITING_ADDRESS') {
+            const { prisma: db } = await import('@/lib/prisma')
+            session = await db.whatsAppSession.update({
+              where: { id: session.id },
+              data: { step: 'AWAITING_ADDRESS' }
+            }) as any
+          }
+
+          session = await appendMessage(session, {
+            sender: 'user',
+            text: `[Ubicación] ${addressText}`,
+            time: timeString,
+            timestamp: Date.now(),
+            eventId,
+          })
+          await handleWhatsAppMessage(from, addressText, session)
+        }
+      } else {
+        logWebhookWarn('whatsapp', 'location_ignored', {
+          transport: 'evolution',
+          from,
+          step: session.step,
+          hasCartItems,
+        })
+        const { evolutionClient } = await import('@/lib/whatsapp/evolution');
+        await evolutionClient.sendText(
+          instanceName,
+          from,
+          'Lo siento, no estoy esperando una ubicación en este momento. Si quieres hacer un pedido, escribe "Hola".'
+        )
+      }
     } else if (text) {
       session = await appendMessage(session, {
         sender: 'user',

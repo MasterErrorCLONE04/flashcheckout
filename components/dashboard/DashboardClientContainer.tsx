@@ -341,7 +341,7 @@ export default function DashboardClientContainer({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 ">Panel de Control</h1>
           <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5 ">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
             Monitoreo Operativo — Gestionando <span className="text-zinc-900 font-bold">{storeName}</span>
           </div>
         </div>
@@ -414,7 +414,7 @@ export default function DashboardClientContainer({
                   </div>
                 </div>
                 <div className="mt-4">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500">
                     <span>▲ {Math.abs(stats.revenueGrowth || 0).toFixed(1)}%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
@@ -437,7 +437,7 @@ export default function DashboardClientContainer({
                   </div>
                 </div>
                 <div className="mt-4">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500">
                     <span>▲ {Math.abs(stats.ordersGrowth || 0).toFixed(1)}%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
@@ -460,7 +460,7 @@ export default function DashboardClientContainer({
                   </div>
                 </div>
                 <div className="mt-4">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500">
                     <span>▲ {Math.abs(stats.avgTicketGrowth || 0).toFixed(1)}%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
@@ -483,7 +483,7 @@ export default function DashboardClientContainer({
                   </div>
                 </div>
                 <div className="mt-4">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-500">
                     <span>▲ 0.0%</span>
                     <span className="text-zinc-400 font-normal font-sans tracking-wider text-[9px] ml-1">vs ayer</span>
                   </div>
@@ -500,7 +500,7 @@ export default function DashboardClientContainer({
                 <div>
                   <h4 className="text-sm font-semibold text-zinc-900 tracking-tight">Ventas últimos 7 días</h4>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500">
                   <span>${stats.totalRevenueVal.toLocaleString('es-CO')}</span>
                   <span className="text-[10px]">▲ {stats.revenueGrowth.toFixed(1)}%</span>
                 </div>
@@ -523,7 +523,7 @@ export default function DashboardClientContainer({
               <div className="space-y-1.5 text-[11px] font-semibold text-zinc-500 pb-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#10B981]" />
+                    <div className="w-2 h-2 rounded-full bg-zinc-400" />
                     <span>WhatsApp</span>
                   </div>
                   <span className="text-zinc-900 font-bold">
@@ -550,13 +550,13 @@ export default function DashboardClientContainer({
               <div className="flex-1 flex flex-col justify-between min-w-0">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2 text-zinc-800 font-semibold text-sm">
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                    <div className="w-6 h-6 rounded-full bg-zinc-100 text-zinc-650 flex items-center justify-center shrink-0 border border-zinc-200">
                       <Globe className="w-3.5 h-3.5" />
                     </div>
                     <span>Tu tienda online</span>
                   </div>
                   <p className="text-xs text-zinc-400 font-medium leading-relaxed">Este es el enlace directo a tu catálogo inteligente para recibir pedidos autónomos.</p>
-                  <div className="text-emerald-600 font-medium text-xs pt-2 truncate select-all">{storeUrl}</div>
+                  <div className="text-zinc-600 font-medium text-xs pt-2 truncate select-all">{storeUrl}</div>
                 </div>
 
                 <div className="flex items-center gap-2 mt-5">
@@ -650,7 +650,7 @@ export default function DashboardClientContainer({
                           "h-full transition-all duration-500",
                           isSubscribed ? "bg-zinc-850 w-full" : 
                           productsCount >= 10 ? "bg-rose-500 w-full" :
-                          productsCount >= 8 ? "bg-amber-500" : "bg-emerald-500"
+                          productsCount >= 8 ? "bg-amber-500" : "bg-zinc-500"
                         )}
                         style={isSubscribed ? {} : { width: `${Math.min((productsCount / 10) * 100, 100)}%` }}
                       />
@@ -714,14 +714,14 @@ export default function DashboardClientContainer({
                 </div>
               </div>
             ) : (
-              <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4 relative animate-in fade-in duration-200">
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4 relative animate-in fade-in duration-200">
                 <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-650 shrink-0">
+                    <Sparkles className="w-4 h-4 text-zinc-500" />
                   </div>
                   <div className="text-left">
-                    <span className="text-xs font-bold text-emerald-800 block">Sugerencia para ti</span>
-                    <p className="text-[11px] font-medium text-emerald-750/90 mt-0.5">Conecta tu WhatsApp Business para no perder mensajes de clientes potenciales.</p>
+                    <span className="text-xs font-bold text-zinc-800 block">Sugerencia para ti</span>
+                    <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Conecta tu WhatsApp Business para no perder mensajes de clientes potenciales.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
@@ -730,14 +730,14 @@ export default function DashboardClientContainer({
                       setShowWhatsAppModal(true)
                       handleConnectWhatsApp()
                     }}
-                    className="h-8 px-3.5 bg-[#10B981] hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
+                    className="h-8 px-3.5 bg-zinc-900 hover:bg-zinc-950 text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Conectar WhatsApp</span>
                   </button>
                   <button 
                     onClick={() => setShowSuggestionBanner(false)}
-                    className="w-8 h-8 rounded-lg hover:bg-emerald-100/50 flex items-center justify-center text-emerald-650 shrink-0 cursor-pointer"
+                    className="w-8 h-8 rounded-lg hover:bg-zinc-200 flex items-center justify-center text-zinc-455 shrink-0 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -767,7 +767,7 @@ export default function DashboardClientContainer({
 
             {activeAlerts.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center p-6 py-8 border border-dashed border-zinc-200 rounded-lg bg-zinc-50/20 my-1">
-                <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2.5">
+                <div className="w-9 h-9 rounded-full bg-zinc-100 text-zinc-600 flex items-center justify-center mb-2.5">
                   <Check className="w-5 h-5 animate-bounce" />
                 </div>
                 <p className="text-xs font-bold text-zinc-900">¡Bandeja al día!</p>
@@ -828,7 +828,7 @@ export default function DashboardClientContainer({
                     </div>
                     <div className="text-right shrink-0">
                       {activity.amount !== undefined && (
-                        <p className="text-xs font-bold text-emerald-600">${activity.amount.toLocaleString('es-CO')}</p>
+                        <p className="text-xs font-bold text-zinc-650">${activity.amount.toLocaleString('es-CO')}</p>
                       )}
                       <p className="text-[8px] font-semibold text-zinc-400 mt-0.5">{activity.timeText}</p>
                     </div>

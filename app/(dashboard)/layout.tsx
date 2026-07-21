@@ -175,7 +175,7 @@ export default async function DashboardLayout({
                       <div 
                         className={cn(
                           "h-full rounded-full transition-all duration-500",
-                          productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-emerald-500"
+                          productCount >= 10 ? "bg-red-500" : productCount >= 8 ? "bg-amber-500" : "bg-zinc-900"
                         )} 
                         style={{ width: `${Math.min((productCount / 10) * 100, 100)}%` }}
                       />
@@ -192,17 +192,17 @@ export default async function DashboardLayout({
                 {/* Collapsed state (simplified small badge) */}
                 <div className="flex flex-col items-center justify-center gap-1 py-4 group-hover:hidden transition-all duration-200">
                   <Link href="/configuracion" className="contents">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm cursor-pointer hover:bg-emerald-100 transition-colors" title={`Premium: Activo (${productCount} productos)`}>
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shadow-sm cursor-pointer hover:bg-zinc-200 transition-colors" title={`Premium: Activo (${productCount} productos)`}>
+                      <CheckCircle2 className="w-5 h-5 text-zinc-500" />
                     </div>
                   </Link>
                 </div>
 
                 {/* Expanded state (full detailed card) */}
-                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-emerald-100 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300">
+                <div className="hidden group-hover:flex flex-col gap-3 bg-white border border-zinc-200 rounded-2xl p-4 relative overflow-hidden animate-in fade-in duration-300">
                   <div className="flex justify-between items-center text-xs font-bold text-zinc-855">
-                    <span className="flex items-center gap-1 text-emerald-700 font-extrabold">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-650" />
+                    <span className="flex items-center gap-1 text-zinc-800 font-extrabold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-zinc-500" />
                       Premium
                     </span>
                     <span className="text-zinc-500 font-bold tabular-nums">{productCount} productos</span>

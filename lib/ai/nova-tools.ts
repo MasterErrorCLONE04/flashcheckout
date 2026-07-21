@@ -224,17 +224,16 @@ export async function executeNovaTool(
     switch (name) {
       case 'search_products': {
         const query = typeof payload.query === 'string' ? payload.query : ''
-        const products = await prisma.product.findMany({
-          where: {
-            storeId,
-            OR: [
-              { name: { contains: query, mode: 'insensitive' } },
-              { description: { contains: query, mode: 'insensitive' } },
-              { category: { contains: query, mode: 'insensitive' } }
-            ]
-          },
-          take: 10
-        })
+        const { RetrievalService } = await import('./services/retrieval-service')
+        const { RankingService } = await import('./services/ranking-service')
+        
+        const candidates = await RetrievalService.retrieve(
+          query,
+          'PRODUCT',
+          { storeId }
+        )
+        const ranked = RankingService.rank(candidates, {}, 10)
+        const products = ranked.map(item => item.details)
 
         if (products.length === 0) {
           return { message: `No se encontraron productos que coincidan con "${query}".` }

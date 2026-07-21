@@ -267,6 +267,41 @@ const BENEFITS_DATA = [
   }
 ]
 
+const heroItemVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 90,
+      damping: 14
+    }
+  }
+}
+
+const bentoContainerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12
+    }
+  }
+}
+
+const bentoCardVariants = {
+  hidden: { opacity: 0, y: 35 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 70,
+      damping: 15
+    }
+  }
+}
+
 export default function LandingContent({ userId, stores }: { userId?: string, stores?: any[] }) {
   const [activeTab, setActiveTab] = useState(EXPLORE_TABS[0].id)
   const [activeMobileStep, setActiveMobileStep] = useState(0)
@@ -312,30 +347,34 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
           <div className="relative flex w-full flex-col gap-12 overflow-hidden">
             <div className="container relative mx-auto grid items-center gap-12 lg:grid-cols-2">
               {/* Left Column: Heading & CTA */}
-              <div className="flex flex-col gap-8">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{
+                  hidden: {},
+                  visible: {
+                    transition: {
+                      staggerChildren: 0.12
+                    }
+                  }
+                }}
+                className="flex flex-col gap-8"
+              >
                 <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
+                  variants={heroItemVariants}
                   className="font-medium text-[42px] text-zinc-950 leading-[2.9rem] tracking-tight lg:text-[4.4rem] lg:leading-[5rem]"
                 >
                   Convierte chats de WhatsApp en pedidos pagados
                 </motion.h1>
                 <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
+                  variants={heroItemVariants}
                   className="text-[18px] text-zinc-500 lg:w-[90%] font-normal leading-relaxed"
                 >
                   Flashcheckouts une agente IA, catalogo, checkout con QR Bre-B, pedidos, clientes y pagos para que tu tienda cierre ventas sin perseguir conversaciones.
                 </motion.p>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
+                  variants={heroItemVariants}
                   className="flex flex-col gap-6 sm:flex-row sm:items-center"
                 >
                   <Link href="/sign-up" className="contents">
@@ -351,7 +390,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                     Sin tarjeta de credito
                   </div>
                 </motion.div>
-              </div>
+              </motion.div>
 
               {/* Right Column: Hero Mockup */}
               <motion.div
@@ -359,20 +398,30 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="group relative aspect-[0.939] w-full overflow-hidden rounded-3xl border border-black/[0.03] shadow-2xl bg-zinc-50 flex items-center justify-center p-0"
+                className="w-full"
               >
-                <img
-                  src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_hero_ui_1775284071856.png"
-                  alt="Flashcheckouts Dashboard Mockup"
-                  className="w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
-                  loading="eager"
-                />
+                <motion.div
+                  animate={{ y: [0, -12, 0] }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="group relative aspect-[0.939] w-full overflow-hidden rounded-3xl border border-black/[0.03] shadow-2xl bg-zinc-50 flex items-center justify-center p-0"
+                >
+                  <img
+                    src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_hero_ui_1775284071856.png"
+                    alt="Flashcheckouts Dashboard Mockup"
+                    className="w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
+                    loading="eager"
+                  />
 
-                {/* Decorative Play Overlay (Optional, but kept for UI polish) */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
-                <div className="absolute bottom-6 left-6 rounded-full bg-black/40 backdrop-blur-md p-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                  <Play className="w-5 h-5 fill-white text-white relative ml-0.5" />
-                </div>
+                  {/* Decorative Play Overlay (Optional, but kept for UI polish) */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
+                  <div className="absolute bottom-6 left-6 rounded-full bg-black/40 backdrop-blur-md p-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <Play className="w-5 h-5 fill-white text-white relative ml-0.5" />
+                  </div>
+                </motion.div>
               </motion.div>
             </div>
 
@@ -497,10 +546,10 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeTab}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.05 }}
-                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -15, scale: 0.98 }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                       className="relative z-20 h-full w-full flex items-center justify-center"
                     >
                       <img
@@ -723,13 +772,20 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                     <button
                       key={benefit.id}
                       onClick={() => setActiveBenefitId(benefit.id)}
-                      className={`group w-full rounded-2xl p-6 text-left transition-all duration-500 border-2 ${isActive
-                        ? 'border-zinc-200 bg-background shadow-lg scale-[1.02] z-10'
-                        : 'border-transparent bg-transparent opacity-60 hover:opacity-80 hover:bg-zinc-50/50'
-                        }`}
+                      className={`group w-full rounded-2xl p-6 text-left transition-all duration-500 relative outline-none select-none border-2 border-transparent ${
+                        isActive ? 'scale-[1.02] z-10' : 'opacity-60 hover:opacity-85'
+                      }`}
                     >
-                      <div className="flex items-start gap-5">
-                        <div className={`p-2.5 rounded-xl transition-colors duration-300 ${isActive ? 'bg-pink-50 text-pink-500' : 'bg-zinc-100 text-zinc-400'}`}>
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeBenefitBg"
+                          className="absolute inset-0 bg-white border border-zinc-200 shadow-lg rounded-2xl z-0"
+                          transition={{ type: "spring", stiffness: 110, damping: 16 }}
+                        />
+                      )}
+                      
+                      <div className="flex items-start gap-5 relative z-10">
+                        <div className={`p-2.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-pink-50 text-pink-500 shadow-xs' : 'bg-zinc-100 text-zinc-400'}`}>
                           <benefit.icon className="h-6 w-6" />
                         </div>
                         <div className="flex-1 space-y-2">
@@ -806,11 +862,21 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
               </p>
             </div>
 
-            <div className="grid gap-8 pt-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={bentoContainerVariants}
+              className="grid gap-8 pt-8"
+            >
               {/* Grid 1: Large Cards */}
               <div className="grid gap-8 md:grid-cols-2">
                 {FEATURE_CARDS.filter(c => c.size === 'large').map((card, i) => (
-                  <div key={i} className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200 transition-all duration-300 bg-background hover:border-zinc-300 hover:shadow-xl">
+                  <motion.div
+                    key={i}
+                    variants={bentoCardVariants}
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200 transition-all duration-300 bg-background hover:border-zinc-300 hover:shadow-xl hover:-translate-y-1"
+                  >
                     <div className="w-full aspect-[1216/696] bg-zinc-50 overflow-hidden p-4">
                       <div className="w-full h-full rounded-2xl overflow-hidden border border-zinc-100 shadow-sm">
                         <img src={card.image} alt={card.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -820,14 +886,18 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                       <h3 className="font-medium text-xl text-zinc-950 tracking-tight">{card.title}</h3>
                       <p className="text-base text-zinc-500 leading-relaxed font-normal">{card.description}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {/* Grid 2: Small Cards */}
               <div className="grid gap-8 md:grid-cols-3">
                 {FEATURE_CARDS.filter(c => c.size === 'small').map((card, i) => (
-                  <div key={i} className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200 transition-all duration-300 bg-background hover:border-zinc-300 hover:shadow-lg">
+                  <motion.div
+                    key={i}
+                    variants={bentoCardVariants}
+                    className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200 transition-all duration-300 bg-background hover:border-zinc-300 hover:shadow-lg hover:-translate-y-1"
+                  >
                     <div className="w-full aspect-[794/696] bg-zinc-50 overflow-hidden p-4">
                       <div className="w-full h-full rounded-2xl overflow-hidden border border-zinc-100 shadow-sm">
                         <img src={card.image} alt={card.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -837,7 +907,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                       <h3 className="font-medium text-lg text-zinc-950 tracking-tight">{card.title}</h3>
                       <p className="text-sm text-zinc-500 leading-relaxed font-normal">{card.description}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -889,13 +959,19 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* CTA Section (Flashcheckouts Style) */}
-      <div className="w-full px-0 md:px-8 md:bg-[linear-gradient(to_bottom,transparent_60%,black_40%)] lg:bg-[linear-gradient(to_bottom,transparent_50%,black_50%)]">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, type: "spring", stiffness: 50 }}
+        className="w-full px-0 md:px-8 md:bg-[linear-gradient(to_bottom,transparent_60%,black_40%)] lg:bg-[linear-gradient(to_bottom,transparent_50%,black_50%)]"
+      >
         <div className="relative flex w-full flex-col items-center justify-center gap-6 overflow-hidden border-zinc-200 border-t bg-[length:100%_auto] bg-bottom bg-white bg-no-repeat px-6 py-12 pb-30 md:gap-8 md:rounded-3xl md:border md:p-15 lg:p-25">
           <div className="flex flex-col gap-4 md:max-w-[850px] md:gap-6 relative z-10">
             <h2 className="text-center font-medium text-4xl text-foreground leading-tight tracking-tighter md:text-balance md:text-5xl lg:text-[54px]">
@@ -907,12 +983,17 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
           </div>
 
           <div className="flex w-full flex-col items-center justify-center gap-6 md:gap-4 relative z-10">
-            <div className="relative z-0 h-14 w-full md:w-fit group">
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className="relative z-0 h-14 w-full md:w-fit group"
+            >
               <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 opacity-75 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200"></div>
               <Button asChild size="lg" className="relative h-full w-full bg-black text-white hover:bg-zinc-900 rounded-lg px-8">
                 <Link href="/sign-up">Crear mi tienda gratis</Link>
               </Button>
-            </div>
+            </motion.div>
 
             <div className="flex flex-row items-center gap-2 text-muted-foreground text-sm">
               <svg width="24" height="24" viewBox="0 0 16 17" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -923,7 +1004,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       <Footer />
       <LandingChatbot />
     </div>

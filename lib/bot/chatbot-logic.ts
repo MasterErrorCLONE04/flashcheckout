@@ -25,6 +25,7 @@ type BotClient = {
   sendDocument: (to: string, doc: string, fn: string) => Promise<unknown>;
   sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => Promise<unknown>;
   sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string) => Promise<unknown>;
+  sendLocationRequest?: (to: string, msg: string) => Promise<unknown>;
 };
 
 type ChatMessage = WhatsAppChatMessage
@@ -174,7 +175,8 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => evolutionClient.sendList(activeStore.whatsappInstanceName!, to, hdr, bdy, btnText, secs),
         sendImage: (to: string, img: string, cap: string) => evolutionClient.sendImage(activeStore.whatsappInstanceName!, to, img, cap),
         sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(activeStore.whatsappInstanceName!, to, doc, fn),
-        sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(activeStore.whatsappInstanceName!, to, bdy, btnText, url)
+        sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(activeStore.whatsappInstanceName!, to, bdy, btnText, url),
+        sendLocationRequest: (to: string, msg: string) => evolutionClient.sendLocationRequest(activeStore.whatsappInstanceName!, to, msg)
       };
     }
   }
@@ -187,6 +189,13 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       });
       if (!currentSession) return;
       const messages = toChatMessages(currentSession.messages);
+
+      // Prevent duplication of bot messages
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg && lastMsg.sender === 'bot' && lastMsg.text === text) {
+        return;
+      }
+
       const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
       messages.push({
@@ -244,6 +253,17 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         return res;
       }
       throw new Error('sendFlow is not supported on this client configuration.');
+    },
+    sendLocationRequest: async (to: string, msg: string) => {
+      if (typeof client.sendLocationRequest === 'function') {
+        const res = await client.sendLocationRequest(to, msg);
+        await logBotOutgoing(msg);
+        return res;
+      } else {
+        const res = await client.sendText(to, msg);
+        await logBotOutgoing(msg);
+        return res;
+      }
     }
   };
 
@@ -257,6 +277,8 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     text === 'view_stores' || 
     text === 'search_now' ||
     text === 'clear_cart' ||
+    text === 'view_cart_summary' ||
+    text === 'final_summary' ||
     text.startsWith('flow_response_') ||
     text.startsWith('accept_delivery_')
 
@@ -378,6 +400,8 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         step: 'START',
         storeId: exitStoreId,
         cart: emptyCartState(),
+        customerName: null,
+        address: null
       });
     return;
   }
@@ -407,7 +431,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' });
 
         // Trigger summary
-        await handleWhatsAppMessage(from, 'view_cart_summary');
+        await handleWhatsAppMessage(from, 'view_cart_summary', session);
       }
     } catch (e) {
       console.error('[Flow Response Error]', e);
@@ -686,7 +710,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' });
 
       // MODO JELOU: Trigger Summary centralizado
-      return await handleWhatsAppMessage(from, 'view_cart_summary');
+      return await handleWhatsAppMessage(from, 'view_cart_summary', session);
     }
     return;
   }
@@ -720,6 +744,13 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
 
   // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL ---
   if (text === 'confirm_checkout') {
+    const cartItems = await getCartItemsForSession(session);
+    if (cartItems.length === 0) {
+      await waClient.sendText(from, 'Tu carrito está vacío. 🛒 Agrega productos a tu carrito antes de solicitar el pago.');
+      await updateWhatsAppSession(session.id, { step: 'IDLE' });
+      return;
+    }
+
     if (!session.customerName) {
       await updateWhatsAppSession(session.id, { step: 'AWAITING_NAME' });
       await waClient.sendText(from, '¡Excelente elección! 🛍️\n\nPara agilizar tu despacho, ¿a nombre de quién anotamos el pedido? 👤');
@@ -728,14 +759,15 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     
     if (!session.address) {
       await updateWhatsAppSession(session.id, { step: 'AWAITING_ADDRESS' });
-      await waClient.sendText(from, `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? Puedes escribir tu dirección (Ej: Calle 10 #20-30, Bogotá) o compartir tu ubicación actual de WhatsApp directamente en este chat. 🗺️`);
+      const addressPrompt = `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? Puedes escribir tu dirección o compartir tu ubicación actual de WhatsApp en el botón de abajo:`;
+      await waClient.sendLocationRequest(from, addressPrompt);
       return;
     }
 
     // Si tiene todo, saltamos a la confirmación final
-    await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION' });
+    const updatedSession = await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION' });
     // Forzamos el disparo de la confirmación
-    await handleWhatsAppMessage(from, 'final_summary');
+    await handleWhatsAppMessage(from, 'final_summary', updatedSession);
     return;
   }
 
@@ -745,6 +777,52 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       return;
   }
   // ---------------------------------------------------------
+
+  const nativeCapturingStates = ['AWAITING_NAME', 'AWAITING_ADDRESS', 'AWAITING_CONFIRMATION', 'AWAITING_STORE_SELECTION'];
+  const isNativeState = nativeCapturingStates.includes(session.step || '');
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIX A: Interceptar intenciones de PAGO/CHECKOUT antes de cualquier llamada
+  // al LLM. El flujo nativo (confirm_checkout) genera el link real de pago.
+  // Sin este interceptor, el LLM inventa links falsos al no tener contexto.
+  // ─────────────────────────────────────────────────────────────────────────
+  if (!isSystemAction && !isNativeState) {
+    const checkoutTriggerPattern = /\b(pagar|quiero pagar|ir a pagar|finalizar|continuar.{0,15}pago|proceder|checkout|link de pago|enlace de pago|genera.{0,10}link|genera.{0,10}enlace|si.*pago|dale.*pago|procesa.{0,10}pedido|cobrar|cobrame|sigamos.*pedido|continuar.*pedido|confirmar.*pedido|procesar.*pedido|hacer.*pedido|ir.*pago)\b/i
+    if (checkoutTriggerPattern.test(text)) {
+      console.log(`[Bot] Checkout intent interceptado antes de LLM: "${text}" → dispatch confirm_checkout`)
+      await handleWhatsAppMessage(from, 'confirm_checkout', session)
+      return
+    }
+  }
+
+  const aiStates = ['SEARCHING', 'COMPARING', 'CHECKOUT', 'SUPPORT'];
+  if (!isSystemAction && !isNativeState && (aiStates.includes(session.step || '') || (session.storeId && session.storeId !== 'global' && store && store.aiActive))) {
+    try {
+      const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router')
+      const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', session.storeId || 'global')
+      
+      // Recargar la sesión después de que la IA procesó la solicitud (puede haber cambiado el step nativo)
+      session = await prisma.whatsAppSession.findUnique({ where: { id: session.id } }) || session;
+
+      // Si el AgentRouter señala que debe dispararse el checkout nativo, redirigir
+      if ((result as any).triggerNativeCheckout) {
+        await handleWhatsAppMessage(from, 'confirm_checkout', session)
+        return
+      }
+
+      // Solo enviar si hay una respuesta real; si el fallback retornó vacío, la IA no pudo responder
+      if (result.response && result.response.trim()) {
+        if (result.requiresLocationRequest) {
+          await waClient.sendLocationRequest(from, result.response)
+        } else {
+          await waClient.sendText(from, result.response)
+        }
+      }
+      return;
+    } catch (agentErr) {
+      console.error('Error in AgentRouter delegation:', agentErr)
+    }
+  }
 
   switch (session.step) {
     case 'START':
@@ -779,8 +857,15 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         const products = await searchGlobalProducts(intent.query, session.storeId);
 
         if (products.length === 0) {
-          const storeMsg = session.storeId ? ' en esta tienda' : '';
-          await waClient.sendText(from, `Lo siento, no encontré "${intent.query}"${storeMsg}. 😕 ¿Quieres intentar con otra cosa?`);
+          try {
+            const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router')
+            const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', session.storeId || 'global')
+            await waClient.sendText(from, result.response)
+          } catch (agentErr) {
+            console.error('Error in agent router fallback:', agentErr)
+            const storeMsg = session.storeId ? ' en esta tienda' : '';
+            await waClient.sendText(from, `Lo siento, no encontré "${intent.query}"${storeMsg}. 😕 ¿Quieres intentar con otra cosa?`);
+          }
         } else if (products.length === 1) {
           const p = products[0];
           await waClient.sendButtons(from, `¡Encontré esto! 🧐\n\n*${p.name}*\nTienda: ${p.storeName}\nPrecio: $${p.price.toLocaleString()}\n\n¿Deseas confirmar este pedido?`, [
@@ -823,7 +908,16 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       } else {
         // AI Chatbot fallback using DeepSeek
         let answeredByAI = false;
-        if (session.storeId && session.storeId !== 'global' && store && store.aiActive) {
+        if (session.storeId === 'global') {
+          try {
+            const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router');
+            const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', 'global');
+            await waClient.sendText(from, result.response);
+            answeredByAI = true;
+          } catch (agentErr) {
+            console.error('Error invoking global agent router:', agentErr);
+          }
+        } else if (session.storeId && session.storeId !== 'global' && store && store.aiActive) {
           try {
             // 1. Fetch store products
             const storeProducts = await prisma.product.findMany({
@@ -837,7 +931,14 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             const chatMessages = history.slice(-10).map(m => ({
               role: (m.sender === 'bot' ? 'assistant' : 'user') as 'system' | 'user' | 'assistant',
               content: m.text
-            }));
+            })).filter(m => {
+              if (!m.content || m.content.trim() === '') return false;
+              const trimmed = m.content.trim();
+              if (m.role === 'assistant' && trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                return false;
+              }
+              return true;
+            });
             
             // Append current message if not present
             if (chatMessages.length === 0 || chatMessages[chatMessages.length - 1].content !== text) {
@@ -853,11 +954,15 @@ ${productsListText}
 
 Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
 - Estás hablando DIRECTAMENTE con el cliente comprador. Sé servicial, educado y enfocado en ventas.
+- NUNCA inventes, sugieras o propongas descuentos, paquetes promocionales o precios diferentes al catálogo. Los precios son fijos.
+- ⚠️ PROHIBIDO ABSOLUTO: NUNCA inventes, construyas, simules ni menciones ningún enlace o URL de pago (ej: NO inventes pay.lcdavid.com, smartpay/12345, checkout/xxx, ni NINGÚN link). Si el cliente quiere pagar, dile ÚNICAMENTE que escriba "pagar" y el sistema le generará el link real automáticamente.
 - Si el cliente pregunta por productos o precios, usa el catálogo arriba mencionado.
-- Si el cliente desea comprar o ver el catálogo, indícales que presionen el botón de "📱 Abrir Catálogo Pro" o escriban "Ver catálogo" o "Inicio" para listar las tiendas.
-- Si el cliente quiere pagar o ver sus artículos seleccionados, indícales que escriban "Ver carrito" para ver su resumen y proceder al pago.
+- Si el cliente desea comprar o ver el catálogo, indícales que escriban "Ver catálogo" o "Inicio" para listar las tiendas.
+- Si el cliente quiere pagar o ver sus artículos seleccionados, dile solo: "Escribe *pagar* para generar tu link de pago real 🔗".
 - Mantén las respuestas amigables, cortas y concisas (máximo 2 a 3 oraciones), ideales para leer en pantallas móviles de WhatsApp.
+- NUNCA respondas con código JSON o formato estructurado de herramientas. Responde siempre en texto plano conversacional directo al usuario.
 - No uses Markdown complejo. Usa negrita de WhatsApp (*texto*) si es necesario.`;
+
 
             // 4. Call OpenRouter (Free Model with optional SalesBot model override)
             const { generateOpenRouterCompletion } = await import('@/lib/ai/openrouter');
@@ -950,7 +1055,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       } else {
         // Si el usuario escribe algo en lugar de seleccionar, volvemos a IDLE
         await updateWhatsAppSession(session.id, { step: 'IDLE' });
-        await handleWhatsAppMessage(from, text);
+        await handleWhatsAppMessage(from, text, session);
       }
       break;
 
@@ -958,17 +1063,19 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       // Ahora manejado globalmente
       break;
 
-    case 'AWAITING_NAME':
-      await updateWhatsAppSession(session.id, { customerName: text, step: 'IDLE' });
-      // Re-disparar el flujo de checkout
-      await handleWhatsAppMessage(from, 'confirm_checkout');
+    case 'AWAITING_NAME': {
+      const updatedSession = await updateWhatsAppSession(session.id, { customerName: text, step: 'IDLE' });
+      // Re-disparar el flujo de checkout con la sesión actualizada
+      await handleWhatsAppMessage(from, 'confirm_checkout', updatedSession);
       break;
+    }
 
-    case 'AWAITING_ADDRESS':
-      await updateWhatsAppSession(session.id, { address: text, step: 'IDLE' });
-      // Re-disparar el flujo de checkout
-      await handleWhatsAppMessage(from, 'confirm_checkout');
+    case 'AWAITING_ADDRESS': {
+      const updatedSession = await updateWhatsAppSession(session.id, { address: text, step: 'IDLE' });
+      // Re-disparar el flujo de checkout con la sesión actualizada
+      await handleWhatsAppMessage(from, 'confirm_checkout', updatedSession);
       break;
+    }
 
     case 'AWAITING_CONFIRMATION':
       if (text === 'final_summary' || text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
@@ -1113,15 +1220,31 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                 );
               }
 
-              await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION', cart: emptyCartState() });
+              await updateWhatsAppSession(session.id, {
+                step: 'AWAITING_CONFIRMATION',
+                cart: emptyCartState(),
+                customerName: null,
+                address: null
+              });
             } catch (err) {
                console.error('[Chatbot checkout finalize error]', err);
                await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
             }
+        } else {
+          await waClient.sendText(from, 'Tu carrito está vacío. 🛒 Agrega productos a tu carrito antes de solicitar el pago.');
+          await updateWhatsAppSession(session.id, {
+            step: 'IDLE',
+            customerName: null,
+            address: null
+          });
         }
       } else if (intent.intent === 'CANCEL' || text === 'cancel') {
         await waClient.sendText(from, 'Pedido cancelado. Carrito mantenido.');
-        await updateWhatsAppSession(session.id, { step: 'IDLE' });
+        await updateWhatsAppSession(session.id, {
+          step: 'IDLE',
+          customerName: null,
+          address: null
+        });
       }
       break;
   }

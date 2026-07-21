@@ -12,7 +12,10 @@ export default async function IntegracionesPage() {
 
   // 1. Obtener la tienda del usuario
   const store = await prisma.store.findFirst({
-    where: { userId }
+    where: { userId },
+    include: {
+      brebConfig: true
+    }
   })
 
   if (!store) return <StoreCreationWizard />
@@ -22,7 +25,9 @@ export default async function IntegracionesPage() {
     whatsappConnected: store.whatsappConnected,
     whatsapp: store.whatsapp,
     mpConnected: store.mpConnected,
-    mpPublicKey: store.mpPublicKey
+    mpPublicKey: store.mpPublicKey,
+    brebConnected: store.brebConfig ? store.brebConfig.enabled : false,
+    brebKeyValue: store.brebConfig ? store.brebConfig.keyValue : null
   }
 
   return (

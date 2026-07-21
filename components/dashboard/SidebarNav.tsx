@@ -87,16 +87,15 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
           )
         })}
       </nav>
-
-      {/* Nova Card: Collapsible */}
+      {/* Nova Card: Collapsible */}
       <div className="mx-2 p-1.5 group-hover:p-3.5 bg-transparent group-hover:bg-zinc-50 border border-transparent group-hover:border-zinc-200/60 rounded-xl transition-all duration-300">
         {/* Collapsed state: just circular robot avatar with pulsing dot */}
         <div className="flex justify-center group-hover:hidden">
           <Link href="/hablar-con-nova" className="relative block shrink-0">
-            <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650">
+            <div className="w-9 h-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500">
               <Bot className="w-5 h-5" />
             </div>
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-zinc-50 animate-pulse" />
+            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-zinc-400 rounded-full border-2 border-zinc-50 animate-pulse" />
           </Link>
         </div>
 
@@ -104,10 +103,10 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
         <div className="hidden group-hover:block space-y-3.5 animate-in fade-in duration-300">
           <div className="flex items-center gap-2.5">
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-650">
+              <div className="w-9 h-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500">
                 <Bot className="w-5 h-5" />
               </div>
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-zinc-50 animate-pulse" />
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-zinc-400 rounded-full border-2 border-zinc-50 animate-pulse" />
             </div>
             <div className="min-w-0 text-left">
               <div className="flex items-center gap-1.5">
@@ -119,7 +118,7 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
 
           <Link
             href="/hablar-con-nova"
-            className="w-full bg-[#10B981] hover:bg-emerald-650 text-white font-extrabold text-xs rounded-lg py-2.5 flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-100 hover:shadow-md hover:shadow-emerald-200/50 active:scale-[0.98] transition-all text-center select-none cursor-pointer"
+            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-extrabold text-xs rounded-lg py-2.5 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all text-center select-none cursor-pointer"
           >
             Hablar con Nova
           </Link>
@@ -134,7 +133,7 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
               ].map((act, i) => (
                 <div key={i} className="flex items-center justify-between text-[10px] xl:text-xs text-zinc-655 font-semibold">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0" />
+                    <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full shrink-0" />
                     <span className="truncate">{act.text}</span>
                   </div>
                   <span className="text-[9px] text-zinc-400 shrink-0 select-none ml-2">{act.time}</span>

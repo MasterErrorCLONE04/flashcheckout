@@ -9,7 +9,8 @@ import {
   MessageCircle,
   ChevronRight,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  QrCode
 } from 'lucide-react'
 import { 
   SiWhatsapp, 
@@ -34,6 +35,8 @@ interface IntegrationsClientProps {
     whatsapp: string | null
     mpConnected: boolean
     mpPublicKey: string | null
+    brebConnected: boolean
+    brebKeyValue: string | null
   }
 }
 
@@ -64,6 +67,18 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       connected: store.mpConnected,
       detailKey: 'Clave Pública',
       detailVal: store.mpConnected ? (store.mpPublicKey ? `${store.mpPublicKey.slice(0, 15)}...` : 'Conectado') : 'Desconectado',
+      type: 'Pasarelas' as const
+    },
+    {
+      id: 'breb',
+      name: 'Bre-B (SPI ACH)',
+      icon: QrCode,
+      iconBg: store.brebConnected ? 'bg-zinc-100 border border-zinc-200' : 'bg-zinc-50 border-zinc-150',
+      iconColor: store.brebConnected ? 'text-zinc-800' : 'text-zinc-400',
+      desc: 'Recibe pagos inmediatos interbancarios en Colombia mediante códigos QR estándar Bre-B.',
+      connected: store.brebConnected,
+      detailKey: 'Llave Bre-B',
+      detailVal: store.brebConnected ? (store.brebKeyValue || 'Conectado') : 'Desconectado',
       type: 'Pasarelas' as const
     },
     {
@@ -116,7 +131,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Integraciones</h1>
           <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
             Conecta y gestiona las herramientas de tu negocio.
           </div>
         </div>
@@ -134,14 +149,14 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
             onClick={() => setActiveTab(tab.id as any)}
             className={`pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === tab.id 
-                ? 'border-emerald-500 text-emerald-800' 
+                ? 'border-zinc-900 text-zinc-900' 
                 : 'border-transparent text-zinc-500 hover:text-zinc-900'
             }`}
           >
             {tab.label}
             <span className={cn(
               "px-1.5 py-0.2 rounded text-[10px] font-extrabold",
-              activeTab === tab.id ? "bg-emerald-50 border border-emerald-100 text-emerald-855" : "bg-zinc-100 text-zinc-500"
+              activeTab === tab.id ? "bg-zinc-100 border border-zinc-250 text-zinc-800" : "bg-zinc-100 text-zinc-500"
             )}>
               {tab.count}
             </span>
@@ -167,7 +182,10 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
                     <div key={app.id} className="bg-white border border-zinc-200 rounded-lg p-5 hover:border-zinc-300 transition-all text-left flex flex-col justify-between min-h-[190px] relative">
                       
                       {app.connected && (
-                        <div className="absolute top-5 right-5 text-emerald-500">
+                        <div className={cn(
+                          "absolute top-5 right-5",
+                          app.id === 'whatsapp' ? "text-emerald-500" : "text-zinc-700"
+                        )}>
                           <CheckCircle2 className="w-4.5 h-4.5 fill-current text-white stroke-2" />
                         </div>
                       )}
@@ -182,7 +200,9 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
                             <span className={cn(
                               "inline-block px-1.5 py-0.2 text-[8.5px] font-black rounded-md mt-1 leading-none border",
                               app.connected 
-                                ? "bg-emerald-50 border-emerald-100 text-emerald-700" 
+                                ? (app.id === 'whatsapp' 
+                                    ? "bg-emerald-50 border-emerald-100 text-emerald-700" 
+                                    : "bg-zinc-100 border-zinc-200 text-zinc-800")
                                 : "bg-zinc-50 border-zinc-200 text-zinc-550"
                             )}>
                               {app.connected ? 'Conectado' : 'Desconectado'}
@@ -201,7 +221,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
                           <span className="font-extrabold text-zinc-900 mt-0.5 block truncate">{app.detailVal}</span>
                         </div>
 
-                        {(app.id === 'whatsapp' || app.id === 'mercadopago') && (
+                        {(app.id === 'whatsapp' || app.id === 'mercadopago' || app.id === 'breb') && (
                           <Link href="/configuracion" className="block w-full">
                             <button className="w-full py-1.5 bg-zinc-50 border border-zinc-200 hover:bg-zinc-100/50 hover:border-zinc-300 text-zinc-800 rounded-lg text-xs font-extrabold transition-all cursor-pointer">
                               Configurar en Ajustes
@@ -263,15 +283,15 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
             <div className="h-px w-full bg-zinc-100" />
             <div className="space-y-3">
               <div className="flex items-start gap-2.5 text-xs text-zinc-800 font-semibold">
-                <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold text-[10px]">1</div>
+                <div className="w-5 h-5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-700 flex items-center justify-center shrink-0 font-bold text-[10px]">1</div>
                 <p className="text-left leading-normal">Escanea tu QR de WhatsApp en la pestaña de Ajustes.</p>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-zinc-800 font-semibold">
-                <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold text-[10px]">2</div>
+                <div className="w-5 h-5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-700 flex items-center justify-center shrink-0 font-bold text-[10px]">2</div>
                 <p className="text-left leading-normal">Vincula tus credenciales de Mercado Pago para pagos seguros en Smart Pay.</p>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-zinc-800 font-semibold">
-                <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold text-[10px]">3</div>
+                <div className="w-5 h-5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-700 flex items-center justify-center shrink-0 font-bold text-[10px]">3</div>
                 <p className="text-left leading-normal">Nova y el Chatbot comenzarán a atender a tus clientes de manera autónoma.</p>
               </div>
             </div>

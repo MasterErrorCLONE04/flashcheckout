@@ -69,12 +69,7 @@ interface StoreSettingsData {
 
 const TABS = [
   { id: 'general', label: 'General' },
-  { id: 'perfil', label: 'Perfil del negocio' },
   { id: 'pagos', label: 'Pagos' },
-  { id: 'notificaciones', label: 'Notificaciones' },
-  { id: 'usuarios', label: 'Usuarios' },
-  { id: 'seguridad', label: 'Seguridad' },
-  { id: 'actividad', label: 'Registro de actividad' },
 ]
 
 const SCHEDULE_DAYS = [
@@ -94,7 +89,7 @@ export default function StoreSettingsManager({
   initialStore: StoreSettingsData
   isPro: boolean
 }) {
-  const [activeTab, setActiveTab] = useState<'general' | 'perfil' | 'pagos' | 'notificaciones' | 'usuarios' | 'seguridad' | 'actividad'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'pagos'>('general')
   
   const storeSettings = typeof initialStore.settings === 'object' && initialStore.settings !== null
     ? (initialStore.settings as any)
@@ -573,7 +568,7 @@ export default function StoreSettingsManager({
         onClick={() => onChange(!checked)}
         className={cn(
           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-          checked ? "bg-emerald-500" : "bg-zinc-200"
+          checked ? "bg-zinc-900" : "bg-zinc-200"
         )}
       >
         <span
@@ -597,7 +592,7 @@ export default function StoreSettingsManager({
         <button
           onClick={() => handleSubmit()}
           disabled={loading}
-          className="flex items-center gap-2 h-9 px-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-none border border-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer select-none"
+          className="flex items-center gap-2 h-9 px-5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold shadow-none border border-zinc-950 transition-all active:scale-95 disabled:opacity-50 cursor-pointer select-none"
         >
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           <span>Guardar cambios</span>
@@ -613,7 +608,7 @@ export default function StoreSettingsManager({
             className={cn(
               "pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0",
               activeTab === tab.id
-                ? 'border-emerald-500 text-emerald-700'
+                ? 'border-zinc-900 text-zinc-900'
                 : 'border-transparent text-zinc-400 hover:text-zinc-700'
             )}
           >
@@ -641,7 +636,7 @@ export default function StoreSettingsManager({
                   <button
                     type="button"
                     onClick={() => setEditingProfile(!editingProfile)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
+                    className="flex items-center gap-1.5 text-xs font-bold text-zinc-650 hover:text-zinc-900 cursor-pointer select-none"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Editar información
@@ -675,7 +670,7 @@ export default function StoreSettingsManager({
                             type="text"
                             value={form.name}
                             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-500 transition-all"
                           />
                         ) : (
                           <p className="text-sm font-semibold text-zinc-800">{form.name}</p>
@@ -689,7 +684,7 @@ export default function StoreSettingsManager({
                             type="email"
                             value={form.contactEmail}
                             onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))}
-                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-500 transition-all"
                           />
                         ) : (
                           <p className="text-sm font-semibold text-zinc-800">{form.contactEmail}</p>
@@ -703,7 +698,7 @@ export default function StoreSettingsManager({
                             type="text"
                             value={form.whatsapp}
                             onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
-                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-500 transition-all"
                           />
                         ) : (
                           <p className="text-sm font-semibold text-zinc-800">{form.whatsapp}</p>
@@ -718,7 +713,7 @@ export default function StoreSettingsManager({
                               rows={2}
                               value={form.bio}
                               onChange={e => setForm(f => ({ ...f, bio: e.target.value.slice(0, 160) }))}
-                              className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all resize-none"
+                              className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-500 transition-all resize-none"
                             />
                             <div className="absolute bottom-2 right-3 text-[9px] font-bold text-zinc-400">{form.bio.length}/160</div>
                           </div>
@@ -741,7 +736,7 @@ export default function StoreSettingsManager({
                   <button
                     type="button"
                     onClick={() => setEditingAddress(!editingAddress)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
+                    className="flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-zinc-900 cursor-pointer select-none"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Editar
@@ -763,7 +758,7 @@ export default function StoreSettingsManager({
                             type="text"
                             value={(form as any)[f.key]}
                             onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all"
+                            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-500 transition-all"
                           />
                         </div>
                       ))}
@@ -786,38 +781,6 @@ export default function StoreSettingsManager({
                   )}
                 </div>
               </div>
-
-              {/* Horario de atención */}
-              <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
-                  <div>
-                    <h3 className="text-sm font-bold text-zinc-900">Horario de atención</h3>
-                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">Configura los horarios en los que tu negocio está disponible.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditingSchedule(!editingSchedule)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer select-none"
-                  >
-                    <Clock className="w-3.5 h-3.5" />
-                    {editingSchedule ? 'Listo' : 'Editar horario'}
-                  </button>
-                </div>
-                <div className="divide-y divide-zinc-100">
-                  {schedule.map((day: any, idx: number) => (
-                    <div key={day.key} className="flex items-center justify-between px-6 py-3">
-                       <span className="text-xs font-semibold text-zinc-700 w-24 shrink-0">{day.label}</span>
-                       <span className="text-xs font-semibold text-zinc-500 flex-1">
-                         {day.enabled ? `${day.from} - ${day.to}` : <span className="text-zinc-300">Cerrado</span>}
-                       </span>
-                       <Toggle
-                         checked={day.enabled}
-                         onChange={(v: boolean) => setSchedule((prev: any[]) => prev.map((d: any, i: number) => i === idx ? { ...d, enabled: v } : d))}
-                       />
-                    </div>
-                  ))}
-                </div>
-              </div>
             </>
           )}
 
@@ -829,27 +792,6 @@ export default function StoreSettingsManager({
                 <p className="text-xs text-zinc-500 mt-1">Conecta tus pasarelas para recaudar fondos directamente de las compras de tus clientes.</p>
               </div>
               <div className="p-6 space-y-4">
-                {/* Stripe */}
-                <div className="flex items-start justify-between p-4 bg-zinc-50 border border-zinc-200 rounded-lg gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#635BFF] text-white flex items-center justify-center shrink-0">
-                      <Zap className="w-5 h-5 fill-current" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-zinc-900">Stripe Connect</h4>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Pasarela Global · Tarjetas, Apple Pay, Google Pay</p>
-                    </div>
-                  </div>
-                  {initialStore.stripeConnectAccountId ? (
-                    <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 shrink-0">Conectado</span>
-                  ) : (
-                    <button className="flex items-center gap-1.5 h-8 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0">
-                      <span>Conectar</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-
                 {/* Mercado Pago */}
                 <div className="flex items-start justify-between p-4 bg-zinc-50 border border-zinc-200 rounded-lg gap-4">
                   <div className="flex items-center gap-3">
@@ -882,10 +824,10 @@ export default function StoreSettingsManager({
                 </div>
 
                 {/* Bre-B Direct */}
-                <div className="p-4 bg-emerald-50/40 border border-emerald-200/70 rounded-lg space-y-4">
+                <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-lg space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
                         <Key className="w-5 h-5" />
                       </div>
                       <div>
@@ -894,7 +836,7 @@ export default function StoreSettingsManager({
                           <span className={cn(
                             "text-[9px] font-bold px-2 py-0.5 rounded-full border",
                             brebConfig.enabled
-                              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                              ? "bg-zinc-100 text-zinc-700 border-zinc-200"
                               : "bg-white text-zinc-400 border-zinc-200"
                           )}>
                             {brebConfig.enabled ? 'Activo' : 'Inactivo'}
@@ -907,21 +849,21 @@ export default function StoreSettingsManager({
                           <button
                             type="button"
                             onClick={() => applyBrebPreset('NEQUI')}
-                            className="h-6 px-2.5 rounded-full bg-white border border-emerald-200 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"
+                            className="h-6 px-2.5 rounded-full bg-white border border-zinc-200 text-[9px] font-bold text-zinc-700 hover:bg-zinc-50"
                           >
                             Usar Nequi 1507
                           </button>
                           <button
                             type="button"
                             onClick={() => applyBrebPreset('NU')}
-                            className="h-6 px-2.5 rounded-full bg-white border border-emerald-200 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"
+                            className="h-6 px-2.5 rounded-full bg-white border border-zinc-200 text-[9px] font-bold text-zinc-700 hover:bg-zinc-50"
                           >
                             Usar Nu 3201
                           </button>
                           <button
                             type="button"
                             onClick={() => applyBrebPreset('DAVIVIENDA')}
-                            className="h-6 px-2.5 rounded-full bg-white border border-emerald-200 text-[9px] font-bold text-emerald-700 hover:bg-emerald-50"
+                            className="h-6 px-2.5 rounded-full bg-white border border-zinc-200 text-[9px] font-bold text-zinc-700 hover:bg-zinc-50"
                           >
                             Usar Davivienda 0051
                           </button>
@@ -940,7 +882,7 @@ export default function StoreSettingsManager({
                       <select
                         value={brebConfig.keyType}
                         onChange={e => setBrebConfig(prev => ({ ...prev, keyType: e.target.value }))}
-                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
                       >
                         <option value="PHONE">Celular</option>
                         <option value="EMAIL">Correo</option>
@@ -956,7 +898,7 @@ export default function StoreSettingsManager({
                         value={brebConfig.keyValue}
                         onChange={e => setBrebConfig(prev => ({ ...prev, keyValue: e.target.value }))}
                         placeholder="Ej. @3025382862 o @NYL279"
-                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
                       />
                     </div>
 
@@ -973,7 +915,7 @@ export default function StoreSettingsManager({
                             else if (value === 'Davivienda') applyBrebPreset('DAVIVIENDA')
                             else setBrebConfig(prev => ({ ...prev, bankProvider: value }))
                           }}
-                          className="w-full h-9 bg-white border border-zinc-200 rounded-lg pl-9 pr-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                          className="w-full h-9 bg-white border border-zinc-200 rounded-lg pl-9 pr-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
                         >
                           <option value="">Selecciona tu banco</option>
                           <option value="Nequi">Nequi - 1507</option>
@@ -990,7 +932,7 @@ export default function StoreSettingsManager({
                         value={brebConfig.merchantDisplayName}
                         onChange={e => setBrebConfig(prev => ({ ...prev, merchantDisplayName: e.target.value }))}
                         placeholder={initialStore.name}
-                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
                       />
                     </div>
 
@@ -1000,7 +942,7 @@ export default function StoreSettingsManager({
                         value={brebConfig.participantId}
                         onChange={e => setBrebConfig(prev => ({ ...prev, participantId: e.target.value.replace(/\D/g, '') }))}
                         placeholder="Ej. 3201"
-                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
                       />
                       <p className="text-[9px] font-semibold text-zinc-400">Se completa al elegir banco. Ej: Nequi 1507, Nu 3201, Davivienda 0051.</p>
                     </div>
@@ -1011,15 +953,15 @@ export default function StoreSettingsManager({
                         value={brebConfig.keyTypeCode}
                         onChange={e => setBrebConfig(prev => ({ ...prev, keyTypeCode: e.target.value.replace(/\D/g, '') }))}
                         placeholder="Opcional. Ej. 01 para alias"
-                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-300"
+                        className="w-full h-9 bg-white border border-zinc-200 rounded-lg px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
                       />
                       <p className="text-[9px] font-semibold text-zinc-400">Si esta vacio, usamos el mapeo observado para el tipo elegido.</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 rounded-lg bg-white/70 border border-emerald-100 p-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col gap-3 rounded-lg bg-white/70 border border-zinc-200 p-3 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-start gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                      <ShieldCheck className="w-4 h-4 text-zinc-900 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-[10px] font-bold text-zinc-700">Validacion automatica por comprobante</p>
                         <p className="text-[10px] font-semibold text-zinc-400 leading-relaxed">
@@ -1030,7 +972,7 @@ export default function StoreSettingsManager({
                     <button
                       onClick={handleSaveBrebConfig}
                       disabled={savingBreb || loadingBreb}
-                      className="flex items-center justify-center gap-1.5 h-8 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                      className="flex items-center justify-center gap-1.5 h-8 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-[11px] font-bold shadow-none transition-all cursor-pointer shrink-0 disabled:opacity-50"
                     >
                       {savingBreb || loadingBreb ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                       <span>{loadingBreb ? 'Cargando' : 'Guardar Bre-B'}</span>
@@ -1041,336 +983,7 @@ export default function StoreSettingsManager({
             </div>
           )}
 
-          {/* ════════ TAB: PERFIL ════════ */}
-          {activeTab === 'perfil' && (
-            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900">Perfil y Personalización</h3>
-                <p className="text-xs text-zinc-500 mt-1">Personaliza la apariencia visual de tu tienda y redes sociales.</p>
-              </div>
 
-              {/* Cover Banner Photo */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-zinc-500 block select-none">Imagen de Portada (Banner)</label>
-                <div 
-                  onClick={handleBannerUrlChange}
-                  className="relative w-full h-36 bg-zinc-50 border border-zinc-200 border-dashed rounded-xl overflow-hidden flex items-center justify-center group cursor-pointer"
-                >
-                  {bannerUrl ? (
-                    <img src={bannerUrl} alt="Banner de Portada" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all z-10">
-                        <span className="text-zinc-700 text-xs font-bold flex items-center gap-1"><ImagePlus className="w-4 h-4" /> Cambiar portada</span>
-                      </div>
-                      <span className="text-zinc-400 text-xs font-semibold select-none flex items-center gap-1.5"><ImagePlus className="w-5 h-5" /> Configurar URL de imagen de banner</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Brand Color selection */}
-              <div className="space-y-3">
-                <label className="text-[11px] font-bold text-zinc-500 block select-none">Color de Marca (Botones y destacados)</label>
-                <div className="flex items-center gap-3">
-                  {[
-                    { hex: '#10B981', name: 'Esmeralda' },
-                    { hex: '#635BFF', name: 'Índigo' },
-                    { hex: '#EF4444', name: 'Rojo' },
-                    { hex: '#3B82F6', name: 'Azul' },
-                    { hex: '#F59E0B', name: 'Ámbar' },
-                    { hex: '#18181B', name: 'Zinc' }
-                  ].map(color => (
-                    <button
-                      key={color.hex}
-                      type="button"
-                      onClick={() => {
-                        setBrandColor(color.hex)
-                        toast.success(`Color ${color.name} seleccionado`)
-                      }}
-                      className="w-8.5 h-8.5 rounded-full border border-zinc-250/50 flex items-center justify-center transition-all hover:scale-110 active:scale-90 cursor-pointer shadow-sm relative"
-                      style={{ backgroundColor: color.hex }}
-                    >
-                      {color.hex === brandColor && <Check className="w-3.5 h-3.5 text-white" />}
-                    </button>
-                  ))}
-                  <div className="flex items-center gap-2 ml-4">
-                    <input 
-                      type="color" 
-                      value={brandColor} 
-                      onChange={e => setBrandColor(e.target.value)}
-                      className="w-7 h-7 rounded-lg cursor-pointer border border-zinc-200" 
-                    />
-                    <span className="text-xs text-zinc-500 font-semibold select-none">Personalizado</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Social networks links */}
-              <div className="space-y-4 pt-2 border-t border-zinc-100">
-                <h4 className="text-xs font-bold text-zinc-800 select-none">Redes sociales del negocio</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500 block">Instagram</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="https://instagram.com/tu_tienda"
-                        value={instagramUrl}
-                        onChange={e => setInstagramUrl(e.target.value)}
-                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
-                      />
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500 block">Facebook</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="https://facebook.com/tu_tienda"
-                        value={facebookUrl}
-                        onChange={e => setFacebookUrl(e.target.value)}
-                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
-                      />
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500 block">TikTok</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="https://tiktok.com/@tu_tienda"
-                        value={tiktokUrl}
-                        onChange={e => setTiktokUrl(e.target.value)}
-                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
-                      />
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500 block">Sitio Web Externo</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="https://tudominio.com"
-                        value={websiteUrl}
-                        onChange={e => setWebsiteUrl(e.target.value)}
-                        className="w-full bg-zinc-50/50 border border-zinc-200 focus:border-zinc-300 focus:bg-white rounded-lg pl-9 pr-3 py-2.5 text-xs font-semibold outline-none transition-all"
-                      />
-                      <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ════════ TAB: NOTIFICACIONES ════════ */}
-          {activeTab === 'notificaciones' && (
-            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900">Ajustes de Notificaciones</h3>
-                <p className="text-xs text-zinc-500 mt-1">Configura qué eventos y canales te alertarán sobre la actividad de tu negocio.</p>
-              </div>
-
-              <div className="space-y-4 divide-y divide-zinc-100">
-                {[
-                  {
-                    title: 'Nuevos Pedidos por WhatsApp',
-                    desc: 'Enviar una alerta instantánea a tu WhatsApp de administrador cuando un cliente realice un pedido.',
-                    whatsappKey: 'orderWhatsapp',
-                    emailKey: 'orderEmail'
-                  },
-                  {
-                    title: 'Resumen de Ventas Diario',
-                    desc: 'Recibir un correo electrónico todas las noches con el balance de ventas de tu tienda.',
-                    whatsappKey: 'resumenWhatsapp',
-                    emailKey: 'resumenEmail'
-                  },
-                  {
-                    title: 'Alertas de Stock Bajo',
-                    desc: 'Notificar cuando un producto tenga menos de 5 unidades disponibles en el inventario.',
-                    whatsappKey: 'stockWhatsapp',
-                    emailKey: 'stockEmail'
-                  },
-                  {
-                    title: 'Mensajes de Clientes en Espera',
-                    desc: 'Notificar por WhatsApp cuando un cliente solicite atención humana o pase más de 10 minutos sin responder.',
-                    whatsappKey: 'esperaWhatsapp',
-                    emailKey: 'esperaEmail'
-                  }
-                ].map((notif, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 py-4 first:pt-0 last:pb-0">
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-zinc-900">{notif.title}</p>
-                      <p className="text-[10px] text-zinc-400 font-semibold leading-relaxed max-w-md">{notif.desc}</p>
-                    </div>
-                    <div className="flex items-center gap-6 shrink-0 pt-1 select-none">
-                      <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-700 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={!!(notifications as any)[notif.whatsappKey]} 
-                          onChange={e => setNotifications(prev => ({ ...prev, [notif.whatsappKey]: e.target.checked }))} 
-                          className="rounded border-zinc-350 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
-                        />
-                        <span>WhatsApp</span>
-                      </label>
-                      <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-700 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={!!(notifications as any)[notif.emailKey]} 
-                          onChange={e => setNotifications(prev => ({ ...prev, [notif.emailKey]: e.target.checked }))} 
-                          className="rounded border-zinc-350 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
-                        />
-                        <span>Email</span>
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ════════ TAB: USUARIOS ════════ */}
-          {activeTab === 'usuarios' && (
-            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900">Usuarios y Equipo</h3>
-                  <p className="text-xs text-zinc-500 mt-1">Invita y gestiona a los miembros de tu equipo con acceso al panel.</p>
-                </div>
-                <button 
-                  onClick={handleInviteUser}
-                  className="h-8.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer"
-                >
-                  Invitar usuario
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {team.map((user, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3.5 bg-zinc-50/50 border border-zinc-200 rounded-xl gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-zinc-200 border border-zinc-250/50 flex items-center justify-center font-bold text-xs text-zinc-650 shrink-0 select-none">
-                        {user.name.split(' ').map((n: string) => n[0]).join('').slice(0,2).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-bold text-zinc-900 leading-tight truncate">{user.name}</h4>
-                        <span className="text-[10px] text-zinc-400 font-semibold block leading-tight truncate mt-0.5">{user.email}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="px-2 py-0.5 rounded bg-zinc-150 border border-zinc-200 text-zinc-650 text-[9px] font-black tracking-wide uppercase select-none">
-                        {user.role}
-                      </span>
-                      <Toggle checked={user.active} onChange={() => handleToggleUser(idx)} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ════════ TAB: SEGURIDAD ════════ */}
-          {activeTab === 'seguridad' && (
-            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900">Ajustes de Seguridad</h3>
-                <p className="text-xs text-zinc-500 mt-1">Administra tus llaves de API, credenciales de accesibilidad y opciones de seguridad.</p>
-              </div>
-
-              <div className="space-y-4">
-                {/* API Webhooks Key */}
-                <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl space-y-3">
-                  <div className="flex justify-between items-center select-none">
-                    <div className="flex items-center gap-2">
-                      <Key className="w-4 h-4 text-zinc-500" />
-                      <h4 className="text-xs font-bold text-zinc-850">Token de API del Comercio</h4>
-                    </div>
-                    <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-600 uppercase">Privado</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <input 
-                      type="password" 
-                      value={apiToken} 
-                      readOnly 
-                      className="flex-1 bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs font-mono text-zinc-800 outline-none select-all" 
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(apiToken)
-                        toast.success('Token copiado')
-                      }} 
-                      className="px-3 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-750 cursor-pointer flex items-center justify-center gap-1.5 transition-all select-none active:scale-95"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copiar</span>
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={handleRegenerateToken} 
-                      className="px-3 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-750 cursor-pointer transition-all select-none active:scale-95"
-                    >
-                      Regenerar
-                    </button>
-                  </div>
-                </div>
-
-                {/* Toggles */}
-                <div className="divide-y divide-zinc-100">
-                  <div className="flex items-center justify-between py-3">
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-zinc-850">Doble Factor de Autenticación (2FA)</p>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Requiere un código temporal para iniciar sesión en el panel.</p>
-                    </div>
-                    <Toggle checked={doubleFactor} onChange={setDoubleFactor} />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-3">
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-zinc-850">Cerrar Sesión por Inactividad</p>
-                      <p className="text-[10px] text-zinc-400 font-semibold">Desconectar automáticamente del panel tras 30 minutos sin actividad.</p>
-                    </div>
-                    <Toggle checked={autologout} onChange={setAutologout} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ════════ TAB: ACTIVIDAD ════════ */}
-          {activeTab === 'actividad' && (
-            <div className="bg-white border border-zinc-200 rounded-lg shadow-none overflow-hidden p-6 space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900">Registro de Actividad</h3>
-                <p className="text-xs text-zinc-500 mt-1">Historial detallado de las operaciones de administración de tu tienda.</p>
-              </div>
-
-              <div className="relative pl-6 border-l border-zinc-150 space-y-6">
-                {activityLog.map((act, idx) => (
-                  <div key={idx} className="relative space-y-1">
-                    {/* Circle bullet indicator */}
-                    <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white ring-2 ring-emerald-100" />
-                    
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 select-none">
-                      <h4 className="text-xs font-bold text-zinc-900 leading-none">{act.event}</h4>
-                      <span className="text-[9.5px] font-semibold text-zinc-400 leading-none">{act.time}</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 font-semibold mt-0.5">{act.detail}</p>
-                    <div className="text-[9.5px] text-zinc-500 font-bold select-none pt-0.5">
-                      Por: <span className="text-zinc-650 font-black">{act.user}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ─── RIGHT SIDEBAR ─── */}
@@ -1428,7 +1041,7 @@ export default function StoreSettingsManager({
                     <select
                       value={(form as any)[field.key]}
                       onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
-                      className="w-full appearance-none bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2.5 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-500 transition-all cursor-pointer"
+                      className="w-full appearance-none bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2.5 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-500 transition-all cursor-pointer"
                     >
                       {field.options.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1442,7 +1055,7 @@ export default function StoreSettingsManager({
               <button
                 onClick={() => handleSubmit()}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-none transition-all active:scale-95 disabled:opacity-50 cursor-pointer mt-2"
+                className="w-full flex items-center justify-center gap-2 h-9 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold shadow-none transition-all active:scale-95 disabled:opacity-50 cursor-pointer mt-2"
               >
                 {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                 Guardar cambios
@@ -1461,7 +1074,7 @@ export default function StoreSettingsManager({
                 <span className="text-xs font-semibold text-zinc-600">Estado actual</span>
                 <span className={cn(
                   "text-[10px] font-bold px-2.5 py-0.5 rounded-full",
-                  form.botEnabled ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-zinc-100 text-zinc-400 border border-zinc-200"
+                  form.botEnabled ? "bg-zinc-50 text-zinc-700 border border-zinc-200" : "bg-zinc-100 text-zinc-400 border border-zinc-200"
                 )}>
                   {form.botEnabled ? 'Activo' : 'Inactivo'}
                 </span>
@@ -1503,7 +1116,7 @@ export default function StoreSettingsManager({
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold text-zinc-400">Plan actual</p>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Activo</span>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-zinc-50 text-zinc-700 border border-zinc-200">Activo</span>
               </div>
 
               <div className="flex items-center gap-2.5">

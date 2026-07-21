@@ -633,7 +633,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               Tienda
             </h1>
             <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
               Personaliza la apariencia de tu tienda online
             </div>
           </div>
@@ -650,7 +650,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
           <button
             onClick={handleSaveChanges}
             disabled={isSaving}
-            className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-350 text-white text-xs xl:text-sm font-bold rounded-lg transition-all shadow-none active:scale-[0.98] cursor-pointer select-none"
+            className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-zinc-900 hover:bg-zinc-800 disabled:bg-zinc-300 text-white text-xs xl:text-sm font-bold rounded-lg transition-all shadow-none active:scale-[0.98] cursor-pointer select-none"
           >
             {isSaving ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -678,7 +678,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={`pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === tab.id 
-                ? 'border-emerald-500 text-emerald-800' 
+                ? 'border-zinc-900 text-zinc-900' 
                 : 'border-transparent text-zinc-400 hover:text-zinc-700'
             }`}
           >
@@ -906,7 +906,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => setAnnouncement(prev => ({ ...prev, enabled: !prev.enabled }))}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      announcement.enabled ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      announcement.enabled ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1136,7 +1136,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('bentoHighlights')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.bentoHighlights ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.bentoHighlights ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1221,7 +1221,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('accordionSpecs')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.accordionSpecs ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.accordionSpecs ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1294,7 +1294,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('brandStory')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.brandStory ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.brandStory ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1602,7 +1602,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('visualCategories')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.visualCategories ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.visualCategories ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1659,7 +1659,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('processTimeline')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.processTimeline ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.processTimeline ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1743,7 +1743,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('lifestyleGallery')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.lifestyleGallery ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.lifestyleGallery ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1782,7 +1782,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('newsletterWidget')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.newsletterWidget ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.newsletterWidget ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -1934,7 +1934,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle('ingredientsSection')}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      sections.ingredientsSection ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections.ingredientsSection ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -2023,7 +2023,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => setFreeShipping(prev => ({ ...prev, enabled: !prev.enabled }))}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      freeShipping.enabled ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      freeShipping.enabled ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -2112,7 +2112,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                   onClick={() => setSchedule(prev => ({ ...prev, enabled: !prev.enabled }))}
                   className={cn(
                     "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                    schedule.enabled ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                    schedule.enabled ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                   )}
                 >
                   <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -2130,7 +2130,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                       onClick={() => setSchedule(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
                       className={cn(
                         "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                        schedule.alwaysOpen ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                        schedule.alwaysOpen ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                       )}
                     >
                       <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -2273,7 +2273,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => setSocialsShowInCatalog(!socialsShowInCatalog)}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0 shrink-0",
-                      socialsShowInCatalog ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      socialsShowInCatalog ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -2365,7 +2365,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                     onClick={() => handleSectionToggle(item.id as keyof typeof sections)}
                     className={cn(
                       "w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer flex items-center border-0",
-                      sections[item.id as keyof typeof sections] ? "bg-emerald-500 justify-end" : "bg-zinc-200 justify-start"
+                      sections[item.id as keyof typeof sections] ? "bg-zinc-900 justify-end" : "bg-zinc-200 justify-start"
                     )}
                   >
                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
@@ -2396,7 +2396,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               onClick={copyStoreUrl}
               className="self-start flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-lg transition-all shadow-none cursor-pointer select-none"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-zinc-900" /> : <Copy className="w-3.5 h-3.5" />}
               <span>Copiar enlace</span>
             </button>
           </div>
@@ -2407,7 +2407,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
               <h3 className="text-sm font-black text-zinc-900 leading-none">Estado de la tienda</h3>
               <span className={cn(
                 "px-3 py-1 rounded-full text-xs font-bold tracking-tight",
-                storeActive ? "bg-[#EEF2F0] text-emerald-700" : "bg-red-50 text-red-650"
+                storeActive ? "bg-zinc-100 text-zinc-800" : "bg-red-50 text-red-650"
               )}>
                 {storeActive ? 'Activa' : 'Inactiva'}
               </span>
@@ -2423,7 +2423,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 "self-start flex items-center gap-1.5 px-4 py-2 border text-xs font-bold rounded-lg transition-all cursor-pointer shadow-none",
                 storeActive 
                   ? "bg-red-50/50 border-red-200 hover:bg-red-50 text-red-600"
-                  : "bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50 text-emerald-600"
+                  : "bg-zinc-50 border-zinc-200 hover:bg-zinc-100 text-zinc-700"
               )}
             >
               <Power className="w-3.5 h-3.5" />

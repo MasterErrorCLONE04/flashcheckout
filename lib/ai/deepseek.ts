@@ -1,7 +1,20 @@
-export type ChatMessage = {
-  role: 'system' | 'user' | 'assistant'
-  content: string
-}
+/**
+ * PROVEEDOR ALTERNATIVO — DeepSeek Gateway (ACTUALMENTE INACTIVO)
+ *
+ * Este archivo implementa un gateway idéntico al de OpenRouter pero apuntando
+ * directamente a la API de DeepSeek (api.deepseek.com).
+ *
+ * ESTADO: No se importa en ningún lugar del proyecto. Todo el tráfico de
+ * producción va a través de `lib/ai/openrouter.ts` (OpenRouter como proveedor unificado).
+ *
+ * PARA ACTIVAR: Reemplazar el import de `generateOpenRouterCompletion` en
+ * `pipeline/agent-router.ts` por `generateDeepSeekCompletion` de este archivo,
+ * y configurar DEEPSEEK_API_KEY en .env.
+ *
+ * ADVERTENCIA: El simulador fallback de este archivo retorna JSON.stringify()
+ * para el panel admin, lo cual puede diferir del formato esperado por el caller.
+ */
+
 
 export interface AIGatewayConfig {
   maxHistoryMessages: number

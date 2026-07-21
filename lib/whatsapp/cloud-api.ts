@@ -12,7 +12,7 @@ export type InteractiveLink = {
 type ReplyButton = { type: 'reply'; reply: { id: string; title: string } }
 
 type InteractivePayload = {
-  type: 'button' | 'list' | 'cta_url' | 'flow'
+  type: 'button' | 'list' | 'cta_url' | 'flow' | 'location_request_message'
   body?: { text?: string }
   header?: { type?: string; text?: string; image?: { link?: string } }
   footer?: { text?: string }
@@ -165,24 +165,29 @@ export class WhatsAppCloudAPI {
   }
 
   async sendUrlButton(to: string, body: string, buttonText: string, url: string) {
-
-    return this.send({
-      messaging_product: 'whatsapp',
-      to,
-      type: 'interactive',
-      interactive: {
-        type: 'cta_url',
-        body: { text: body },
-        action: {
-          name: 'cta_url',
-          parameters: {
-            display_text: buttonText,
-            url: url
+    try {
+      return await this.send({
+        messaging_product: 'whatsapp',
+        to,
+        type: 'interactive',
+        interactive: {
+          type: 'cta_url',
+          body: { text: body },
+          action: {
+            name: 'cta_url',
+            parameters: {
+              display_text: buttonText,
+              url: url
+            }
           }
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.warn('[WhatsApp Cloud API] cta_url interactive message failed, falling back to text:', err);
+      return this.sendText(to, `${body}\n\n🔗 *${buttonText}:* ${url}`);
+    }
   }
+
 
   async sendFlow(to: string, flowId: string, flowCta: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string, footer?: string) {
     return this.send({
@@ -207,6 +212,22 @@ export class WhatsAppCloudAPI {
               data: data
             }
           }
+        }
+      }
+    });
+  }
+
+  async sendLocationRequest(to: string, bodyText: string) {
+    return this.send({
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'location_request_message',
+        body: { text: bodyText },
+        action: {
+          name: 'send_location'
         }
       }
     });
@@ -250,6 +271,8 @@ export class WhatsAppCloudAPI {
           text = `${text}\n[Enlace: ${param?.display_text || ''} - ${param?.url || ''}]`;
         } else if (interactive.type === 'flow') {
           text = `${text}\n[Formulario/Flow: ${interactive.action?.parameters?.flow_cta || ''}]`;
+        } else if (interactive.type === 'location_request_message') {
+          text = `${text}\n[Solicitud de Ubicación]`;
         }
       }
     } else if (type === 'image') {

@@ -51,6 +51,10 @@ export default async function SmartPayPage({
   // 3. Serialize items safely
   const items = Array.isArray(order.items) ? (order.items as any[]) : []
 
+  // 4. Calculate initialTimeLeft on the server to prevent client system clock offsets/skews
+  const elapsedSeconds = Math.floor((Date.now() - order.createdAt.getTime()) / 1000)
+  const initialTimeLeft = Math.max(0, 900 - elapsedSeconds)
+
   return (
     <SmartPayBrebClient
       order={{
@@ -69,6 +73,7 @@ export default async function SmartPayPage({
       items={items}
       paymentUrl={paymentUrl}
       brebConfig={getBrebConfig(order.store.brebConfig, order.store.settings)}
+      initialTimeLeft={initialTimeLeft}
     />
   )
 }

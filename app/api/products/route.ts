@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
 import { getActiveStore } from '@/lib/store-context'
+import { enqueueEmbeddingGeneration } from '@/lib/ai/services/embedding-service'
 import {
   badRequest,
   forbidden,
@@ -101,6 +102,10 @@ export async function POST(req: Request) {
       },
     })
 
+    // Enqueue embedding generation
+    const embeddingText = `Producto: ${product.name}. Categoría: ${product.category}. Descripción: ${product.description || ''}. Precio: ${product.price}. Stock: ${product.stock}.`
+    enqueueEmbeddingGeneration('PRODUCT', product.id, embeddingText, { storeId: product.storeId, name: product.name })
+
     return NextResponse.json({ product }, { status: 201 })
   } catch (error: unknown) {
     console.error('Error creating product:', error)
@@ -139,6 +144,10 @@ export async function PUT(req: Request) {
       },
     })
 
+    // Enqueue embedding generation for updated product
+    const embeddingText = `Producto: ${updated.name}. Categoría: ${updated.category}. Descripción: ${updated.description || ''}. Precio: ${updated.price}. Stock: ${updated.stock}.`
+    enqueueEmbeddingGeneration('PRODUCT', updated.id, embeddingText, { storeId: updated.storeId, name: updated.name })
+
     return NextResponse.json({ product: updated })
   } catch (error: unknown) {
     console.error('Error updating product:', error)
@@ -165,6 +174,14 @@ export async function DELETE(req: Request) {
     }
 
     await prisma.product.delete({ where: { id } })
+    
+    // Clean up embedding
+    try {
+      await prisma.$executeRawUnsafe(`DELETE FROM "Embedding" WHERE "entityType" = 'PRODUCT' AND "entityId" = $1`, id)
+    } catch (e) {
+      console.error('[Embedding Cleanup Error] Fallo al limpiar embedding del producto:', e)
+    }
+
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     console.error('Error deleting product:', error)

@@ -338,6 +338,34 @@ export class EvolutionClient {
     return this.sendText(instanceName, to, message);
   }
 
+  async sendLocationRequest(instanceName: string, to: string, text: string) {
+    try {
+      const url = `${this.apiUrl}/message/sendInteractive/${instanceName}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          number: this.cleanNumber(to),
+          interactive: {
+            type: 'location_request_message',
+            body: { text },
+            action: {
+              name: 'send_location'
+            }
+          }
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Evolution API location_request_message failed');
+      }
+      return response.json();
+    } catch (err) {
+      console.warn('[Evolution API] sendLocationRequest failed, falling back to text:', err);
+      const fallbackText = `${text}\n\n📍 _Por favor comparte tu ubicación actual usando el botón de adjuntar (clip 📎) en WhatsApp y selecciona "Ubicación"._`;
+      return this.sendText(instanceName, to, fallbackText);
+    }
+  }
+
   async fetchProfilePictureUrl(instanceName: string, phone: string): Promise<string | null> {
     try {
       const cleanPhone = this.cleanNumber(phone);

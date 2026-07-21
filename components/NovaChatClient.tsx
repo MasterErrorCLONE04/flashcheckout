@@ -215,9 +215,9 @@ const AGENTS = [
     name: 'Nova',
     role: 'Copiloto de la plataforma',
     description: 'Ayuda a gestionar productos, ver métricas, configurar integraciones y responder preguntas generales sobre tu negocio.',
-    colorClass: 'bg-emerald-50 border-emerald-100 text-emerald-650',
-    avatarBg: 'bg-emerald-500',
-    iconColor: 'text-[#10B981]'
+    colorClass: 'bg-zinc-100 border-zinc-200 text-zinc-700',
+    avatarBg: 'bg-zinc-800',
+    iconColor: 'text-zinc-500'
   },
   {
     id: 'stella',
@@ -559,7 +559,7 @@ export default function NovaChatClient({
                     className={cn(
                       "group w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-xs transition-all relative border cursor-pointer select-none",
                       isActive 
-                        ? "bg-[#EEFDF7] text-[#065F46] font-bold border-[#A7F3D0]" 
+                        ? "bg-zinc-100 text-zinc-900 font-bold border-zinc-250" 
                         : "border-transparent text-zinc-650 hover:bg-zinc-100/50 hover:text-zinc-900"
                     )}
                   >
@@ -567,7 +567,7 @@ export default function NovaChatClient({
                       <div className={cn(
                         "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors",
                         isActive 
-                          ? "bg-[#D1FAE5] border-[#A7F3D0] text-[#065F46]" 
+                          ? "bg-zinc-200 border-zinc-300 text-zinc-800" 
                           : "bg-white border-zinc-200 text-zinc-400 group-hover:border-zinc-300 group-hover:text-zinc-650"
                       )}>
                         <MessageSquare className="w-4 h-4 stroke-[2px]" />
@@ -575,7 +575,7 @@ export default function NovaChatClient({
                       <div className="min-w-0 flex-1 text-left">
                         <span className={cn(
                           "block truncate font-bold text-xs leading-none",
-                          isActive ? "text-[#065F46]" : "text-zinc-805"
+                          isActive ? "text-zinc-900" : "text-zinc-805"
                         )}>
                           {s.title}
                         </span>
@@ -655,8 +655,8 @@ export default function NovaChatClient({
               </div>
             )}
 
-            <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold text-[#10B981] select-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold text-zinc-500 select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
               <span>En línea · <span className="text-zinc-400 font-semibold">{selectedAgent.role}</span></span>
             </div>
           </div>
@@ -770,7 +770,7 @@ export default function NovaChatClient({
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2">
                                     <h5 className="font-bold text-zinc-955 text-sm">{m.productDetail.name}</h5>
-                                    <span className="px-2 py-0.5 bg-[#ECFDF5] text-[#10B981] border border-[#A7F3D0] rounded-full text-[9px] font-black uppercase tracking-wider">
+                                    <span className="px-2 py-0.5 bg-zinc-100 text-zinc-800 border border-zinc-200 rounded-full text-[9px] font-black uppercase tracking-wider">
                                       {m.productDetail.status}
                                     </span>
                                   </div>
@@ -780,7 +780,7 @@ export default function NovaChatClient({
                               </div>
                               <div className="flex flex-col items-end shrink-0 text-right">
                                 <span className="font-black text-zinc-955 text-sm xl:text-base">{m.productDetail.price}</span>
-                                <span className="text-[11px] font-semibold text-zinc-400 mt-1.5">{m.productDetail.stock}</span>
+                                <span className="text-[11px] font-semibold text-zinc-405 mt-1.5">{m.productDetail.stock}</span>
                               </div>
                             </div>
                           </div>
@@ -788,9 +788,9 @@ export default function NovaChatClient({
 
                         {isBot && m.type === 'discount_card' && m.coupon && (
                           <div className="mt-4 space-y-2">
-                            <div className="bg-emerald-50/30 border border-emerald-100/60 rounded-lg p-3 flex items-center justify-between gap-3 text-left">
+                            <div className="bg-zinc-50 border border-zinc-250 rounded-lg p-3 flex items-center justify-between gap-3 text-left">
                               <div className="flex items-center gap-3 min-w-0">
-                                <span className="px-2 py-1 bg-emerald-100 border border-emerald-250 rounded-lg text-emerald-800 font-black text-xs shrink-0">
+                                <span className="px-2 py-1 bg-zinc-100 border border-zinc-200 rounded-lg text-zinc-800 font-black text-xs shrink-0">
                                   {m.coupon.code}
                                 </span>
                                 <div className="min-w-0">
@@ -798,7 +798,7 @@ export default function NovaChatClient({
                                   <p className="text-[10px] font-semibold text-zinc-400 mt-0.5">{m.coupon.validity}</p>
                                 </div>
                               </div>
-                              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black shrink-0 tracking-wide">
+                              <span className="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 text-[9px] font-black shrink-0 tracking-wide">
                                 • Activo
                               </span>
                             </div>
@@ -821,7 +821,7 @@ export default function NovaChatClient({
                             <div className="mt-4 space-y-2">
                               <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                  <span className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse" />
                                   <h5 className="font-bold text-zinc-900 text-xs xl:text-sm">
                                     Producto Actualizado: {prod.name || ''}
                                   </h5>
@@ -835,7 +835,7 @@ export default function NovaChatClient({
                                         <>
                                           <span className="line-through text-zinc-400 font-semibold">${prod.oldPrice?.toLocaleString('es-CO') ?? '0'}</span>
                                           <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-                                          <span className="text-emerald-700 font-extrabold">${prod.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
+                                          <span className="text-zinc-800 font-extrabold">${prod.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
                                         </>
                                       ) : (
                                         <span>${prod.newPrice?.toLocaleString('es-CO') ?? '0'}</span>
@@ -862,20 +862,20 @@ export default function NovaChatClient({
                                   <span>Estado en la tienda:</span>
                                   <span className={cn(
                                     "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                                    prod.newActive ? "bg-emerald-50 text-emerald-700 border border-emerald-250" : "bg-zinc-100 text-zinc-500 border border-zinc-200"
+                                    prod.newActive ? "bg-zinc-100 text-zinc-800 border border-zinc-250" : "bg-zinc-100 text-zinc-500 border border-zinc-200"
                                   )}>
                                     {prod.newActive ? 'Activo' : 'Inactivo'}
                                   </span>
                                 </div>
+                              </div>
                               <Link href="/productos" className="block w-full">
                                 <button className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all shadow-none flex items-center justify-center gap-1.5 cursor-pointer select-none">
                                   <span>Gestionar en Catálogo</span>
                                 </button>
                               </Link>
                             </div>
-                          </div>
-                        )
-                      })()}
+                          )
+                        })()}
 
                         {isBot && m.type === 'order_status_updated' && m.action?.payload?.order && (
                           <div className="mt-4 space-y-2">
@@ -886,7 +886,7 @@ export default function NovaChatClient({
                                 </h5>
                                 <span className={cn(
                                   "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border",
-                                  m.action.payload.order.newStatus === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  m.action.payload.order.newStatus === 'delivered' ? 'bg-zinc-100 text-zinc-800 border-zinc-200' :
                                   m.action.payload.order.newStatus === 'ready' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                   m.action.payload.order.newStatus === 'preparing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                   m.action.payload.order.newStatus === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
@@ -933,7 +933,7 @@ export default function NovaChatClient({
                                     <span className="font-bold text-zinc-850 text-xs">${order.total.toLocaleString('es-CO')}</span>
                                     <span className={cn(
                                       "px-1.5 py-0.5 rounded text-[8px] font-black uppercase mt-1",
-                                      order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700' :
+                                      order.status === 'delivered' ? 'bg-zinc-100 text-zinc-800' :
                                       order.status === 'ready' ? 'bg-blue-50 text-blue-700' :
                                       order.status === 'preparing' ? 'bg-amber-50 text-amber-700' :
                                       order.status === 'cancelled' ? 'bg-red-50 text-red-700' :
@@ -957,14 +957,14 @@ export default function NovaChatClient({
                           <div className="mt-4 space-y-2">
                             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-4">
                               <div className="flex items-center gap-2">
-                                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                                <TrendingUp className="w-4 h-4 text-zinc-500" />
                                 <h5 className="font-bold text-zinc-900 text-xs xl:text-sm">Rendimiento Comercial</h5>
                               </div>
                               
                               <div className="grid grid-cols-3 gap-2">
                                 <div className="bg-white border border-zinc-150 p-2 rounded-lg flex flex-col text-center shadow-sm">
                                   <span className="text-[9px] text-zinc-400 font-bold uppercase leading-none">Ventas</span>
-                                  <span className="font-black text-emerald-700 text-[11px] xl:text-xs mt-1.5 leading-none">
+                                  <span className="font-black text-zinc-800 text-[11px] xl:text-xs mt-1.5 leading-none">
                                     ${m.action.payload.metrics.totalSales.toLocaleString('es-CO')}
                                   </span>
                                 </div>
@@ -1025,8 +1025,8 @@ export default function NovaChatClient({
                                       <div key={idx} className={cn(
                                         "p-2 rounded-lg max-w-[85%] text-left",
                                         isCustomer 
-                                          ? "bg-zinc-150 text-zinc-850 mr-auto" 
-                                          : "bg-[#EEFDF7] text-[#065F46] ml-auto border border-[#A7F3D0]"
+                                          ? "bg-zinc-150 text-zinc-855 mr-auto" 
+                                          : "bg-zinc-100 text-zinc-800 ml-auto border border-zinc-200"
                                       )}>
                                         <p className="font-black text-[8px] uppercase opacity-65 mb-0.5 leading-none select-none">
                                           {isCustomer ? 'Cliente' : 'Bot'}
@@ -1113,7 +1113,7 @@ export default function NovaChatClient({
                   }}
                   className="w-full px-4 py-2.5 hover:bg-zinc-50 flex items-center justify-between text-left text-xs font-bold text-zinc-700 hover:text-zinc-955 transition-colors cursor-pointer"
                 >
-                  <span className="font-extrabold text-[#065F46] bg-[#EEFDF7] px-1.5 py-0.5 rounded border border-[#A7F3D0]">{c.cmd}</span>
+                  <span className="font-extrabold text-zinc-800 bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200">{c.cmd}</span>
                   <span className="text-zinc-400 font-semibold">{c.desc}</span>
                 </button>
               ))}
@@ -1231,7 +1231,7 @@ export default function NovaChatClient({
                 <div className="bg-white border border-zinc-200 rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0" />
+                      <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full shrink-0" />
                       <span className="truncate text-zinc-800">{activeProductsCount} productos activos</span>
                     </div>
                     <span className="text-[10px] text-zinc-400 shrink-0 select-none">Inventario</span>

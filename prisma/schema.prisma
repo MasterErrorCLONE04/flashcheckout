@@ -1,9 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [vector]
 }
 
 model Store {
@@ -259,4 +261,57 @@ model NovaChatSession {
   updatedAt       DateTime @updatedAt
   storeId         String
   store           Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+enum EmbeddingEntityType {
+  PRODUCT
+  STORE
+  CATEGORY
+  PROMOTION
+  FAQ
+  ORDER
+  CUSTOMER
+  COUPON
+  BLOG
+  MENU
+  REVIEW
+  DOCUMENT
+
+  @@map("embedding_entity_type")
+}
+
+model Embedding {
+  id          String              @id
+  entityType  EmbeddingEntityType @map("entityType")
+  entityId    String              @map("entityId")
+  provider    String
+  model       String
+  embedding   Unsupported("vector(1536)")
+  contentHash String
+  version     Int                 @default(1)
+  metadata    Json?               @default("{}")
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@map("Embedding")
+}
+
+model AgentExecution {
+  id                 String   @id
+  traceId            String
+  providerRequestId  String?
+  agentName          String
+  selectedTool       String?
+  model              String
+  promptVersion      String   @default("v1")
+  vectorLatencyMs    Int?
+  llmLatencyMs       Int?
+  promptTokens       Int?
+  completionTokens   Int?
+  estimatedCost      Float?
+  status             String
+  errorMessage       String?
+  createdAt          DateTime @default(now())
+
+  @@map("AgentExecution")
 }
