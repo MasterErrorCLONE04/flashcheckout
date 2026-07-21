@@ -16,6 +16,8 @@
  */
 
 
+import type { ChatMessage } from './openrouter'
+
 export interface AIGatewayConfig {
   maxHistoryMessages: number
   temperature: number
@@ -105,7 +107,7 @@ function pruneConversationHistory(messages: ChatMessage[], maxLimit: number): Ch
 // ── GUARDRAILS: Seguridad y Filtro PII ───────────────────────
 function applySecurityGuardrails(messages: ChatMessage[]): ChatMessage[] {
   return messages.map(m => {
-    let cleanContent = m.content
+    let cleanContent = m.content || ''
 
     // 1. Sanitizar contra ataques comunes de Prompt Injection (ej. "olvida las instrucciones anteriores")
     const injectionPatterns = [

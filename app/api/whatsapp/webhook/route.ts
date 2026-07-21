@@ -44,6 +44,9 @@ type EvolutionWebhookBody = {
     key?: {
       fromMe?: boolean
       remoteJid?: string
+      remoteJidAlt?: string
+      participant?: string
+      participantAlt?: string
       id?: string
     }
     message?: PlainObject

@@ -1104,7 +1104,7 @@ export default function TheOfficeClient({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed deletion')
 
-      const updatedCustoms = (data.customAgents || []).map((a) => {
+      const updatedCustoms = (data.customAgents || []).map((a: any) => {
         let sittingDeskUrl = '/images/desk_l_vacant.png'
         let spriteUrl = '/images/sprite_sales.png'
         if (a.color === 'emerald') {

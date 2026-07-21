@@ -43,7 +43,7 @@ import {
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { SiVisa, SiMastercard } from 'react-icons/si'
-import type { PublicCheckoutStore } from '@/lib/checkout/types'
+import type { PublicCheckoutStore, PublicCheckoutProduct } from '@/lib/checkout/types'
 
 const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
@@ -56,16 +56,7 @@ type ProductOption = {
   values: string[]
 }
 
-type Product = {
-  id: string
-  name: string
-  price: number
-  stock: number
-  imageUrl: string | null
-  category?: string
-  description?: string
-  options?: unknown
-}
+type Product = PublicCheckoutProduct
 
 type CatalogSettings = {
   colors?: {

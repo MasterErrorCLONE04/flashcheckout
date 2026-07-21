@@ -26,6 +26,7 @@ export type ExploreStore = {
     price: number
     imageUrl: string | null
   }>
+  settings?: any
   _count: {
     products: number
   }

@@ -95,6 +95,7 @@ type TiendaSettings = {
     leadership?: Array<{ name: string; role: string; icon: string }>
     values?: Array<{ title: string; desc: string }>
   }
+  whatsappTemplate?: string
   bannerUrl?: string
   bannerTitle?: string
   bannerSubtitle?: string
@@ -139,6 +140,8 @@ type TiendaSettings = {
     twitter?: string
     web?: string
   }
+  typography?: string
+  [key: string]: any
 }
 
 interface TiendaClientProps {
@@ -150,7 +153,7 @@ interface TiendaClientProps {
     whatsapp: string
     bio: string | null
     logoUrl: string | null
-    aiSettings: Record<string, unknown>
+    aiSettings: any
     active: boolean
   }
   products: Product[]
@@ -338,7 +341,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   )
 
   // Hero Banner type and video URL (Chocodate Style)
-  const [heroType, setHeroType] = useState<'image' | 'video'>(parsedSettings.heroType || 'image')
+  const [heroType, setHeroType] = useState<'image' | 'video'>(parsedSettings.heroType === 'video' ? 'video' : 'image')
   const [heroVideoUrl, setHeroVideoUrl] = useState<string>(
     parsedSettings.heroVideoUrl || 'https://www.chocodate.com/assets/video/hero.mp4'
   )

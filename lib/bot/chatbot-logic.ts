@@ -210,7 +210,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
 
       await prisma.whatsAppSession.update({
         where: { id: currentSession.id },
-        data: { messages }
+        data: { messages: messages as any }
       });
     } catch (err) {
       console.error('[logBotOutgoing Error]', err);
@@ -249,7 +249,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       await logBotOutgoing(bdy);
       return res;
     },
-    sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: unknown, header?: string, body?: string) => {
+    sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string) => {
       if (typeof client.sendFlow === 'function') {
         const res = await client.sendFlow(to, flowId, buttonText, flowToken, screen, data, header, body);
         await logBotOutgoing(body || `[Flujo: ${buttonText}]`);
@@ -1194,11 +1194,11 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
 
               // Send the link / QR!
               if (shouldUseBreb) {
-                const keyType = (brebConfig?.keyType || 'PHONE') as BrebKeyType;
+                const keyType = ((brebConfig as any)?.keyType || 'PHONE') as BrebKeyType;
                 const reference = buildBrebPaymentReference(order.id);
                 const gui = process.env.BREB_EMVCO_GUI?.trim() || DEFAULT_BREB_EMVCO_GUI;
                 const emvPayload = buildBrebEmvcoPayload({
-                  merchantName: brebConfig?.merchantDisplayName || store?.name || 'Tienda',
+                  merchantName: (brebConfig as any)?.merchantDisplayName || store?.name || 'Tienda',
                   amount: total,
                   reference,
                   merchantAccount: {
@@ -1206,7 +1206,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                     participantId: brebConfig!.participantId!,
                     keyType,
                     keyValue: brebConfig!.keyValue!,
-                    keyTypeCode: brebConfig?.keyTypeCode || undefined,
+                    keyTypeCode: (brebConfig as any)?.keyTypeCode || undefined,
                   },
                 });
 

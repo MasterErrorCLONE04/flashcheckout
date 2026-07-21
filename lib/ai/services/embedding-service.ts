@@ -124,7 +124,7 @@ export async function getOrCreateEmbedding(
 
   if (existing) {
     // Retornamos el vector mapeando desde el tipo vector de PostgreSQL
-    return existing.embedding as number[]
+    return (existing as any).embedding as number[]
   }
 
   // 2. Si no existe, solicitar a la API

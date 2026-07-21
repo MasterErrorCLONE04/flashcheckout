@@ -162,7 +162,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No order reference' }, { status: 400 })
     }
 
-    const { paymentStatus: newStatus, legacyStatus } = resolvePaymentStatus(status)
+    const { paymentStatus: newStatus, legacyStatus } = resolvePaymentStatus(status || '')
 
     logWebhookEvent('mercadopago', 'processing', {
       requestId: xRequestId,
