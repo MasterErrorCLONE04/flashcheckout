@@ -96,7 +96,7 @@ export function StackedBarChart({ data }: { data: BarChartItem[] }) {
 
   return (
     <div className="w-full h-full relative">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
         <BarChart data={data} margin={{ top: 15, right: 5, left: -10, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" />
           <XAxis
@@ -172,7 +172,7 @@ export function SalesChannelDonut({ whatsappTotal, webTotal }: DonutProps) {
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
         <PieChart>
           <Pie
             data={data}
@@ -225,7 +225,7 @@ export function MiniSparkline({ data, strokeColor = '#71717A' }: { data: Sparkli
 
   return (
     <div className="w-full h-full opacity-85">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
         <AreaChart data={data} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -338,7 +338,7 @@ export function WeeklySalesAreaChart({ data }: { data: WeeklySalesItem[] }) {
 
   return (
     <div className="w-full h-full relative">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
         <AreaChart data={data} margin={{ top: 15, right: 5, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">

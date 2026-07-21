@@ -32,6 +32,11 @@ type Driver = {
   phoneNumber: string
   active: boolean
   available: boolean
+  currentLat?: number | null
+  currentLng?: number | null
+  vehicleType?: string | null
+  licensePlate?: string | null
+  lastLocationAt?: string | Date | null
   rating: number
   ordersDelivered: number
 }

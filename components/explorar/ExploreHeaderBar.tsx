@@ -157,9 +157,9 @@ export default function ExploreHeaderBar({
         {/* ROW 1: Logo (Left) | Delivery, Currency, Utility Icons (Right) */}
         <div className="flex items-center justify-between gap-4">
           {/* Logo Brand */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="size-9 rounded-full bg-[#111827] dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black shadow-sm">
-              <Zap className="size-5 fill-current text-white dark:text-zinc-950" />
+          <Link href="/" className="flex items-center gap-2.5 group transition-all hover:opacity-85">
+            <div className="size-9 rounded-lg bg-black dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black shadow-sm group-hover:scale-105 transition-transform">
+              <Zap className="size-5 fill-white stroke-white text-white dark:fill-zinc-950 dark:stroke-zinc-950 dark:text-zinc-950" />
             </div>
             <span className="text-xl font-bold tracking-tight text-[#111827] dark:text-white">
               Flashcheckouts.com

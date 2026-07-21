@@ -57,8 +57,8 @@ export default function SalesChart({ data }: { data: SalesData[] }) {
   }
 
   return (
-    <div className="w-full h-full relative z-10 transition-all duration-700">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full min-h-[220px] relative z-10 transition-all duration-700">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.02)" />
           <XAxis

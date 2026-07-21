@@ -349,36 +349,46 @@ const addToCartTool: MCPTool = {
     }
 
     if (!product && args.productName) {
-      try {
-        console.log(`[Tool: add_to_cart] Searching database semantically for product name: ${args.productName}`)
-        const candidates = await RetrievalService.retrieve(
-          args.productName,
-          'PRODUCT',
-          { storeId: context.storeId, minimumSimilarity: 0.60 },
-          3
-        )
-        
-        if (candidates.length > 0) {
-          product = await prisma.product.findUnique({
-            where: { id: candidates[0].id }
+      const cleanTerm = args.productName.toLowerCase().trim()
+      
+      // Ignorar términos genéricos de exploración que no sean nombres reales de producto
+      const isGenericExploreTerm = /^(ver|mostrar|catalogo|catálogo|menu|menú|productos|todos|que tengas|lista)$/i.test(cleanTerm)
+      if (!isGenericExploreTerm) {
+        try {
+          console.log(`[Tool: add_to_cart] Searching database semantically for product name: ${args.productName}`)
+          const candidates = await RetrievalService.retrieve(
+            args.productName,
+            'PRODUCT',
+            { storeId: context.storeId, minimumSimilarity: 0.65 },
+            3
+          )
+          
+          if (candidates.length > 0) {
+            product = await prisma.product.findUnique({
+              where: { id: candidates[0].id }
+            })
+          }
+        } catch (err) {
+          console.error('[Tool: add_to_cart] Semantic retrieval failed:', err)
+        }
+
+        if (!product) {
+          const allProducts = await prisma.product.findMany({
+            where: {
+              storeId: context.storeId,
+              active: true
+            }
+          })
+          
+          // Búsqueda estricta por palabra clave
+          product = allProducts.find(p => {
+            const name = p.name.toLowerCase().trim()
+            if (name === cleanTerm) return true
+            if (cleanTerm.length >= 3 && name.includes(cleanTerm)) return true
+            if (name.length >= 4 && cleanTerm.includes(name)) return true
+            return false
           })
         }
-      } catch (err) {
-        console.error('[Tool: add_to_cart] Semantic retrieval failed, using fallback keyword:', err)
-      }
-
-      if (!product) {
-        const allProducts = await prisma.product.findMany({
-          where: {
-            storeId: context.storeId,
-            active: true
-          }
-        })
-        const term = args.productName.toLowerCase().trim()
-        product = allProducts.find(p => {
-          const name = p.name.toLowerCase().trim()
-          return term.includes(name) || name.includes(term)
-        })
       }
     }
 

@@ -168,8 +168,8 @@ export class RetrievalService {
       })
 
       // Failsafe fallback: si no hay coincidencias de palabras clave,
-      // retornamos los productos principales de la tienda.
-      if (products.length === 0 && options.storeId) {
+      // solo retornamos productos generales si no se exigió una similitud mínima específica.
+      if (products.length === 0 && options.storeId && !options.minimumSimilarity) {
         console.log(`[Retrieval Fallback] No keyword matches for "${query}". Returning store products.`);
         products = await prisma.product.findMany({
           where: {

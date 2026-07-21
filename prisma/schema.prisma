@@ -108,7 +108,7 @@ model Order {
   city                    String
   items                   Json
   total                   Int
-  status                  String        @default("pending")
+  status                  String        @default("pending_payment")
   storeId                 String
   createdAt               DateTime      @default(now())
   stripeCheckoutSessionId String?
@@ -120,12 +120,17 @@ model Order {
   customerWhatsAppId      String?
   source                  String        @default("WEB")
   deliveryRequested       Boolean       @default(false)
+  deliveryPin             String?
+  deliveryType            String?
+  externalCarrier         String?
+  trackingNumber          String?
   escrowReleased          Boolean       @default(false)
   reported                Boolean       @default(false)
   store                   Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
   driverId                String?
   driver                  Driver?       @relation(fields: [driverId], references: [id])
   brebPaymentIntent       BrebPaymentIntent?
+  driverOffers            DriverOffer[]
 }
 
 model BrebPaymentConfig {
@@ -185,16 +190,42 @@ model BrebPaymentProof {
 }
 
 model Driver {
-  id              String   @id @default(cuid())
-  name            String
-  phoneNumber     String   @unique
-  active          Boolean  @default(true)
-  available       Boolean  @default(true)
-  rating          Float    @default(5.0)
-  ordersDelivered Int      @default(0)
-  orders          Order[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                      String        @id @default(cuid())
+  name                    String
+  phoneNumber             String        @unique
+  active                  Boolean       @default(true)
+  available               Boolean       @default(false)
+  currentLat              Float?
+  currentLng              Float?
+  vehicleType             String?       @default("MOTO")
+  licensePlate            String?
+  documentUrl             String?
+  lastLocationAt          DateTime?
+  lastOrderCompletedAt    DateTime?
+  consecutiveMissedOffers Int           @default(0)
+  rating                  Float         @default(5.0)
+  ordersDelivered         Int           @default(0)
+  orders                  Order[]
+  offers                  DriverOffer[]
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+}
+
+model DriverOffer {
+  id                     String   @id @default(cuid())
+  orderId                String
+  order                  Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverId               String
+  driver                 Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  status                 String   @default("OFFERED") // 'OFFERED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED'
+  score                  Float    @default(0)
+  offeredAt              DateTime @default(now())
+  expiresAt              DateTime
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([orderId, status])
+  @@index([driverId, status])
 }
 
 model WhatsAppSession {

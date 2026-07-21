@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown,
-  LucideIcon
+  LucideIcon,
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -106,21 +107,11 @@ const Footer = () => {
         {/* Brand & Socials Section */}
         <div className="flex flex-col items-center gap-8 md:items-start">
           <div className="flex flex-col items-center gap-4 md:items-start">
-            <Link href="/" className="pointer-events-auto inline-block">
-              <svg width="24" height="24" viewBox="0 0 650 109" fill="none" strokeWidth="1.3333333333333333" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" strokeDasharray="0" strokeDashoffset="0" strokeOpacity="1" className="h-7 w-40">
-                <title>Flashcheckouts</title>
-                <rect width="109" height="109" fill="white" rx="28" />
-                <path fill="#09090B" d="M84.5 46.5H66.9a12 12 0 0 0-1-4 9.1 9.1 0 0 0-5.5-5 13 13 0 0 0-4.5-.8c-3 0-5.4.7-7.4 2.1-2 1.4-3.6 3.5-4.6 6.1-1 2.7-1.5 5.9-1.5 9.6 0 4 .5 7.2 1.5 9.9 1.1 2.6 2.6 4.6 4.6 6 2 1.3 4.4 2 7.3 2 1.6 0 3-.3 4.3-.7 1.2-.4 2.3-1 3.3-1.8 1-.7 1.7-1.7 2.3-2.8.6-1 1-2.3 1.2-3.7l17.6.1a24 24 0 0 1-2.3 8.3 27 27 0 0 1-14.5 13.5 32.5 32.5 0 0 1-12.3 2.2c-5.9 0-11.2-1.3-15.8-3.8a27.5 27.5 0 0 1-11-11.2c-2.8-4.9-4.1-10.9-4.1-18 0-7.2 1.4-13.2 4.1-18 2.8-5 6.5-8.7 11.1-11.2a35.8 35.8 0 0 1 26.8-2.1c3.4 1 6.4 2.7 9 4.8a24 24 0 0 1 6.2 7.8c1.5 3.1 2.5 6.7 2.8 10.7Z" />
-                <g>
-                  <text x="130" y="80" fill="white" className="text-[72px] font-medium tracking-tighter">Flashcheckouts</text>
-                </g>
-                <mask id="flash-logo-mask" width="44" height="66" x="21" y="23" maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }}>
-                  <path fill="#A1A1AA" d="M41.5 23 51 37.5 62.5 71 65 87l-31.5 2L21 71l3.5-35 17-13Z" />
-                </mask>
-                <g mask="url(#flash-logo-mask)">
-                  <path fill="#B2AEB9" opacity="0.2" d="M84.5 46.5H66.9a12 12 0 0 0-1-4 9.1 9.1 0 0 0-5.5-5 13 13 0 0 0-4.5-.8c-3 0-5.4.7-7.4 2.1-2 1.4-3.6 3.5-4.6 6.1-1 2.7-1.5 5.9-1.5 9.6 0 4 .5 7.2 1.5 9.9 1.1 2.6 2.6 4.6 4.6 6 2 1.3 4.4 2 7.3 2 1.6 0 3-.3 4.3-.7 1.2-.4 2.3-1 3.3-1.8 1-.7 1.7-1.7 2.3-2.8.6-1 1-2.3 1.2-3.7l17.6.1a24 24 0 0 1-2.3 8.3 27 27 0 0 1-14.5 13.5 32.5 32.5 0 0 1-12.3 2.2c-5.9 0-11.2-1.3-15.8-3.8a27.5 27.5 0 0 1-11-11.2c-2.8-4.9-4.1-10.9-4.1-18 0-7.2 1.4-13.2 4.1-18 2.8-5 6.5-8.7 11.1-11.2a35.8 35.8 0 0 1 26.8-2.1c3.4 1 6.4 2.7 9 4.8a24 24 0 0 1 6.2 7.8c1.5 3.1 2.5 6.7 2.8 10.7Z" />
-                </g>
-              </svg>
+            <Link href="/" className="pointer-events-auto flex items-center gap-3 group hover:opacity-85 transition-all">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-zinc-950 shadow-sm group-hover:scale-105 transition-transform">
+                <Zap className="w-4.5 h-4.5 fill-zinc-950 stroke-zinc-950" />
+              </div>
+              <span className="text-[22px] font-bold tracking-tight text-white">Flashcheckouts</span>
             </Link>
             <p className="text-center font-medium text-zinc-400 leading-5">&copy; 2026 Flashcheckouts, Inc. </p>
           </div>

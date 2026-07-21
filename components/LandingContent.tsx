@@ -63,10 +63,10 @@ interface LandingContentProps {
 
 const FlashcheckoutsLogo = () => (
   <Link href="/" className="flex items-center gap-2.5 group transition-all hover:opacity-80">
-    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm group-hover:scale-105 transition-transform">
-      F
+    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+      <Zap className="w-4.5 h-4.5 fill-white stroke-white" />
     </div>
-    <span className="text-[20px] font-medium tracking-tight text-[#111827]">Flashcheckouts</span>
+    <span className="text-[20px] font-bold tracking-tight text-[#111827]">Flashcheckouts</span>
   </Link>
 )
 
@@ -129,31 +129,31 @@ const FEATURE_CARDS = [
   {
     title: 'Pedidos y clientes en tiempo real',
     description: 'Conecta conversaciones, ordenes, clientes, productos y pagos para que Nova responda con contexto real del negocio.',
-    image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_sync_data_1775309099872.png',
+    image: '/feature_sync_data.png',
     size: 'large'
   },
   {
     title: 'Automatiza acciones comerciales',
     description: 'Nova puede recomendar productos, crear pedidos, enviar checkout y derivar al vendedor cuando la conversacion lo necesita.',
-    image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_automate_actions_1775309117411.png',
+    image: '/feature_automate_actions.png',
     size: 'large'
   },
   {
     title: 'Agente IA para vender',
     description: 'Ajusta el comportamiento de Nova para responder como tu tienda, con foco en convertir preguntas en pedidos.',
-    image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_compare_models_1775309130449.png',
+    image: '/feature_ai_sales_agent.png',
     size: 'small'
   },
   {
     title: 'Desvio a humano',
     description: 'Permite que el cliente pida ayuda humana cuando hay dudas complejas, reclamos o negociaciones especiales.',
-    image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_smart_escalation_1775309143082.png',
+    image: '/feature_human_handoff.png',
     size: 'small'
   },
   {
     title: 'Reportes comerciales',
     description: 'Mide pedidos, ventas, clientes activos y resultados para saber que funciona y que debes mejorar.',
-    image: 'file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_feature_advanced_reporting_1775309157593.png',
+    image: '/feature_sales_reports.png',
     size: 'small'
   }
 ]
@@ -182,21 +182,21 @@ const EXPLORE_TABS = [
 const HIGHLIGHT_CARDS = [
   {
     alt: "Cobros con QR Bre-B y enlace seguro",
-    src: "file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_ai_conversion_1775284300959.png",
+    src: "/feature_breb_qr_pay.png",
     title: "Cobros con QR Bre-B y enlace seguro",
     desc: "Genera ordenes con valor exacto, referencia unica y una pantalla de pago lista para que el cliente pague sin errores.",
     delay: 0
   },
   {
     alt: "Catalogo y carrito desde la conversacion",
-    src: "file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_simplicity_ui_1775284311911.png",
+    src: "/feature_automate_actions.png",
     title: "Catalogo y carrito desde la conversacion",
     desc: "El cliente pregunta por un producto, Nova confirma datos, arma el pedido y envia el checkout sin friccion.",
     delay: 0.1
   },
   {
     alt: "Bank-Grade Infrastructure",
-    src: "file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_secure_infra_1775284323707.png",
+    src: "/feature_sync_data.png",
     title: "Pedidos, clientes y pagos trazables",
     desc: "Cada venta queda registrada con cliente, productos, estado, comprobante y contexto para gestionar entrega o seguimiento.",
     delay: 0.2
@@ -410,7 +410,7 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                   className="group relative aspect-[0.939] w-full overflow-hidden rounded-3xl border border-black/[0.03] shadow-2xl bg-zinc-50 flex items-center justify-center p-0"
                 >
                   <img
-                    src="file:///C:/Users/USUARIO/.gemini/antigravity/brain/b424facb-09d0-49f3-b798-fa736f712c4b/flashcheckout_hero_ui_1775284071856.png"
+                    src="/analytics_dashboard_card.png"
                     alt="Flashcheckouts Dashboard Mockup"
                     className="w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
                     loading="eager"
@@ -497,49 +497,30 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
 
               {/* Desktop Tabs */}
               <div className="my-12 hidden w-full md:block">
-                <div className="relative z-10 items-center justify-center group inline-flex space-x-1 rounded-full py-2 bg-transparent w-full overflow-x-auto overflow-y-hidden px-12 pb-0.5">
+                <div className="relative z-10 items-center justify-center inline-flex gap-2 rounded-full py-2 bg-zinc-950/80 border border-zinc-800/80 p-2 w-full">
                   {EXPLORE_TABS.map((tab) => {
                     const isActive = activeTab === tab.id
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`relative rounded-full px-3 py-1.5 font-medium text-sm transition-colors duration-300 flex-1 pt-0 ${isActive ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
+                        className={`relative rounded-full px-5 py-3 font-semibold text-sm transition-all duration-200 flex-1 flex items-center justify-center gap-2 cursor-pointer ${
+                          isActive
+                            ? 'bg-zinc-800 text-white font-bold border border-zinc-700 shadow-md'
+                            : 'text-zinc-400 hover:text-white hover:bg-zinc-900/60'
+                        }`}
                       >
-                        <span className="relative z-30">
-                          <span className="flex items-center justify-center gap-2 py-2">
-                            {tab.id === 'playground' && (
-                              <svg width="24" height="24" viewBox="0 0 16 17" fill="none" className="h-4 w-4">
-                                <path d="M5.71691 5.34506C6.02337 4.7497 6.1766 4.45202 6.38245 4.35556C6.56167 4.27159 6.76894 4.27159 6.94816 4.35556C7.15401 4.45202 7.30724 4.7497 7.6137 5.34506L8.40816 6.88845C8.46125 6.9916 8.4878 7.04317 8.52214 7.08872C8.55262 7.12915 8.58762 7.16597 8.62644 7.19848C8.67017 7.2351 8.72032 7.26424 8.82063 7.32253L10.4115 8.24701C10.9328 8.54992 11.1935 8.70138 11.2811 8.8988C11.3575 9.07101 11.3575 9.26753 11.2811 9.43974C11.1935 9.63716 10.9328 9.78862 10.4115 10.0915L8.82063 11.016C8.72032 11.0743 8.67017 11.1034 8.62644 11.1401C8.58762 11.1726 8.55262 11.2094 8.52214 11.2498C8.4878 11.2954 8.46125 11.3469 8.40816 11.4501L7.6137 12.9935C7.30724 13.5888 7.15401 13.8865 6.94816 13.983C6.76894 14.067 6.56167 14.067 6.38245 13.983C6.1766 13.8865 6.02337 13.5888 5.71691 12.9935L4.92245 11.4501C4.86935 11.3469 4.84281 11.2954 4.80847 11.2498C4.77798 11.2094 4.74299 11.1726 4.70417 11.1401C4.66044 11.1034 4.61028 11.0743 4.50998 11.016L2.91906 10.0915C2.39779 9.78862 2.13715 9.63716 2.04952 9.43974C1.97308 9.26753 1.97308 9.07101 2.04952 8.8988C2.13715 8.70138 2.39779 8.54992 2.91906 8.24701L4.50998 7.32253C4.61028 7.26424 4.66044 7.2351 4.70417 7.19848C4.74299 7.16597 4.77798 7.12915 4.80847 7.08872C4.84281 7.04317 4.86935 6.9916 4.92245 6.88845L5.71691 5.34506Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M11.6383 5.10671C11.4692 4.89526 11.3846 4.78953 11.3529 4.66761C11.325 4.56036 11.325 4.44484 11.3529 4.3376C11.3846 4.21568 11.4692 4.10995 11.6383 3.8985L12.182 3.21887C12.3512 3.00741 12.4358 2.90169 12.5333 2.86207C12.6191 2.82723 12.7115 2.82723 12.7973 2.86207C12.8948 2.90169 12.9794 3.00741 13.1486 3.21887L13.6923 3.8985C13.8615 4.10995 13.946 4.21568 13.9777 4.3376C14.0056 4.44484 14.0056 4.56036 13.9777 4.66761C13.946 4.78953 13.8615 4.89526 13.6923 5.10671L13.1486 5.78634C12.9794 5.99779 12.8948 6.10352 12.7973 6.14314C12.7115 6.17798 12.6191 6.17798 12.5333 6.14314C12.4358 6.10352 12.3512 5.99779 12.182 5.78634L11.6383 5.10671Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                            {tab.id === 'analytics' && (
-                              <svg width="24" height="24" viewBox="0 0 16 17" fill="none" className="h-4 w-4">
-                                <path d="M6 14.5V10.5C6 9.87874 6 9.56812 5.89851 9.32309C5.76318 8.99639 5.50362 8.73682 5.17691 8.60149C4.93188 8.5 4.62126 8.5 4 8.5C3.37874 8.5 3.06812 8.5 2.82309 8.60149C2.49638 8.73682 2.23682 8.99639 2.10149 9.32309C2 9.56812 2 9.87874 2 10.5V12.3667C2 13.1134 2 13.4868 2.14532 13.772C2.27316 14.0229 2.47713 14.2268 2.72801 14.3547C3.01323 14.5 3.3866 14.5 4.13333 14.5H6ZM6 14.5H10M6 14.5V4.5C6 3.87874 6 3.56812 6.10149 3.32309C6.23682 2.99638 6.49638 2.73682 6.82309 2.60149C7.06812 2.5 7.37874 2.5 8 2.5C8.62126 2.5 8.93188 2.5 9.17691 2.60149C9.50362 2.73682 9.76318 2.99638 9.89851 3.32309C10 3.56812 10 3.87874 10 4.5V14.5M10 14.5H11.8667C12.6134 14.5 12.9868 14.5 13.272 14.3547C13.5229 14.2268 13.7268 14.0229 13.8547 13.772C14 13.4868 14 13.1134 14 12.3667V7.83333C14 7.21208 14 6.90145 13.8985 6.65642C13.7632 6.32972 13.5036 6.07015 13.1769 5.93483C12.9319 5.83333 12.6213 5.83333 12 5.83333C11.3787 5.83333 11.0681 5.83333 10.8231 5.93483C10.4964 6.07015 10.2368 6.32972 10.1015 6.65642C10 6.90145 10 7.21208 10 7.83333V14.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                            {tab.id === 'activity' && <Globe className="h-4 w-4" />}
-                            {tab.id === 'sources' && <Box className="h-4 w-4" />}
-                            {tab.id === 'actions' && (
-                              <svg width="24" height="24" viewBox="0 0 16 17" fill="none" className="h-4 w-4">
-                                <path d="M12 10.5C13.1046 10.5 14 11.3954 14 12.5C14 13.6046 13.1046 14.5 12 14.5C10.8954 14.5 10 13.6046 10 12.5C10 11.3954 10.8954 10.5 12 10.5ZM12 10.5V7.83333C12 5.99238 10.5076 4.5 8.66667 4.5M4 6.5C2.89543 6.5 2 5.60457 2 4.5C2 3.39543 2.89543 2.5 4 2.5C5.10457 2.5 6 3.39543 6 4.5C6 5.60457 5.10457 6.5 4 6.5ZM4 6.5V9.16667C4 11.0076 5.49238 12.5 7.33333 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                            {tab.label}
-                          </span>
-                        </span>
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeTabUnderline"
-                            className="absolute bottom-[-3px] left-0 right-0 h-1 bg-white rounded-full z-20"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
+                        {tab.id === 'playground' && <Sparkles className="h-4 w-4 text-zinc-400" />}
+                        {tab.id === 'analytics' && <BarChart3 className="h-4 w-4 text-zinc-400" />}
+                        {tab.id === 'activity' && <Globe className="h-4 w-4 text-zinc-400" />}
+                        {tab.id === 'sources' && <Box className="h-4 w-4 text-zinc-400" />}
+                        {tab.id === 'actions' && <GitCompare className="h-4 w-4 text-zinc-400" />}
+                        <span>{tab.label}</span>
                       </button>
                     )
                   })}
                 </div>
+              </div>
 
                 {/* Main Display Area */}
                 <div className="relative mt-12 flex aspect-video w-full items-center justify-center rounded-2xl p-10 overflow-hidden">
@@ -573,7 +554,6 @@ export default function LandingContent({ userId, stores }: { userId?: string, st
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_100%)]" />
                   </div>
                 </div>
-              </div>
 
               {/* Mobile Carousel View */}
               <div className="w-full md:hidden my-8">

@@ -388,30 +388,43 @@ JSON:`
 function parseIntentHeuristic(message: string): ClassificationResult | null {
   const text = message.toLowerCase().trim()
 
-  // 1. Intent: checkout
+  // 0. Intent: cancel / abort (e.g., "cancelar", "abortar", "reiniciar", "ya no quiero")
+  if (/^(cancelar|cancel|abortar|reiniciar|olvidalo|olvídalo|ya no quiero|no quiero nada|cancelar pedido)$/i.test(text)) {
+    return { intent: 'chat' }
+  }
+
+  // 1. Intent: search_products (Catalog exploration checked FIRST before add_to_cart)
+  // e.g., "quiero ver los productos", "ver catálogo", "mostrar productos", "qué productos tienes", "ver todos los que tengas"
+  const isCatalogQuery = /\b(catalogo|catálogo|menú|menu|ver productos|ver todos|mis productos|nuestros productos|productos|qué tienen|que tienen|mostrar productos|enseñame los productos|ver los productos|ver todo|mostrar catálogo|mostrar catalogo)\b/i.test(text) ||
+    /^(quiero ver|ver|mostrar|enseñame|dame ver)/i.test(text)
+
+  if (isCatalogQuery) {
+    const cleanQuery = text.replace(/\b(quiero|ver|mostrar|enseñame|el|los|las|de|un|una|todos|los|que|tengas|productos|catalogo|catálogo)\b/gi, '').trim()
+    return {
+      intent: 'search_products',
+      query: cleanQuery.length >= 2 ? cleanQuery : 'productos'
+    }
+  }
+
+  // 2. Intent: checkout
   if (/\b(pagar|quiero pagar|ir a pagar|finalizar|checkout|link de pago|enlace de pago)\b/i.test(text)) {
     return { intent: 'checkout' }
   }
 
-  // 2. Intent: add_to_cart (ej: "quiero 1 gelatina", "quiero gelatina", "agrega 2 pizzas")
+  // 3. Intent: add_to_cart (ej: "quiero 1 gelatina", "quiero gelatina", "agrega 2 pizzas")
   const addToCartMatch = text.match(/\b(?:quiero|agrega|agregar|añadir|añade|ponme|dame)\s+(\d+)?\s*(?:un|una|unos|unas)?\s*([a-záéíóúñ0-9\s]{2,30})/i)
   if (addToCartMatch) {
     const qtyStr = addToCartMatch[1]
     const rawProd = addToCartMatch[2]?.replace(/\b(por favor|gracias|al carrito)\b/gi, '').trim()
-    if (rawProd && rawProd.length >= 2 && !['pagar', 'comprar', 'ver', 'ayuda'].includes(rawProd)) {
+    const forbiddenWords = ['pagar', 'comprar', 'ver', 'ayuda', 'catalogo', 'catálogo', 'menu', 'menú', 'productos', 'tiendas', 'tienda', 'todos', 'que tengas', 'cancelar']
+    const containsForbidden = forbiddenWords.some(w => rawProd?.toLowerCase().includes(w))
+    
+    if (rawProd && rawProd.length >= 2 && !containsForbidden) {
       return {
         intent: 'add_to_cart',
         productName: rawProd,
         quantity: qtyStr ? Math.max(1, parseInt(qtyStr, 10)) : 1
       }
-    }
-  }
-
-  // 3. Intent: search_products (ej: "ver catálogo", "productos", "menú", "catalogo", "qué tienen")
-  if (/\b(catalogo|catálogo|menú|menu|ver productos|productos|qué tienen|que tienen|mostrar productos)\b/i.test(text)) {
-    return {
-      intent: 'search_products',
-      query: text.replace(/\b(ver|mostrar|el|los|las|de|un|una)\b/gi, '').trim() || 'productos'
     }
   }
 

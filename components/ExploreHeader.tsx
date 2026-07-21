@@ -16,11 +16,11 @@ export default function ExploreHeader({
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90">
       <div className="mx-auto flex min-h-20 max-w-[1800px] flex-wrap items-center gap-4 px-5 py-4 md:flex-nowrap md:gap-6 md:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-zinc-950 text-white shadow-[0_10px_30px_rgba(0,0,0,0.22)] dark:bg-white dark:text-zinc-950">
-            <Zap className="size-5 fill-current" />
+        <Link href="/" className="flex shrink-0 items-center gap-3 group transition-all hover:opacity-85">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-black text-white shadow-[0_10px_30px_rgba(0,0,0,0.22)] dark:bg-white dark:text-zinc-950 group-hover:scale-105 transition-transform">
+            <Zap className="size-5 fill-white stroke-white text-white dark:fill-zinc-950 dark:stroke-zinc-950 dark:text-zinc-950" />
           </span>
-          <span className="text-2xl font-black tracking-[-0.04em] text-zinc-950 dark:text-white">Directorios</span>
+          <span className="text-2xl font-bold tracking-[-0.04em] text-zinc-950 dark:text-white">Directorios</span>
         </Link>
 
         <div className="order-3 w-full md:order-none md:mx-auto md:max-w-[670px]">

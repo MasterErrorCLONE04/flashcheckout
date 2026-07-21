@@ -20,10 +20,10 @@ import { Button } from '@/components/ui/button'
 
 const FlashcheckoutsLogo = () => (
   <Link href="/" className="flex items-center gap-2.5 group transition-all hover:opacity-80">
-    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-xl shadow-sm group-hover:scale-105 transition-transform">
-      F
+    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+      <Zap className="w-4.5 h-4.5 fill-white stroke-white" />
     </div>
-    <span className="text-[20px] font-medium tracking-tight text-[#111827]">Flashcheckouts</span>
+    <span className="text-[20px] font-bold tracking-tight text-[#111827]">Flashcheckouts</span>
   </Link>
 )
 

@@ -774,6 +774,19 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     return;
   }
 
+  // --- MANEJO GLOBAL DE CANCELACIÓN DE FLUJOS ---
+  const isCancelIntent = /^(cancelar|cancel|cancelar pedido|cancelar compra|abortar|reiniciar|olvidalo|olvídalo|ya no quiero|no quiero nada|vaciar carrito|detener)$/i.test(text.trim()) || text === 'clear_cart' || text === 'cancel';
+  if (isCancelIntent) {
+    await updateWhatsAppSession(session.id, {
+      customerName: null,
+      address: null,
+      step: 'IDLE',
+      cart: emptyCartState()
+    });
+    await waClient.sendText(from, 'Entendido, tu proceso de compra ha sido cancelado y tu carrito vaciado. ❌ ¿En qué más puedo ayudarte?');
+    return;
+  }
+
   if (text === 'clear_cart') {
       await updateWhatsAppSession(session.id, { cart: emptyCartState() });
       await waClient.sendText(from, 'Carrito vaciado. 🗑️ ¿En qué puedo ayudarte?');

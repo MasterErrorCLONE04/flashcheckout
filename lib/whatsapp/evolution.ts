@@ -308,19 +308,24 @@ export class EvolutionClient {
 
   async downloadMedia(
     instanceName: string,
-    messageKey: Record<string, unknown>,
-    message: Record<string, unknown>
+    messageKey: Record<string, unknown> | string,
+    message?: Record<string, unknown>
   ): Promise<Buffer> {
-    const url = `${this.apiUrl}/message/downloadMedia/${instanceName}`;
+    const url = `${this.apiUrl}/chat/getBase64FromMediaMessage/${instanceName}`;
+    const keyPayload =
+      typeof messageKey === 'string'
+        ? { id: messageKey }
+        : (messageKey.key as Record<string, unknown>) || messageKey;
+
     const response = await fetch(url, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({
         message: {
-          key: messageKey,
-          message: message
-        }
-      })
+          key: keyPayload,
+        },
+        convertToMp4: false,
+      }),
     });
 
     if (!response.ok) {
@@ -330,8 +335,8 @@ export class EvolutionClient {
     }
 
     const data = await response.json();
-    // Evolution API returns { base64: "data:image/png;base64,..." }
-    const base64Str = data.base64.replace(/^data:image\/\w+;base64,/, "");
+    const rawBase64 = data.base64 || data.data || '';
+    const base64Str = rawBase64.replace(/^data:[^;]+;base64,/, '');
     return Buffer.from(base64Str, 'base64');
   }
 
@@ -360,12 +365,13 @@ export class EvolutionClient {
         })
       });
       if (!response.ok) {
-        throw new Error('Evolution API location_request_message failed');
+        const errBody = await response.text().catch(() => '');
+        throw new Error(`Evolution API location_request_message HTTP ${response.status}: ${errBody}`);
       }
       return response.json();
     } catch (err) {
-      console.warn('[Evolution API] sendLocationRequest failed, falling back to text:', err);
-      const fallbackText = `${text}\n\n📍 _Por favor comparte tu ubicación actual usando el botón de adjuntar (clip 📎) en WhatsApp y selecciona "Ubicación"._`;
+      console.warn('[Evolution API] sendLocationRequest degraded to text prompt:', (err as Error)?.message || err);
+      const fallbackText = `${text}\n\n📍 _Puedes escribir tu dirección de envío por texto o compartir tu ubicación actual desde el botón del clip (📎) en WhatsApp._`;
       return this.sendText(instanceName, to, fallbackText);
     }
   }
