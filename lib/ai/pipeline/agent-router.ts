@@ -283,38 +283,42 @@ ${contextString}`
         ? Math.floor(Date.now() - startTime - llmLatencyMs)
         : 0
 
-      await prisma.agentExecution.create({
-        data: {
-          id: `ex_${crypto.randomUUID().replace(/-/g, '').slice(0, 13)}`,
-          traceId,
-          providerRequestId,
-          agentName: `agent_4_wa_${channel.toLowerCase()}`,
-          selectedTool: selectedToolName,
-          model: 'openrouter/free',
-          promptVersion: 'v3',
-          vectorLatencyMs: vectorLatency,
-          llmLatencyMs,
-          promptTokens,
-          completionTokens,
-          estimatedCost: ((promptTokens * 0.00015) + (completionTokens * 0.0006)) / 1000,
-          status: 'success'
-        }
-      })
+      if (prisma.agentExecution) {
+        await prisma.agentExecution.create({
+          data: {
+            id: `ex_${crypto.randomUUID().replace(/-/g, '').slice(0, 13)}`,
+            traceId,
+            providerRequestId,
+            agentName: `agent_4_wa_${channel.toLowerCase()}`,
+            selectedTool: selectedToolName,
+            model: 'openrouter/free',
+            promptVersion: 'v3',
+            vectorLatencyMs: vectorLatency,
+            llmLatencyMs,
+            promptTokens,
+            completionTokens,
+            estimatedCost: ((promptTokens * 0.00015) + (completionTokens * 0.0006)) / 1000,
+            status: 'success'
+          }
+        }).catch((e) => console.warn('[AgentRouter] No se pudo guardar agentExecution audit record:', e))
+      }
 
     } catch (error: any) {
       console.error(`[AgentRouter Error] Fallo en procesamiento de mensaje:`, error)
       responseText = 'Lo siento, tuve un problema al procesar tu solicitud. Por favor, reintenta en un momento.'
 
-      await prisma.agentExecution.create({
-        data: {
-          id: `ex_${crypto.randomUUID().replace(/-/g, '').slice(0, 13)}`,
-          traceId,
-          agentName: `agent_4_wa_${channel.toLowerCase()}`,
-          model: 'openrouter/free',
-          status: 'error',
-          errorMessage: error.message || String(error)
-        }
-      })
+      if (prisma.agentExecution) {
+        await prisma.agentExecution.create({
+          data: {
+            id: `ex_${crypto.randomUUID().replace(/-/g, '').slice(0, 13)}`,
+            traceId,
+            agentName: `agent_4_wa_${channel.toLowerCase()}`,
+            model: 'openrouter/free',
+            status: 'error',
+            errorMessage: error.message || String(error)
+          }
+        }).catch((e) => console.warn('[AgentRouter] No se pudo guardar agentExecution error record:', e))
+      }
     }
 
     const requiresLocationRequest = toolResult && toolResult.requires_input === 'ADDRESS'
@@ -349,14 +353,22 @@ Para "quantity": número de unidades. Por defecto 1.
 Mensaje: "${messageContent.replace(/"/g, '\\"')}"
 JSON:`
 
+    // 0. Pre-clasificación heurística determinista para comandos estándar
+    const heuristic = parseIntentHeuristic(messageContent)
+    if (heuristic) {
+      console.log(`[AgentRouter] Pre-clasificación heurística activada:`, heuristic)
+      return heuristic
+    }
+
     try {
       const result = await generateOpenRouterCompletion(
         [{ role: 'user', content: unifiedPrompt }],
         'Eres un clasificador preciso de intenciones. Responde exclusivamente con JSON válido.'
       )
       const rawText = typeof result === 'string' ? result.trim() : result.content?.trim() || '{}'
-      // Limpiar posibles bloques markdown que algunos modelos añaden
-      const cleanJson = rawText.replace(/```json|```/gi, '').trim()
+      // Extraer la estructura JSON incluso si el modelo incluye preámbulos como "User Safety: safe" o bloques markdown
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+      const cleanJson = jsonMatch ? jsonMatch[0] : rawText.replace(/```json|```/gi, '').trim()
       const parsed = JSON.parse(cleanJson) as ClassificationResult
 
       // Validar que intent sea un valor conocido
@@ -371,4 +383,37 @@ JSON:`
       return { intent: 'chat' }
     }
   }
+}
+
+function parseIntentHeuristic(message: string): ClassificationResult | null {
+  const text = message.toLowerCase().trim()
+
+  // 1. Intent: checkout
+  if (/\b(pagar|quiero pagar|ir a pagar|finalizar|checkout|link de pago|enlace de pago)\b/i.test(text)) {
+    return { intent: 'checkout' }
+  }
+
+  // 2. Intent: add_to_cart (ej: "quiero 1 gelatina", "quiero gelatina", "agrega 2 pizzas")
+  const addToCartMatch = text.match(/\b(?:quiero|agrega|agregar|añadir|añade|ponme|dame)\s+(\d+)?\s*(?:un|una|unos|unas)?\s*([a-záéíóúñ0-9\s]{2,30})/i)
+  if (addToCartMatch) {
+    const qtyStr = addToCartMatch[1]
+    const rawProd = addToCartMatch[2]?.replace(/\b(por favor|gracias|al carrito)\b/gi, '').trim()
+    if (rawProd && rawProd.length >= 2 && !['pagar', 'comprar', 'ver', 'ayuda'].includes(rawProd)) {
+      return {
+        intent: 'add_to_cart',
+        productName: rawProd,
+        quantity: qtyStr ? Math.max(1, parseInt(qtyStr, 10)) : 1
+      }
+    }
+  }
+
+  // 3. Intent: search_products (ej: "ver catálogo", "productos", "menú", "catalogo", "qué tienen")
+  if (/\b(catalogo|catálogo|menú|menu|ver productos|productos|qué tienen|que tienen|mostrar productos)\b/i.test(text)) {
+    return {
+      intent: 'search_products',
+      query: text.replace(/\b(ver|mostrar|el|los|las|de|un|una)\b/gi, '').trim() || 'productos'
+    }
+  }
+
+  return null
 }

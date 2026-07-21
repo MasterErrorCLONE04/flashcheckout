@@ -97,8 +97,19 @@ export async function generateOpenRouterCompletion(
     if (!res.ok) {
       const errorText = await res.text()
       console.warn(`[OpenRouter Gateway Warning - Status ${res.status}]: ${errorText}`)
-      
 
+      // Si es un error de Rate Limit (429), cuota (402) o servidor (5xx) y no estamos en fallback, reintentar con otro modelo gratuito
+      if (!isFallback && (res.status === 429 || res.status === 402 || res.status >= 500)) {
+        const fallbackModels = [
+          'google/gemma-2-9b-it:free',
+          'qwen/qwen-2.5-7b-instruct:free',
+          'mistralai/mistral-7b-instruct:free',
+          'deepseek/deepseek-r1-distill-llama-70b:free'
+        ]
+        const nextModel = fallbackModels.find(m => m !== model) || fallbackModels[0]
+        console.log(`[OpenRouter Gateway] Reintentando con modelo gratuito de respaldo: ${nextModel}`)
+        return generateOpenRouterCompletion(messages, systemPrompt, tools, nextModel, true)
+      }
 
       const fallbackText = generateFallbackAIResponse(apiMessages)
       if (tools && tools.length > 0) {

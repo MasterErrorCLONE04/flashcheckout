@@ -250,6 +250,8 @@ export class EvolutionClient {
 
   async sendImage(instanceName: string, to: string, imageUrl: string, caption: string) {
     const url = `${this.apiUrl}/message/sendMedia/${instanceName}`;
+    const isDataUri = imageUrl.startsWith('data:');
+    const mediaPayload = isDataUri ? imageUrl.replace(/^data:image\/\w+;base64,/, '') : imageUrl;
     const response = await fetch(url, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -260,8 +262,8 @@ export class EvolutionClient {
           presence: 'composing'
         },
         mediatype: 'image',
-        fileName: 'imagen.jpg',
-        media: imageUrl,
+        fileName: isDataUri ? 'qr.png' : 'imagen.jpg',
+        media: mediaPayload,
         caption: caption
       }),
     });
@@ -277,6 +279,8 @@ export class EvolutionClient {
 
   async sendDocument(instanceName: string, to: string, documentUrl: string, filename: string) {
     const url = `${this.apiUrl}/message/sendMedia/${instanceName}`;
+    const isDataUri = documentUrl.startsWith('data:');
+    const mediaPayload = isDataUri ? documentUrl.replace(/^data:[^;]+;base64,/, '') : documentUrl;
     const response = await fetch(url, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -288,7 +292,7 @@ export class EvolutionClient {
         },
         mediatype: 'document',
         fileName: filename,
-        media: documentUrl,
+        media: mediaPayload,
         caption: filename
       }),
     });

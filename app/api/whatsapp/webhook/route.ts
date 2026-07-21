@@ -404,6 +404,25 @@ export async function POST(req: Request) {
   }
 }
 
+function extractEvolutionPhone(key: any, data: any): string {
+  const candidateJids = [
+    key?.remoteJidAlt,
+    key?.remoteJid,
+    key?.participantAlt,
+    key?.participant,
+    data?.sender,
+  ]
+
+  for (const jid of candidateJids) {
+    if (typeof jid === 'string' && jid.includes('@s.whatsapp.net')) {
+      return jid.split('@')[0]
+    }
+  }
+
+  const fallback = key?.remoteJidAlt || key?.remoteJid || data?.sender || ''
+  return typeof fallback === 'string' ? fallback.split('@')[0] : ''
+}
+
 async function handleEvolutionWebhook(body: EvolutionWebhookBody) {
   try {
     const instanceName = body.instance?.trim()
@@ -414,7 +433,7 @@ async function handleEvolutionWebhook(body: EvolutionWebhookBody) {
       body.event !== 'messages.upsert' ||
       !instanceName ||
       !key ||
-      typeof key.remoteJid !== 'string'
+      (typeof key.remoteJid !== 'string' && typeof key.remoteJidAlt !== 'string')
     ) {
       logWebhookEvent('whatsapp', 'ignored', {
         transport: 'evolution',
@@ -424,8 +443,7 @@ async function handleEvolutionWebhook(body: EvolutionWebhookBody) {
     }
 
     const fromMe = key.fromMe === true
-    const remoteJid = key.remoteJid
-    const from = remoteJid.split('@')[0]
+    const from = extractEvolutionPhone(key, data)
 
     const message = data?.message
     if (!isPlainObject(message)) {

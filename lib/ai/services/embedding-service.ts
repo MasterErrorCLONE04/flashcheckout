@@ -104,16 +104,23 @@ export async function getOrCreateEmbedding(
   const embeddingId = `${entityType.toLowerCase()}_${entityId}`
 
   // 1. Intentar buscar en caché de base de datos
-  const existing = await prisma.embedding.findFirst({
-    where: {
-      entityType,
-      entityId,
-      contentHash,
-      model: config.model,
-      provider: config.provider,
-      version: config.version
+  let existing = null
+  try {
+    if (prisma.embedding) {
+      existing = await prisma.embedding.findFirst({
+        where: {
+          entityType,
+          entityId,
+          contentHash,
+          model: config.model,
+          provider: config.provider,
+          version: config.version
+        }
+      })
     }
-  })
+  } catch (err) {
+    console.warn('[Embedding Cache Error] Fallo al consultar caché de embeddings:', err)
+  }
 
   if (existing) {
     // Retornamos el vector mapeando desde el tipo vector de PostgreSQL

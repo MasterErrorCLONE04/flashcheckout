@@ -18,7 +18,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/agent/flashy(.*)',
   '/api/explore/assistant(.*)',
   '/api/breb/payment-intents(.*)',
-  '/api/breb/proofs(.*)',
+  '/pay(.*)',
+  '/api/qr(.*)',
   '/legal(.*)'
 ]);
 

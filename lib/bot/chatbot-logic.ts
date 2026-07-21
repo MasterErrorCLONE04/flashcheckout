@@ -14,6 +14,9 @@ import { parseIntent } from './intent-engine';
 import { searchGlobalProducts } from './search-service';
 import { mpPreference } from '@/lib/mercadopago';
 import { uploadProofImage } from '@/lib/supabase';
+import { buildBrebEmvcoPayload, DEFAULT_BREB_EMVCO_GUI, type BrebKeyType } from '@/lib/payments/breb/emvco';
+import { buildBrebPaymentReference } from '@/lib/payments/breb/references';
+import QRCode from 'qrcode';
 
 type SessionRecord = NonNullable<Awaited<ReturnType<typeof prisma.whatsAppSession.findUnique>>>;
 type StoreRecord = NonNullable<Awaited<ReturnType<typeof prisma.store.findUnique>>>;
@@ -1189,14 +1192,59 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
               const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
               const smartPayUrl = `${baseAppUrl}/pay/${order.id}`;
 
-              // Send the link!
+              // Send the link / QR!
               if (shouldUseBreb) {
-                await waClient.sendUrlButton(
-                  from,
-                  `${orderSummary}\n\nTu tienda tiene Bre-B activo. Presiona el boton para escanear el QR, pagar el valor exacto y subir el comprobante de forma segura:`,
-                  'Pagar por Bre-B',
-                  smartPayUrl
-                );
+                const keyType = (brebConfig?.keyType || 'PHONE') as BrebKeyType;
+                const reference = buildBrebPaymentReference(order.id);
+                const gui = process.env.BREB_EMVCO_GUI?.trim() || DEFAULT_BREB_EMVCO_GUI;
+                const emvPayload = buildBrebEmvcoPayload({
+                  merchantName: brebConfig?.merchantDisplayName || store?.name || 'Tienda',
+                  amount: total,
+                  reference,
+                  merchantAccount: {
+                    gui,
+                    participantId: brebConfig!.participantId!,
+                    keyType,
+                    keyValue: brebConfig!.keyValue!,
+                    keyTypeCode: brebConfig?.keyTypeCode || undefined,
+                  },
+                });
+
+                let qrImageToSend: string;
+                try {
+                  qrImageToSend = await QRCode.toDataURL(emvPayload, {
+                    width: 400,
+                    margin: 2,
+                    color: {
+                      dark: '#050505',
+                      light: '#FFFFFF'
+                    }
+                  });
+                } catch (qrErr) {
+                  console.error('[chatbot-logic] Error generando QR en base64:', qrErr);
+                  qrImageToSend = `${baseAppUrl}/api/qr?text=${encodeURIComponent(emvPayload)}`;
+                }
+
+                const brebCaption = `${orderSummary}\n\n` +
+                  `🏦 *PAGO MEDIANTE BRE-B / INTEROPERABLE*\n` +
+                  `1️⃣ Escanea este código QR desde tu app bancaria (Nequi, Daviplata, Bancolombia, etc.) o usa los datos:\n` +
+                  `   • *Llave:* ${brebConfig?.keyValue}\n` +
+                  `   • *Referencia:* ${reference}\n` +
+                  `   • *Valor exacto:* $${total.toLocaleString('es-CO')} COP\n\n` +
+                  `2️⃣ Transfiere y *envía la captura del comprobante por este chat* 📸.\n\n` +
+                  `🔗 Portal web alternativo:\n${smartPayUrl}`;
+
+                try {
+                  await waClient.sendImage(from, qrImageToSend, brebCaption);
+                } catch (imgErr) {
+                  console.error('[chatbot-logic] Error enviando imagen QR Bre-B, fallback a botón:', imgErr);
+                  await waClient.sendUrlButton(
+                    from,
+                    brebCaption,
+                    'Pagar por Bre-B',
+                    smartPayUrl
+                  );
+                }
               } else if (store && store.mpConnected && mpPreferenceId) {
                 // If Mercado Pago is active, send the Smart Pay Link directly as a Payment Redirection
                 await waClient.sendUrlButton(
@@ -1286,8 +1334,10 @@ export async function handleWhatsAppImage(
   // 2. Buscar la orden PENDING más reciente para este cliente
   const order = await prisma.order.findFirst({
     where: {
-      customerPhone: from,
-      storeId: storeId,
+      OR: [
+        { customerPhone: from },
+        { customerWhatsAppId: from },
+      ],
       paymentStatus: 'PENDING',
     },
     orderBy: {
