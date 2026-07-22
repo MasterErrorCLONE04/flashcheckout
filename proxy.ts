@@ -23,7 +23,8 @@ const isPublicRoute = createRouteMatcher([
   '/legal(.*)'
 ]);
 
-const clerkHandler = clerkMiddleware(async (auth, request) => {
+export const proxy = clerkMiddleware(async (auth, request) => {
+  console.log("=== CLERK PROXY CALLED FOR ===", request.nextUrl.pathname);
   const url = new URL(request.url);
   const ref = url.searchParams.get("ref");
 
@@ -47,13 +48,6 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
     return response;
   }
 });
-
-export async function proxy(request: any, event: any) {
-  console.log("=== NEXT.JS PROXY CALLED FOR ===", request.nextUrl.pathname);
-  return clerkHandler(request, event);
-}
-
-export default clerkHandler;
 
 export const config = {
   matcher: [

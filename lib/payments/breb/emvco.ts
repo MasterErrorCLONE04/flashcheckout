@@ -106,7 +106,7 @@ export function formatCopAmount(amount: number) {
 
 function buildMerchantAccountInformation(account: BrebMerchantAccount) {
   const fields = [
-    tlv('00', sanitizeEmvText(account.gui, 32)),
+    tlv('00', sanitizeGui(account.gui)),
     tlv('01', sanitizeBrebKey(account.keyValue, account.keyType)),
     tlv('02', sanitizeParticipantId(account.participantId)),
     tlv('03', sanitizeKeyTypeCode(account.keyTypeCode || BREB_KEY_TYPE_CODES[account.keyType])),
@@ -124,7 +124,7 @@ function validateBrebPayloadInput(input: BrebPayloadInput) {
     throw new Error('Missing Bre-B key value.')
   }
 
-  if (!input.merchantAccount.participantId.trim()) {
+  if (!input.merchantAccount.participantId || !input.merchantAccount.participantId.trim()) {
     throw new Error('Missing Bre-B participant entity code.')
   }
 
@@ -164,4 +164,14 @@ function sanitizeEmvText(value: string, maxLength: number) {
     .trim()
     .toUpperCase()
     .slice(0, maxLength)
+}
+
+function sanitizeGui(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 @._-]/g, '')
+    .trim()
+    .toLowerCase()
+    .slice(0, 32)
 }
