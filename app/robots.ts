@@ -32,6 +32,6 @@ export default function robots(): MetadataRoute.Robots {
         '/sso-callback'
       ],
     },
-    sitemap: 'https://flashcheckout.vercel.app/sitemap.xml',
+    sitemap: 'https://flashcheckouts.com/sitemap.xml',
   }
 }

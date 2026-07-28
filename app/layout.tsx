@@ -22,7 +22,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://flashcheckout.vercel.app"),
+  metadataBase: new URL("https://flashcheckouts.com"),
   title: {
     default: "Flashcheckouts - Cierra ventas en 30 segundos",
     template: "%s | Flashcheckouts",
