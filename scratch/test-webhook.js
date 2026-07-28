@@ -1,34 +1,60 @@
-async function main() {
-  const webhookUrl = "http://localhost:3000/api/whatsapp/webhook";
-  const payload = {
-    event: "messages.upsert",
-    instance: "store_cmqv2rvh200002xrsm7idw4ib",
+// c:\Users\Usuario\flashcheckout\scratch\test-webhook.js
+const http = require('http');
+
+function sendMockWebhook() {
+  const orderId = process.argv[2];
+  if (!orderId) {
+    console.error('Error: Debes proporcionar un ID de orden real de la base de datos.');
+    console.log('Ejemplo: node scratch/test-webhook.js cl_123456');
+    process.exit(1);
+  }
+
+  const payload = JSON.stringify({
+    type: 'payment.succeeded',
     data: {
-      key: {
-        remoteJid: "573115076293@s.whatsapp.net",
-        fromMe: false,
-        id: "MOCK_" + Date.now()
-      },
-      messageType: "conversation",
-      message: {
-        conversation: "Hola"
+      reference: orderId,
+      amount: 15000,
+      currency: 'COP',
+      payer: {
+        type: 'BRE_B_KEY',
+        value: '3001234567',
+        country_code: 'CO'
       }
+    }
+  });
+
+  const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: '/api/webhooks/druo',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload)
     }
   };
 
-  try {
-    console.log('Sending mock message "Hola" to webhook...');
-    const res = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+  const req = http.request(options, (res) => {
+    let data = '';
+    res.on('data', (chunk) => {
+      data += chunk;
     });
-    console.log('Response Status:', res.status);
-    const data = await res.json();
-    console.log('Response Data:', JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error sending webhook:', error);
-  }
+    res.on('end', () => {
+      console.log(`Respuesta del Webhook (Status: ${res.statusCode}):`);
+      try {
+        console.log(JSON.parse(data));
+      } catch (e) {
+        console.log(data);
+      }
+    });
+  });
+
+  req.on('error', (e) => {
+    console.error(`Error al conectar con el servidor: ${e.message}`);
+  });
+
+  req.write(payload);
+  req.end();
 }
 
-main();
+sendMockWebhook();

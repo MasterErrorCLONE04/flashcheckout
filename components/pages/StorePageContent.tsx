@@ -85,12 +85,47 @@ export default async function StorePage({ params, searchParams }: Props) {
   }
 
   return (
-    <WhatsAppCatalog
-      initialPhone={identity}
-      store={storeData}
-      initialCart={initialCart}
-      initialName={sessionData.customerName}
-      initialAddress={sessionData.address}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "OnlineStore",
+            "name": store.name,
+            "description": store.bio || `Compra en ${store.name} y recibe tu pedido rápido. Checkout por WhatsApp en 30 segundos.`,
+            "url": `https://flashcheckout.vercel.app/tienda/${store.slug}`,
+            "image": store.logoUrl || "https://flashcheckout.vercel.app/Flashcheckout logo.png",
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": `Catálogo de ${store.name}`,
+              "itemListElement": store.products.map((p, idx) => ({
+                "@type": "OfferCatalogItem",
+                "position": idx + 1,
+                "item": {
+                  "@type": "Product",
+                  "name": p.name,
+                  "description": p.description || p.aiDescription || `Compra ${p.name} en ${store.name}`,
+                  "image": p.imageUrl || undefined,
+                  "offers": {
+                    "@type": "Offer",
+                    "price": p.price,
+                    "priceCurrency": "COP",
+                    "availability": p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+                  }
+                }
+              }))
+            }
+          })
+        }}
+      />
+      <WhatsAppCatalog
+        initialPhone={identity}
+        store={storeData}
+        initialCart={initialCart}
+        initialName={sessionData.customerName}
+        initialAddress={sessionData.address}
+      />
+    </>
   )
 }

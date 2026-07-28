@@ -23,7 +23,10 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://flashcheckout.vercel.app"),
-  title: "Flashcheckouts - Cierra ventas en 30 segundos",
+  title: {
+    default: "Flashcheckouts - Cierra ventas en 30 segundos",
+    template: "%s | Flashcheckouts",
+  },
   icons: {
     icon: "/Flashcheckout logo.svg",
     apple: "/Flashcheckout logo.svg",
@@ -42,7 +45,7 @@ export const metadata: Metadata = {
     "enlaces de pago",
   ],
   alternates: {
-    canonical: "https://flashcheckout.vercel.app",
+    canonical: "/",
   },
   robots: {
     index: true,
@@ -68,7 +71,7 @@ export const metadata: Metadata = {
     siteName: "Flashcheckouts",
     images: [
       {
-        url: "https://flashcheckout.vercel.app/og-image.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Flashcheckouts - Cierra ventas en 30 segundos",
@@ -79,7 +82,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Flashcheckouts - Cierra ventas en 30 segundos",
     description: "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
-    images: ["https://flashcheckout.vercel.app/og-image.png"],
+    images: ["/og-image.png"],
   },
 };
 

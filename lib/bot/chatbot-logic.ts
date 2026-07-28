@@ -283,7 +283,8 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     text === 'view_cart_summary' ||
     text === 'final_summary' ||
     text.startsWith('flow_response_') ||
-    text.startsWith('accept_delivery_')
+    text.startsWith('accept_delivery_') ||
+    text === 'btn_pay_breb'
 
   const isInProgress = session.step !== 'START' && session.step !== 'IDLE'
 
@@ -745,7 +746,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     return;
   }
 
-  // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL ---
+  // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL CON DRUO ---
   if (text === 'confirm_checkout') {
     const cartItems = await getCartItemsForSession(session);
     if (cartItems.length === 0) {
@@ -754,23 +755,20 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       return;
     }
 
-    if (!session.customerName) {
-      await updateWhatsAppSession(session.id, { step: 'AWAITING_NAME' });
-      await waClient.sendText(from, '¡Excelente elección! 🛍️\n\nPara agilizar tu despacho, ¿a nombre de quién anotamos el pedido? 👤');
-      return;
-    }
-    
-    if (!session.address) {
-      await updateWhatsAppSession(session.id, { step: 'AWAITING_ADDRESS' });
-      const addressPrompt = `Perfecto, *${session.customerName}*. 📍\n\n¿A qué dirección debemos enviar tu pedido? Puedes escribir tu dirección o compartir tu ubicación actual de WhatsApp en el botón de abajo:`;
-      await waClient.sendLocationRequest(from, addressPrompt);
-      return;
-    }
+    let summary = '*TU PEDIDO:* 🛒\n\n';
+    let total = 0;
+    cartItems.forEach(item => {
+      const subtotal = item.price * item.qty;
+      summary += `• ${item.name} x${item.qty}: *$${subtotal.toLocaleString('es-CO')}*\n`;
+      total += subtotal;
+    });
+    summary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')} COP*`;
 
-    // Si tiene todo, saltamos a la confirmación final
-    const updatedSession = await updateWhatsAppSession(session.id, { step: 'AWAITING_CONFIRMATION' });
-    // Forzamos el disparo de la confirmación
-    await handleWhatsAppMessage(from, 'final_summary', updatedSession);
+    await updateWhatsAppSession(session.id, { step: 'AWAITING_PAYMENT_SELECTION' });
+    await waClient.sendButtons(from, `${summary}\n\nPresiona el botón de abajo para pagar de forma instantánea y segura:`, [
+      { id: 'btn_pay_breb', title: '💳 Pagar con Bre-B' },
+      { id: 'cancel', title: '❌ Cancelar' }
+    ]);
     return;
   }
 
@@ -794,7 +792,14 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   }
   // ---------------------------------------------------------
 
-  const nativeCapturingStates = ['AWAITING_NAME', 'AWAITING_ADDRESS', 'AWAITING_CONFIRMATION', 'AWAITING_STORE_SELECTION'];
+  const nativeCapturingStates = [
+    'AWAITING_NAME', 
+    'AWAITING_ADDRESS', 
+    'AWAITING_CONFIRMATION', 
+    'AWAITING_STORE_SELECTION',
+    'AWAITING_PAYMENT_SELECTION',
+    'AWAITING_BREB_KEY'
+  ];
   const isNativeState = nativeCapturingStates.includes(session.step || '');
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1093,6 +1098,122 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       break;
     }
 
+    case 'AWAITING_PAYMENT_SELECTION':
+      if (text === 'btn_pay_breb') {
+        await updateWhatsAppSession(session.id, { step: 'AWAITING_BREB_KEY' });
+        await waClient.sendText(from, "📱 *Pago con Bre-B*\n\nPor favor, escribe tu **número de celular o llave Bre-B** para enviarle la solicitud de cobro directo a tu banco:");
+      } else if (text === 'cancel') {
+        await updateWhatsAppSession(session.id, { step: 'IDLE' });
+        await waClient.sendText(from, 'Pedido cancelado. Tu carrito se mantiene intacto. ❌');
+      } else {
+        await waClient.sendText(from, 'Por favor, selecciona una opción válida usando los botones de abajo.');
+      }
+      break;
+
+    case 'AWAITING_BREB_KEY': {
+      const payerKey = text.trim().replace(/\D/g, ''); // Limpiar caracteres no numéricos
+      const isValidKey = payerKey.length >= 10;
+
+      if (isValidKey) {
+        const items = await getCartItemsForSession(session);
+        if (items.length === 0) {
+          await waClient.sendText(from, 'Tu carrito está vacío. 🛒');
+          await updateWhatsAppSession(session.id, { step: 'IDLE' });
+          return;
+        }
+
+        const storeId = session.storeId || items[0]?.storeId || 'global';
+        const total = items.reduce((s, i) => s + (i.price * i.qty), 0);
+
+        const store = await prisma.store.findUnique({
+          where: { id: storeId },
+          include: { brebConfig: true }
+        });
+
+        const storeBrebKey = store?.brebConfig?.keyValue || (store?.settings as any)?.brebConfig?.keyValue;
+        const storeBrebEnabled = store?.brebConfig?.enabled || (store?.settings as any)?.brebConfig?.enabled;
+
+        if (!store || !storeBrebKey || !storeBrebEnabled) {
+          await waClient.sendText(from, 'Lo sentimos, este comercio no tiene configurada o activa la llave Bre-B para recibir pagos en este momento. 😕');
+          await updateWhatsAppSession(session.id, { step: 'IDLE' });
+          return;
+        }
+
+        try {
+          await waClient.sendText(from, 'Iniciando cobro digital por Bre-B... ⏳');
+
+          const order = await prisma.order.create({
+            data: {
+              customerName: session.customerName || 'Cliente WhatsApp',
+              customerPhone: from,
+              customerWhatsAppId: from,
+              address: session.address || 'WhatsApp',
+              city: 'Colombia',
+              items: items as any,
+              total: total,
+              storeId: storeId,
+              source: 'WHATSAPP',
+              paymentStatus: 'PENDING'
+            }
+          });
+
+          const { createDruoPayment } = await import('@/lib/druo');
+          await createDruoPayment({
+            amount: total,
+            orderId: order.id,
+            payerKey: payerKey,
+            sellerKey: storeBrebKey
+          });
+
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              paymentStatus: 'PAYMENT_REQUESTED'
+            }
+          });
+
+          await updateWhatsAppSession(session.id, {
+            step: 'IDLE',
+            cart: emptyCartState()
+          });
+
+          await waClient.sendText(from, 
+            `🚀 *¡Solicitud enviada a tu banco!*\n\n` +
+            `Por favor, abre la app de tu banco (**Nequi, Daviplata, Bancolombia, Davivienda, etc.**), busca las notificaciones de pago pendientes de Bre-B y **autoriza el cobro por $${total.toLocaleString('es-CO')} COP**.\n\n` +
+            `_Te confirmaremos por este chat en cuanto se complete la transferencia._`
+          );
+
+        } catch (payErr) {
+          console.error('[DRUO Payment Error]', payErr);
+          
+          // Cambiar estado del pedido temporal si existe
+          try {
+            const pendingOrder = await prisma.order.findFirst({
+              where: { customerPhone: from, paymentStatus: 'PENDING' },
+              orderBy: { createdAt: 'desc' }
+            });
+            if (pendingOrder) {
+              await prisma.order.update({
+                where: { id: pendingOrder.id },
+                data: { paymentStatus: 'FAILED' }
+              });
+            }
+          } catch (dbErr) {
+            console.error('[DB Order Update Error in Catch]', dbErr);
+          }
+
+          await waClient.sendText(
+            from,
+            '⚠️ Hubo un error al iniciar la solicitud de cobro con DRUO (es posible que el número ingresado no esté registrado en Bre-B o el sistema bancario presente intermitencias).\n\n' +
+            'Por favor, *escribe tu número de celular nuevamente* para volver a intentarlo, o escribe *cancelar* si deseas abortar la compra.'
+          );
+        }
+      } else {
+        await waClient.sendText(from, '⚠️ El número ingresado no es válido. Por favor, ingresa una llave Bre-B (número de celular) de al menos 10 dígitos:');
+      }
+      break;
+    }
+
     case 'AWAITING_CONFIRMATION':
       if (text === 'final_summary' || text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
         const items = await getCartItemsForSession(session);
@@ -1214,6 +1335,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
                   merchantName: (brebConfig as any)?.merchantDisplayName || store?.name || 'Tienda',
                   amount: total,
                   reference,
+                  merchantCity: order.city || 'BOGOTA',
                   merchantAccount: {
                     gui,
                     participantId: brebConfig!.participantId!,

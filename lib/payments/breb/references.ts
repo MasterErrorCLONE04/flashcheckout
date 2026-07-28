@@ -1,6 +1,6 @@
 export function buildBrebPaymentReference(orderId: string) {
-  const suffix = orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-10).toUpperCase()
-  return `FC${suffix}`.slice(0, 25)
+  const suffix = orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-8).toUpperCase()
+  return `FC${suffix}`
 }
 
 export function getBrebProofFreshnessWindowMs() {

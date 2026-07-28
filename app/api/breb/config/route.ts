@@ -70,6 +70,22 @@ export async function PUT(req: Request) {
       return badRequest('Codigo de entidad participante requerido para activar Bre-B')
     }
 
+    if (participantId) {
+      const bankLower = bankProvider.toLowerCase()
+      if (bankLower.includes('nequi') && participantId !== '1507') {
+        return badRequest('Para Nequi, el código de entidad participante debe ser 1507')
+      }
+      if (bankLower.includes('davivienda') && participantId !== '0051') {
+        return badRequest('Para Davivienda, el código de entidad participante debe ser 0051')
+      }
+      if ((bankLower.includes('nu') || bankLower.includes('nubank')) && participantId !== '3201') {
+        return badRequest('Para Nu Colombia, el código de entidad participante debe ser 3201')
+      }
+      if (bankLower.includes('bancolombia') && participantId !== '0007') {
+        return badRequest('Para Bancolombia, el código de entidad participante debe ser 0007')
+      }
+    }
+
     const settings = getStoreSettings(store.settings)
     const config = {
       enabled: Boolean(body.enabled),

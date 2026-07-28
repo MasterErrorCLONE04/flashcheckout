@@ -58,6 +58,7 @@ export async function POST(req: Request) {
       merchantName: config.merchantDisplayName || order.store.name,
       amount: order.total,
       reference,
+      merchantCity: order.city || 'BOGOTA',
       merchantAccount: {
         gui,
         participantId: config.participantId,

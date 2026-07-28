@@ -174,7 +174,7 @@ export default function StoreSettingsManager({
   const [loadingBreb, setLoadingBreb] = useState(true)
   const [savingBreb, setSavingBreb] = useState(false)
 
-  const applyBrebPreset = (provider: 'NEQUI' | 'NU' | 'DAVIVIENDA') => {
+  const applyBrebPreset = (provider: 'NEQUI' | 'NU' | 'DAVIVIENDA' | 'BANCOLOMBIA') => {
     if (provider === 'NEQUI') {
       setBrebConfig(prev => ({
         ...prev,
@@ -191,6 +191,17 @@ export default function StoreSettingsManager({
         ...prev,
         bankProvider: 'Davivienda',
         participantId: '0051',
+        keyType: 'PHONE',
+        keyTypeCode: '02',
+      }))
+      return
+    }
+
+    if (provider === 'BANCOLOMBIA') {
+      setBrebConfig(prev => ({
+        ...prev,
+        bankProvider: 'Bancolombia',
+        participantId: '0007',
         keyType: 'PHONE',
         keyTypeCode: '02',
       }))
@@ -845,7 +856,16 @@ export default function StoreSettingsManager({
                         <p className="text-[10px] text-zinc-500 font-semibold mt-0.5">
                           Cobra con QR Bre-B. El dinero llega directo a tu cuenta, Flashcheckouts no toca los fondos.
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
+                        <div className="mt-2.5 flex items-start gap-2 bg-amber-50/50 border border-amber-200/50 rounded-lg p-2.5">
+                          <HelpCircle className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-[9px] font-bold text-amber-800 uppercase tracking-wider">Nota de Interoperabilidad</p>
+                            <p className="text-[10px] font-medium text-amber-700 mt-0.5 leading-normal">
+                              Asegúrate de que tu Llave Bre-B esté activa en la sección Bre-B de tu app bancaria para permitir recibir pagos desde cualquier banco.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
                           <button
                             type="button"
                             onClick={() => applyBrebPreset('NEQUI')}
@@ -866,6 +886,13 @@ export default function StoreSettingsManager({
                             className="h-6 px-2.5 rounded-full bg-white border border-zinc-200 text-[9px] font-bold text-zinc-700 hover:bg-zinc-50"
                           >
                             Usar Davivienda 0051
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => applyBrebPreset('BANCOLOMBIA')}
+                            className="h-6 px-2.5 rounded-full bg-white border border-zinc-200 text-[9px] font-bold text-zinc-700 hover:bg-zinc-50"
+                          >
+                            Usar Bancolombia 0007
                           </button>
                         </div>
                       </div>
@@ -913,6 +940,7 @@ export default function StoreSettingsManager({
                             if (value === 'Nequi') applyBrebPreset('NEQUI')
                             else if (value === 'Nu Colombia') applyBrebPreset('NU')
                             else if (value === 'Davivienda') applyBrebPreset('DAVIVIENDA')
+                            else if (value === 'Bancolombia') applyBrebPreset('BANCOLOMBIA')
                             else setBrebConfig(prev => ({ ...prev, bankProvider: value }))
                           }}
                           className="w-full h-9 bg-white border border-zinc-200 rounded-lg pl-9 pr-3 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400"
@@ -921,6 +949,7 @@ export default function StoreSettingsManager({
                           <option value="Nequi">Nequi - 1507</option>
                           <option value="Nu Colombia">Nu Colombia - 3201</option>
                           <option value="Davivienda">Davivienda - 0051</option>
+                          <option value="Bancolombia">Bancolombia - 0007</option>
                           <option value="Otro">Otro / manual</option>
                         </select>
                       </div>
