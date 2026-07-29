@@ -1,8 +1,11 @@
 # Base image with Node.js 20 (Alpine)
 FROM node:20-alpine AS base
 
-# Install openssl and libc6-compat, which are required by Prisma and other binaries on Alpine
-RUN apk add --no-cache libc6-compat openssl
+# Install openssl, libc6-compat, python3, py3-pip, and git
+RUN apk add --no-cache libc6-compat openssl python3 py3-pip git
+
+# Install tiktoken (using --break-system-packages for Alpine Python environment compliance)
+RUN pip3 install --no-cache-dir --break-system-packages tiktoken
 
 WORKDIR /app
 

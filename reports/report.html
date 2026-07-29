@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashCheckouts - Code Intelligence Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            950: '#030712',
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glow-indigo {
+            text-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+        .bg-glass {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.4);
+            border-radius: 4px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-dark-950 text-slate-100 min-h-screen overflow-x-hidden pb-12 selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-800/80 pb-6">
+            <div>
+                <span class="text-xs font-semibold tracking-widest text-indigo-400 uppercase">FlashCheckouts (Fase 3)</span>
+                <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent glow-indigo mb-2">
+                    Repository Analyzer
+                </h1>
+                <div class="flex flex-wrap gap-2 mt-1">
+                    <span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold">Node.js</span><span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold">TypeScript</span><span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold">Prisma ORM</span><span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold">Next.js</span><span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold">Docker</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs text-slate-400">Modelo Activo: <strong class="text-indigo-300 font-semibold">GPT-5.6 Sol</strong></span>
+            </div>
+        </header>
+
+        <!-- Main Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            
+            <!-- Files -->
+            <div class="bg-glass border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition duration-350 shadow-md">
+                <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block mb-1">Archivos</span>
+                <span class="text-2xl font-bold tracking-tight text-white">515</span>
+            </div>
+
+            <!-- Lines -->
+            <div class="bg-glass border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition duration-350 shadow-md">
+                <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block mb-1">Líneas</span>
+                <span class="text-2xl font-bold tracking-tight text-white">85.065</span>
+            </div>
+
+            <!-- Tokens -->
+            <div class="bg-glass border border-indigo-500/20 bg-gradient-to-b from-indigo-950/20 to-transparent rounded-2xl p-4 hover:border-indigo-500/35 transition duration-350 shadow-lg shadow-indigo-500/5">
+                <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider block mb-1">Tokens (o200k)</span>
+                <span class="text-2xl font-black tracking-tight text-white">841.448</span>
+            </div>
+
+            <!-- Cache Hits -->
+            <div class="bg-glass border border-slate-800 rounded-2xl p-4 hover:border-slate-700 transition duration-350 shadow-md">
+                <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block mb-1">Caché SQLite Hits</span>
+                <span class="text-2xl font-bold tracking-tight text-sky-400">515</span>
+            </div>
+
+            <!-- AI Readiness score card -->
+            <div class="bg-glass border border-indigo-500/30 bg-gradient-to-r from-indigo-950/10 to-purple-950/10 rounded-2xl p-4 shadow-md col-span-2 lg:col-span-1">
+                <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider block mb-1">AI Agent Readiness</span>
+                <span class="text-2xl font-black tracking-tight text-indigo-300">82/100</span>
+                <span class="text-[10px] text-slate-400 block font-medium mt-1">Aceptable score</span>
+            </div>
+        </div>
+
+        <!-- Git Task Dashboard -->
+        
+        
+        <!-- Circular dependencies warning -->
+        
+        <div class="bg-glass border border-red-500/20 bg-red-950/5 rounded-2xl p-6 mb-6">
+            <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3 flex items-center space-x-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Ciclos de Dependencias Circulares Detectados (1)</span>
+            </h3>
+            <div class="max-h-[180px] overflow-y-auto scrollbar-custom text-slate-300 text-xs font-mono space-y-1.5 pr-2">
+                <div class="bg-slate-950/40 p-2.5 rounded-lg border border-red-500/10 flex items-center"><span class="text-red-400 font-bold mr-2">Ciclo 1:</span><span class="text-slate-200">lib/whatsapp/cloud-api.ts ➔ lib/whatsapp/send-invoice.ts ➔ lib/whatsapp/cloud-api.ts</span></div>
+            </div>
+        </div>
+        
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Side: Interactive Charts -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- Dynamic Code Intelligence Section -->
+                <div class="space-y-6">
+            <div class="bg-glass border border-slate-800 rounded-2xl p-6 shadow-md">
+                <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wider mb-4 border-b border-slate-800/80 pb-2">Estructura Código: TypeScript</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Components</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">252</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Hooks</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">687</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Functions</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">463</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Classes</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">8</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Interfaces</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">46</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Enums</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Imports</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">827</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Exports</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">448</span>
+                    </div>
+                
+                </div>
+            </div>
+            
+            <div class="bg-glass border border-slate-800 rounded-2xl p-6 shadow-md">
+                <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wider mb-4 border-b border-slate-800/80 pb-2">Estructura Código: JavaScript</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Components</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Hooks</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Functions</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">30</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Classes</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Interfaces</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Enums</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Imports</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">70</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Exports</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                </div>
+            </div>
+            
+            <div class="bg-glass border border-slate-800 rounded-2xl p-6 shadow-md">
+                <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wider mb-4 border-b border-slate-800/80 pb-2">Estructura Código: Python</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Classes</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">5</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Functions</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">59</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Decorators</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">0</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Imports</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">77</span>
+                    </div>
+                
+                    <div class="bg-slate-950/20 p-3.5 rounded-xl border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wider">Modules</span>
+                        <span class="text-xl font-bold tracking-tight text-slate-200">25</span>
+                    </div>
+                
+                </div>
+            </div>
+            
+            <div class="bg-glass border border-indigo-500/20 bg-gradient-to-b from-indigo-950/10 to-transparent rounded-2xl p-6 shadow-lg">
+                <h3 class="text-sm font-bold text-purple-300 uppercase tracking-wider mb-4 border-b border-indigo-500/10 pb-2">Estructura Framework: Next.js</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            
+                    <div class="bg-slate-950/30 p-3.5 rounded-xl border border-slate-800/60">
+                        <span class="text-[10px] text-indigo-300 block mb-1 uppercase font-semibold tracking-wider">Rutas de Página</span>
+                        <span class="text-xl font-bold tracking-tight text-white">64</span>
+                    </div>
+                
+                    <div class="bg-slate-950/30 p-3.5 rounded-xl border border-slate-800/60">
+                        <span class="text-[10px] text-indigo-300 block mb-1 uppercase font-semibold tracking-wider">Rutas de API</span>
+                        <span class="text-xl font-bold tracking-tight text-white">48</span>
+                    </div>
+                
+                    <div class="bg-slate-950/30 p-3.5 rounded-xl border border-slate-800/60">
+                        <span class="text-[10px] text-indigo-300 block mb-1 uppercase font-semibold tracking-wider">Server Components</span>
+                        <span class="text-xl font-bold tracking-tight text-white">6</span>
+                    </div>
+                
+                </div>
+            </div>
+            </div>
+
+                <!-- Snapshot History Chart -->
+                
+
+                <!-- Chart: Language Share & Category Share -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-glass border border-slate-800 rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Distribución por Lenguaje</h3>
+                        <div class="relative flex items-center justify-center" style="height: 220px;">
+                            <canvas id="languageChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-glass border border-slate-800 rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Distribución por Categorías</h3>
+                        <div class="relative flex items-center justify-center" style="height: 220px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Folders Horizontal Bar -->
+                <div class="bg-glass border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Tokens por Módulo (Top 8)</h3>
+                    <div class="relative flex items-center justify-center" style="height: 240px;">
+                        <canvas id="foldersChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side: Details Tables -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- Readiness Score Diagnostics Card -->
+                <div class="bg-glass border border-indigo-500/30 bg-gradient-to-b from-indigo-950/20 to-transparent rounded-2xl p-5 shadow-lg">
+                    <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wider mb-4 border-b border-indigo-500/20 pb-2">Diagnóstico de Agentes</h3>
+                    <div class="space-y-3 mb-4">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300">Contexto (20/30)</span>
+                            <span class="font-semibold text-slate-200">⚠</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300">Arquitectura (27/30)</span>
+                            <span class="font-semibold text-slate-200">✔</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300">Dependencias (15/20)</span>
+                            <span class="font-semibold text-slate-200">⚠</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300">Documentación (20/20)</span>
+                            <span class="font-semibold text-slate-200">✔</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-800/80 pt-3">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Estrategia</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">El repositorio es apto, pero los archivos grandes o dependencias complejas pueden degradar el contexto de la IA.</p>
+                    </div>
+                </div>
+
+                <!-- Timing Card -->
+                <div class="bg-glass border border-slate-800 rounded-2xl p-5 shadow-lg">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Tiempo de Análisis</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-950/20 p-3 rounded-xl border border-slate-800/80">
+                            <span class="text-xs text-slate-400 block mb-1">Escaneo</span>
+                            <span class="text-sm font-bold text-slate-200">0.606 s</span>
+                        </div>
+                        <div class="bg-slate-950/20 p-3 rounded-xl border border-slate-800/80">
+                            <span class="text-xs text-slate-400 block mb-1">Tokenización</span>
+                            <span class="text-sm font-bold text-slate-200">2.266 s</span>
+                        </div>
+                        <div class="bg-slate-950/20 p-3 rounded-xl border border-slate-800/80">
+                            <span class="text-xs text-slate-400 block mb-1">Reportes</span>
+                            <span class="text-sm font-bold text-slate-200">0.038 s</span>
+                        </div>
+                        <div class="bg-indigo-950/10 p-3 rounded-xl border border-indigo-500/20 col-span-1">
+                            <span class="text-xs text-indigo-300 block mb-1">Tiempo Total</span>
+                            <span class="text-sm font-black text-indigo-400">2.927 s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table: Cost scenarios for active model -->
+                <div class="bg-glass border border-slate-800 rounded-2xl p-5">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Escenarios Agente (GPT-5.6 Sol)</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center bg-slate-950/30 p-2.5 rounded-xl border border-slate-800/80">
+                            <div>
+                                <span class="text-xs text-slate-200 block font-semibold">Agente Explorador</span>
+                                <span class="text-[10px] text-slate-400">1x Input, 10% Output</span>
+                            </div>
+                            <span class="text-base font-bold text-indigo-300">USD 6.73</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-950/30 p-2.5 rounded-xl border border-slate-800/80">
+                            <div>
+                                <span class="text-xs text-slate-200 block font-semibold">Agente Desarrollador</span>
+                                <span class="text-[10px] text-slate-400">2x Input, 50% Output</span>
+                            </div>
+                            <span class="text-base font-bold text-purple-300">USD 21.04</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-950/30 p-2.5 rounded-xl border border-slate-800/80">
+                            <div>
+                                <span class="text-xs text-slate-200 block font-semibold">Agente Autónomo</span>
+                                <span class="text-[10px] text-slate-400">5x Input, 100% Output</span>
+                            </div>
+                            <span class="text-base font-bold text-pink-300">USD 46.28</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Languages Distribution list card -->
+                <div class="bg-glass border border-slate-800 rounded-2xl p-5">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 border-b border-slate-800 pb-2">Porcentaje por Lenguaje</h3>
+                    <div class="space-y-2 max-h-[220px] overflow-y-auto scrollbar-custom pr-1">
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #6366F1"></span>
+                                <span>TypeScript</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">559.009 tkn (66.4%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #A855F7"></span>
+                                <span>Markdown</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">177.894 tkn (21.1%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #EC4899"></span>
+                                <span>Otros</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">47.714 tkn (5.7%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #3B82F6"></span>
+                                <span>Python</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">31.563 tkn (3.8%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #10B981"></span>
+                                <span>JavaScript</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">15.818 tkn (1.9%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #F59E0B"></span>
+                                <span>Prisma</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">2.672 tkn (0.3%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #EF4444"></span>
+                                <span>JSON</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">1.996 tkn (0.2%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #64748B"></span>
+                                <span>CSS</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">1.513 tkn (0.2%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #6366F1"></span>
+                                <span>PowerShell</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">1.319 tkn (0.2%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #A855F7"></span>
+                                <span>Docker</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">936 tkn (0.1%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #EC4899"></span>
+                                <span>SQL</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">851 tkn (0.1%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #3B82F6"></span>
+                                <span>Git Configuration</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">146 tkn (0.0%)</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-200 font-medium flex items-center space-x-1.5">
+                                <span class="h-2 w-2 rounded-full" style="background-color: #10B981"></span>
+                                <span>HTML</span>
+                            </span>
+                            <span class="text-slate-400 font-mono font-semibold">17 tkn (0.0%)</span>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Section: Top Folders Cost Allocation & Complexity -->
+        <div class="mt-6 bg-glass border border-slate-800 rounded-2xl p-6">
+            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Distribución de Costes y Complejidad por Módulo</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">components/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/10 text-red-400">Alta</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 2.19</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">.agents/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Baja</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.76</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">.agents/skills/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Baja</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.76</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">components/pages/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/10 text-red-400">Alta</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.37</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">app/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Baja</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.31</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">lib/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/10 text-yellow-400">Media</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.30</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">scratch/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/10 text-yellow-400">Media</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.29</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">app/api/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Baja</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.27</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">.agents/skills/vercel-react-best-practices/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Baja</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.27</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">components/explorar/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/10 text-red-400">Alta</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.21</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">tools/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400">Baja</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.16</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-slate-400 font-mono font-medium truncate block max-w-[70%]">tools/repository_analyzer/</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/10 text-yellow-400">Media</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Complejidad Módulo</span>
+                            <span class="text-xs font-bold text-slate-300">Clases / Funcs: 0 / 0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-indigo-400 block">Coste Est.</span>
+                            <span class="text-sm font-black text-indigo-300">USD 0.16</span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- Section: File List -->
+        <div class="mt-6 bg-glass border border-slate-800 rounded-2xl p-6">
+            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Análisis de Archivos (Clasificados por Impacto / Blast Radius)</h3>
+            <div class="overflow-x-auto scrollbar-custom max-h-[350px]">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="text-slate-400 border-b border-slate-800 bg-slate-950/40">
+                            <th class="py-2.5 px-3">Ruta del Archivo</th>
+                            <th class="py-2.5 px-3">Lenguaje</th>
+                            <th class="py-2.5 px-3 text-right">Líneas</th>
+                            <th class="py-2.5 px-3 text-right">Tokens</th>
+                            <th class="py-2.5 px-3 text-right">Impacto (Blast Radius)</th>
+                            <th class="py-2.5 px-3 text-right">Métricas Estructurales</th>
+                            <th class="py-2.5 px-3 text-right">Costo Est. Lectura</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/50">
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/prisma.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">34</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">236</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">110 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00118</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/utils.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">6</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">45</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">106 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00023</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/avatar.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">112</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">808</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">35 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 6 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00404</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/dashboard/CustomUserMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">101</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.245</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">34 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 4 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00622</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/StoreCreationWizard.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">1.506</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">17.178</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">33 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 23 | Func: 9 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.08589</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/store-context.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">28</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">171</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">20 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00086</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/whatsapp/evolution.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">405</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.115</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">20 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 11 | Clas: 1 | Inte: 1 | Enum: 0 | Impo: 0 | Expo: 3</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01558</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/api/route-utils.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">58</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">310</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">19 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 8 | Clas: 1 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 9</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00155</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/button.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">67</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">851</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">17 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00426</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/whatsapp/cloud-api.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">386</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">2.686</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">14 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 12 | Clas: 1 | Inte: 1 | Enum: 0 | Impo: 2 | Expo: 6</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01343</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/whatsapp/send-invoice.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">51</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">437</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">14 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00218</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ExploreTypes.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">38</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">188</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-red-400">11 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 0 | Expo: 4</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00094</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/Footer.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">248</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.674</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">9 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 8 | Hook: 2 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01837</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/Navbar.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">175</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.824</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">9 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 3 | Hook: 5 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00912</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/openrouter.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">271</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.091</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">9 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 5 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 0 | Expo: 4</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01545</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/services/embedding-service.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">213</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.829</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">9 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 5 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 5</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00915</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ExploreData.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">33</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">412</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">7 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 4</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00206</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/MapPicker.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">94</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">900</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">7 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 2 | Hook: 6 | Func: 3 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00450</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/services/ranking-service.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">74</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">521</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">7 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 1 | Inte: 3 | Enum: 0 | Impo: 0 | Expo: 4</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00260</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/Modal.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">67</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">541</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">6 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 1 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00270</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/subscription.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">32</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">171</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">6 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00086</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/pipeline/session-manager.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">172</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.175</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">6 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 1 | Inte: 3 | Enum: 0 | Impo: 1 | Expo: 5</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00588</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/services/retrieval-service.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">228</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.771</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">6 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 1 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00886</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/checkout/types.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">31</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">160</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">6 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 0 | Expo: 4</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00080</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/WhatsAppCatalog.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">3.179</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">39.020</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">5 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 5 | Hook: 31 | Func: 13 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 9 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.19510</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/supabase.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">132</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">869</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">5 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 5 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 9</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00434</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/pipeline/tool-registry.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">27</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">189</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">5 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 1 | Inte: 1 | Enum: 0 | Impo: 1 | Expo: 3</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00095</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/whatsapp/session-state.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">95</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">647</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">5 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 6 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 0 | Expo: 8</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00324</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ChatHistoryViewer.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">1.643</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">19.615</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 30 | Func: 5 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.09807</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreAboutMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">124</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.319</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00660</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreAccioWorkMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">118</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.616</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00808</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreHelpCenterMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">122</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.564</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00782</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreMegaMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">545</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">8.480</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.04240</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreOrderProtectionMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">133</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.585</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00792</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreStoreCardV2.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">286</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.193</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 3 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01597</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreVerifiedStoresMenu.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">167</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.925</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00962</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/input.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">19</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">229</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00114</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/label.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">24</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">142</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00071</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/separator.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">28</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">146</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00073</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/stripe.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">7</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">58</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00029</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/nova-tools.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">629</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">5.390</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 2 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 4 | Expo: 3</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.02695</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/dispatch/matching-algorithm.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">206</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.503</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 5 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 1 | Expo: 6</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00751</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/payments/breb/emvco.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">285</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">2.555</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-yellow-400">4 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 2 | Func: 17 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 0 | Expo: 11</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01277</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/LandingChatbot.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">457</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">4.805</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 3 | Hook: 12 | Func: 5 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.02403</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/QrGenerator.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">121</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.116</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 4 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00558</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/SubscriptionButton.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">61</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">504</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00252</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreCategoryFilterStrip.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">257</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">2.799</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 12 | Func: 5 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01399</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreCategoryNav.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">62</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">626</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00313</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreHeaderBar.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">382</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.467</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 16 | Func: 12 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 9 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01733</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreLiveAndTrendsWidget.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">116</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.385</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00692</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreQuickServicesBar.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">65</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">695</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00347</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreResultsGrid.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">77</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">833</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00417</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreSearchHero.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">150</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.500</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 9 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00750</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreStoreB2BConfigModal.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">307</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.134</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 4 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01567</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreTopRankedWidget.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">89</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.073</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00536</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/explorar/ExploreUserProfileCard.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">100</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.077</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00539</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/badge.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">49</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">460</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00230</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ui/card.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">103</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">734</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 7 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00367</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/mercadopago.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">15</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">103</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 3</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00051</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/ai/pipeline/agent-router.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">433</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">5.368</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 1 | Clas: 1 | Inte: 1 | Enum: 0 | Impo: 5 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.02684</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/payments/breb/references.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">10</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">124</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">3 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 0 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00062</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/AffiliateClient.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">233</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.008</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 1 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01504</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/AgentSettingsManager.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">939</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">10.321</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 17 | Func: 6 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.05160</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/AnalyticsDashboard.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">199</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">2.391</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 1 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01196</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/CopyButton.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">28</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">197</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00098</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/CustomerCRM.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">738</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">8.120</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 20 | Func: 3 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.04060</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ExploreDirectoryShell.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">146</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.260</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 7 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 12 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00630</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/IntegrationsClient.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">313</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.619</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 0 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01809</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/LandingContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">1.034</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">14.020</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 6 | Hook: 9 | Func: 2 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 9 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.07010</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/LogisticsManager.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">575</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">6.936</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 9 | Func: 3 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.03468</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/NovaChatClient.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">1.290</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">14.725</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 18 | Func: 7 | Clas: 0 | Inte: 2 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.07362</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/OrderList.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">722</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">7.943</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 3 | Hook: 5 | Func: 5 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.03972</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ProductManager.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">802</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">7.947</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 12 | Func: 9 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.03973</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ReportButton.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">92</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">725</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 4 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00362</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/SmartPayBrebClient.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">559</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">6.100</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 9 | Hook: 14 | Func: 2 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.03050</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/StoreSettingsManager.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">1.185</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">12.619</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 2 | Hook: 38 | Func: 16 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.06309</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/TheOfficeClient.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">2.386</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">26.959</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 49 | Func: 16 | Clas: 0 | Inte: 3 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.13479</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/TiendaClient.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">2.514</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">29.438</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 39 | Func: 4 | Clas: 0 | Inte: 2 | Enum: 0 | Impo: 6 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.14719</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/auth/AuthLayout.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">47</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.632</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 0 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00816</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/dashboard/DashboardClientContainer.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">1.043</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">12.248</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 2 | Hook: 18 | Func: 5 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 6 | Expo: 4</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.06124</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/dashboard/ManualVerificationPanel.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">399</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">4.197</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 7 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.02099</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/dashboard/StoreVerificationManager.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">330</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.384</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 9 | Func: 3 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01692</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/druo.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">83</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">578</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 1 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00289</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/bot/intent-engine.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">50</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">474</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 2 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 0 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00237</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">lib/bot/search-service.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">37</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">219</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">2 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 1 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 1 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00110</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">app/api/whatsapp/session/route.ts</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">143</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.102</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 0 | Hook: 0 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 6 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00551</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ExploreSearch.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">46</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">417</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 8 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00209</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/ExploreThemeToggle.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">29</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">288</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 6 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00144</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/WebViewProvider.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">23</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">149</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 4 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00075</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/auth/CustomSignIn.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">244</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">3.920</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 2 | Hook: 13 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 10 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01960</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/auth/CustomSignUp.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">343</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">4.790</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 2 | Hook: 17 | Func: 1 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 9 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.02395</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/changelog/ChangelogPageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">122</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.400</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 2 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 2 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00700</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/dashboard/SidebarNav.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">149</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.725</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 1 | Clas: 0 | Inte: 1 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00863</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/dashboard/StoreSwitcher.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">109</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.054</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00527</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/help/HelpPageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">165</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">2.083</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 2 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 3 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.01042</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/pages/AffiliatePageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">53</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">371</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00186</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/pages/AgentePageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">79</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">589</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00295</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/pages/AnaliticaPageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">105</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">925</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 0 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 5 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00463</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/pages/AutomatizacionesPageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">726</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">8.708</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 18 | Func: 2 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 4 | Expo: 1</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.04354</td>
+                        </tr>
+                        
+                        <tr class="hover:bg-slate-800/20 text-slate-300 transition duration-150">
+                            <td class="py-2 px-3 font-mono font-medium truncate max-w-sm">components/pages/ClientesPageContent.tsx</td>
+                            <td class="py-2 px-3">TypeScript</td>
+                            <td class="py-2 px-3 text-right font-mono">197</td>
+                            <td class="py-2 px-3 text-right font-mono font-semibold text-slate-200">1.555</td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-slate-400">1 archivos</td>
+                            <td class="py-2 px-3 text-right text-[10px] text-slate-400">Comp: 1 | Hook: 0 | Func: 3 | Clas: 0 | Inte: 0 | Enum: 0 | Impo: 6 | Expo: 2</td>
+                            <td class="py-2 px-3 text-right font-mono text-indigo-400">USD 0.00777</td>
+                        </tr>
+                        
+                        <tr class="text-slate-500 italic"><td colspan="7" class="py-3 px-3 text-center">Mostrando los primeros 100 archivos ordenados por mayor impacto en el grafo de dependencias. Se analizaron 515 archivos en total.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script to set up charts -->
+    <script>
+        const languages = ["TypeScript", "Markdown", "Otros", "Python", "JavaScript", "Prisma", "JSON", "CSS", "PowerShell", "Docker", "SQL", "Git Configuration", "HTML"];
+        const langTokens = [559009, 177894, 47714, 31563, 15818, 2672, 1996, 1513, 1319, 936, 851, 146, 17];
+        
+        const categories = ["C\u00f3digo", "Documentaci\u00f3n", "Configuraci\u00f3n", "Infraestructura", "Otros"];
+        const catTokens = [610090, 225457, 4814, 936, 151];
+        
+        const folders = ["components", ".agents", ".agents/skills", "components/pages", "app", "lib", "scratch", "app/api"];
+        const folderTokens = [437406, 152830, 152830, 73781, 62366, 60285, 57201, 54103];
+        
+        const colors = [
+            '#6366F1', '#A855F7', '#EC4899', '#3B82F6', '#10B981', 
+            '#F59E0B', '#EF4444', '#64748B', '#14B8A6', '#8B5CF6'
+        ];
+
+        // Language Doughnut
+        new Chart(document.getElementById('languageChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: languages.slice(0, 7),
+                datasets: [{
+                    data: langTokens.slice(0, 7),
+                    backgroundColor: colors.slice(0, 7),
+                    borderWidth: 1,
+                    borderColor: '#1E293B',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 8,
+                            color: '#94A3B8',
+                            font: { family: 'Outfit', size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Doughnut
+        new Chart(document.getElementById('categoryChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: categories,
+                datasets: [{
+                    data: catTokens,
+                    backgroundColor: colors.slice(2, 2 + categories.length),
+                    borderWidth: 1,
+                    borderColor: '#1E293B',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 8,
+                            color: '#94A3B8',
+                            font: { family: 'Outfit', size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Top Folders Horizontal Bar Chart
+        new Chart(document.getElementById('foldersChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: folders.map(f => f.length > 25 ? '...' + f.slice(-22) : f),
+                datasets: [{
+                    label: 'Tokens',
+                    data: folderTokens,
+                    backgroundColor: 'rgba(99, 102, 241, 0.75)',
+                    hoverBackgroundColor: '#6366F1',
+                    borderRadius: 6,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                        ticks: { color: '#94A3B8', font: { family: 'Outfit', size: 10 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#E2E8F0', font: { family: 'Outfit', size: 10 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Snapshot timeline chart
+        
+    </script>
+</body>
+</html>
