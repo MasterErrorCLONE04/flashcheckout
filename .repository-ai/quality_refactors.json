@@ -1,0 +1,11 @@
+[
+  {
+    "timestamp": "2026-07-30T05:49:49Z",
+    "pattern": "Service Decomposition",
+    "impact": {
+      "complexity": -45,
+      "coupling": -20,
+      "readiness": 8
+    }
+  }
+]

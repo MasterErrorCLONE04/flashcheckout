@@ -1,0 +1,34 @@
+{
+  "failures": [
+    {
+      "error": "Circular dependency detected",
+      "technology": "TypeScript",
+      "pattern": "Singleton",
+      "frequency": 324,
+      "solutions_successful": [
+        "Dependency Injection",
+        "Factory Pattern"
+      ]
+    },
+    {
+      "error": "Interface implementation missing method",
+      "technology": "TypeScript",
+      "pattern": "Adapter Pattern",
+      "frequency": 185,
+      "solutions_successful": [
+        "Add missing method signature",
+        "Implement default interface method"
+      ]
+    },
+    {
+      "error": "SyntaxError unexpected token",
+      "technology": "TypeScript",
+      "pattern": "Any",
+      "frequency": 412,
+      "solutions_successful": [
+        "Correct braces wrapping",
+        "Check trailing commas"
+      ]
+    }
+  ]
+}

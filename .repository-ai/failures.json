@@ -1,0 +1,9 @@
+{
+  "La implementación del adaptador no satisface la interfaz requerida.": {
+    "usage": 1,
+    "success_rate": 100,
+    "solutions_attempted": [
+      "ADD_METHOD"
+    ]
+  }
+}
