@@ -101,6 +101,7 @@ def apply_patch_spec(patch_spec, base_dir):
             
     # Log to patches.json
     patches_path = os.path.join(base_dir, '.repository-ai', 'patches.json')
+    os.makedirs(os.path.dirname(patches_path), exist_ok=True)
     patches_list = []
     if os.path.exists(patches_path):
         try:
