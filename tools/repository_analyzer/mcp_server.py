@@ -218,6 +218,54 @@ def get_tools_list():
                     },
                     "required": ["query"]
                 }
+            },
+            {
+                "name": "verify_security_policy",
+                "description": "Evalúa un parche de código propuesto contra las reglas de gobernanza y políticas de seguridad activa.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "patch_spec": {"type": "object", "description": "Especificación del parche (incluyendo 'file' y 'code')"}
+                    },
+                    "required": ["patch_spec"]
+                }
+            },
+            {
+                "name": "run_compilation_checks",
+                "description": "Ejecuta tsc, eslint y comprobaciones de compilación física reales en el repositorio.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "log_quality_differential",
+                "description": "Registra las variaciones de complejidad, acoplamiento y score de AI Readiness de un refactoring de calidad exitoso.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": {"type": "string", "description": "Patrón de refactorización utilizado (ej: 'Service Decomposition')"},
+                        "before_metrics": {
+                            "type": "object",
+                            "properties": {
+                                "complexity": {"type": "integer"},
+                                "coupling": {"type": "integer"},
+                                "readiness": {"type": "integer"}
+                            },
+                            "required": ["complexity", "coupling", "readiness"]
+                        },
+                        "after_metrics": {
+                            "type": "object",
+                            "properties": {
+                                "complexity": {"type": "integer"},
+                                "coupling": {"type": "integer"},
+                                "readiness": {"type": "integer"}
+                            },
+                            "required": ["complexity", "coupling", "readiness"]
+                        }
+                    },
+                    "required": ["pattern", "before_metrics", "after_metrics"]
+                }
             }
         ]
     }
@@ -474,6 +522,49 @@ def handle_get_failure_history(arguments):
             
     return {"query": query, "matches": matches}
 
+def handle_verify_security_policy(arguments):
+    from repository_analyzer.security_policy import audit_patch_spec
+    return audit_patch_spec(arguments.get("patch_spec"), base_dir)
+
+def handle_run_compilation_checks(arguments):
+    from repository_analyzer.verification_engine import run_pipeline_checks
+    return run_pipeline_checks(base_dir)
+
+def handle_log_quality_differential(arguments):
+    import time
+    before = arguments.get("before_metrics", {})
+    after = arguments.get("after_metrics", {})
+    
+    complexity_diff = after.get("complexity", 0) - before.get("complexity", 0)
+    coupling_diff = after.get("coupling", 0) - before.get("coupling", 0)
+    readiness_diff = after.get("readiness", 0) - before.get("readiness", 0)
+    
+    quality_log_path = os.path.join(base_dir, '.repository-ai', 'quality_refactors.json')
+    os.makedirs(os.path.dirname(quality_log_path), exist_ok=True)
+    
+    refactors = []
+    if os.path.exists(quality_log_path):
+        try:
+            with open(quality_log_path, 'r', encoding='utf-8') as f:
+                refactors = json.load(f)
+        except Exception:
+            pass
+            
+    record = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "pattern": arguments.get("pattern", "General Refactor"),
+        "impact": {
+            "complexity": complexity_diff,
+            "coupling": coupling_diff,
+            "readiness": readiness_diff
+        }
+    }
+    refactors.append(record)
+    with open(quality_log_path, 'w', encoding='utf-8') as f:
+        json.dump(refactors, f, indent=2, ensure_ascii=False)
+        
+    return {"status": "LOGGED", "record": record}
+
 def main():
     for line in sys.stdin:
         if not line.strip():
@@ -547,6 +638,12 @@ def main():
                 tool_res = handle_repair_change(arguments)
             elif tool_name == "get_failure_history":
                 tool_res = handle_get_failure_history(arguments)
+            elif tool_name == "verify_security_policy":
+                tool_res = handle_verify_security_policy(arguments)
+            elif tool_name == "run_compilation_checks":
+                tool_res = handle_run_compilation_checks(arguments)
+            elif tool_name == "log_quality_differential":
+                tool_res = handle_log_quality_differential(arguments)
             else:
                 tool_res = {"error": f"Tool '{tool_name}' not found."}
                 
