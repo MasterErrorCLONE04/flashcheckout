@@ -181,6 +181,43 @@ def get_tools_list():
                     },
                     "required": ["patch_spec"]
                 }
+            },
+            {
+                "name": "diagnose_error",
+                "description": "Analiza y diagnostica un error de compilación o linter contrastándolo con la Tabla de Símbolos.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "error_log": {"type": "string", "description": "Traza del log de error del compilador o linter"},
+                        "file": {"type": "string", "description": "Ruta relativa del archivo que originó el error"}
+                    },
+                    "required": ["error_log", "file"]
+                }
+            },
+            {
+                "name": "repair_change",
+                "description": "Activa la estrategia de auto-reparación y reintenta aplicar un parche correctivo AST en el Sandbox.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "tx_id": {"type": "string", "description": "ID de transacción semántica"},
+                        "branch_name": {"type": "string", "description": "Nombre de la rama temporal de Git"},
+                        "error_log": {"type": "string", "description": "Traza del log de error"},
+                        "file": {"type": "string", "description": "Ruta relativa del archivo a corregir"}
+                    },
+                    "required": ["tx_id", "branch_name", "error_log", "file"]
+                }
+            },
+            {
+                "name": "get_failure_history",
+                "description": "Devuelve el historial de fallos conocidos y resoluciones exitosas guardadas en failures.json.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Texto o concepto a buscar en la memoria de fallos"}
+                    },
+                    "required": ["query"]
+                }
             }
         ]
     }
@@ -400,6 +437,43 @@ def handle_apply_patch(arguments):
     from repository_analyzer.patch_engine import apply_patch_spec
     return apply_patch_spec(arguments.get("patch_spec"), base_dir)
 
+def handle_diagnose_error(arguments):
+    from repository_analyzer.error_analyzer import parse_error_log, diagnose_ast_mismatch
+    diag = parse_error_log(arguments.get("error_log", ""), arguments.get("file", ""))
+    ast_diag = diagnose_ast_mismatch(diag, base_dir)
+    return {
+        "diagnosis": diag,
+        "ast_cross_reference": ast_diag
+    }
+
+def handle_repair_change(arguments):
+    from repository_analyzer.repair_engine import execute_self_healing_retry
+    return execute_self_healing_retry(
+        base_dir,
+        arguments.get("tx_id", "tx_00001"),
+        arguments.get("branch_name", "agent/proposed-change"),
+        arguments.get("error_log", ""),
+        arguments.get("file", "")
+    )
+
+def handle_get_failure_history(arguments):
+    query = arguments.get("query", "").lower()
+    failures_path = os.path.join(base_dir, '.repository-ai', 'failures.json')
+    if not os.path.exists(failures_path):
+        return {"error": "No failures recorded yet."}
+    try:
+        with open(failures_path, 'r', encoding='utf-8') as f:
+            failures = json.load(f)
+    except Exception:
+        return {"error": "Failed to parse failures history."}
+    
+    matches = {}
+    for err_pattern, stats in failures.items():
+        if query in err_pattern.lower() or query in json.dumps(stats).lower():
+            matches[err_pattern] = stats
+            
+    return {"query": query, "matches": matches}
+
 def main():
     for line in sys.stdin:
         if not line.strip():
@@ -467,6 +541,12 @@ def main():
                 tool_res = handle_propose_patch(arguments)
             elif tool_name == "apply_patch":
                 tool_res = handle_apply_patch(arguments)
+            elif tool_name == "diagnose_error":
+                tool_res = handle_diagnose_error(arguments)
+            elif tool_name == "repair_change":
+                tool_res = handle_repair_change(arguments)
+            elif tool_name == "get_failure_history":
+                tool_res = handle_get_failure_history(arguments)
             else:
                 tool_res = {"error": f"Tool '{tool_name}' not found."}
                 
