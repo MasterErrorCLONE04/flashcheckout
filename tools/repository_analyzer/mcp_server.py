@@ -266,6 +266,37 @@ def get_tools_list():
                     },
                     "required": ["pattern", "before_metrics", "after_metrics"]
                 }
+            },
+            {
+                "name": "get_global_patterns",
+                "description": "Devuelve las estadísticas federadas globales de éxito y complejidad de patrones de diseño.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "stack": {"type": "array", "items": {"type": "string"}, "description": "Stack de tecnologías opcional"}
+                    }
+                }
+            },
+            {
+                "name": "recommend_architecture",
+                "description": "Genera recomendaciones arquitectónicas estructuradas y templates basados en el stack de tecnologías.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "stack": {"type": "array", "items": {"type": "string"}, "description": "Stack de tecnologías opcional"}
+                    }
+                }
+            },
+            {
+                "name": "fetch_global_failures",
+                "description": "Busca soluciones exitosas en el catálogo de fallos globales para un error de compilación.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "error_type": {"type": "string", "description": "Tipo o traza de error a buscar"}
+                    },
+                    "required": ["error_type"]
+                }
             }
         ]
     }
@@ -565,6 +596,34 @@ def handle_log_quality_differential(arguments):
         
     return {"status": "LOGGED", "record": record}
 
+def handle_get_global_patterns(arguments):
+    from repository_analyzer.global_memory_manager import compile_global_memory
+    compile_global_memory(base_dir)
+    
+    global_patterns_path = os.path.join(base_dir, '.repository-ai', 'global-patterns.json')
+    if os.path.exists(global_patterns_path):
+        try:
+            with open(global_patterns_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"error": "Failed to read global patterns."}
+
+def handle_recommend_architecture(arguments):
+    from repository_analyzer.global_memory_manager import detect_stack_technologies
+    from repository_analyzer.recipe_engine import recommend_architecture_recipe
+    
+    stack = arguments.get("stack")
+    if not stack:
+        stack = detect_stack_technologies(base_dir)
+        
+    return recommend_architecture_recipe(stack, base_dir)
+
+def handle_fetch_global_failures(arguments):
+    from repository_analyzer.recipe_engine import fetch_global_remedy
+    err_type = arguments.get("error_type", "")
+    return fetch_global_remedy(err_type, base_dir)
+
 def main():
     for line in sys.stdin:
         if not line.strip():
@@ -644,6 +703,12 @@ def main():
                 tool_res = handle_run_compilation_checks(arguments)
             elif tool_name == "log_quality_differential":
                 tool_res = handle_log_quality_differential(arguments)
+            elif tool_name == "get_global_patterns":
+                tool_res = handle_get_global_patterns(arguments)
+            elif tool_name == "recommend_architecture":
+                tool_res = handle_recommend_architecture(arguments)
+            elif tool_name == "fetch_global_failures":
+                tool_res = handle_fetch_global_failures(arguments)
             else:
                 tool_res = {"error": f"Tool '{tool_name}' not found."}
                 
