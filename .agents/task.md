@@ -1,10 +1,11 @@
-# Tareas de Implementación — Self-Healing Engineering Loop (Fase 12)
+# Tareas de Implementación — Engineering Governance Layer (Fase 12.5)
 
-- [x] Crear el analizador de errores y diagnóstico de firmas AST `error_analyzer.py`
-- [x] Crear el motor de estrategias de reparación y controlador de reintentos `repair_engine.py`
-- [x] Registrar la herramienta `diagnose_error` en el servidor MCP `mcp_server.py`
-- [x] Registrar la herramienta `repair_change` en el servidor MCP `mcp_server.py`
-- [x] Registrar la herramienta `get_failure_history` en el servidor MCP `mcp_server.py`
-- [x] Crear el script de prueba `test_self_healing.py` para simular fallos de interfaz y resoluciones de parches mediante JSON-RPC
-- [x] Ejecutar el script `test_self_healing.py` en WSL, confirmar la auto-reparación y registrar fallos en `failures.json`
+- [x] Crear el archivo de configuración de reglas `policy_rules.json`
+- [x] Crear el módulo Policy Engine `security_policy.py` para analizar riesgos y bloqueos de seguridad
+- [x] Crear el módulo Verification Engine `verification_engine.py` para correr tsc/eslint de forma simulada/real
+- [x] Registrar la herramienta `verify_security_policy` en el servidor MCP `mcp_server.py`
+- [x] Registrar la herramienta `run_compilation_checks` en el servidor MCP `mcp_server.py`
+- [x] Registrar la herramienta `log_quality_differential` en el servidor MCP `mcp_server.py`
+- [x] Crear el script de prueba `test_governance.py` para validar bloqueos destructivos y reportes de compilación mediante JSON-RPC
+- [x] Ejecutar el script `test_governance.py` en WSL y comprobar las salidas esperadas
 - [x] Documentar el progreso en `walkthrough.md`
