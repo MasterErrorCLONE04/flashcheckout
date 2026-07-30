@@ -1,10 +1,10 @@
-# Tareas de Implementación — Autonomous Execution Layer & Sandbox (Fase 10)
+# Tareas de Implementación — Self-Healing Engineering Loop (Fase 12)
 
-- [x] Crear el gestor de transacciones y ramas de Git `transaction_manager.py` (Fase 10.1)
-- [x] Modificar `evolution_manager.py` para compilar estadísticas de uso y éxito en `.repository-ai/patterns.json` (Fase 10.5)
-- [x] Registrar la herramienta `start_transaction` en el servidor MCP `mcp_server.py`
-- [x] Registrar la herramienta `commit_transaction` en el servidor MCP `mcp_server.py`
-- [x] Registrar la herramienta `rollback_transaction` en el servidor MCP `mcp_server.py`
-- [x] Crear el script de prueba `test_transaction_mcp.py` para validar la creación de ramas y rollbacks mediante JSON-RPC
-- [x] Ejecutar el script `test_transaction_mcp.py` en WSL y comprobar la restauración de la rama original
+- [x] Crear el analizador de errores y diagnóstico de firmas AST `error_analyzer.py`
+- [x] Crear el motor de estrategias de reparación y controlador de reintentos `repair_engine.py`
+- [x] Registrar la herramienta `diagnose_error` en el servidor MCP `mcp_server.py`
+- [x] Registrar la herramienta `repair_change` en el servidor MCP `mcp_server.py`
+- [x] Registrar la herramienta `get_failure_history` en el servidor MCP `mcp_server.py`
+- [x] Crear el script de prueba `test_self_healing.py` para simular fallos de interfaz y resoluciones de parches mediante JSON-RPC
+- [x] Ejecutar el script `test_self_healing.py` en WSL, confirmar la auto-reparación y registrar fallos en `failures.json`
 - [x] Documentar el progreso en `walkthrough.md`
