@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 86400 // Revalidate sitemap once a day (24 hours)
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://flashcheckouts.com'
 
