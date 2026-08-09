@@ -47,6 +47,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/'],
       }
     ],
-    sitemap: 'https://flashcheckouts.com/sitemap.xml',
+    sitemap: 'https://www.flashcheckouts.com/sitemap.xml',
   }
 }
