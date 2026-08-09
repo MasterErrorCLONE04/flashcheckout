@@ -1,1 +1,0 @@
-# FlashCheckout Repository Analyzer Package
