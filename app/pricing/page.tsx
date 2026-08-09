@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Planes y Precios',
   description: 'Comienza gratis con Flashcheckouts. Conoce nuestros planes y automatiza el cierre de tus ventas en WhatsApp sin comisiones abusivas.',
   alternates: {
-    canonical: '/pricing',
+    canonical: 'https://www.flashcheckouts.com/pricing',
   },
 }
 

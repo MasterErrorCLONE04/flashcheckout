@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Términos y Condiciones Legales',
   description: 'Términos de servicio, política de privacidad y condiciones legales de uso de la plataforma Flashcheckouts.',
   alternates: {
-    canonical: '/legal/terms',
+    canonical: 'https://www.flashcheckouts.com/legal/terms',
   },
 }
 

@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Soluciones Enterprise',
   description: 'Descubre cómo Flashcheckouts ayuda a corporaciones y grandes marcas a automatizar cobros, programar envíos y chatear con IA a gran escala.',
   alternates: {
-    canonical: '/enterprise',
+    canonical: 'https://www.flashcheckouts.com/enterprise',
   },
 }
 

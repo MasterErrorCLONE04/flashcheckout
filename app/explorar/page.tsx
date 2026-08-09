@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Explorar Tiendas',
   description: 'Descubre las mejores tiendas del ecosistema de Flashcheckouts. Compra de forma segura y experimenta el checkout en 30 segundos.',
   alternates: {
-    canonical: '/explorar',
+    canonical: 'https://www.flashcheckouts.com/explorar',
   },
 }
 
