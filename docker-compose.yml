@@ -2,7 +2,7 @@
 
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: flashcheckout-db
     environment:
       POSTGRES_USER: postgres
@@ -32,6 +32,10 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/flashcheckout?schema=public
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/flashcheckout?schema=public
+      - HOSTNAME=0.0.0.0
     env_file:
       - .env
     depends_on:
@@ -49,6 +53,9 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/flashcheckout?schema=public
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/flashcheckout?schema=public
     env_file:
       - .env
     depends_on:
@@ -61,7 +68,7 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    restart: always
+    restart: unless-stopped
     depends_on:
       - evolution-api
 
