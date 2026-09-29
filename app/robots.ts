@@ -20,6 +20,7 @@ export default function robots(): MetadataRoute.Robots {
           '/descuentos',
           '/envios',
           '/hablar-con-nova',
+          '/studio-ia',
           '/help',
           '/historial-chats',
           '/integraciones',

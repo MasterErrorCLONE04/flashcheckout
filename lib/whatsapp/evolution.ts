@@ -277,6 +277,35 @@ export class EvolutionClient {
     return response.json();
   }
 
+  async sendVideo(instanceName: string, to: string, videoUrl: string, caption: string) {
+    const url = `${this.apiUrl}/message/sendMedia/${instanceName}`;
+    const isDataUri = videoUrl.startsWith('data:');
+    const mediaPayload = isDataUri ? videoUrl.replace(/^data:video\/\w+;base64,/, '') : videoUrl;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        number: to.includes('@') ? to : this.cleanNumber(to),
+        options: {
+          delay: 1500,
+          presence: 'composing'
+        },
+        mediatype: 'video',
+        fileName: 'video_promo.mp4',
+        media: mediaPayload,
+        caption: caption
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      console.error('[Evolution API SendVideo Error]', err);
+      throw new Error(err.message || 'Failed to send video via Evolution API');
+    }
+
+    return response.json();
+  }
+
   async sendDocument(instanceName: string, to: string, documentUrl: string, filename: string) {
     const url = `${this.apiUrl}/message/sendMedia/${instanceName}`;
     const isDataUri = documentUrl.startsWith('data:');

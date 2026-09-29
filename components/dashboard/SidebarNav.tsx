@@ -15,7 +15,8 @@ import {
   Tag,
   Store,
   Link2,
-  Building
+  Building,
+  Sparkles
 } from 'lucide-react'
 
 const getNavItems = (conversationsCount: number, ordersCount: number) => [
@@ -23,6 +24,7 @@ const getNavItems = (conversationsCount: number, ordersCount: number) => [
   { href: "/conversaciones", icon: MessageSquare, label: "Conversaciones", badge: conversationsCount },
   { href: "/pedidos", icon: ShoppingCart, label: "Pedidos", badge: ordersCount },
   { href: "/productos", icon: Package, label: "Productos" },
+  { href: "/studio-ia", icon: Sparkles, label: "Studio IA", badgeText: "NUEVO" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/pagos", icon: CreditCard, label: "Pagos" },
   { href: "/automatizaciones", icon: Bot, label: "Automatizaciones" },
@@ -80,6 +82,11 @@ export default function SidebarNav({ conversationsCount = 0, ordersCount = 0 }: 
                     isActive ? "bg-zinc-150 text-zinc-900" : "bg-zinc-100/80 text-zinc-500"
                   )}>
                     {item.badge}
+                  </span>
+                )}
+                {(item as any).badgeText && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black tracking-tight shrink-0 select-none bg-purple-50 text-purple-600 border border-purple-200/70">
+                    {(item as any).badgeText}
                   </span>
                 )}
               </div>

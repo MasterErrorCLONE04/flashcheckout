@@ -56,6 +56,7 @@ model Store {
   customers                   Customer[]
   brebConfig                  BrebPaymentConfig?
   brebPaymentIntents          BrebPaymentIntent[]
+  aiMediaContents             AiMediaContent[]
 }
 
 model Customer {
@@ -89,6 +90,7 @@ model Product {
   description String?
   options   Json?
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  mediaContents AiMediaContent[]
 }
 
 model Faq {
@@ -345,4 +347,35 @@ model AgentExecution {
   createdAt          DateTime @default(now())
 
   @@map("AgentExecution")
+}
+
+model AiMediaContent {
+  id                String    @id @default(cuid())
+  storeId           String
+  store             Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productId         String?
+  product           Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  title             String
+  type              String    // 'DYNAMIC_REEL' | 'GENERATIVE_I2V' | 'AVATAR_UGC'
+  format            String    @default("9:16")
+  script            String?
+  copyCaption       String?
+  hashtags          String[]  @default([])
+  hookText          String?
+  callToAction      String?
+  videoUrl          String?
+  thumbnailUrl      String?
+  audioUrl          String?
+  voiceId           String?
+  styleTheme        String?
+  generationCost    Float?    @default(0)
+  status            String    @default("DRAFT") // 'DRAFT' | 'RENDERING' | 'READY' | 'FAILED'
+  publishedChannels String[]  @default([])
+  lastPublishedAt   DateTime?
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([storeId, status])
+  @@index([productId])
 }
