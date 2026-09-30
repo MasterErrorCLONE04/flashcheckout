@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import CustomUserMenu from '@/components/dashboard/CustomUserMenu'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Package, ShoppingCart, ExternalLink, Zap, Settings, CreditCard, ChevronsUpDown, Clock, Gift, BookOpenText, HelpCircle, Menu, Play, History, BarChart3, Database, Users, Rocket, Globe, ArrowUp, CheckCircle2 } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, ExternalLink, Zap, Settings, CreditCard, ChevronsUpDown, Clock, Gift, BookOpenText, HelpCircle, Menu, Play, History, BarChart3, Database, Users, Rocket, Globe, ArrowUp, CheckCircle2, Activity } from 'lucide-react'
 import { currentUser } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { cn } from '@/lib/utils'
@@ -109,7 +109,16 @@ export default async function DashboardLayout({
           </button>
 
           {/* Utility Icons (Desktop Only) */}
-          <div className="hidden items-center gap-4 md:flex">
+          <div className="hidden items-center gap-3 md:flex">
+            <Link 
+              href="/sdd" 
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-black bg-purple-50 text-purple-700 border border-purple-200/80 hover:bg-purple-100 transition-colors shadow-2xs"
+              title="Abrir Tablero de Actividades SDD"
+            >
+              <Activity className="h-3.5 w-3.5 text-purple-600 animate-pulse" />
+              <span>SDD Board</span>
+            </Link>
+
             <Link href="/changelog" className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors" title="Changelog">
               <Clock className="h-5 w-5" />
             </Link>

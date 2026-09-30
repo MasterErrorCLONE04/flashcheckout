@@ -1,0 +1,30 @@
+{
+  "title": "Fricción Crítica en Ventas Conversacionales y Pagos en Colombia",
+  "summary": "Los negocios que venden por WhatsApp pierden entre el 60% y el 80% de sus ventas potenciales debido a la lentitud en la atención manual, la desconfianza y fricción al transferir dinero bancario, y el caos para despachar con repartidores.",
+  "painPoints": [
+    {
+      "id": "pain-slow-replies",
+      "actor": "Comerciante y Comprador",
+      "severity": "crítica",
+      "pain": "Respuestas tardías en WhatsApp",
+      "evidence": "Un vendedor humano tarda entre 10 y 45 minutos en responder '¿precio?' o '¿tienes disponible?'. El 70% de los compradores desiste y le compra a la competencia antes de la respuesta.",
+      "solution": "Bot inteligente con FSM de estados y búsqueda semántica con pgvector que responde en < 2 segundos con fotos, precios y link de compra."
+    },
+    {
+      "id": "pain-payment-friction",
+      "actor": "Comprador",
+      "severity": "crítica",
+      "pain": "Fricción en transferencias Nequi/Bancolombia y validación manual de comprobantes",
+      "evidence": "Copiar números de cuenta largos genera errores tipográficos. Luego el cliente debe enviar una foto del comprobante y esperar horas a que el dueño revise su extracto bancario para despachar.",
+      "solution": "SmartPay Bre-B con código QR EMVCo estándar y botón de copia en 1 clic, junto a un OCR de visión con IA que valida la transferencia en tiempo real."
+    },
+    {
+      "id": "pain-delivery-chaos",
+      "actor": "Comerciante y Repartidor",
+      "severity": "alta",
+      "pain": "Comisiones abusivas de apps de delivery y descontrol logístico",
+      "evidence": "Plataformas como Rappi cobran hasta el 30% de comisión por pedido. Los repartidores independientes no quieren descargar apps pesadas ni pasar por registros burocráticos.",
+      "solution": "Red de conductores 100% sobre WhatsApp: reciben ofertas de entrega en su chat, aceptan en 1 clic y confirman entrega con PIN de seguridad."
+    }
+  ]
+}

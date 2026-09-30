@@ -1,0 +1,99 @@
+{
+  "id": "01-catalogo-checkout-web",
+  "name": "Catálogo Web & Carrito de Compras",
+  "category": "core_sales",
+  "priority": "P0",
+  "targetWeek": 1,
+  "progress": 70,
+  "description": "Visualización del catálogo público en /tienda/[slug], selección de variaciones, mapa Leaflet y cierre de pedido.",
+  "nodes": [
+    {
+      "id": "node-store-rendering",
+      "name": "Renderizado SSR de Tienda",
+      "status": "done",
+      "assignedTo": "Humano",
+      "scopeFiles": [
+        "app/tienda/[slug]/page.tsx",
+        "components/pages/StorePageContent.tsx"
+      ],
+      "agentPrompt": "Asegurar que la tienda cargue por slug con caché dinámico y fallback a tienda inactiva si active=false.",
+      "checklist": [
+        {
+          "id": "t1",
+          "text": "Consultar tienda y productos activos en Prisma",
+          "done": true
+        },
+        {
+          "id": "t2",
+          "text": "Renderizar metadata OpenGraph y JSON-LD SEO",
+          "done": true
+        },
+        {
+          "id": "t3",
+          "text": "Inyectar configuración de marca (colores y logo)",
+          "done": true
+        }
+      ]
+    },
+    {
+      "id": "node-catalog-cart",
+      "name": "Catálogo Interactivo & Carrito",
+      "status": "done",
+      "assignedTo": "Antigravity",
+      "scopeFiles": [
+        "components/WhatsAppCatalog.tsx"
+      ],
+      "agentPrompt": "Manejar filtros de categorías, variaciones de producto (talla/color) y persistencia del carrito.",
+      "checklist": [
+        {
+          "id": "t4",
+          "text": "Filtro de productos en vivo y ordenamiento",
+          "done": true
+        },
+        {
+          "id": "t5",
+          "text": "Drawer lateral de carrito con cálculo de subtotales",
+          "done": true
+        },
+        {
+          "id": "t6",
+          "text": "Sincronización automática de carrito con DB vía /api/whatsapp/sync-cart",
+          "done": true
+        }
+      ]
+    },
+    {
+      "id": "node-checkout-form",
+      "name": "Formulario de Entrega & Mapa",
+      "status": "in_progress",
+      "assignedTo": "Antigravity",
+      "scopeFiles": [
+        "components/WhatsAppCatalog.tsx",
+        "components/MapPicker.tsx"
+      ],
+      "agentPrompt": "Capturar datos de entrega y geolocalización precisa antes de enviar orden a WhatsApp o pasarela.",
+      "checklist": [
+        {
+          "id": "t7",
+          "text": "Geolocalización con Leaflet y pin en mapa",
+          "done": true
+        },
+        {
+          "id": "t8",
+          "text": "Aplicar cupones de descuento en el total de la orden",
+          "done": false
+        },
+        {
+          "id": "t9",
+          "text": "Eliminar CheckoutForm.tsx huérfano para evitar colisiones de código",
+          "done": false
+        },
+        {
+          "id": "task-185672",
+          "text": "Validar campo de ciudad requerida",
+          "done": false
+        }
+      ]
+    }
+  ]
+}

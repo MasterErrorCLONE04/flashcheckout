@@ -1,0 +1,3360 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-zinc-50 antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">SDD Studio — AI Chat & Spec Genesis</title>
+  
+  <!-- Google Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          boxShadow: {
+            'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Mermaid.js for Visual Diagram & Sequence Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'neutral',
+        securityLevel: 'loose',
+        fontFamily: 'Inter, sans-serif'
+      });
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #71717a; }
+
+    /* Canvas Dot Grid Background */
+    .canvas-dot-grid {
+      background-image: radial-gradient(#d4d4d8 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+    @keyframes wireFlow {
+      to {
+        stroke-dashoffset: -32;
+      }
+    }
+    .animate-wire-flow {
+      stroke-dasharray: 8 6;
+      animation: wireFlow 1.2s linear infinite;
+    }
+  </style>
+</head>
+<body class="h-screen w-full bg-zinc-50 font-sans overflow-hidden select-none text-zinc-900">
+
+  <!-- SCREEN 1: GENESIS CONVERSATIONAL CHAT (LIGHT MODE WITH RICH PURPLE ACCENTS) -->
+  <div id="screen-genesis-chat" class="flex h-screen w-full bg-zinc-50 text-zinc-900 overflow-hidden font-sans">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside id="chat-sidebar" class="w-64 bg-white border-r border-zinc-200 flex flex-col justify-between p-3.5 shrink-0 transition-all duration-300 z-30 select-none shadow-sm">
+      <div class="space-y-3 flex-1 flex flex-col overflow-hidden">
+        <!-- New Project Button -->
+        <button
+          onclick="startNewChatProject()"
+          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-xs font-bold text-purple-900 transition-all border border-purple-200 shadow-xs group"
+        >
+          <span class="flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4 text-purple-600 group-hover:rotate-90 transition-transform"></i>
+            <span>Nuevo Proyecto SDD</span>
+          </span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white text-purple-800 border border-purple-200 shadow-xs">Ctrl+N</span>
+        </button>
+
+        <!-- Functional Chat / Project History -->
+        <div class="space-y-1.5 flex-1 flex flex-col overflow-hidden pt-1">
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 px-2 flex items-center justify-between">
+            <span>Historial de Chats & Specs</span>
+            <i data-lucide="clock" class="w-3 h-3 text-purple-500"></i>
+          </div>
+          <div id="chat-history-list" class="space-y-1 overflow-y-auto flex-1 pr-1">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Framework Active Contracts Card -->
+        <div class="pt-2 border-t border-zinc-100 space-y-1.5">
+          <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-200/80 text-[11px] space-y-1.5">
+            <div class="flex items-center gap-1.5 text-purple-900 font-bold text-[11px]">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-600"></i>
+              <span>Gobernanza SDD Activa</span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-zinc-600">
+              <span class="font-mono text-purple-700">AGENTS.md</span>
+              <span class="text-emerald-700 font-bold uppercase text-[9px]">Vigente</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer / Workspace Info -->
+      <div class="border-t border-zinc-200 pt-3 space-y-2 shrink-0">
+        <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 text-[11px] space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-zinc-500 font-bold">Workspace Activo:</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          </div>
+          <div id="chat-sidebar-workspace" class="text-zinc-800 font-mono text-[10px] truncate" title="Directorio local">
+            Directorio Actual
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between px-1 text-[11px] text-zinc-500 font-medium">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="cpu" class="w-3.5 h-3.5 text-purple-600"></i>
+            <span>Antigravity Hook</span>
+          </div>
+          <span class="text-[10px] text-emerald-600 font-bold">Conectado</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT CHAT COLUMN -->
+    <div class="flex-1 flex flex-col h-full bg-zinc-50 overflow-hidden relative">
+      
+      <!-- Top Chat Header -->
+      <header class="h-14 shrink-0 flex items-center justify-between px-5 border-b border-zinc-200 bg-white/90 backdrop-blur-md z-20">
+        <div class="flex items-center gap-3">
+          <!-- Sidebar Toggle Button -->
+          <button
+            onclick="toggleChatSidebar()"
+            class="p-2 rounded-lg text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+            title="Mostrar/Ocultar barra lateral"
+          >
+            <i data-lucide="panel-left" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Model / Engine Dropdown -->
+          <div class="relative">
+            <button
+              id="model-selector-btn"
+              onclick="toggleModelDropdown()"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 transition-all shadow-xs"
+            >
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
+              <span id="current-engine-label">Agente Editor (Antigravity / Cursor)</span>
+              <i data-lucide="chevron-down" class="w-3 h-3 text-zinc-400"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="model-dropdown-menu" class="hidden absolute top-10 left-0 w-72 bg-white border border-zinc-200 rounded-2xl p-2 shadow-2xl z-50 space-y-1">
+              <div onclick="selectEngine('editor', 'Agente Editor (Antigravity / Cursor)')" class="p-2.5 rounded-xl hover:bg-purple-50 cursor-pointer transition-colors space-y-0.5">
+                <div class="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                  <i data-lucide="cpu" class="w-3.5 h-3.5 text-purple-600"></i>
+                  <span>Agente Editor (Tokens de Antigravity)</span>
+                </div>
+                <div class="text-[10px] text-zinc-500">Razona con los tokens de tu sesión de chat de Antigravity</div>
+              </div>
+              <div onclick="selectEngine('heuristic', 'Motor Heurístico Local SDD')" class="p-2.5 rounded-xl hover:bg-purple-50 cursor-pointer transition-colors space-y-0.5">
+                <div class="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>Compilación Heurística Instantánea</span>
+                </div>
+                <div class="text-[10px] text-zinc-500">Genera las 12 perspectivas en 1 segundo de forma determinista</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Header Items -->
+        <div class="flex items-center gap-2">
+          <!-- Token Status Pill -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-[11px] font-bold text-purple-800">
+            <i data-lucide="coins" class="w-3.5 h-3.5 text-purple-600"></i>
+            <span id="chat-token-pill">Tokens: Antigravity IDE</span>
+          </div>
+
+          <!-- Switch to Cockpit Button -->
+          <button
+            id="btn-toggle-cockpit"
+            onclick="switchScreen('cockpit')"
+            class="hidden px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/20"
+          >
+            <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-purple-200"></i>
+            <span>Cabina (12 Perspectivas)</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Messages Container -->
+      <div id="genesis-chat-scroll" class="flex-1 overflow-y-auto px-4 py-8 bg-zinc-50">
+        <div class="max-w-3xl mx-auto space-y-6">
+
+          <!-- Hero State (CLEAN - NO SUGGESTIONS / NO RECOMMENDATIONS) -->
+          <div id="genesis-chat-hero" class="text-center py-16 md:py-24 space-y-5">
+            <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-xl shadow-purple-600/20 ring-4 ring-purple-100">
+              <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+            </div>
+            
+            <div class="space-y-2">
+              <h1 class="text-3xl md:text-4xl font-black tracking-tight text-zinc-950">
+                ¿Qué quieres construir hoy?
+              </h1>
+              <p class="text-sm md:text-base text-zinc-500 max-w-lg mx-auto leading-relaxed font-normal">
+                Escribe tu idea de software en bruto. Tu agente de IA estructurará las 12 perspectivas de SDD con alcance protegido y abrirá la cabina de control.
+              </p>
+            </div>
+          </div>
+
+          <!-- Chat Messages Stream -->
+          <div id="genesis-messages-stream" class="space-y-6"></div>
+
+        </div>
+      </div>
+
+      <!-- Floating Bottom Chat Input -->
+      <div class="shrink-0 p-4 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent">
+        <div class="max-w-3xl mx-auto space-y-2">
+          <div class="bg-white border border-zinc-200 focus-within:border-purple-600 focus-within:ring-4 focus-within:ring-purple-100 rounded-3xl p-3.5 shadow-2xl transition-all">
+            <textarea
+              id="genesis-chat-input"
+              rows="2"
+              class="w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none resize-none px-2 py-1 leading-relaxed"
+              placeholder="Describe tu idea de software, o pega notas y requerimientos..."
+              onkeydown="handleChatKeyDown(event)"
+            ></textarea>
+            
+            <div class="flex items-center justify-between pt-2.5 px-1 border-t border-zinc-100 mt-1">
+              <div class="flex items-center gap-2 text-xs text-zinc-500">
+                <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 text-[11px] text-purple-800 font-bold border border-purple-200">
+                  <i data-lucide="cpu" class="w-3 h-3 text-purple-600"></i>
+                  <span id="input-engine-pill">Antigravity Agent</span>
+                </span>
+                <span class="text-[10px] text-zinc-400 hidden sm:inline">Presiona Enter para enviar, Shift+Enter para nueva línea</span>
+              </div>
+
+              <button
+                id="genesis-chat-send-btn"
+                onclick="sendGenesisChatMessage()"
+                title="Enviar idea al agente (Enter)"
+                class="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shrink-0 transition-all shadow-md shadow-purple-600/30 cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                  <path d="m5 12 7-7 7 7"/>
+                  <path d="M12 19V5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="text-center text-[10px] text-zinc-400">
+            SDD Studio • Gobernanza de especificaciones y control de alcance sin alucinaciones.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCREEN 2: COCKPIT (12 PERSPECTIVAS COMPLETAS - EXECUTIVE SPLIT SHELL) -->
+  <div id="screen-cockpit" class="hidden flex flex-col h-screen w-full bg-zinc-50 overflow-hidden font-sans">
+
+    <!-- EXECUTIVE TOPBAR -->
+    <header class="h-14 shrink-0 flex items-center justify-between border-b border-zinc-200 bg-white px-5 z-30 gap-4 shadow-2xs">
+      <div class="flex items-center gap-3">
+        <!-- Logo & Title -->
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-800 text-white flex items-center justify-center shadow-md shadow-purple-600/20">
+          <i data-lucide="zap" class="w-4 h-4 fill-white"></i>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="header-proj-name" class="text-sm font-black tracking-tight text-zinc-950">Plataforma Biblioteca Ligera</span>
+          <span id="header-depth-badge" class="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+            SDD SERIO
+          </span>
+          <span id="header-purpose-badge" class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
+            COMERCIAL
+          </span>
+        </div>
+      </div>
+
+      <!-- Center Metrics -->
+      <div class="hidden lg:flex items-center gap-4 text-xs bg-zinc-50 border border-zinc-200/80 px-3.5 py-1.5 rounded-xl">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-zinc-500 text-[11px]">Salud Global:</span>
+          <span id="header-health-pct" class="font-black text-zinc-900">100%</span>
+          <div class="h-2 w-20 bg-zinc-200 rounded-full overflow-hidden">
+            <div id="header-health-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 100%;"></div>
+          </div>
+        </div>
+        <div class="h-3.5 w-px bg-zinc-300"></div>
+        <div class="text-[11px] text-zinc-600 flex items-center gap-3 font-medium">
+          <span>Arqui: <b id="stat-arqui" class="text-zinc-900 font-bold">100%</b></span>
+          <span>Flujos: <b id="stat-flows" class="text-zinc-900 font-bold">100%</b></span>
+          <span>UI: <b id="stat-ui" class="text-emerald-700 font-bold">100%</b></span>
+        </div>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-2">
+        <div
+          onclick="switchTab('core')"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition-colors shadow-2xs"
+          title="Compuertas de calidad aprobadas — Auto-Pilot Habilitado"
+        >
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+          <span id="header-gates-text">5/5 Compuertas ✓</span>
+        </div>
+
+        <button
+          onclick="switchTab('architecture')"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-700 transition-all shadow-2xs"
+        >
+          <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <i data-lucide="server" class="w-3.5 h-3.5 text-zinc-500"></i>
+          <span class="hidden md:inline">DevOps</span>
+        </button>
+
+        <button
+          onclick="loadData();"
+          title="Sincronizar con disco"
+          class="p-2 rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs"
+        >
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <button
+          onclick="switchScreen('chat')"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-xs font-bold text-purple-900 transition-all shadow-2xs cursor-pointer"
+        >
+          <i data-lucide="message-square" class="w-3.5 h-3.5 text-purple-600"></i>
+          <span>💬 Chat con Agente</span>
+        </button>
+
+        <button
+          onclick="openDispatchModal()"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-zinc-900 text-white hover:bg-zinc-800 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+        >
+          <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+          <span>Despachar Agente</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- COCKPIT SPLIT BODY -->
+    <div class="flex flex-1 overflow-hidden relative">
+
+      <!-- LEFT COCKPIT PERSPECTIVES SIDEBAR -->
+      <aside class="w-64 bg-white border-r border-zinc-200 flex flex-col justify-between p-3.5 shrink-0 overflow-y-auto select-none shadow-2xs z-20">
+        <div class="space-y-4">
+          <!-- 1. Gobernanza & Estrategia -->
+          <div class="space-y-1">
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 px-2.5 py-0.5">
+              Gobernanza & Estrategia
+            </div>
+            <button onclick="switchTab('core')" id="tab-core" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="compass" class="w-4 h-4 text-emerald-600"></i>
+                <span>Núcleo & Compuertas</span>
+              </span>
+              <span id="tab-badge-core" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-black bg-emerald-100 text-emerald-800">5/5</span>
+            </button>
+            <button onclick="switchTab('discovery')" id="tab-discovery" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+                <span>Discovery & Hipótesis</span>
+              </span>
+              <span id="tab-badge-discovery" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-50 text-amber-700 border border-amber-200">12 Qs</span>
+            </button>
+          </div>
+
+          <!-- 2. Requerimientos & Casos (Jira) -->
+          <div class="space-y-1">
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 px-2.5 py-0.5">
+              Requerimientos (Jira)
+            </div>
+            <button onclick="switchTab('stories')" id="tab-stories" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all bg-purple-50 text-purple-950 border border-purple-200/80 shadow-xs">
+              <span class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                <span>Historias & Gherkin</span>
+              </span>
+              <span id="tab-badge-stories" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800 font-bold">3</span>
+            </button>
+            <button onclick="switchTab('kanban')" id="tab-kanban" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="kanban" class="w-4 h-4 text-amber-600"></i>
+                <span>Tablero Kanban</span>
+              </span>
+              <span id="tab-badge-kanban" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-zinc-100 text-zinc-600">Sprint</span>
+            </button>
+            <button onclick="switchTab('roles')" id="tab-roles" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-orange-600"></i>
+                <span>Roles & Riesgos</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- 3. Arquitectura & Datos -->
+          <div class="space-y-1">
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 px-2.5 py-0.5">
+              Arquitectura & Datos
+            </div>
+            <button onclick="switchTab('architecture')" id="tab-architecture" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-indigo-600"></i>
+                <span>Arquitectura Macro C4</span>
+              </span>
+            </button>
+            <button onclick="switchTab('database')" id="tab-database" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="database" class="w-4 h-4 text-cyan-600"></i>
+                <span>Modelo ERD (DB)</span>
+              </span>
+              <span id="tab-badge-db" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">5</span>
+            </button>
+            <button onclick="switchTab('flows')" id="tab-flows" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-teal-600"></i>
+                <span>Flujos & Nodos</span>
+              </span>
+            </button>
+            <button onclick="switchTab('sequences')" id="tab-sequences" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="workflow" class="w-4 h-4 text-purple-600"></i>
+                <span>Secuencias (UML)</span>
+              </span>
+              <span id="tab-badge-sequences" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-zinc-100 text-zinc-600">1</span>
+            </button>
+          </div>
+
+          <!-- 4. Calidad, QA & Scope -->
+          <div class="space-y-1">
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 px-2.5 py-0.5">
+              Calidad & Control
+            </div>
+            <button onclick="switchTab('qa')" id="tab-qa" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="test-tube-2" class="w-4 h-4 text-emerald-600"></i>
+                <span>Plan QA (Pruebas)</span>
+              </span>
+              <span id="tab-badge-qa" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">6 TCs</span>
+            </button>
+            <button onclick="switchTab('drift')" id="tab-drift" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="git-compare" class="w-4 h-4 text-red-600"></i>
+                <span>Deriva (Drift)</span>
+              </span>
+              <span id="tab-badge-drift" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-black bg-emerald-100 text-emerald-800">100%</span>
+            </button>
+            <button onclick="switchTab('uiux')" id="tab-uiux" class="tab-button w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all text-zinc-700 hover:bg-zinc-100">
+              <span class="flex items-center gap-2">
+                <i data-lucide="layout" class="w-4 h-4 text-pink-600"></i>
+                <span>UI/UX Mockups</span>
+              </span>
+              <span id="tab-badge-ui" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-zinc-100 text-zinc-600">4</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-zinc-200/80 pt-3">
+          <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/80 text-[11px] space-y-1">
+            <div class="flex items-center justify-between text-purple-950 font-bold">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Gobernanza V1</span>
+              </span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div class="text-[10px] text-zinc-500">
+              Directivas blindadas en <code class="font-mono text-purple-700 font-bold">AGENTS.md</code>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN PERSPECTIVE WORKSPACE -->
+      <div class="flex-1 overflow-y-auto bg-zinc-50 p-6 md:p-8">
+
+    <!-- 0. PERSPECTIVA NÚCLEO & COMPUERTAS (SDD CORE) -->
+    <main id="view-core" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <!-- Project Profile Banner -->
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="core-purpose-pill" class="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              PROPÓSITO: COMERCIAL
+            </span>
+            <span id="core-depth-pill" class="text-xs font-black uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+              PROFUNDIDAD: SERIO
+            </span>
+            <span id="core-meta-pill" class="text-xs font-mono font-bold text-zinc-500">
+              Versión: 1.0.0
+            </span>
+          </div>
+          <h1 id="core-project-title" class="text-xl font-black text-zinc-950 mt-2">
+            FlashCheckout: Especificación SDD
+          </h1>
+          <p id="core-project-desc" class="text-xs text-zinc-600 mt-1 max-w-3xl leading-relaxed">
+            Plataforma gobernada por Especificaciones Ejecutables (Spec-Driven Development).
+          </p>
+        </div>
+
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-center gap-3 shrink-0">
+          <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-xs font-black text-emerald-950">Compuertas de Calidad SDD</div>
+            <div id="core-gates-stat" class="text-[11px] text-emerald-800 font-bold">5 de 5 Aprobadas</div>
+            <div class="text-[10px] text-emerald-700">Auto-Pilot Habilitado</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quality Gates Checklist Bar -->
+      <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-zinc-800 uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="unlock" class="w-4 h-4 text-emerald-600"></i>
+            Compuertas Obligatorias para Programar (Quality Gates):
+          </span>
+          <span class="text-[11px] font-mono text-emerald-600 font-bold">
+            Definidas en project.json
+          </span>
+        </div>
+
+        <div id="core-gates-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <!-- Dynamic Gates injected here -->
+        </div>
+      </div>
+
+      <!-- Core Columns: Problema & Non-Goals -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Card 1: Problema / Necesidad -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+            <h3 class="text-sm font-black text-zinc-950 uppercase tracking-wider">
+              1. Problema & Dolores del Negocio
+            </h3>
+          </div>
+          <p id="core-problem-summary" class="text-xs text-zinc-600 leading-relaxed bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+            Cargando problema...
+          </p>
+
+          <div id="core-pain-points-list" class="space-y-3">
+            <!-- Pain points injected -->
+          </div>
+        </div>
+
+        <!-- Card 2: Límites de Alcance & NON-GOALS EXPLÍCITOS -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="ban" class="w-4 h-4 text-amber-600"></i>
+              <h3 class="text-sm font-black text-zinc-950 uppercase tracking-wider">
+                2. Límites de Alcance & Non-Goals
+              </h3>
+            </div>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-amber-100 text-amber-900">
+              Regla Anti-Dispersión
+            </span>
+          </div>
+          <p id="core-scope-philosophy" class="text-xs text-zinc-600 leading-relaxed bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+            Garantizar foco absoluto en V1 congelando features complejas.
+          </p>
+
+          <div class="space-y-3">
+            <span class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="ban" class="w-3.5 h-3.5 text-amber-600"></i>
+              Non-Goals Explícitos (Congelados para V2):
+            </span>
+            <div id="core-non-goals-list" class="space-y-2">
+              <!-- Non goals injected -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 1. PERSPECTIVA DISCOVERY & HIPÓTESIS -->
+    <main id="view-discovery" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <!-- Executive Header -->
+      <div class="bg-white border border-zinc-200/90 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+              Diagnóstico Pre-Código
+            </span>
+            <span class="text-xs text-zinc-400 font-medium">• Single Source of Truth (.sdd/discovery/interviews.json)</span>
+          </div>
+          <h2 class="text-xl font-black text-zinc-950 mt-1 flex items-center gap-2.5">
+            <i data-lucide="compass" class="w-6 h-6 text-purple-600"></i>
+            Cuestionario de Arquitectura & Descubrimiento
+          </h2>
+          <p class="text-xs text-zinc-500 mt-0.5 max-w-2xl font-normal">
+            Las 7 fases que todo ingeniero de software debe resolver antes de tocar una sola línea de código (Problema, Alcance, Stack, Datos, Flujo, Integraciones y Criterios QA).
+          </p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200 text-center min-w-[75px]">
+            <div id="discovery-stat-total" class="text-lg font-black text-zinc-900">0</div>
+            <div class="text-[10px] font-mono text-zinc-500 font-bold uppercase">Preguntas</div>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center min-w-[75px]">
+            <div id="discovery-stat-answered" class="text-lg font-black text-emerald-900">0</div>
+            <div class="text-[10px] font-mono text-emerald-700 font-bold uppercase">Listas</div>
+          </div>
+          <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-center min-w-[75px]">
+            <div id="discovery-stat-percent" class="text-lg font-black text-purple-900">0%</div>
+            <div class="text-[10px] font-mono text-purple-700 font-bold uppercase">Completado</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <div class="bg-white border border-zinc-200/90 rounded-2xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-1.5" id="discovery-phase-filters">
+          <button onclick="setDiscoveryFilter('all')" id="disc-filter-all" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-xs">
+            Todas las Fases
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-01')" id="disc-filter-PHASE-01" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            1. Por Qué
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-02')" id="disc-filter-PHASE-02" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            2. Alcance
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-03')" id="disc-filter-PHASE-03" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            3. Stack Tecnológico
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-04')" id="disc-filter-PHASE-04" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            4. Datos
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-05')" id="disc-filter-PHASE-05" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            5. Flujos
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-06')" id="disc-filter-PHASE-06" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            6. Integraciones
+          </button>
+          <button onclick="setDiscoveryFilter('PHASE-07')" id="disc-filter-PHASE-07" class="disc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100">
+            7. QA
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-zinc-400 font-medium text-[11px]">Ver:</span>
+          <select id="discovery-status-select" onchange="renderDiscovery()" class="bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-1 text-xs text-zinc-700 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-600">
+            <option value="all">Todas las preguntas</option>
+            <option value="pending">Solo pendientes</option>
+            <option value="answered">Solo respondidas</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="discovery-sessions-container" class="space-y-6">
+        <!-- Injected dynamically -->
+      </div>
+    </main>
+
+    <!-- 2. PERSPECTIVA HISTORIAS & GHERKIN (JIRA) -->
+    <main id="view-stories" class="tab-content max-w-6xl mx-auto space-y-6">
+      <!-- Top Executive Banner -->
+      <div class="bg-white border border-zinc-200/90 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+              Jira Agile Specification
+            </span>
+            <span class="text-xs text-zinc-400 font-medium">• Single Source of Truth</span>
+          </div>
+          <h2 class="text-xl font-black text-zinc-950 mt-1 flex items-center gap-2.5">
+            <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
+            Historias de Usuario Gobernadas por Gherkin
+          </h2>
+          <p class="text-xs text-zinc-500 mt-0.5 max-w-2xl font-normal">
+            1 archivo atómico por historia en <code class="font-mono text-purple-700 font-bold">.sdd/requirements/stories/US-*.json</code> con alcance blindado y criterios ejecutables para tu agente de IA.
+          </p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200 text-center min-w-[75px]">
+            <div id="stories-stat-count" class="text-lg font-black text-zinc-900">3</div>
+            <div class="text-[10px] font-mono text-zinc-500 font-bold uppercase">Historias</div>
+          </div>
+          <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-center min-w-[75px]">
+            <div id="stories-stat-points" class="text-lg font-black text-purple-900">7</div>
+            <div class="text-[10px] font-mono text-purple-700 font-bold uppercase">Puntos</div>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center min-w-[75px]">
+            <div id="stories-stat-passed" class="text-lg font-black text-emerald-900">100%</div>
+            <div class="text-[10px] font-mono text-emerald-700 font-bold uppercase">Gherkin</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stories Container -->
+      <div id="stories-cards-container" class="space-y-5"></div>
+    </main>
+
+    <!-- 3. PERSPECTIVA SECUENCIAS (UML) -->
+    <main id="view-sequences" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                Mermaid Sequence Diagram
+              </span>
+              <span class="text-xs text-zinc-400 font-medium">• Protocolo de Comunicación Técnica</span>
+            </div>
+            <h2 class="text-xl font-black text-zinc-950 mt-1 flex items-center gap-2.5">
+              <i data-lucide="workflow" class="w-6 h-6 text-purple-600"></i>
+              Diagrama de Secuencias e Interacción (UML)
+            </h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleMermaidRaw()" id="btn-toggle-mermaid" class="px-3 py-1.5 rounded-xl text-xs font-bold border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 flex items-center gap-1.5 shadow-2xs transition-all">
+              <i data-lucide="code" class="w-3.5 h-3.5"></i>
+              <span id="btn-toggle-mermaid-text">Ver Código</span>
+            </button>
+            <button onclick="copyMermaid()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-1.5 shadow-2xs transition-all">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Copiar Mermaid</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Rendered Visual Diagram Container -->
+        <div id="mermaid-render-container" class="bg-zinc-50/50 rounded-2xl p-6 border border-zinc-200/90 shadow-2xs overflow-x-auto flex justify-center items-center min-h-[350px]">
+          <div id="mermaid-svg-output" class="w-full flex justify-center overflow-x-auto"></div>
+        </div>
+
+        <!-- Raw Mermaid Code Box (collapsible) -->
+        <div id="mermaid-raw-box" class="hidden bg-zinc-950 rounded-2xl p-5 text-emerald-400 font-mono text-xs overflow-x-auto border border-zinc-800">
+          <pre id="mermaid-code-view">sequenceDiagram...</pre>
+        </div>
+      </div>
+    </main>
+
+    <!-- 4. PERSPECTIVA FLUJOS & NODOS -->
+    <main id="view-flows" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="flows-cards-container">
+        <!-- Flows injected -->
+      </div>
+    </main>
+
+    <!-- 5. PERSPECTIVA ARQUITECTURA C4 (CANVAS INTERACTIVO) -->
+    <main id="view-architecture" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <!-- Top Banner -->
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+              Arquitectura Macro C4
+            </span>
+            <span class="text-xs text-zinc-400 font-medium">• Canvas Interactivo & Topología</span>
+          </div>
+          <h2 class="text-xl font-black text-zinc-950 mt-1 flex items-center gap-2.5">
+            <i data-lucide="cpu" class="w-6 h-6 text-indigo-600"></i>
+            Mapa de Arquitectura & Servicios del Software
+          </h2>
+          <p class="text-xs text-zinc-500 mt-0.5 max-w-2xl font-normal">
+            Lienzo visual reactivo. Selecciona cualquier nodo o servicio para inspeccionar su tecnología, flujos conectados, contratos y archivos blindados en alcance.
+          </p>
+        </div>
+
+        <!-- Canvas Controls -->
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="bg-zinc-100 p-1 rounded-xl flex items-center gap-1 border border-zinc-200 text-xs font-bold">
+            <button id="arch-viewmode-canvas" onclick="setArchViewMode('canvas')" class="px-3 py-1.5 rounded-lg bg-white shadow-2xs text-purple-950 font-black flex items-center gap-1.5 transition-all">
+              <i data-lucide="network" class="w-3.5 h-3.5 text-purple-600"></i>
+              <span>Canvas Visual</span>
+            </button>
+            <button id="arch-viewmode-grid" onclick="setArchViewMode('grid')" class="px-3 py-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 flex items-center gap-1.5 transition-all">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+              <span>Tarjetas</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1 bg-white border border-zinc-200 p-1 rounded-xl shadow-2xs">
+            <button onclick="zoomArchCanvas(0.1)" title="Acercar (+)" class="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-700 transition-colors">
+              <i data-lucide="zoom-in" class="w-4 h-4"></i>
+            </button>
+            <button onclick="zoomArchCanvas(-0.1)" title="Alejar (-)" class="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-700 transition-colors">
+              <i data-lucide="zoom-out" class="w-4 h-4"></i>
+            </button>
+            <button onclick="resetArchCanvas()" title="Centrar Vista (100%)" class="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-700 transition-colors">
+              <i data-lucide="maximize-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISUAL INTERACTIVE CANVAS WRAPPER -->
+      <div id="arch-canvas-container" class="relative bg-zinc-50 border border-zinc-200/90 rounded-2xl h-[560px] overflow-hidden shadow-xs flex">
+        
+        <!-- Interactive Canvas Stage -->
+        <div id="arch-canvas-stage" class="flex-1 h-full canvas-dot-grid overflow-hidden relative cursor-grab active:cursor-grabbing select-none">
+          
+          <!-- Transformable Viewport for Pan/Zoom -->
+          <div id="arch-viewport" class="absolute inset-0 transition-transform duration-100 origin-center flex items-center justify-center p-6 min-w-[900px]">
+            <!-- Dynamic SVG wires layer -->
+            <svg id="arch-wires-svg" class="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible"></svg>
+
+            <!-- Tiers Columns Grid inside Viewport -->
+            <div id="arch-nodes-grid" class="relative z-10 w-full grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl items-center">
+              <!-- Tier 1: Clientes / Frontend -->
+              <!-- Tier 2: Core / APIs -->
+              <!-- Tier 3: Datos & DB -->
+              <!-- Tier 4: Gateways & Externos -->
+            </div>
+          </div>
+
+          <!-- Bottom Left Canvas Stats / Minimap info -->
+          <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-md border border-zinc-200/90 rounded-xl px-3 py-2 shadow-xs flex items-center gap-3 text-[11px] font-mono">
+            <span class="flex items-center gap-1.5 font-bold text-zinc-800">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="canvas-services-count">Servicios Activos</span>
+            </span>
+            <span class="text-zinc-300">|</span>
+            <span class="text-zinc-500">Zoom: <b id="arch-zoom-level" class="text-zinc-800">100%</b></span>
+            <span class="text-zinc-300">|</span>
+            <span class="text-purple-700 font-bold">C4 Container Model</span>
+          </div>
+        </div>
+
+        <!-- SIDEBAR INSPECTOR DRAWER (Collapsible) -->
+        <div id="arch-inspector-drawer" class="w-80 bg-white border-l border-zinc-200 p-5 shrink-0 flex flex-col justify-between overflow-y-auto hidden z-30 shadow-lg">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <div class="flex items-center gap-2">
+                <div id="inspector-icon" class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
+                <div class="overflow-hidden">
+                  <h3 id="inspector-title" class="text-xs font-black text-zinc-950 truncate">Servicio</h3>
+                  <span id="inspector-type" class="text-[10px] font-mono text-zinc-500 uppercase">Frontend</span>
+                </div>
+              </div>
+              <button onclick="closeArchInspector()" class="text-zinc-400 hover:text-zinc-700 p-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Stack Tecnológico</label>
+              <div id="inspector-tech" class="text-xs font-mono font-bold text-indigo-700 bg-indigo-50/60 border border-indigo-100 p-2.5 rounded-xl">
+                Next.js 15
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Descripción del Rol</label>
+              <p id="inspector-desc" class="text-xs text-zinc-600 leading-relaxed bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                Detalles del servicio
+              </p>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Estado de Salud</label>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold text-emerald-800">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span id="inspector-status">ONLINE</span>
+                </span>
+                <span id="inspector-health">100% HEALTH</span>
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Archivos en Alcance Vinculados</label>
+              <div id="inspector-files" class="space-y-1 text-[11px] font-mono">
+                <!-- scope files -->
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-zinc-100">
+            <button onclick="switchTab('stories')" class="w-full py-2 px-3 rounded-xl bg-purple-50 text-purple-900 border border-purple-200 text-xs font-bold hover:bg-purple-100 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-purple-600"></i>
+              <span>Ver Historias de Requerimientos</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ALTERNATIVE CARDS GRID (Hidden when in Canvas mode) -->
+      <div id="arch-cards-container" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered cards -->
+      </div>
+    </main>
+
+    <!-- 6. PERSPECTIVA MODELO ERD (DB) -->
+    <main id="view-database" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <h2 class="text-lg font-black text-zinc-950 flex items-center gap-2">
+          <i data-lucide="database" class="w-5 h-5 text-cyan-600"></i>
+          Modelo de Datos Relacional (PostgreSQL / Prisma ERD)
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="erd-cards-container">
+          <!-- Tables injected -->
+        </div>
+      </div>
+    </main>
+
+    <!-- 7. PERSPECTIVA ROLES & RIESGOS -->
+    <main id="view-roles" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+          <h3 class="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="key-round" class="w-4 h-4 text-orange-600"></i>
+            Matriz de Permisos RBAC
+          </h3>
+          <div id="roles-table-container"></div>
+        </div>
+
+        <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+          <h3 class="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600"></i>
+            Registro de Riesgos & Mitigaciones
+          </h3>
+          <div id="risks-cards-container" class="space-y-3"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 8. PERSPECTIVA PLAN QA -->
+    <main id="view-qa" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <h2 class="text-lg font-black text-zinc-950 flex items-center gap-2">
+          <i data-lucide="test-tube-2" class="w-5 h-5 text-emerald-600"></i>
+          Suites de Pruebas Automatizadas & E2E
+        </h2>
+        <div id="qa-suites-container" class="space-y-4"></div>
+      </div>
+    </main>
+
+    <!-- 9. PERSPECTIVA DERIVA (DRIFT) -->
+    <main id="view-drift" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-black text-zinc-950 flex items-center gap-2">
+            <i data-lucide="git-compare" class="w-5 h-5 text-red-600"></i>
+            Auditoría de Deriva de Código (Scope Shield)
+          </h2>
+          <span id="drift-score-badge" class="px-2.5 py-1 rounded-full text-xs font-mono font-black bg-emerald-100 text-emerald-800">
+            Score: 100% Clean
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30">
+            <div class="text-xs font-black text-emerald-950 mb-2 uppercase">Archivos en Alcance (Permitidos):</div>
+            <div id="drift-in-scope" class="space-y-1 text-xs font-mono text-emerald-800"></div>
+          </div>
+          <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/30">
+            <div class="text-xs font-black text-rose-950 mb-2 uppercase">Violaciones de Alcance (Fuera de Scope):</div>
+            <div id="drift-out-scope" class="space-y-1 text-xs font-mono text-rose-800"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 10. PERSPECTIVA UI/UX -->
+    <main id="view-uiux" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <h2 class="text-lg font-black text-zinc-950 flex items-center gap-2">
+          <i data-lucide="layout" class="w-5 h-5 text-pink-600"></i>
+          Catálogo de Pantallas de Usuario
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="uiux-screens-container"></div>
+      </div>
+    </main>
+
+    <!-- 11. PERSPECTIVA KANBAN SPRINT -->
+    <main id="view-kanban" class="tab-content hidden max-w-6xl mx-auto space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-[500px]">
+        <!-- To Do -->
+        <div class="bg-zinc-100/80 border border-zinc-200/80 rounded-2xl p-4 flex flex-col space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-200">
+            <span class="text-xs font-black text-zinc-700 uppercase tracking-wider">Backlog / Por Hacer</span>
+            <span id="kanban-badge-todo" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white text-zinc-700 shadow-xs">0</span>
+          </div>
+          <div id="kanban-col-todo" class="space-y-3 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="bg-zinc-100/80 border border-zinc-200/80 rounded-2xl p-4 flex flex-col space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-200">
+            <span class="text-xs font-black text-amber-700 uppercase tracking-wider">En Curso (In Progress)</span>
+            <span id="kanban-badge-inprog" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-800 shadow-xs">0</span>
+          </div>
+          <div id="kanban-col-inprog" class="space-y-3 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- Done -->
+        <div class="bg-zinc-100/80 border border-zinc-200/80 rounded-2xl p-4 flex flex-col space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-200">
+            <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">Completado (Done)</span>
+            <span id="kanban-badge-done" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 shadow-xs">0</span>
+          </div>
+          <div id="kanban-col-done" class="space-y-3 flex-1 overflow-y-auto"></div>
+        </div>
+      </div>
+    </main>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Dispatch Modal -->
+  <div id="dispatch-modal" class="fixed inset-0 bg-zinc-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 id="modal-title" class="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="bot" class="w-4 h-4 text-zinc-900"></i>
+          Despacho a Agente de IA
+        </h3>
+        <button onclick="closeDispatchModal()" class="text-zinc-400 hover:text-zinc-700">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="modal-content" class="text-xs text-zinc-600 leading-relaxed space-y-2"></div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeDispatchModal()" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50">Cerrar</button>
+        <button id="modal-action-btn" onclick="copyPromptText()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-1.5">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span>Copiar Prompt</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Genesis Canvas Modal -->
+  <div id="genesis-modal" class="fixed inset-0 bg-zinc-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-6 max-w-4xl w-full shadow-2xl space-y-5 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-200">
+        <div>
+          <h3 class="text-base font-black text-zinc-950 flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5 text-purple-600"></i>
+            Modo Génesis: De la Idea en Bruto a la Especificación SDD
+          </h3>
+          <p class="text-xs text-zinc-500 mt-0.5">
+            Pega tu idea, notas de voz o un PRD desordenado. El sintetizador agéntico descompondrá tu intención en las 12 perspectivas de SDD.
+          </p>
+        </div>
+        <button onclick="closeGenesisModal()" class="text-zinc-400 hover:text-zinc-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Input Bar Section -->
+      <div class="space-y-3">
+        <label class="text-xs font-black text-zinc-800 uppercase tracking-wider">¿Qué quieres construir hoy?</label>
+        <textarea
+          id="genesis-input-text"
+          rows="3"
+          class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all"
+          placeholder="Ejemplo: Un SaaS B2B en Next.js para reservas de mesas de restaurantes con códigos QR en cada mesa y pagos Stripe. Debe incluir roles para meseros y administradores, sin app móvil en la V1..."
+        ></textarea>
+        <div class="flex justify-end gap-2">
+          <button
+            id="genesis-synthesize-btn"
+            onclick="synthesizeGenesisIdea()"
+            class="px-4 py-2 rounded-xl text-xs font-black bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2 shadow-xs transition-colors"
+          >
+            <i data-lucide="wand-2" class="w-4 h-4"></i>
+            <span>Desglosar y Sintetizar en SDD Spec</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Reactive Preview Section -->
+      <div id="genesis-preview-panel" class="hidden flex-1 overflow-y-auto space-y-4 pt-3 border-t border-zinc-200">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-purple-900 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-purple-600"></i>
+            Vista Previa Reactiva Generada
+          </span>
+          <span id="genesis-preview-stats" class="text-xs font-mono font-bold text-zinc-500"></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 1. Non-Goals -->
+          <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/30 space-y-2">
+            <span class="text-xs font-black text-amber-950 uppercase flex items-center gap-1.5">
+              <i data-lucide="ban" class="w-4 h-4 text-amber-600"></i>
+              1. Non-Goals Explícitos V1 (Prohibido programar)
+            </span>
+            <div id="genesis-preview-nongoals" class="space-y-1.5 text-xs text-zinc-700"></div>
+          </div>
+
+          <!-- 2. Historias Gherkin -->
+          <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/30 space-y-2">
+            <span class="text-xs font-black text-blue-950 uppercase flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+              2. Historias de Usuario Inferidas (Gherkin)
+            </span>
+            <div id="genesis-preview-stories" class="space-y-1.5 text-xs text-zinc-700"></div>
+          </div>
+
+          <!-- 3. Arquitectura C4 -->
+          <div class="p-4 rounded-xl border border-indigo-200 bg-indigo-50/30 space-y-2">
+            <span class="text-xs font-black text-indigo-950 uppercase flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-4 h-4 text-indigo-600"></i>
+              3. Arquitectura & Stack Tecnológico
+            </span>
+            <div id="genesis-preview-arch" class="space-y-1.5 text-xs text-zinc-700"></div>
+          </div>
+
+          <!-- 4. Modelo ERD -->
+          <div class="p-4 rounded-xl border border-cyan-200 bg-cyan-50/30 space-y-2">
+            <span class="text-xs font-black text-cyan-950 uppercase flex items-center gap-1.5">
+              <i data-lucide="database" class="w-4 h-4 text-cyan-600"></i>
+              4. Modelo de Datos Relacional Sugerido
+            </span>
+            <div id="genesis-preview-erd" class="space-y-1.5 text-xs text-zinc-700 font-mono text-[11px]"></div>
+          </div>
+        </div>
+
+        <!-- Action Commitment -->
+        <div class="flex items-center justify-between pt-4 border-t border-zinc-200">
+          <p class="text-[11px] text-zinc-500">
+            Al confirmar, se escribirán los archivos en <code>.sdd/</code> y se generará el contrato de gobierno <code>AGENTS.md</code>.
+          </p>
+          <div class="flex gap-2">
+            <button onclick="closeGenesisModal()" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50">Cancelar</button>
+            <button
+              id="genesis-commit-btn"
+              onclick="commitGenesisScaffold()"
+              class="px-4 py-2 rounded-xl text-xs font-black bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 shadow-xs"
+            >
+              <i data-lucide="save" class="w-4 h-4 text-emerald-400"></i>
+              <span>Confirmar y Escribir en .sdd/</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sonner / Toast Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-200 bg-zinc-950 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-text">Acción completada</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    let appState = null;
+
+    function showToast(msg, icon = 'check-circle-2') {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = msg;
+      t.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        t.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('bg-purple-50', 'text-purple-950', 'border-purple-200/80', 'shadow-xs', 'border');
+        btn.classList.add('text-zinc-700', 'hover:bg-zinc-100', 'hover:text-zinc-950');
+      });
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-zinc-700', 'hover:bg-zinc-100', 'hover:text-zinc-950');
+        activeBtn.classList.add('bg-purple-50', 'text-purple-950', 'border', 'border-purple-200/80', 'shadow-xs');
+      }
+
+      document.querySelectorAll('.tab-content').forEach(view => view.classList.add('hidden'));
+      const activeView = document.getElementById(`view-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+
+      lucide.createIcons();
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('/api/sdd');
+        appState = await res.json();
+
+        renderHeader();
+        renderCore();
+        renderDiscovery();
+        renderStories();
+        renderSequences();
+        renderFlows();
+        renderArchitecture();
+        renderDatabase();
+        renderRolesAndRisks();
+        renderQA();
+        renderDrift();
+        renderUIUX();
+        renderKanban();
+
+        lucide.createIcons();
+      } catch (e) {
+        console.error('Error fetching data:', e);
+      }
+    }
+
+    function renderHeader() {
+      if (!appState?.project) return;
+      const p = appState.project;
+      document.getElementById('header-proj-name').innerText = p.name || 'Proyecto SDD';
+      document.getElementById('header-depth-badge').innerText = `SDD ${(p.depth || 'serio').toUpperCase()}`;
+      document.getElementById('header-purpose-badge').innerText = (p.purpose || 'comercial').toUpperCase();
+
+      const m = appState.manifest?.metrics;
+      if (m) {
+        document.getElementById('header-health-pct').innerText = `${m.globalHealth || 100}%`;
+        document.getElementById('header-health-bar').style.width = `${m.globalHealth || 100}%`;
+        document.getElementById('stat-arqui').innerText = `${m.architectureHealth || 100}%`;
+        document.getElementById('stat-flows').innerText = `${m.flowsHealth || 100}%`;
+        document.getElementById('stat-ui').innerText = `${m.uiHealth || 80}%`;
+      }
+    }
+
+    function renderCore() {
+      const p = appState.project;
+      const c = appState.core;
+      if (!p) return;
+
+      document.getElementById('core-project-title').innerText = `${p.name}: ${p.tagline || 'Especificación'}`;
+      document.getElementById('core-project-desc').innerText = p.profile?.purposeDescription || p.tagline || '';
+      document.getElementById('core-purpose-pill').innerText = `PROPÓSITO: ${(p.purpose || 'comercial').toUpperCase()}`;
+      document.getElementById('core-depth-pill').innerText = `PROFUNDIDAD: ${(p.depth || 'serio').toUpperCase()}`;
+
+      // Gates list
+      const gatesGrid = document.getElementById('core-gates-grid');
+      gatesGrid.innerHTML = '';
+      const gates = [
+        { id: 'problemDefined', name: '1. Problema Validado', file: '.sdd/core/problem.json' },
+        { id: 'userTargetDefined', name: '2. Usuario Objetivo', file: '.sdd/core/target-user.json' },
+        { id: 'boundariesEstablished', name: '3. Non-Goals V1', file: '.sdd/core/scope-boundaries.json' },
+        { id: 'successMetricsDefined', name: '4. Criterios de Éxito', file: '.sdd/core/success-criteria.json' },
+        { id: 'storiesReady', name: '5. Historias Gherkin', file: '.sdd/requirements/stories/' }
+      ];
+
+      const qg = p.qualityGates || {};
+      let passedCount = 0;
+
+      gates.forEach(g => {
+        let isPassed = false;
+        if (Array.isArray(qg)) {
+          isPassed = qg.find(x => x.id === g.id)?.status === 'passed';
+        } else {
+          isPassed = Boolean(qg[g.id]);
+        }
+        if (isPassed) passedCount++;
+
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-xl border flex flex-col justify-between space-y-2 cursor-pointer transition-all ${
+          isPassed ? 'bg-emerald-50/40 border-emerald-200' : 'bg-rose-50/40 border-rose-200'
+        }`;
+        card.onclick = () => toggleGate(g.id, !isPassed);
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold ${isPassed ? 'text-emerald-950' : 'text-rose-950'} leading-tight">${g.name}</span>
+            <i data-lucide="${isPassed ? 'check-circle-2' : 'alert-circle'}" class="w-4 h-4 ${isPassed ? 'text-emerald-600' : 'text-rose-600'} shrink-0"></i>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-[9px] font-mono text-zinc-500">${g.file}</span>
+            <span class="text-[9px] font-mono font-bold px-1 rounded ${isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+              ${isPassed ? 'PASSED' : 'PENDING'}
+            </span>
+          </div>
+        `;
+        gatesGrid.appendChild(card);
+      });
+
+      document.getElementById('core-gates-stat').innerText = `${passedCount} de 5 Aprobadas`;
+      document.getElementById('header-gates-text').innerText = `${passedCount}/5 Compuertas ✓`;
+      document.getElementById('tab-badge-core').innerText = `${passedCount}/5`;
+
+      // Problem
+      document.getElementById('core-problem-summary').innerText = c?.problem?.statement || c?.problem?.summary || 'No definido aún.';
+      const pains = c?.problem?.painPoints || c?.problem?.targetPainPoints || [];
+      const painContainer = document.getElementById('core-pain-points-list');
+      painContainer.innerHTML = pains.map((pp, idx) => `
+        <div class="p-3 rounded-xl border border-rose-100 bg-rose-50/30 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-rose-950">${pp.pain || pp.title || pp}</span>
+            <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded uppercase bg-rose-100 text-rose-800">${pp.severity || 'ALTA'}</span>
+          </div>
+          ${pp.evidence ? `<p class="text-[11px] text-zinc-600"><b>Evidencia:</b> ${pp.evidence}</p>` : ''}
+          ${pp.solution ? `<p class="text-[11px] text-emerald-800 font-medium"><b>Solución:</b> ${pp.solution}</p>` : ''}
+        </div>
+      `).join('') || '<div class="text-xs text-zinc-400">Sin dolores registrados.</div>';
+
+      // Non-goals
+      const ngs = c?.scopeBoundaries?.explicitNonGoals || [];
+      const ngContainer = document.getElementById('core-non-goals-list');
+      ngContainer.innerHTML = ngs.map(ng => `
+        <div class="p-3 rounded-xl border border-amber-200 bg-amber-50/40 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-zinc-900">${ng.feature || ng}</span>
+            <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded uppercase bg-amber-200 text-amber-900">Congelado V2</span>
+          </div>
+          ${ng.rationale ? `<p class="text-[11px] text-zinc-600 leading-relaxed">${ng.rationale}</p>` : ''}
+        </div>
+      `).join('') || '<div class="text-xs text-zinc-400">Sin non-goals registrados.</div>';
+    }
+
+    async function toggleGate(gateId, nextPassed) {
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gateId, gateStatus: nextPassed ? 'passed' : 'pending', done: nextPassed, verifiedBy: 'Human Architect' })
+        });
+        if (res.ok) {
+          showToast(`Compuerta ${nextPassed ? 'aprobada' : 'bloqueada'}`);
+          loadData();
+        }
+      } catch {
+        showToast('Error', 'alert-circle');
+      }
+    }
+
+    let activeDiscoveryFilter = 'all';
+
+    function setDiscoveryFilter(phaseId) {
+      activeDiscoveryFilter = phaseId;
+      document.querySelectorAll('.disc-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-600', 'text-white', 'shadow-xs');
+        btn.classList.add('text-zinc-600', 'hover:bg-zinc-100');
+      });
+
+      const activeBtn = document.getElementById(`disc-filter-${phaseId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-zinc-600', 'hover:bg-zinc-100');
+        activeBtn.classList.add('bg-purple-600', 'text-white', 'shadow-xs');
+      }
+
+      renderDiscovery();
+    }
+
+    function insertDiscoveryPreset(qId, text) {
+      const textarea = document.getElementById(`ans-${qId}`);
+      if (!textarea) return;
+      if (textarea.value.trim().length === 0) {
+        textarea.value = text;
+      } else if (!textarea.value.includes(text)) {
+        textarea.value = textarea.value.trim() + ' | ' + text;
+      }
+      textarea.focus();
+    }
+
+    function getDiscoveryPresets(category = '', qId = '') {
+      const cat = (category || '').toLowerCase();
+      const id = (qId || '').toLowerCase();
+      if (cat.includes('frontend') || id.includes('frontend')) {
+        return ['Next.js 15 (React 19)', 'Vite + React', 'Tailwind CSS', 'PWA Responsive'];
+      }
+      if (cat.includes('backend') || id.includes('backend')) {
+        return ['Node.js Route Handlers', 'Python FastAPI', 'Express / Fastify', 'Go REST API'];
+      }
+      if (cat.includes('base de datos') || id.includes('database')) {
+        return ['PostgreSQL 16 + Prisma', 'Supabase Managed Postgres', 'SQLite + Drizzle', 'Neon Serverless'];
+      }
+      if (cat.includes('autenticación') || id.includes('auth')) {
+        return ['JWT + Cookies HttpOnly', 'Auth.js (NextAuth v5)', 'Clerk Authentication', 'Supabase Auth RBAC'];
+      }
+      if (cat.includes('infraestructura') || id.includes('hosting')) {
+        return ['Vercel Serverless', 'Railway Container', 'Docker + VPS', 'AWS ECS'];
+      }
+      if (cat.includes('non-goals') || id.includes('nongoal')) {
+        return ['Sin apps nativas en V1', 'Sin multi-región compleja', 'Sin microservicios prematuros'];
+      }
+      if (cat.includes('integraciones') || id.includes('integrat')) {
+        return ['Stripe Checkout', 'WhatsApp Evolution API', 'Resend Email', 'Webhooks HMAC'];
+      }
+      return [];
+    }
+
+    function renderDiscovery() {
+      const container = document.getElementById('discovery-sessions-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const sessions = appState.discovery?.interviews?.interviewSessions || [];
+
+      // Calcular métricas globales
+      let totalQuestions = 0;
+      let answeredQuestions = 0;
+
+      sessions.forEach(s => {
+        (s.questions || []).forEach(q => {
+          totalQuestions++;
+          if (q.status === 'answered' || q.isNotApplicable) answeredQuestions++;
+        });
+      });
+
+      const percent = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
+
+      const statTotal = document.getElementById('discovery-stat-total');
+      const statAnswered = document.getElementById('discovery-stat-answered');
+      const statPercent = document.getElementById('discovery-stat-percent');
+      const badgeTab = document.getElementById('tab-badge-discovery');
+
+      if (statTotal) statTotal.innerText = totalQuestions;
+      if (statAnswered) statAnswered.innerText = answeredQuestions;
+      if (statPercent) statPercent.innerText = `${percent}%`;
+      if (badgeTab) badgeTab.innerText = `${totalQuestions} Qs`;
+
+      const statusFilter = document.getElementById('discovery-status-select')?.value || 'all';
+
+      // Filtrar sesiones según la pestaña activa
+      let filteredSessions = sessions;
+      if (activeDiscoveryFilter !== 'all') {
+        filteredSessions = sessions.filter(s => s.id === activeDiscoveryFilter || (s.category && s.category.includes(activeDiscoveryFilter)));
+      }
+
+      if (filteredSessions.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white border border-zinc-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto">
+              <i data-lucide="compass" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay preguntas en esta fase</h3>
+            <p class="text-xs text-zinc-500 max-w-sm mx-auto">Selecciona "Todas las Fases" para ver el cuestionario completo de 7 fases.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filteredSessions.forEach(sess => {
+        let qList = sess.questions || [];
+        if (statusFilter === 'pending') {
+          qList = qList.filter(q => q.status !== 'answered' && !q.isNotApplicable);
+        } else if (statusFilter === 'answered') {
+          qList = qList.filter(q => q.status === 'answered' || q.isNotApplicable);
+        }
+
+        if (qList.length === 0 && statusFilter !== 'all') return;
+
+        const sessTotal = (sess.questions || []).length;
+        const sessDone = (sess.questions || []).filter(q => q.status === 'answered' || q.isNotApplicable).length;
+
+        const div = document.createElement('div');
+        div.className = 'border border-zinc-200/90 rounded-2xl p-5 bg-white shadow-xs space-y-4';
+        div.innerHTML = `
+          <div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-zinc-100 gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200 uppercase">
+                  ${sess.badge || 'Fase'}
+                </span>
+                <span class="text-sm font-black text-zinc-950">${escapeHtml(sess.title || sess.category || 'Sesión de Diagnóstico')}</span>
+              </div>
+              ${sess.description ? `<p class="text-xs text-zinc-500 mt-1 font-normal">${escapeHtml(sess.description)}</p>` : ''}
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-xl bg-purple-50 text-purple-900 border border-purple-200">
+                ${sessDone}/${sessTotal} Respondidas
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            ${qList.map(q => {
+              const presets = getDiscoveryPresets(q.category, q.id);
+              const isAnswered = q.status === 'answered';
+              return `
+                <div class="bg-zinc-50/70 border border-zinc-200/80 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-purple-200 transition-colors">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md bg-zinc-200/80 text-zinc-800">
+                        ${q.id}
+                      </span>
+                      ${q.category ? `
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-purple-100/80 text-purple-900 border border-purple-200">
+                          ${escapeHtml(q.category)}
+                        </span>
+                      ` : ''}
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                      ${q.isNotApplicable ? `
+                        <span class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                          No Aplica
+                        </span>
+                      ` : `
+                        <span class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full ${
+                          isAnswered ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                        }">
+                          ${isAnswered ? 'Respondida' : 'Pendiente'}
+                        </span>
+                      `}
+                      <button
+                        onclick="toggleNA('${q.id}', ${!q.isNotApplicable})"
+                        class="text-[10px] font-semibold text-zinc-500 hover:text-zinc-900 border border-zinc-200 bg-white px-2 py-0.5 rounded-lg shadow-2xs hover:bg-zinc-50 transition-colors"
+                        title="${q.isNotApplicable ? 'Habilitar pregunta' : 'Marcar como No Aplica'}"
+                      >
+                        ${q.isNotApplicable ? 'Habilitar' : 'N/A'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="text-xs font-bold text-zinc-950 leading-snug">
+                    ${escapeHtml(q.question || q.text || 'Pregunta de especificación')}
+                  </div>
+
+                  ${q.insights ? `
+                    <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-950 flex items-start gap-2">
+                      <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0"></i>
+                      <span><b>Consejo de Arquitectura:</b> ${escapeHtml(q.insights)}</span>
+                    </div>
+                  ` : ''}
+
+                  ${presets.length > 0 && !q.isNotApplicable ? `
+                    <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span class="text-[10px] font-mono text-zinc-400 font-bold uppercase tracking-wider">Sugerencias rápidas:</span>
+                      ${presets.map(p => `
+                        <button
+                          type="button"
+                          onclick="insertDiscoveryPreset('${q.id}', '${escapeHtml(p)}')"
+                          class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-lg bg-white border border-zinc-200 text-zinc-700 hover:border-purple-400 hover:text-purple-900 transition-colors cursor-pointer shadow-2xs"
+                        >
+                          + ${escapeHtml(p)}
+                        </button>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+
+                  ${q.isNotApplicable ? `
+                    <p class="text-[11px] text-zinc-500 italic bg-white p-2.5 rounded-xl border border-zinc-200">
+                      <b>Justificación de No Aplicabilidad:</b> ${escapeHtml(q.notApplicableReason || 'Sin justificación declarada')}
+                    </p>
+                  ` : `
+                    <div class="space-y-2">
+                      <textarea
+                        id="ans-${q.id}"
+                        rows="3"
+                        class="w-full bg-white border border-zinc-200 rounded-xl p-3 text-xs text-zinc-900 leading-relaxed placeholder:text-zinc-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all shadow-2xs font-normal"
+                        placeholder="Escribe o ajusta la especificación técnica para esta pregunta..."
+                      >${escapeHtml(q.answer || '')}</textarea>
+                      <div class="flex items-center justify-between pt-1">
+                        <span class="text-[10px] text-zinc-400">Se sincroniza atómicamente con <code>.sdd/discovery/interviews.json</code></span>
+                        <button
+                          onclick="saveAnswer('${q.id}', this)"
+                          class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-zinc-950 hover:bg-purple-700 text-white flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer active:scale-95"
+                        >
+                          <i data-lucide="save" class="w-3.5 h-3.5 text-emerald-400"></i>
+                          <span>Guardar Respuesta</span>
+                        </button>
+                      </div>
+                    </div>
+                  `}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      lucide.createIcons();
+    }
+
+    async function saveAnswer(qId, btn) {
+      const textarea = document.getElementById(`ans-${qId}`);
+      const val = textarea?.value || '';
+      
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<span class="text-[11px]">Guardando...</span>';
+
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionId: qId, answer: val, status: 'answered' })
+        });
+        if (res.ok) {
+          showToast('✓ Pregunta guardada en .sdd/discovery/interviews.json', 'check-circle-2');
+          await loadData();
+        } else {
+          showToast('Error al guardar respuesta', 'alert-circle');
+        }
+      } catch {
+        showToast('Error de conexión', 'alert-circle');
+      } finally {
+        if (btn) btn.innerHTML = originalText;
+        lucide.createIcons();
+      }
+    }
+
+    async function toggleNA(qId, isNA) {
+      const reason = isNA ? prompt('Escribe el motivo por el cual no aplica a este proyecto:') : '';
+      if (isNA && !reason) return;
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionId: qId, isNotApplicable: isNA, notApplicableReason: reason, status: isNA ? 'answered' : 'pending' })
+        });
+        if (res.ok) {
+          showToast(isNA ? 'Marcado como No Aplica' : 'Pregunta habilitada');
+          loadData();
+        }
+      } catch {
+        showToast('Error', 'alert-circle');
+      }
+    }
+
+    function renderStories() {
+      const container = document.getElementById('stories-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const stories = appState.requirements?.userStories || [];
+
+      const tabBadge = document.getElementById('tab-badge-stories');
+      if (tabBadge) tabBadge.innerText = stories.length;
+
+      const statCount = document.getElementById('stories-stat-count');
+      if (statCount) statCount.innerText = stories.length;
+
+      const totalPoints = stories.reduce((acc, s) => acc + (Number(s.points) || 3), 0);
+      const statPoints = document.getElementById('stories-stat-points');
+      if (statPoints) statPoints.innerText = totalPoints;
+
+      let totalCriteria = 0;
+      let passedCriteria = 0;
+      stories.forEach(s => {
+        (s.acceptanceCriteria || []).forEach(c => {
+          totalCriteria++;
+          if (c.done) passedCriteria++;
+        });
+      });
+      const passedPct = totalCriteria > 0 ? Math.round((passedCriteria / totalCriteria) * 100) : 100;
+      const statPassed = document.getElementById('stories-stat-passed');
+      if (statPassed) statPassed.innerText = `${passedPct}%`;
+
+      if (stories.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white border border-zinc-200 rounded-2xl p-12 text-center space-y-3 shadow-2xs">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+              <i data-lucide="file-question" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay historias creadas</h3>
+            <p class="text-xs text-zinc-500 max-w-sm mx-auto">Escribe tus requerimientos en el Chat para que tu Agente de IA estructure historias atómicas gobernadas por Gherkin.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      stories.forEach(s => {
+        const isInferred = s.origin === 'inferred';
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-zinc-200 hover:border-purple-300 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all space-y-5';
+
+        const criteriaList = s.acceptanceCriteria || [];
+        const doneCount = criteriaList.filter(c => c.done).length;
+
+        card.innerHTML = `
+          <!-- Top Row: ID, Title, Badges, Status -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-black bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+                ${escapeHtml(s.id)}
+              </span>
+              <h3 class="text-sm md:text-base font-bold text-zinc-950 tracking-tight">
+                ${escapeHtml(s.title)}
+              </h3>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                isInferred ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              } flex items-center gap-1">
+                <i data-lucide="${isInferred ? 'help-circle' : 'check'}" class="w-3 h-3 ${isInferred ? 'text-amber-600' : 'text-emerald-600'}"></i>
+                <span>${isInferred ? 'Inferido' : 'Confirmado'}</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
+                ${s.points || 3} pts
+              </span>
+              ${isInferred ? `<button onclick="confirmOrigin('story', '${s.id}')" class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors cursor-pointer">Confirmar</button>` : ''}
+            </div>
+
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+              <select
+                onchange="updateStoryStatus('${s.id}', this.value)"
+                class="text-xs font-bold font-mono px-3 py-1.5 rounded-xl border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-200 ${
+                  s.status === 'done' 
+                    ? 'bg-emerald-50 text-emerald-900 border-emerald-300' 
+                    : s.status === 'in_progress' 
+                    ? 'bg-purple-50 text-purple-900 border-purple-300' 
+                    : 'bg-amber-50 text-amber-900 border-amber-300'
+                }"
+              >
+                <option value="backlog" ${s.status === 'backlog' || s.status === 'todo' ? 'selected' : ''}>📋 BACKLOG</option>
+                <option value="in_progress" ${s.status === 'in_progress' ? 'selected' : ''}>⚡ EN CURSO</option>
+                <option value="done" ${s.status === 'done' ? 'selected' : ''}>✓ TERMINADO</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Narrative Section: Como / Quiero / Para -->
+          <div class="rounded-xl bg-gradient-to-r from-zinc-50 to-purple-50/20 border border-zinc-200/80 p-4 space-y-1.5">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
+              <i data-lucide="user-check" class="w-3.5 h-3.5 text-purple-600"></i>
+              <span>Narrativa de Usuario (Jira Spec)</span>
+            </div>
+            <div class="text-xs text-zinc-700 leading-relaxed font-normal">
+              <span class="inline-block px-1.5 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px] uppercase">Como</span>
+              <b class="text-zinc-950 font-semibold">${escapeHtml(s.role || s.asA || 'usuario')}</b>,
+              <span class="inline-block px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-900 font-bold text-[10px] uppercase ml-1">Quiero</span>
+              <b class="text-zinc-950 font-semibold">${escapeHtml(s.action || s.iWant || '')}</b>
+              <span class="inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold text-[10px] uppercase ml-1">Para</span>
+              <span class="text-zinc-800">${escapeHtml(s.benefit || s.soThat || '')}</span>.
+            </div>
+          </div>
+
+          <!-- Acceptance Criteria (Gherkin Scenarios) -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                <span>Criterios de Aceptación Gherkin:</span>
+              </span>
+              <span class="text-[10px] font-mono font-bold bg-zinc-100 text-zinc-600 px-2.5 py-0.5 rounded-full border border-zinc-200">
+                ${doneCount}/${criteriaList.length} Validados
+              </span>
+            </div>
+
+            <div class="space-y-2">
+              ${criteriaList.map(c => `
+                <label class="flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                  c.done ? 'bg-emerald-50/40 border-emerald-200/80 text-zinc-500' : 'bg-white border-zinc-200/80 hover:border-purple-200 shadow-2xs text-zinc-800'
+                }">
+                  <input
+                    type="checkbox"
+                    ${c.done ? 'checked' : ''}
+                    onchange="toggleCriterion('${s.id}', '${c.id}', this.checked)"
+                    class="mt-0.5 w-4 h-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500 cursor-pointer shrink-0"
+                  >
+                  <div class="text-xs leading-relaxed flex-1">
+                    ${c.scenario ? `<span class="font-bold text-zinc-900 block mb-0.5">${escapeHtml(c.scenario)}</span>` : ''}
+                    <span class="${c.done ? 'line-through text-zinc-400' : 'text-zinc-800 font-medium'}">
+                      ${c.text ? escapeHtml(c.text) : `${c.given ? `<b class="text-purple-700">Dado:</b> ${escapeHtml(c.given)} ` : ''}${c.when ? `<b class="text-indigo-700">Cuando:</b> ${escapeHtml(c.when)} ` : ''}${c.then ? `<b class="text-emerald-700">Entonces:</b> ${escapeHtml(c.then)}` : ''}`}
+                    </span>
+                  </div>
+                  <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded shrink-0 ${
+                    c.done ? 'text-emerald-800 bg-emerald-100 border border-emerald-200' : 'text-zinc-400 bg-zinc-100 border border-zinc-200'
+                  }">
+                    ${c.done ? 'PASSED' : 'PENDING'}
+                  </span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Scope Protection Files -->
+          <div class="pt-3 border-t border-zinc-100 space-y-2">
+            <div class="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Archivos en Alcance Blindados (Scope Protection):</span>
+              </span>
+              <span class="text-emerald-700 font-bold">Sin Deriva de Código</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${(s.scopeFiles || []).map(f => `
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-mono bg-zinc-50 text-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-200 shadow-2xs font-semibold hover:border-purple-300 transition-colors">
+                  <i data-lucide="file-code" class="w-3 h-3 text-purple-600"></i>
+                  <code>${escapeHtml(f)}</code>
+                </span>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function toggleCriterion(storyId, criterionId, isDone) {
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storyId, criterionId, done: isDone })
+        });
+        if (res.ok) {
+          showToast('Criterio guardado en disco');
+          loadData();
+        }
+      } catch {
+        showToast('Error', 'alert-circle');
+      }
+    }
+
+    async function confirmOrigin(entityType, entityId) {
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirmOrigin: true, entityType, entityId })
+        });
+        if (res.ok) {
+          showToast('Especificación confirmada formalmente');
+          loadData();
+        }
+      } catch {
+        showToast('Error', 'alert-circle');
+      }
+    }
+
+    // --- PERSPECTIVA SECUENCIAS: MERMAID RENDERING & RAW TOGGLE ---
+    let isMermaidRawVisible = false;
+
+    function buildMermaidFromSteps(seq) {
+      if (!seq) return null;
+      if (seq.mermaid && typeof seq.mermaid === 'string' && seq.mermaid.trim().length > 0) {
+        return seq.mermaid;
+      }
+      if (Array.isArray(seq.steps) && seq.steps.length > 0) {
+        let code = `sequenceDiagram\n  autonumber\n`;
+        const participants = new Set();
+        seq.steps.forEach(s => {
+          if (s.actor) participants.add(s.actor);
+          if (s.target) participants.add(s.target);
+        });
+        participants.forEach(p => {
+          const id = p.replace(/[^a-zA-Z0-9]/g, '_');
+          const isUser = p.toLowerCase().includes('usuario') || p.toLowerCase().includes('cliente') || p.toLowerCase().includes('lector') || p.toLowerCase().includes('bibliotecario') || p.toLowerCase().includes('admin');
+          if (isUser) {
+            code += `  actor ${id} as 👤 ${p}\n`;
+          } else {
+            code += `  participant ${id} as 💻 ${p}\n`;
+          }
+        });
+        seq.steps.forEach(s => {
+          const from = (s.actor || 'Actor').replace(/[^a-zA-Z0-9]/g, '_');
+          const to = (s.target || 'Target').replace(/[^a-zA-Z0-9]/g, '_');
+          const act = (s.action || 'Acción').replace(/[\r\n]+/g, ' ').replace(/"/g, "'");
+          code += `  ${from}->>${to}: ${act}\n`;
+        });
+        return code;
+      }
+      return null;
+    }
+
+    async function renderSequences() {
+      const seq = appState.sequences;
+      const mermaidCode = buildMermaidFromSteps(seq);
+
+      const codeView = document.getElementById('mermaid-code-view');
+      const renderOutput = document.getElementById('mermaid-svg-output');
+      const tabBadgeSeq = document.getElementById('tab-badge-sequences');
+
+      if (!mermaidCode) {
+        if (tabBadgeSeq) tabBadgeSeq.innerText = '0';
+        if (codeView) codeView.innerText = '# No hay diagramas de secuencia registrados aún.';
+        if (renderOutput) {
+          renderOutput.innerHTML = `
+            <div class="py-12 text-center space-y-3">
+              <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto">
+                <i data-lucide="workflow" class="w-6 h-6"></i>
+              </div>
+              <h3 class="text-sm font-bold text-zinc-900">No hay secuencias UML definidas en este proyecto</h3>
+              <p class="text-xs text-zinc-500 max-w-sm mx-auto">Esta perspectiva se generará automáticamente cuando definas casos de uso o flujos de interacción con tu Agente de IA.</p>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+        return;
+      }
+
+      if (tabBadgeSeq) tabBadgeSeq.innerText = '1';
+      if (codeView) codeView.innerText = mermaidCode;
+
+      if (renderOutput && window.mermaid) {
+        try {
+          renderOutput.innerHTML = '<div class="text-xs text-zinc-400 font-mono py-8 flex items-center justify-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-600 animate-ping"></span>Renderizando diagrama interactivo...</div>';
+          const uniqueId = 'mermaid-seq-' + Math.floor(Math.random() * 10000);
+          const { svg } = await mermaid.render(uniqueId, mermaidCode);
+          renderOutput.innerHTML = svg;
+        } catch (err) {
+          console.warn('Error renderizando Mermaid:', err);
+          renderOutput.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl text-xs font-mono border border-rose-200">No se pudo procesar la sintaxis visual. Usa la vista de código.</div>`;
+        }
+      }
+    }
+
+    function toggleMermaidRaw() {
+      isMermaidRawVisible = !isMermaidRawVisible;
+      const rawBox = document.getElementById('mermaid-raw-box');
+      const renderContainer = document.getElementById('mermaid-render-container');
+      const toggleText = document.getElementById('btn-toggle-mermaid-text');
+
+      if (isMermaidRawVisible) {
+        rawBox?.classList.remove('hidden');
+        renderContainer?.classList.add('hidden');
+        if (toggleText) toggleText.innerText = 'Ver Diagrama';
+      } else {
+        rawBox?.classList.add('hidden');
+        renderContainer?.classList.remove('hidden');
+        if (toggleText) toggleText.innerText = 'Ver Código';
+      }
+    }
+
+    function copyMermaid() {
+      const txt = document.getElementById('mermaid-code-view').innerText;
+      navigator.clipboard.writeText(txt);
+      showToast('Mermaid copiado al portapapeles');
+    }
+
+    function renderFlows() {
+      const container = document.getElementById('flows-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const flows = appState.flows || [];
+
+      if (flows.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white border border-zinc-200 rounded-2xl p-12 text-center space-y-3 shadow-2xs">
+            <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto">
+              <i data-lucide="layers" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay flujos de proceso registrados</h3>
+            <p class="text-xs text-zinc-500 max-w-sm mx-auto">Cuando definas flujos en el Chat, tu Agente de IA creará los pipelines y nodos de proceso aquí.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      flows.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs space-y-4';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-black text-zinc-950">${f.name}</span>
+            <span class="text-xs font-mono font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded">${f.progress || 0}%</span>
+          </div>
+          <p class="text-xs text-zinc-600">${f.description || ''}</p>
+          <div class="space-y-3">
+            ${(f.nodes || []).map(n => `
+              <div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-zinc-900">${n.name}</span>
+                  <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded ${n.status === 'done' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${n.status}</span>
+                </div>
+                <div class="space-y-1">
+                  ${(n.checklist || []).map(t => `
+                    <div class="flex items-center gap-2 text-xs">
+                      <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleFlowTask('${f.id}', '${n.id}', '${t.id}', this.checked)" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
+                      <span class="${t.done ? 'line-through text-zinc-400' : 'text-zinc-700'}">${t.text}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    async function toggleFlowTask(flowId, nodeId, taskId, isDone) {
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flowId, nodeId, taskId, done: isDone })
+        });
+        if (res.ok) {
+          showToast('Tarea actualizada');
+          loadData();
+        }
+      } catch {
+        showToast('Error', 'alert-circle');
+      }
+    }
+
+    // --- PERSPECTIVA ARQUITECTURA: INTERACTIVE C4 CANVAS & INSPECTOR ---
+    let archZoom = 1.0;
+    let selectedServiceId = null;
+
+    function setArchViewMode(mode) {
+      const canvasWrapper = document.getElementById('arch-canvas-container');
+      const cardsGrid = document.getElementById('arch-cards-container');
+      const btnCanvas = document.getElementById('arch-viewmode-canvas');
+      const btnGrid = document.getElementById('arch-viewmode-grid');
+
+      if (mode === 'canvas') {
+        canvasWrapper?.classList.remove('hidden');
+        cardsGrid?.classList.add('hidden');
+        btnCanvas?.classList.add('bg-white', 'text-purple-950', 'font-black', 'shadow-2xs');
+        btnCanvas?.classList.remove('text-zinc-600');
+        btnGrid?.classList.remove('bg-white', 'text-purple-950', 'font-black', 'shadow-2xs');
+        btnGrid?.classList.add('text-zinc-600');
+      } else {
+        canvasWrapper?.classList.add('hidden');
+        cardsGrid?.classList.remove('hidden');
+        btnGrid?.classList.add('bg-white', 'text-purple-950', 'font-black', 'shadow-2xs');
+        btnGrid?.classList.remove('text-zinc-600');
+        btnCanvas?.classList.remove('bg-white', 'text-purple-950', 'font-black', 'shadow-2xs');
+        btnCanvas?.classList.add('text-zinc-600');
+      }
+      lucide.createIcons();
+    }
+
+    function zoomArchCanvas(delta) {
+      archZoom = Math.min(1.6, Math.max(0.6, archZoom + delta));
+      const viewport = document.getElementById('arch-viewport');
+      const zoomText = document.getElementById('arch-zoom-level');
+      if (viewport) viewport.style.transform = `scale(${archZoom})`;
+      if (zoomText) zoomText.innerText = `${Math.round(archZoom * 100)}%`;
+    }
+
+    function resetArchCanvas() {
+      archZoom = 1.0;
+      const viewport = document.getElementById('arch-viewport');
+      const zoomText = document.getElementById('arch-zoom-level');
+      if (viewport) viewport.style.transform = 'scale(1.0)';
+      if (zoomText) zoomText.innerText = '100%';
+    }
+
+    function renderArchitecture() {
+      const cardsContainer = document.getElementById('arch-cards-container');
+      const nodesGrid = document.getElementById('arch-nodes-grid');
+      const wiresSvg = document.getElementById('arch-wires-svg');
+      if (!nodesGrid) return;
+
+      cardsContainer.innerHTML = '';
+      nodesGrid.innerHTML = '';
+      if (wiresSvg) wiresSvg.innerHTML = '';
+
+      const services = appState.architecture?.services || appState.architecture?.nodes || [];
+      const servicesCountBadge = document.getElementById('canvas-services-count');
+
+      // IF NO SERVICES: RENDER CLEAN HONEST EMPTY STATE (NEVER FAKE MOCK SERVICES)
+      if (services.length === 0) {
+        if (servicesCountBadge) servicesCountBadge.innerText = '0 Servicios';
+        nodesGrid.className = 'w-full flex items-center justify-center p-8';
+        nodesGrid.innerHTML = `
+          <div class="bg-white border border-zinc-200 rounded-2xl p-10 text-center space-y-3 shadow-2xs max-w-md mx-auto">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+              <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay arquitectura definida para este proyecto</h3>
+            <p class="text-xs text-zinc-500 leading-relaxed">
+              Los servicios y contenedores C4 se estructurarán automáticamente cuando definas los componentes de tu aplicación en el Chat.
+            </p>
+            <button onclick="switchScreen('chat')" class="mt-2 px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-2xs">
+              <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+              <span>Definir en el Chat con el Agente</span>
+            </button>
+          </div>
+        `;
+        cardsContainer.innerHTML = `
+          <div class="col-span-full bg-white border border-zinc-200 rounded-2xl p-12 text-center space-y-3 shadow-2xs">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+              <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay servicios registrados</h3>
+            <p class="text-xs text-zinc-500 max-w-sm mx-auto">Define tu arquitectura en el Chat.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      if (servicesCountBadge) servicesCountBadge.innerText = `${services.length} ${services.length === 1 ? 'Servicio Activo' : 'Servicios Activos'}`;
+
+      // 1. Render Cards for the Grid View (ONLY REAL SERVICES)
+      services.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs space-y-3';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-black text-zinc-950">${escapeHtml(s.label || s.id)}</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold uppercase">${s.status || 'online'}</span>
+          </div>
+          <div class="text-xs font-mono font-bold text-indigo-700 bg-indigo-50/70 p-2 rounded-xl border border-indigo-100">${escapeHtml(s.tech || s.type || 'Service')}</div>
+          <p class="text-xs text-zinc-600 leading-relaxed">${escapeHtml(s.description || '')}</p>
+        `;
+        cardsContainer.appendChild(card);
+      });
+
+      // 2. Classify ONLY REAL SERVICES into Tiers
+      const allTiers = [
+        { id: 'tier-frontend', title: '1. Frontend & Clientes', icon: 'monitor', services: [] },
+        { id: 'tier-backend', title: '2. Core Engine & APIs', icon: 'server', services: [] },
+        { id: 'tier-database', title: '3. Datos & Persistencia', icon: 'database', services: [] },
+        { id: 'tier-gateways', title: '4. Integraciones & Gateways', icon: 'cloud', services: [] }
+      ];
+
+      services.forEach(s => {
+        const t = ((s.type || '') + ' ' + (s.tech || '') + ' ' + (s.label || '')).toLowerCase();
+        if (t.includes('front') || t.includes('web') || t.includes('client') || t.includes('ui') || t.includes('next')) {
+          allTiers[0].services.push(s);
+        } else if (t.includes('data') || t.includes('db') || t.includes('postgres') || t.includes('sql') || t.includes('sqlite') || t.includes('mongo')) {
+          allTiers[2].services.push(s);
+        } else if (t.includes('gate') || t.includes('extern') || t.includes('third') || t.includes('stripe') || t.includes('payment') || t.includes('bre-b') || t.includes('whatsapp')) {
+          allTiers[3].services.push(s);
+        } else {
+          allTiers[1].services.push(s);
+        }
+      });
+
+      // ONLY DISPLAY TIERS THAT ACTUALLY CONTAIN REAL SERVICES
+      const activeTiers = allTiers.filter(t => t.services.length > 0);
+      const colsCount = Math.max(1, Math.min(4, activeTiers.length));
+      nodesGrid.className = `relative z-10 w-full grid grid-cols-1 md:grid-cols-${colsCount} gap-6 max-w-5xl items-center`;
+
+      activeTiers.forEach((tier) => {
+        const col = document.createElement('div');
+        col.className = 'flex flex-col gap-4';
+        col.innerHTML = `
+          <div class="flex items-center gap-2 px-2 py-1 rounded-xl bg-zinc-200/50 border border-zinc-200/80 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-600">
+            <i data-lucide="${tier.icon}" class="w-3.5 h-3.5 text-zinc-500"></i>
+            <span>${tier.title}</span>
+          </div>
+          <div class="space-y-4">
+            ${tier.services.map(s => `
+              <div
+                id="arch-node-${s.id}"
+                onclick="selectArchService('${s.id}')"
+                class="arch-node bg-white border border-zinc-200/90 hover:border-purple-500 rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer space-y-2.5 relative group ${
+                  selectedServiceId === s.id ? 'ring-2 ring-purple-600 border-purple-500 bg-purple-50/20' : ''
+                }"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    <h4 class="text-xs font-black text-zinc-950 tracking-tight group-hover:text-purple-950 transition-colors">${escapeHtml(s.label || s.id)}</h4>
+                  </div>
+                  <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">${escapeHtml(s.type || 'Service')}</span>
+                </div>
+                <div class="text-[11px] font-mono font-bold text-indigo-700 bg-indigo-50/60 p-2 rounded-xl border border-indigo-100/70">
+                  ${escapeHtml(s.tech || 'Node / TS')}
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-zinc-400 font-mono pt-1 border-t border-zinc-100">
+                  <span>Health: 100%</span>
+                  <span class="text-purple-600 font-bold group-hover:underline">Inspeccionar →</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        nodesGrid.appendChild(col);
+      });
+
+      // 3. Render animated SVG connector wires between real columns if >= 2 tiers
+      if (wiresSvg && activeTiers.length >= 2) {
+        wiresSvg.innerHTML = `
+          <defs>
+            <linearGradient id="wireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#9333ea" stop-opacity="0.6" />
+              <stop offset="50%" stop-color="#6366f1" stop-opacity="0.8" />
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0.6" />
+            </linearGradient>
+          </defs>
+          <path d="M 230 200 C 310 200, 310 200, 390 200" stroke="url(#wireGrad)" stroke-width="2.5" fill="none" class="animate-wire-flow" />
+          <path d="M 520 200 C 600 200, 600 200, 680 200" stroke="url(#wireGrad)" stroke-width="2.5" fill="none" class="animate-wire-flow" />
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    function selectArchService(serviceId) {
+      selectedServiceId = serviceId;
+      const services = appState.architecture?.services || appState.architecture?.nodes || [];
+      const s = services.find(x => x.id === serviceId) || {
+        id: serviceId,
+        label: serviceId,
+        type: 'Microservicio',
+        tech: 'Next.js / Node.js',
+        status: 'online',
+        description: 'Servicio en ejecución activo en el contenedor de arquitectura.'
+      };
+
+      // Highlight active node
+      document.querySelectorAll('.arch-node').forEach(n => {
+        n.classList.remove('ring-2', 'ring-purple-600', 'border-purple-500', 'bg-purple-50/20');
+      });
+      const activeEl = document.getElementById(`arch-node-${serviceId}`);
+      if (activeEl) {
+        activeEl.classList.add('ring-2', 'ring-purple-600', 'border-purple-500', 'bg-purple-50/20');
+      }
+
+      // Open and populate drawer
+      const drawer = document.getElementById('arch-inspector-drawer');
+      if (drawer) {
+        drawer.classList.remove('hidden');
+        document.getElementById('inspector-title').innerText = s.label || s.id;
+        document.getElementById('inspector-type').innerText = s.type || 'Service';
+        document.getElementById('inspector-tech').innerText = s.tech || 'Fullstack Node';
+        document.getElementById('inspector-desc').innerText = s.description || 'Sin descripción adicional';
+        document.getElementById('inspector-status').innerText = (s.status || 'online').toUpperCase();
+        document.getElementById('inspector-health').innerText = `${s.healthPercent || 100}% HEALTH`;
+
+        const filesContainer = document.getElementById('inspector-files');
+        const stories = appState.requirements?.userStories || [];
+        const relatedFiles = new Set();
+        stories.forEach(st => {
+          (st.scopeFiles || []).forEach(f => relatedFiles.add(f));
+        });
+
+        if (filesContainer) {
+          filesContainer.innerHTML = Array.from(relatedFiles).slice(0, 4).map(f => `
+            <div class="px-2 py-1 rounded bg-zinc-100 text-zinc-800 border border-zinc-200 truncate font-mono text-[10px]">
+              <code>${escapeHtml(f)}</code>
+            </div>
+          `).join('') || '<span class="text-zinc-400 italic">No hay archivos mapeados</span>';
+        }
+      }
+      lucide.createIcons();
+    }
+
+    function closeArchInspector() {
+      selectedServiceId = null;
+      document.getElementById('arch-inspector-drawer')?.classList.add('hidden');
+      document.querySelectorAll('.arch-node').forEach(n => {
+        n.classList.remove('ring-2', 'ring-purple-600', 'border-purple-500', 'bg-purple-50/20');
+      });
+    }
+
+    function renderDatabase() {
+      const container = document.getElementById('erd-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const tables = appState.database?.models || appState.database?.entities || appState.database?.tables || [];
+
+      const tabBadgeDb = document.getElementById('tab-badge-db');
+      if (tabBadgeDb) tabBadgeDb.innerText = tables.length;
+
+      if (tables.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white border border-zinc-200 rounded-2xl p-12 text-center space-y-3 shadow-2xs">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto">
+              <i data-lucide="database" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay modelos de base de datos definidos</h3>
+            <p class="text-xs text-zinc-500 max-w-sm mx-auto">Los esquemas de datos relacionales se estructurarán automáticamente cuando especifiques las entidades de tu aplicación en el Chat.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      tables.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2';
+        card.innerHTML = `
+          <div class="text-xs font-black text-cyan-900 border-b border-zinc-200 pb-1 flex items-center justify-between">
+            <span>${t.name}</span>
+            <span class="text-[10px] font-mono text-zinc-400">${(t.fields || t.attributes || []).length} campos</span>
+          </div>
+          <div class="space-y-1 font-mono text-[10px]">
+            ${(t.fields || t.attributes || []).map(f => `
+              <div class="flex justify-between text-zinc-600">
+                <span class="${f.isId ? 'font-bold text-amber-700' : ''}">${f.name}</span>
+                <span class="text-zinc-400">${f.type}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function renderRolesAndRisks() {
+      const matrix = appState.requirements?.rolesMatrix;
+      const rolesContainer = document.getElementById('roles-table-container');
+      if (rolesContainer) {
+        if (matrix && matrix.roles && matrix.roles.length > 0) {
+          rolesContainer.innerHTML = `
+            <table class="w-full text-xs text-left">
+              <thead class="text-[10px] uppercase text-zinc-400 border-b border-zinc-200">
+                <tr><th class="py-2">Rol</th><th>Nivel</th><th>Permisos</th></tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-100">
+                ${matrix.roles.map(r => `
+                  <tr>
+                    <td class="py-2 font-bold text-zinc-900">${r.name}</td>
+                    <td><span class="text-[10px] font-mono bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-bold">${r.level}</span></td>
+                    <td class="text-zinc-500">${(r.permissions || []).slice(0, 3).join(', ')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        } else {
+          rolesContainer.innerHTML = '<div class="p-8 text-center text-xs text-zinc-400 font-medium">No hay roles ni permisos definidos aún en este proyecto.</div>';
+        }
+      }
+
+      const risks = appState.core?.risks?.riskRegistry || [];
+      const risksContainer = document.getElementById('risks-cards-container');
+      if (risksContainer) {
+        if (risks.length > 0) {
+          risksContainer.innerHTML = risks.map(rk => `
+            <div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-zinc-900">${rk.name || rk.title}</span>
+                <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded uppercase ${rk.severity === 'alta' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">${rk.severity || 'MEDIA'}</span>
+              </div>
+              <p class="text-[11px] text-zinc-600"><b>Mitigación:</b> ${rk.mitigation}</p>
+            </div>
+          `).join('');
+        } else {
+          risksContainer.innerHTML = '<div class="p-8 text-center text-xs text-zinc-400 font-medium">No hay riesgos registrados aún en este proyecto.</div>';
+        }
+      }
+    }
+
+    function renderQA() {
+      const suites = appState.testPlan?.testSuites || appState.testPlan?.suites || [];
+      const container = document.getElementById('qa-suites-container');
+      if (!container) return;
+
+      if (suites.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white border border-zinc-200 rounded-2xl p-12 text-center space-y-3 shadow-2xs">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+              <i data-lucide="test-tube-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-zinc-900">No hay suites de prueba QA registradas</h3>
+            <p class="text-xs text-zinc-500 max-w-sm mx-auto">El plan de pruebas automatizadas y casos E2E se definirá cuando consolides tus historias en el Chat.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = suites.map(s => `
+        <div class="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-zinc-950">${s.name}</span>
+            <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">${s.type}</span>
+          </div>
+          <p class="text-xs text-zinc-600">${s.description || ''}</p>
+          <div class="space-y-1 pt-1">
+            ${(s.testCases || []).map(tc => `
+              <div class="flex items-center justify-between p-2 rounded bg-white border border-zinc-200 text-xs">
+                <span><b>${tc.id}:</b> ${tc.title}</span>
+                <span class="text-[9px] font-mono font-bold uppercase text-emerald-700 bg-emerald-50 px-1 rounded">${tc.status || 'passed'}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function renderDrift() {
+      const d = appState.drift || {};
+      const badge = document.getElementById('drift-score-badge');
+      badge.innerText = `Score: ${d.driftScore || 100}% Clean`;
+      document.getElementById('tab-badge-drift').innerText = `${d.driftScore || 100}%`;
+
+      const inContainer = document.getElementById('drift-in-scope');
+      inContainer.innerHTML = (d.inScope || []).map(f => `<div>✓ ${f}</div>`).join('') || '<div>0 archivos en alcance modificados.</div>';
+
+      const outContainer = document.getElementById('drift-out-scope');
+      outContainer.innerHTML = (d.outOfScope || []).map(f => `<div class="text-rose-600 font-bold">⚠️ VIOLACIÓN: ${f}</div>`).join('') || '<div class="text-emerald-700 font-bold">✓ 0 violaciones fuera de alcance.</div>';
+    }
+
+    function renderUIUX() {
+      const screens = appState.uiUx?.screens || [];
+      const container = document.getElementById('uiux-screens-container');
+      document.getElementById('tab-badge-ui').innerText = screens.length;
+
+      container.innerHTML = screens.map(s => `
+        <div class="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-zinc-950">${s.name}</span>
+            <span class="text-[10px] font-mono font-bold bg-pink-100 text-pink-800 px-1.5 py-0.5 rounded">${s.healthPercent || 100}%</span>
+          </div>
+          <div class="text-[11px] font-mono text-zinc-500">Ruta: <code>${s.route}</code></div>
+          <p class="text-xs text-zinc-600">${s.description || ''}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderKanban() {
+      const stories = appState.requirements?.userStories || [];
+      const colTodo = document.getElementById('kanban-col-todo');
+      const colInprog = document.getElementById('kanban-col-inprog');
+      const colDone = document.getElementById('kanban-col-done');
+
+      colTodo.innerHTML = '';
+      colInprog.innerHTML = '';
+      colDone.innerHTML = '';
+
+      let cTodo = 0, cInp = 0, cDone = 0;
+
+      stories.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-zinc-200 rounded-xl p-3 shadow-xs space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono font-black text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded">${s.id}</span>
+            <span class="text-[9px] font-mono font-bold bg-zinc-100 text-zinc-600 px-1 rounded">${s.points || 3} pts</span>
+          </div>
+          <div class="text-xs font-bold text-zinc-900">${s.title}</div>
+          <div class="flex justify-end pt-1">
+            <select onchange="updateStoryStatus('${s.id}', this.value)" class="text-[10px] font-mono bg-zinc-50 border border-zinc-200 rounded px-1.5 py-0.5 text-zinc-700">
+              <option value="todo" ${s.status === 'todo' || s.status === 'backlog' ? 'selected' : ''}>Backlog</option>
+              <option value="in_progress" ${s.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+              <option value="done" ${s.status === 'done' ? 'selected' : ''}>Done</option>
+            </select>
+          </div>
+        `;
+
+        if (s.status === 'done') {
+          colDone.appendChild(card);
+          cDone++;
+        } else if (s.status === 'in_progress') {
+          colInprog.appendChild(card);
+          cInp++;
+        } else {
+          colTodo.appendChild(card);
+          cTodo++;
+        }
+      });
+
+      document.getElementById('kanban-badge-todo').innerText = cTodo;
+      document.getElementById('kanban-badge-inprog').innerText = cInp;
+      document.getElementById('kanban-badge-done').innerText = cDone;
+    }
+
+    async function updateStoryStatus(storyId, status) {
+      try {
+        const res = await fetch('/api/sdd', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storyId, status })
+        });
+        if (res.ok) {
+          showToast(`Estado: ${status}`);
+          loadData();
+        }
+      } catch {
+        showToast('Error', 'alert-circle');
+      }
+    }
+
+    function openDispatchModal() {
+      const qg = appState?.project?.qualityGates || {};
+      let isAllPassed = true;
+      if (Array.isArray(qg)) isAllPassed = qg.every(g => g.status === 'passed');
+      else isAllPassed = Object.values(qg).every(v => v === true);
+
+      const modal = document.getElementById('dispatch-modal');
+      const title = document.getElementById('modal-title');
+      const content = document.getElementById('modal-content');
+      const actionBtn = document.getElementById('modal-action-btn');
+
+      if (!isAllPassed) {
+        title.innerHTML = '<i data-lucide="shield-alert" class="w-4 h-4 text-rose-600"></i> Despacho Bloqueado';
+        content.innerHTML = `
+          <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 font-bold">
+            ⚠️ Compuertas de Calidad Pendientes (Regla 0 de AGENTS.md)
+          </div>
+          <p>No se puede despachar un agente a codificar sin haber aprobado las 5 compuertas mínimas de especificación en la pestaña <b>🧭 Núcleo & Compuertas</b>.</p>
+        `;
+        actionBtn.classList.add('hidden');
+      } else {
+        title.innerHTML = '<i data-lucide="bot" class="w-4 h-4 text-zinc-900"></i> Despacho Habilitado';
+        content.innerHTML = `
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-bold">
+            ✓ 5/5 Compuertas Aprobadas
+          </div>
+          <p>Copia el siguiente prompt protegido para tu agente en Cursor, Windsurf, Claude Code o Antigravity:</p>
+          <pre class="p-2.5 rounded-lg bg-zinc-900 text-emerald-400 font-mono text-[11px] overflow-x-auto">Lee AGENTS.md y atiende la historia activa en .sdd/requirements/stories/ respetando estrictamente los scopeFiles y criterios Gherkin.</pre>
+        `;
+        actionBtn.classList.remove('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeDispatchModal() {
+      document.getElementById('dispatch-modal').classList.add('hidden');
+    }
+
+    function copyPromptText() {
+      navigator.clipboard.writeText("Lee AGENTS.md y atiende la historia activa en .sdd/requirements/stories/ respetando estrictamente los scopeFiles y criterios Gherkin.");
+      showToast('Prompt copiado');
+      closeDispatchModal();
+    }
+
+    function openGenesisModal() { switchScreen('chat'); }
+    function closeGenesisModal() { switchScreen('cockpit'); }
+
+    // Genesis Mode Logic & Screen Routing
+    let currentScreen = 'chat';
+    let chatMessages = [];
+    let currentChatPreview = null;
+    let isInitialBoot = true;
+    let selectedEngine = 'editor';
+    let isSidebarOpen = true;
+
+    function toggleChatSidebar() {
+      const sidebar = document.getElementById('chat-sidebar');
+      if (!sidebar) return;
+      isSidebarOpen = !isSidebarOpen;
+      if (isSidebarOpen) {
+        sidebar.classList.remove('-ml-64');
+      } else {
+        sidebar.classList.add('-ml-64');
+      }
+    }
+
+    function toggleModelDropdown() {
+      const menu = document.getElementById('model-dropdown-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    function selectEngine(engineKey, engineLabel) {
+      selectedEngine = engineKey;
+      const labelEl = document.getElementById('current-engine-label');
+      const inputPill = document.getElementById('input-engine-pill');
+      const tokenPill = document.getElementById('chat-token-pill');
+
+      if (labelEl) labelEl.innerText = engineLabel;
+      if (inputPill) inputPill.innerText = engineLabel.split(' ')[0] + ' ' + (engineLabel.split(' ')[1] || '');
+
+      if (engineKey === 'editor') {
+        if (tokenPill) tokenPill.innerText = 'Tokens: Entorno del Editor';
+      } else if (engineKey === 'gemini') {
+        if (tokenPill) tokenPill.innerText = 'Tokens: Gemini 2.0 Flash';
+      } else if (engineKey === 'openai') {
+        if (tokenPill) tokenPill.innerText = 'Tokens: OpenAI GPT-4o';
+      } else if (engineKey === 'ollama') {
+        if (tokenPill) tokenPill.innerText = 'Tokens: Ollama Local (0 coste)';
+      } else {
+        if (tokenPill) tokenPill.innerText = 'Tokens: Heurística Local';
+      }
+
+      const menu = document.getElementById('model-dropdown-menu');
+      if (menu) menu.classList.add('hidden');
+      lucide.createIcons();
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const btn = document.getElementById('model-selector-btn');
+      const menu = document.getElementById('model-dropdown-menu');
+      if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function startNewChatProject() {
+      chatMessages = [];
+      currentChatPreview = null;
+      document.getElementById('genesis-messages-stream').innerHTML = '';
+      document.getElementById('genesis-chat-hero').classList.remove('hidden');
+      const input = document.getElementById('genesis-chat-input');
+      input.value = '';
+      input.focus();
+    }
+
+    function switchScreen(screen) {
+      currentScreen = screen;
+      const chatScreen = document.getElementById('screen-genesis-chat');
+      const cockpitScreen = document.getElementById('screen-cockpit');
+
+      // Always maintain crisp Light Mode
+      document.body.className = 'h-screen w-full bg-zinc-50 font-sans overflow-hidden select-none text-zinc-900';
+
+      if (screen === 'chat') {
+        chatScreen.classList.remove('hidden');
+        cockpitScreen.classList.add('hidden');
+        document.getElementById('genesis-chat-input')?.focus();
+      } else {
+        chatScreen.classList.add('hidden');
+        cockpitScreen.classList.remove('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    // --- CHAT SESSIONS & SIDEBAR HISTORY LOGIC ---
+    const CHAT_STORAGE_KEY = 'sdd_chat_history_v2';
+    let activeSessionId = null;
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getStoredSessions() {
+      try {
+        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveStoredSessions(sessions) {
+      try {
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(sessions));
+      } catch (e) {
+        console.error('Error saving chat sessions:', e);
+      }
+    }
+
+    function ensureDefaultSession(project, genesisTask) {
+      let sessions = getStoredSessions();
+      const projName = project?.name || 'FlashCheckout';
+      const promptText = genesisTask?.prompt || `Construir ${projName}: Plataforma de software gobernada por especificaciones SDD y directivas de control de alcance.`;
+      
+      const hasMatch = sessions.some(s => s.title === projName || (genesisTask && s.prompt === genesisTask.prompt));
+      if (!hasMatch) {
+        const defaultSession = {
+          id: 'session_' + Date.now(),
+          title: projName,
+          prompt: promptText,
+          status: (appState?.requirements?.userStories?.length > 0) ? 'completed' : (genesisTask?.status || 'completed'),
+          createdAt: genesisTask?.createdAt || new Date().toISOString(),
+          storyCount: appState?.requirements?.userStories?.length || 8
+        };
+        sessions.unshift(defaultSession);
+        saveStoredSessions(sessions);
+      }
+      return sessions;
+    }
+
+    function renderSidebarHistory() {
+      const container = document.getElementById('chat-history-list');
+      if (!container) return;
+
+      const sessions = getStoredSessions();
+      if (sessions.length === 0) {
+        container.innerHTML = `
+          <div class="px-3 py-6 text-center text-xs text-zinc-400 space-y-1">
+            <i data-lucide="message-square-dashed" class="w-4 h-4 mx-auto text-zinc-300"></i>
+            <span class="block">Sin chats guardados</span>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = sessions.map(s => {
+        const isActive = s.id === activeSessionId;
+        const isCompleted = s.status === 'completed' || (appState?.requirements?.userStories?.length > 0);
+        const title = s.title || (s.prompt ? (s.prompt.slice(0, 22) + '...') : 'Nuevo Proyecto');
+        const badgeText = isCompleted ? '12 Persp.' : 'Orden Agéntica';
+        const badgeClass = isCompleted 
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+          : 'bg-purple-50 text-purple-800 border-purple-200';
+
+        return `
+          <div
+            onclick="selectChatSession('${s.id}')"
+            class="group relative flex items-center justify-between p-2 rounded-xl cursor-pointer text-xs transition-all border ${
+              isActive 
+                ? 'bg-purple-50 text-purple-950 border-purple-300 font-bold shadow-xs' 
+                : 'border-transparent text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950'
+            }"
+            title="${escapeHtml(s.title || s.prompt)}"
+          >
+            <div class="flex items-center gap-2 truncate pr-1">
+              <i data-lucide="${isCompleted ? 'check-circle-2' : 'clock'}" class="w-3.5 h-3.5 shrink-0 ${isCompleted ? 'text-emerald-600' : 'text-purple-600'}"></i>
+              <span class="truncate text-[11px]">${escapeHtml(title)}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-[9px] font-mono px-1.5 py-0.2 rounded border font-bold ${badgeClass}">
+                ${badgeText}
+              </span>
+              <button
+                onclick="deleteChatSession(event, '${s.id}')"
+                class="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-rose-600 rounded transition-all"
+                title="Eliminar de historial"
+              >
+                <i data-lucide="trash-2" class="w-3 h-3"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function selectChatSession(sessionId) {
+      const sessions = getStoredSessions();
+      const session = sessions.find(s => s.id === sessionId);
+      if (!session) return;
+
+      activeSessionId = sessionId;
+      renderSidebarHistory();
+
+      // Cambiar a pantalla de chat
+      if (currentScreen !== 'chat') {
+        switchScreen('chat');
+      }
+
+      // Ocultar hero
+      document.getElementById('genesis-chat-hero').classList.add('hidden');
+
+      // Limpiar stream y renderizar la conversación guardada en Tema Claro
+      const stream = document.getElementById('genesis-messages-stream');
+      stream.innerHTML = '';
+
+      // 1. Burbuja de usuario en Tema Claro
+      const userBubble = document.createElement('div');
+      userBubble.className = 'flex justify-end';
+      userBubble.innerHTML = `
+        <div class="max-w-[85%] bg-white border border-zinc-200 text-zinc-900 rounded-3xl px-5 py-3.5 text-xs shadow-sm leading-relaxed space-y-1">
+          <div class="font-extrabold text-[10px] text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="user" class="w-3 h-3 text-purple-600"></i>
+            <span>Tú</span>
+          </div>
+          <div class="text-zinc-900 font-medium">${escapeHtml(session.prompt)}</div>
+        </div>
+      `;
+      stream.appendChild(userBubble);
+
+      // 2. Burbuja de agente en Tema Claro con acentos morados
+      const isCompleted = session.status === 'completed' || (appState?.requirements?.userStories?.length > 0);
+      const agentBubble = document.createElement('div');
+      agentBubble.className = 'flex gap-3.5 items-start max-w-[92%]';
+
+      if (isCompleted) {
+        agentBubble.innerHTML = `
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/20 ring-2 ring-purple-100 mt-0.5">
+            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+          </div>
+          <div class="flex-1 bg-white border-2 border-purple-200 rounded-3xl p-5 text-xs text-zinc-800 shadow-xl shadow-purple-600/5 space-y-4">
+            <div class="flex items-center justify-between border-b border-purple-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="font-black text-[11px] text-purple-950 uppercase tracking-wider">Antigravity IDE Agent</span>
+                <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                  ✓ Especificación Compilada
+                </span>
+              </div>
+              <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-lg bg-purple-50 text-purple-800 border border-purple-200 flex items-center gap-1.5 font-bold">
+                <i data-lucide="shield-check" class="w-3 h-3 text-purple-600"></i>
+                <span>12 Perspectivas SDD</span>
+              </span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="p-3.5 rounded-2xl bg-purple-50/60 border-l-4 border-l-purple-600 border border-purple-100 space-y-1">
+                <div class="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="box" class="w-3.5 h-3.5 text-purple-600"></i>
+                  <span>Proyecto en Sesión:</span>
+                </div>
+                <div class="text-zinc-950 font-bold text-sm">${escapeHtml(session.title || appState?.project?.name || 'Proyecto SDD')}</div>
+                <p class="text-xs text-zinc-600 mt-0.5 font-normal">
+                  Gobernanza activa y sincronizada en <code class="font-mono text-purple-700 font-bold">.sdd/</code> y directivas en <code class="font-mono text-purple-700 font-bold">AGENTS.md</code>.
+                </p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-purple-50/80 border border-purple-200 shadow-xs space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-black text-purple-950 flex items-center gap-1.5">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-purple-600"></i>
+                    <span>Cabina de Gobernanza (12 Perspectivas):</span>
+                  </div>
+                  <span class="text-[10px] font-mono font-bold bg-white text-purple-800 px-2 py-0.5 rounded-full border border-purple-200 shadow-xs">
+                    ${appState?.requirements?.userStories?.length || 8} Historias Jira
+                  </span>
+                </div>
+
+                <p class="text-xs text-zinc-700 leading-relaxed font-normal">
+                  Haz clic abajo para abrir la cabina interactiva de este proyecto (Historias Jira, Arquitectura C4, ERD, Secuencias UML, QA y Deriva de Código).
+                </p>
+
+                <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                  <button
+                    onclick="switchScreen('cockpit')"
+                    class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-purple-600/25 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <i data-lucide="arrow-right-circle" class="w-4 h-4 text-white"></i>
+                    <span>🚀 Abrir Cabina de este Proyecto</span>
+                  </button>
+
+                  <button
+                    onclick="copyGenesisOrderToClipboard()"
+                    class="px-3.5 py-2 rounded-xl bg-white hover:bg-purple-50 text-purple-900 text-xs font-bold flex items-center gap-2 border border-purple-200 transition-all cursor-pointer shadow-xs"
+                  >
+                    <i data-lucide="copy" class="w-3.5 h-3.5 text-purple-600"></i>
+                    <span>Copiar Orden para Agente</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // En proceso
+        agentBubble.innerHTML = `
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/20 ring-2 ring-purple-100 mt-0.5">
+            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+          </div>
+          <div class="flex-1 bg-white border-2 border-purple-200 rounded-3xl p-5 text-xs text-zinc-800 shadow-xl shadow-purple-600/5 space-y-4">
+            <div class="flex items-center justify-between border-b border-purple-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-600 animate-ping"></span>
+                <span class="font-black text-[11px] text-purple-950 uppercase tracking-wider">Antigravity IDE Agent</span>
+                <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold border border-purple-200">
+                  Orden Despachada
+                </span>
+              </div>
+              <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-lg bg-zinc-100 text-purple-900 border border-purple-200 flex items-center gap-1.5 font-bold">
+                <i data-lucide="file-code" class="w-3 h-3 text-purple-600"></i>
+                <span>.sdd/genesis_task.json</span>
+              </span>
+            </div>
+
+            <div class="space-y-3.5">
+              <div class="p-3.5 rounded-2xl bg-purple-50/60 border-l-4 border-l-purple-600 border border-purple-100 space-y-1">
+                <div class="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="message-square" class="w-3.5 h-3.5 text-purple-600"></i>
+                  <span>Idea en proceso:</span>
+                </div>
+                <div class="text-zinc-950 font-bold text-xs">${escapeHtml(session.prompt)}</div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-purple-50/80 border border-purple-200 shadow-xs space-y-3">
+                <div class="flex items-center gap-2 text-xs font-black text-purple-950">
+                  <i data-lucide="terminal" class="w-4 h-4 text-purple-600"></i>
+                  <span>Siguiente paso para tu Agente en Antigravity:</span>
+                </div>
+                
+                <p class="text-zinc-700 text-xs leading-relaxed font-normal">
+                  La orden está escrita en tu disco. Pega la siguiente instrucción en tu chat de Antigravity:
+                  <br>
+                  <span class="inline-block mt-2 px-3 py-1.5 rounded-xl bg-white border border-purple-300 text-purple-950 font-mono font-bold text-xs select-all shadow-xs">
+                    "procesa la orden génesis"
+                  </span>
+                </p>
+
+                <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                  <button
+                    onclick="copyGenesisOrderToClipboard()"
+                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-purple-600/25 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span>Copiar comando para Antigravity</span>
+                  </button>
+
+                  <button
+                    onclick="forceLocalHeuristicSynthesis('${encodeURIComponent(session.prompt)}', this)"
+                    class="px-4 py-2 rounded-xl bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-bold flex items-center gap-2 border border-zinc-200 transition-all cursor-pointer shadow-xs"
+                    title="Compilar al instante en la web sin interactuar con el chat"
+                  >
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+                    <span>⚡ O compilar al instante aquí</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2 pt-1 text-[11px]" id="agent-pipeline-steps">
+                <div class="flex items-center gap-2 text-emerald-700 font-semibold">
+                  <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>[1/2] Orden registrada en disco (.sdd/genesis_task.json)</span>
+                </div>
+                <div class="flex items-center gap-2 text-purple-800 font-bold animate-pulse">
+                  <i data-lucide="radio" class="w-3.5 h-3.5 text-purple-600 animate-spin"></i>
+                  <span>[2/2] Esperando a Antigravity...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        startGenesisPolling(agentBubble);
+      }
+
+      stream.appendChild(agentBubble);
+      lucide.createIcons();
+      scrollChatToBottom();
+    }
+
+    function deleteChatSession(event, id) {
+      if (event) event.stopPropagation();
+      let sessions = getStoredSessions();
+      sessions = sessions.filter(s => s.id !== id);
+      saveStoredSessions(sessions);
+      if (activeSessionId === id) {
+        startNewChatProject();
+      } else {
+        renderSidebarHistory();
+      }
+    }
+
+    function startNewChatProject() {
+      activeSessionId = null;
+      chatMessages = [];
+      currentChatPreview = null;
+      document.getElementById('genesis-messages-stream').innerHTML = '';
+      document.getElementById('genesis-chat-hero').classList.remove('hidden');
+      const input = document.getElementById('genesis-chat-input');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      renderSidebarHistory();
+    }
+
+    function setPromptIdea(text) {
+      const input = document.getElementById('genesis-chat-input');
+      input.value = text;
+      input.focus();
+      sendGenesisChatMessage();
+    }
+
+    function handleChatKeyDown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendGenesisChatMessage();
+      }
+    }
+
+    let genesisPollInterval = null;
+
+    async function sendGenesisChatMessage() {
+      const input = document.getElementById('genesis-chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+
+      // Ocultar Hero
+      document.getElementById('genesis-chat-hero').classList.add('hidden');
+
+      // Crear nueva sesión en el historial
+      const newSessionId = 'session_' + Date.now();
+      activeSessionId = newSessionId;
+      const newSession = {
+        id: newSessionId,
+        title: text.length > 28 ? (text.slice(0, 28) + '...') : text,
+        prompt: text,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      };
+      const sessions = getStoredSessions();
+      sessions.unshift(newSession);
+      saveStoredSessions(sessions);
+      renderSidebarHistory();
+
+      // 1. Renderizar mensaje del usuario en Tema Claro
+      const stream = document.getElementById('genesis-messages-stream');
+      const userBubble = document.createElement('div');
+      userBubble.className = 'flex justify-end';
+      userBubble.innerHTML = `
+        <div class="max-w-[85%] bg-white border border-zinc-200 text-zinc-900 rounded-3xl px-5 py-3.5 text-xs shadow-sm leading-relaxed space-y-1">
+          <div class="font-extrabold text-[10px] text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="user" class="w-3 h-3 text-purple-600"></i>
+            <span>Tú</span>
+          </div>
+          <div class="text-zinc-900 font-medium">${escapeHtml(text)}</div>
+        </div>
+      `;
+      stream.appendChild(userBubble);
+      lucide.createIcons();
+      scrollChatToBottom();
+
+      // Guardar en array de memoria
+      chatMessages.push({ role: 'user', content: text });
+
+      // 2. Renderizar burbuja del agente en Tema Claro con acentos morados
+      const agentBubble = document.createElement('div');
+      agentBubble.className = 'flex gap-3.5 items-start max-w-[92%]';
+      agentBubble.innerHTML = `
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/20 ring-2 ring-purple-100 mt-0.5">
+          <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+        </div>
+        <div class="flex-1 bg-white border-2 border-purple-200 rounded-3xl p-5 text-xs text-zinc-800 shadow-xl shadow-purple-600/5 space-y-4">
+          <div class="flex items-center justify-between border-b border-purple-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-600 animate-ping"></span>
+              <span class="font-black text-[11px] text-purple-950 uppercase tracking-wider">Antigravity IDE Agent</span>
+              <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold border border-purple-200">
+                Orden Despachada
+              </span>
+            </div>
+            <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-lg bg-zinc-100 text-purple-900 border border-purple-200 flex items-center gap-1.5 font-bold">
+              <i data-lucide="file-code" class="w-3 h-3 text-purple-600"></i>
+              <span>.sdd/genesis_task.json</span>
+            </span>
+          </div>
+
+          <div class="space-y-3.5">
+            <!-- Idea resumen -->
+            <div class="p-3.5 rounded-2xl bg-purple-50/60 border-l-4 border-l-purple-600 border border-purple-100 space-y-1">
+              <div class="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Idea recibida:</span>
+              </div>
+              <div class="text-zinc-950 font-bold text-xs">"${escapeHtml(text)}"</div>
+            </div>
+
+            <!-- Paso a paso claro en morado -->
+            <div class="p-4 rounded-2xl bg-purple-50/80 border border-purple-200 shadow-xs space-y-3">
+              <div class="flex items-center gap-2 text-xs font-black text-purple-950">
+                <i data-lucide="terminal" class="w-4 h-4 text-purple-600"></i>
+                <span>Siguiente paso para tu Agente en Antigravity:</span>
+              </div>
+              
+              <p class="text-zinc-700 text-xs leading-relaxed font-normal">
+                La orden ya está escrita en tu disco. Pega la siguiente instrucción en tu chat de Antigravity:
+                <br>
+                <span class="inline-block mt-2 px-3 py-1.5 rounded-xl bg-white border border-purple-300 text-purple-950 font-mono font-bold text-xs select-all shadow-xs">
+                  "procesa la orden génesis"
+                </span>
+              </p>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <button
+                  onclick="copyGenesisOrderToClipboard()"
+                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-purple-600/25 active:scale-95 transition-all cursor-pointer"
+                >
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>Copiar comando para Antigravity</span>
+                </button>
+
+                <button
+                  onclick="forceLocalHeuristicSynthesis('${encodeURIComponent(text)}', this)"
+                  class="px-4 py-2 rounded-xl bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-bold flex items-center gap-2 border border-zinc-200 transition-all cursor-pointer shadow-xs"
+                  title="Compilar al instante en la web sin interactuar con el chat"
+                >
+                  <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span>⚡ O compilar al instante aquí</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Real-time Agent Step Pipeline -->
+            <div class="space-y-2 pt-1 text-[11px]" id="agent-pipeline-steps">
+              <div class="flex items-center gap-2 text-emerald-700 font-semibold">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>[1/2] Orden registrada en disco (.sdd/genesis_task.json)</span>
+              </div>
+              <div class="flex items-center gap-2 text-purple-800 font-bold animate-pulse">
+                <i data-lucide="radio" class="w-3.5 h-3.5 text-purple-600 animate-spin"></i>
+                <span>[2/2] Esperando a Antigravity... (En cuanto termine, esta cabina se abrirá en vivo)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      stream.appendChild(agentBubble);
+      lucide.createIcons();
+      scrollChatToBottom();
+
+      // Despachar orden agéntica al backend
+      try {
+        const dispatchRes = await fetch('/api/genesis/dispatch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: text, assignedTo: 'Antigravity' })
+        });
+        const dispatchData = await dispatchRes.json();
+        console.log('Orden Génesis despachada con éxito:', dispatchData);
+      } catch (err) {
+        console.error('Error al despachar orden:', err);
+      }
+
+      // Iniciar polling reactivo en vivo
+      startGenesisPolling(agentBubble);
+    }
+
+    function startGenesisPolling(agentBubble) {
+      if (genesisPollInterval) clearInterval(genesisPollInterval);
+
+      genesisPollInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/genesis/task-status');
+          const data = await res.json();
+
+          if (data.ready || data.status === 'completed') {
+            clearInterval(genesisPollInterval);
+            genesisPollInterval = null;
+
+            // Actualizar la sesión actual a 'completed'
+            const currentSessions = getStoredSessions();
+            const s = currentSessions.find(item => item.id === activeSessionId);
+            if (s) {
+              s.status = 'completed';
+              saveStoredSessions(currentSessions);
+              renderSidebarHistory();
+            }
+
+            // Actualizar la burbuja con el éxito total
+            if (agentBubble) {
+              const pipeline = agentBubble.querySelector('#agent-pipeline-steps');
+              if (pipeline) {
+                pipeline.innerHTML = `
+                  <div class="flex items-center gap-2 text-emerald-700 font-semibold">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>[1/4] Orden registrada en disco (.sdd/genesis_task.json)</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-emerald-700 font-semibold">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>[2/4] Agente de Antigravity procesó y consumió tokens en el chat</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-emerald-700 font-semibold">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>[3/4] ${data.storyCount || 'Varias'} Historias Gherkin, Arquitectura C4 y ERD escritas en .sdd/</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-emerald-800 font-black animate-pulse">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
+                    <span>[4/4] ¡Especificación lista! Transformando a Cabina SDD en vivo...</span>
+                  </div>
+                `;
+                lucide.createIcons();
+              }
+            }
+
+            // Transición a la cabina
+            await new Promise(r => setTimeout(r, 1200));
+            await triggerLiveCockpitMorph();
+          }
+        } catch (err) {
+          console.error('Error en polling génesis:', err);
+        }
+      }, 1500);
+    }
+
+    async function triggerLiveCockpitMorph() {
+      const overlay = document.getElementById('morph-transition-overlay');
+      const progressBar = document.getElementById('morph-progress-bar');
+      const overlayTitle = document.getElementById('morph-overlay-title');
+      const overlayDesc = document.getElementById('morph-overlay-desc');
+
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        if (overlayTitle) overlayTitle.innerText = '¡Especificación SDD Compilada por Antigravity!';
+        if (overlayDesc) overlayDesc.innerText = 'Cargando tablero reactivo con las 12 perspectivas gobernadas...';
+        if (progressBar) progressBar.style.width = '40%';
+      }
+
+      await new Promise(r => setTimeout(r, 400));
+      if (progressBar) progressBar.style.width = '85%';
+      await loadData();
+
+      // Actualizar título de la sesión en sidebar con el nombre del proyecto
+      if (appState?.project?.name) {
+        const curSessions = getStoredSessions();
+        const cur = curSessions.find(x => x.id === activeSessionId);
+        if (cur) {
+          cur.title = appState.project.name;
+          saveStoredSessions(curSessions);
+          renderSidebarHistory();
+        }
+      }
+
+      await new Promise(r => setTimeout(r, 400));
+      if (progressBar) progressBar.style.width = '100%';
+
+      await new Promise(r => setTimeout(r, 400));
+      switchScreen('cockpit');
+      document.getElementById('btn-toggle-cockpit')?.classList.remove('hidden');
+
+      if (overlay) overlay.classList.add('hidden');
+      showToast('¡Cabina SDD abierta en vivo!', 'check-circle');
+    }
+
+    async function forceLocalHeuristicSynthesis(encodedText, btn) {
+      const text = decodeURIComponent(encodedText);
+      if (btn) btn.innerText = '⏳ Compilando localmente...';
+
+      try {
+        const res = await fetch('/api/genesis/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idea: text })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Error local');
+
+        currentChatPreview = data.preview;
+        await confirmAndOpenCockpit();
+
+        // Actualizar sesión activa
+        const curSessions = getStoredSessions();
+        const cur = curSessions.find(x => x.id === activeSessionId);
+        if (cur) {
+          cur.status = 'completed';
+          cur.title = data.preview?.project?.name || cur.title;
+          saveStoredSessions(curSessions);
+          renderSidebarHistory();
+        }
+      } catch (err) {
+        showToast(err.message || 'Error', 'alert-circle');
+        if (btn) btn.innerText = '⚡ Reintentar síntesis local';
+      }
+    }
+
+    function scrollChatToBottom() {
+      const scroll = document.getElementById('genesis-chat-scroll');
+      if (scroll) scroll.scrollTop = scroll.scrollHeight;
+    }
+
+    async function confirmAndOpenCockpit() {
+      if (!currentChatPreview) return;
+      
+      const overlay = document.getElementById('morph-transition-overlay');
+      const progressBar = document.getElementById('morph-progress-bar');
+      const overlayTitle = document.getElementById('morph-overlay-title');
+
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        if (overlayTitle) overlayTitle.innerText = `Compilando ${currentChatPreview.project.name}...`;
+        if (progressBar) progressBar.style.width = '35%';
+      }
+
+      try {
+        if (progressBar) progressBar.style.width = '65%';
+        const res = await fetch('/api/genesis/scaffold', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ genesisPayload: currentChatPreview })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Error al compilar en disco');
+
+        if (progressBar) progressBar.style.width = '100%';
+
+        await new Promise(r => setTimeout(r, 600));
+
+        switchScreen('cockpit');
+        document.getElementById('btn-toggle-cockpit')?.classList.remove('hidden');
+        await loadData();
+
+        if (overlay) overlay.classList.add('hidden');
+        showToast(`¡Proyecto ${currentChatPreview.project.name} inicializado con éxito!`);
+      } catch (err) {
+        if (overlay) overlay.classList.add('hidden');
+        showToast(err.message || 'Error', 'alert-circle');
+      }
+    }
+
+    function copyGenesisOrderToClipboard() {
+      const text = 'procesa la orden génesis';
+      navigator.clipboard.writeText(text);
+      showToast('¡Comando copiado! Pégalo en tu chat de Antigravity.', 'check-circle');
+    }
+
+    // Expose all functions to global window
+    window.copyGenesisOrderToClipboard = copyGenesisOrderToClipboard;
+    window.sendGenesisChatMessage = sendGenesisChatMessage;
+    window.handleChatKeyDown = handleChatKeyDown;
+    window.confirmAndOpenCockpit = confirmAndOpenCockpit;
+    window.forceLocalHeuristicSynthesis = forceLocalHeuristicSynthesis;
+    window.triggerLiveCockpitMorph = triggerLiveCockpitMorph;
+    window.setPromptIdea = setPromptIdea;
+    window.startNewChatProject = startNewChatProject;
+    window.selectChatSession = selectChatSession;
+    window.deleteChatSession = deleteChatSession;
+    window.renderSidebarHistory = renderSidebarHistory;
+    window.toggleChatSidebar = toggleChatSidebar;
+    window.toggleModelDropdown = toggleModelDropdown;
+    window.selectEngine = selectEngine;
+    window.switchScreen = switchScreen;
+    window.openGenesisModal = openGenesisModal;
+    window.closeGenesisModal = closeGenesisModal;
+    window.setDiscoveryFilter = setDiscoveryFilter;
+    window.insertDiscoveryPreset = insertDiscoveryPreset;
+    window.saveAnswer = saveAnswer;
+    window.toggleNA = toggleNA;
+
+    // Attach listeners on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const sendBtn = document.getElementById('genesis-chat-send-btn');
+      const chatInput = document.getElementById('genesis-chat-input');
+      if (sendBtn) sendBtn.addEventListener('click', (e) => { e.preventDefault(); sendGenesisChatMessage(); });
+      if (chatInput) chatInput.addEventListener('keydown', handleChatKeyDown);
+      lucide.createIcons();
+    });
+
+    // Initial boot logic
+    async function initBoot() {
+      await loadData();
+      if (isInitialBoot) {
+        isInitialBoot = false;
+        const storiesCount = appState?.requirements?.userStories?.length || 0;
+        const isNew = Boolean(appState?.isNewProject) || storiesCount === 0;
+
+        // Actualizar workspace en sidebar
+        if (appState?.workspaceName) {
+          const wsEl = document.getElementById('chat-sidebar-workspace');
+          if (wsEl) wsEl.innerText = `${appState.workspaceName}`;
+        }
+
+        // Asegurar que exista la sesión en el historial de la barra izquierda
+        const sessions = ensureDefaultSession(appState?.project, appState?.genesisTask);
+        renderSidebarHistory();
+
+        // Si es una carpeta vacía o sin historias, arranca en modo Chat puro estilo ChatGPT / Gemini
+        if (isNew) {
+          document.getElementById('btn-toggle-cockpit')?.classList.add('hidden');
+          switchScreen('chat');
+        } else {
+          document.getElementById('btn-toggle-cockpit')?.classList.remove('hidden');
+          // Iniciar en chat pero con la sesión seleccionada lista para ver o continuar
+          if (sessions.length > 0) {
+            selectChatSession(sessions[0].id);
+          } else {
+            switchScreen('cockpit');
+          }
+        }
+      }
+      lucide.createIcons();
+    }
+
+    initBoot();
+  </script>
+
+  <!-- FULLSCREEN MORPHING TRANSITION OVERLAY (LIGHT MODE WITH RICH PURPLE ACCENT) -->
+  <div id="morph-transition-overlay" class="hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-6 space-y-6 transition-all duration-500 select-none">
+    <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-800 text-white flex items-center justify-center shadow-2xl shadow-purple-600/30 animate-pulse ring-4 ring-purple-100">
+      <i data-lucide="zap" class="w-10 h-10 text-white"></i>
+    </div>
+    <div class="space-y-2 max-w-md">
+      <h2 id="morph-overlay-title" class="text-2xl font-black text-zinc-950 tracking-tight">Compilando 12 Perspectivas SDD...</h2>
+      <p id="morph-overlay-desc" class="text-xs text-zinc-600 leading-relaxed font-normal">
+        Escribiendo especificaciones atómicas en <code class="text-purple-700 font-mono font-bold">.sdd/</code> y directivas de gobernanza en <code class="text-emerald-700 font-mono font-bold">AGENTS.md</code>...
+      </p>
+    </div>
+    <div class="w-64 h-2 bg-zinc-200 rounded-full overflow-hidden">
+      <div id="morph-progress-bar" class="h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full transition-all duration-700" style="width: 25%;"></div>
+    </div>
+  </div>
+</body>
+</html>

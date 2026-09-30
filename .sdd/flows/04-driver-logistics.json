@@ -1,0 +1,50 @@
+{
+  "id": "04-driver-logistics",
+  "name": "Repartidores & Logística WhatsApp",
+  "category": "operations",
+  "priority": "P1",
+  "targetWeek": 2,
+  "progress": 60,
+  "description": "Gestión de mensajeros locales 100% por WhatsApp: registro, ofertas de entrega y confirmación con PIN (Escrow).",
+  "nodes": [
+    {
+      "id": "node-driver-scoring",
+      "name": "Algoritmo de Asignación Logística",
+      "status": "done",
+      "assignedTo": "Humano",
+      "scopeFiles": ["lib/dispatch/matching-algorithm.ts", "prisma/schema.prisma"],
+      "agentPrompt": "Calcular ranking de repartidores por proximidad Haversine, calificación y carga de trabajo.",
+      "checklist": [
+        { "id": "t26", "text": "Fórmula de proximidad en KM y cálculo de score (0-100)", "done": true },
+        { "id": "t27", "text": "Generación de PIN seguro de entrega de 4 dígitos", "done": true },
+        { "id": "t28", "text": "Modelos Driver y DriverOffer en Prisma", "done": true }
+      ]
+    },
+    {
+      "id": "node-driver-dashboard",
+      "name": "Panel de Envíos en Dashboard",
+      "status": "done",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["app/(dashboard)/envios/page.tsx", "components/LogisticsManager.tsx"],
+      "agentPrompt": "Gestión administrativa de la flota de mensajeros y monitoreo de despachos en curso.",
+      "checklist": [
+        { "id": "t29", "text": "CRUD de repartidores (crear, editar, activar/desactivar)", "done": true },
+        { "id": "t30", "text": "Asignación manual o asistida de pedidos a conductores", "done": true },
+        { "id": "t31", "text": "Enlazar /envios en el Sidebar principal", "done": false }
+      ]
+    },
+    {
+      "id": "node-driver-wa-interaction",
+      "name": "Interacción del Repartidor vía WhatsApp",
+      "status": "todo",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["lib/bot/chatbot-logic.ts"],
+      "agentPrompt": "Implementar sub-flujo de chat para que el mensajero reciba ofertas y confirme entrega dictando el PIN.",
+      "checklist": [
+        { "id": "t32", "text": "Onboarding por WhatsApp: 'Quiero ser repartidor'", "done": false },
+        { "id": "t33", "text": "Mensaje de oferta interactiva con destino y valor a cobrar", "done": false },
+        { "id": "t34", "text": "Comando para ingresar PIN y liberar fondos (Escrow)", "done": false }
+      ]
+    }
+  ]
+}

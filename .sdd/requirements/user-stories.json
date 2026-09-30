@@ -1,0 +1,270 @@
+[
+  {
+    "id": "US-01",
+    "epicId": "EP-01",
+    "title": "Carga ultra-rápida y navegación de productos en tienda móvil",
+    "role": "Comprador de comercio electrónico",
+    "action": "Acceder al enlace de la tienda (/tienda/[slug]) desde WhatsApp o navegador móvil",
+    "benefit": "Ver el catálogo de productos de forma inmediata en menos de 1 segundo sin tiempos muertos",
+    "points": 3,
+    "priority": "P0",
+    "status": "done",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "app/tienda/[slug]/page.tsx",
+      "components/WhatsAppCatalog.tsx"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-01-1",
+        "text": "Dado un slug de tienda válido, el servidor debe hacer pre-fetch con Prisma y renderizar en SSR",
+        "done": true
+      },
+      {
+        "id": "AC-01-2",
+        "text": "Cuando la tienda no tenga productos, debe mostrar un estado vacío amigable con botón de contacto",
+        "done": true
+      },
+      {
+        "id": "AC-01-3",
+        "text": "Las imágenes de productos deben optimizarse con next/image y no causar layout shifts (CLS)",
+        "done": true
+      }
+    ]
+  },
+  {
+    "id": "US-02",
+    "epicId": "EP-01",
+    "title": "Aplicación de cupones de descuento en el checkout móvil",
+    "role": "Comprador con código promocional",
+    "action": "Escribir un código de cupón (ej: FLASH10) en el formulario de compra",
+    "benefit": "Ver el descuento reflejado inmediatamente en el total antes de confirmar el pedido",
+    "points": 5,
+    "priority": "P0",
+    "status": "in_progress",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "components/WhatsAppCatalog.tsx",
+      "app/api/coupons/validate/route.ts"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-02-1",
+        "text": "Dado un cupón activo en la base de datos, cuando el usuario presione 'Aplicar', se descuenta el porcentaje o monto fijo",
+        "done": true
+      },
+      {
+        "id": "AC-02-2",
+        "text": "Si el cupón expiró o no existe, debe mostrar un mensaje de error en rojo sin borrar el carrito",
+        "done": false
+      },
+      {
+        "id": "AC-02-3",
+        "text": "El total recalculado debe enviarse al backend al crear la orden en la tabla Order",
+        "done": false
+      }
+    ],
+    "progress": 33
+  },
+  {
+    "id": "US-03",
+    "epicId": "EP-02",
+    "title": "Atención conversacional y recomendación de productos con IA en WhatsApp",
+    "role": "Cliente que escribe al WhatsApp del negocio",
+    "action": "Enviar una pregunta en lenguaje natural como '¿Tienes zapatillas rojas talla 40?'",
+    "benefit": "Recibir recomendaciones exactas con foto, precio y link de compra en segundos",
+    "points": 8,
+    "priority": "P0",
+    "status": "in_progress",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "lib/bot/chatbot-logic.ts",
+      "lib/bot/search-service.ts",
+      "lib/ai/openrouter.ts"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-03-1",
+        "text": "Dado un mensaje de texto entrante en Evolution API, el router debe clasificar la intención con FSM",
+        "done": true
+      },
+      {
+        "id": "AC-03-2",
+        "text": "Si el usuario busca productos, ejecutar búsqueda semántica con pgvector sobre embeddings de catálogo",
+        "done": true
+      },
+      {
+        "id": "AC-03-3",
+        "text": "Responder con una lista de máximo 3 opciones y botón WebView para completar la compra",
+        "done": true
+      }
+    ]
+  },
+  {
+    "id": "US-04",
+    "epicId": "EP-03",
+    "title": "Generación de código QR EMVCo y Llave Bre-B interoperable",
+    "role": "Comprador bancarizado en Colombia",
+    "action": "Seleccionar 'Transferencia Bre-B / SPI' como método de pago",
+    "benefit": "Ver el código QR estándar y un botón en 1 clic para copiar la llave del comercio",
+    "points": 5,
+    "priority": "P0",
+    "status": "done",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "lib/payments/breb/emvco.ts",
+      "app/pay/[orderId]/page.tsx",
+      "lib/payments/breb/references.ts"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-04-1",
+        "text": "Dado el monto y la llave del comercio, generar el string EMVCo estándar GUI co.com.ach.spi",
+        "done": true
+      },
+      {
+        "id": "AC-04-2",
+        "text": "Generar una referencia de pago alfanumérica única de 6 caracteres con ventana de expiración de 10 min",
+        "done": true
+      },
+      {
+        "id": "AC-04-3",
+        "text": "Proporcionar botón 'Copiar Llave' que copie al portapapeles y notifique al usuario",
+        "done": true
+      }
+    ]
+  },
+  {
+    "id": "US-05",
+    "epicId": "EP-03",
+    "title": "Validación automática de comprobantes de transferencia con OCR IA",
+    "role": "Comercio y comprador",
+    "action": "Subir la captura de pantalla del comprobante de Nequi/Bancolombia/Daviplata",
+    "benefit": "Confirmar el pago y cambiar el estado de la orden automáticamente sin esperar revisión manual",
+    "points": 8,
+    "priority": "P0",
+    "status": "in_progress",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "lib/payments/breb/proof-analysis.ts",
+      "app/api/payments/breb/proof/route.ts"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-05-1",
+        "text": "Dado el upload de una imagen JPG/PNG, analizar texto con prompt de visión LLM",
+        "done": true
+      },
+      {
+        "id": "AC-05-2",
+        "text": "Extraer monto, fecha, ID de transacción bancaria y comparar con la orden",
+        "done": true
+      },
+      {
+        "id": "AC-05-3",
+        "text": "Si coincide en un 100%, actualizar orden a 'PAID' y disparar webhook a logística",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "US-06",
+    "epicId": "EP-04",
+    "title": "Registro y asignación de pedidos a repartidores 100% por WhatsApp",
+    "role": "Repartidor independiente",
+    "action": "Registrarse escribiendo al WhatsApp de la tienda y recibir ofertas de entregas cercanas",
+    "benefit": "Aceptar pedidos y despacharlos sin tener que descargar ninguna app nativa",
+    "points": 8,
+    "priority": "P1",
+    "status": "in_progress",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "lib/bot/driver-chatbot-logic.ts",
+      "lib/dispatch/matching-algorithm.ts",
+      "app/api/dispatch/webhook/route.ts"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-06-1",
+        "text": "Dado un mensaje entrante 'Quiero ser repartidor', el bot solicita nombre, cédula y vehículo",
+        "done": false
+      },
+      {
+        "id": "AC-06-2",
+        "text": "Cuando una orden pasa a PAID, el algoritmo busca conductores en radio de 5km y envía mensaje con botón 'ACEPTAR'",
+        "done": true
+      },
+      {
+        "id": "AC-06-3",
+        "text": "Al entregar, el conductor solicita al cliente un PIN de 4 dígitos para completar el pedido",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "US-07",
+    "epicId": "EP-06",
+    "title": "Recuperación automática de carritos abandonados por WhatsApp",
+    "role": "Dueño del comercio",
+    "action": "Configurar el disparador de mensajes para carritos con más de 1 hora de inactividad",
+    "benefit": "Recuperar entre el 15% y el 30% de las ventas perdidas automáticamente",
+    "points": 5,
+    "priority": "P0",
+    "status": "backlog",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "app/api/cron/abandoned-carts/route.ts",
+      "lib/whatsapp/evolution.ts"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-07-1",
+        "text": "Dado un cron job que se ejecuta cada 15 minutos, buscar sesiones activas con carrito y sin orden",
+        "done": false
+      },
+      {
+        "id": "AC-07-2",
+        "text": "Enviar mensaje personalizado con los productos guardados y enlace directo para completar la compra",
+        "done": false
+      },
+      {
+        "id": "AC-07-3",
+        "text": "Registrar evento en analítica para no re-enviar más de 1 recordatorio por sesión",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "US-08",
+    "epicId": "EP-07",
+    "title": "Reparación de navegación móvil y drawer en el panel de control",
+    "role": "Comerciante administrando la tienda desde el celular",
+    "action": "Tocar el botón hamburguesa del header en pantallas menores a 768px",
+    "benefit": "Abrir el menú lateral completo con todas las secciones sin bloqueos de pantalla",
+    "points": 3,
+    "priority": "P0",
+    "status": "in_progress",
+    "assignedTo": "Antigravity",
+    "scopeFiles": [
+      "app/(dashboard)/layout.tsx",
+      "components/pages/SettingsPageContent.tsx"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-08-1",
+        "text": "El botón de menú hamburguesa debe tener evento onClick que abra un Sheet deslizante",
+        "done": false
+      },
+      {
+        "id": "AC-08-2",
+        "text": "Corregir bug de redirección en SettingsPageContent que envía a /login en vez de /sign-in",
+        "done": false
+      },
+      {
+        "id": "AC-08-3",
+        "text": "Ocultar links experimentales (The Office) para mantener el menú enfocado en el lanzamiento",
+        "done": false
+      }
+    ]
+  }
+]

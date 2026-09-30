@@ -1,0 +1,132 @@
+[
+  {
+    "id": "SCR-01",
+    "name": "Tienda Móvil & Catálogo Web",
+    "route": "/tienda/[slug]",
+    "previewUrl": "/tienda/demo",
+    "layout": "Mobile-First WebView & Desktop E-Commerce",
+    "status": "in_progress",
+    "healthPercent": 80,
+    "components": ["WhatsAppCatalog.tsx", "CartSheet", "DeliveryForm", "VariantSelector"],
+    "wireframeDescription": "Header con logo y banner de la tienda, barra de búsqueda en tiempo real, selector de categorías por píldoras deslizantes, grilla de productos 2 columnas en móvil y barra inferior fija con total del carrito y botón 'Ver Carrito'.",
+    "checklist": [
+      { "id": "ui-1-1", "text": "Renderizado SSR con pre-fetch de productos en Prisma", "done": true },
+      { "id": "ui-1-2", "text": "Carrito persistente en LocalStorage sincronizado con WhatsApp", "done": true },
+      { "id": "ui-1-3", "text": "Campo de validación y cálculo de cupones de descuento", "done": false },
+      { "id": "ui-1-4", "text": "Selector de entrega a domicilio vs recogida en tienda", "done": true }
+    ]
+  },
+  {
+    "id": "SCR-02",
+    "name": "Pantalla de Pago SmartPay Bre-B",
+    "route": "/pay/[orderId]",
+    "previewUrl": "/pay/test-order",
+    "layout": "Checkout Minimalista con Temporizador",
+    "status": "in_progress",
+    "healthPercent": 75,
+    "components": ["QRCodeSVG", "TimerBadge", "ProofUploader", "CopyKeyButton"],
+    "wireframeDescription": "Tarjeta centrada limpia: badge de monto total, temporizador regresivo de 10 minutos, código QR EMVCo escaneable, botón grande 'Copiar Llave Bre-B', y zona de arrastre para subir comprobante de Nequi/Bancolombia.",
+    "checklist": [
+      { "id": "ui-2-1", "text": "Generación del string QR interoperable EMVCo", "done": true },
+      { "id": "ui-2-2", "text": "Temporizador regresivo con expiración automática", "done": true },
+      { "id": "ui-2-3", "text": "Botón interactivo de copia al portapapeles con toast", "done": true },
+      { "id": "ui-2-4", "text": "Zona de dropzone para comprobante con preview de imagen", "done": false }
+    ]
+  },
+  {
+    "id": "SCR-03",
+    "name": "Dashboard Principal de Métricas",
+    "route": "/dashboard",
+    "previewUrl": "/dashboard",
+    "layout": "Dashboard Shell con Sidebar Lateral",
+    "status": "done",
+    "healthPercent": 90,
+    "components": ["SidebarNav", "TopHeader", "MetricCard", "SalesChart", "RecentOrders"],
+    "wireframeDescription": "Métricas clave en 4 tarjetas superiores (Ingresos hoy, Pedidos pendientes, Ticket promedio, Tasa de conversión), gráfico de tendencia semanal con Recharts y tabla de pedidos recientes con estados en color.",
+    "checklist": [
+      { "id": "ui-3-1", "text": "Tarjetas KPI con datos agregados de base de datos", "done": true },
+      { "id": "ui-3-2", "text": "Gráfico interactivo de ventas por día", "done": true },
+      { "id": "ui-3-3", "text": "Alertas operacionales: comprobantes por revisar", "done": true }
+    ]
+  },
+  {
+    "id": "SCR-04",
+    "name": "Gestión de Pedidos & Drawer Logístico",
+    "route": "/pedidos",
+    "previewUrl": "/pedidos",
+    "layout": "Tabla de Alta Densidad con Drawer",
+    "status": "done",
+    "healthPercent": 85,
+    "components": ["OrderList.tsx", "OrderDrawer", "StatusBadge", "DateFilter"],
+    "wireframeDescription": "Filtros por estado (Todos, Pendiente, Pagado, En Reparto, Entregado), tabla paginada con selector de filas, y panel lateral deslizante al hacer clic con mapa de entrega y desglose de items.",
+    "checklist": [
+      { "id": "ui-4-1", "text": "Filtros reactivos por estado de pago", "done": true },
+      { "id": "ui-4-2", "text": "Drawer lateral con dirección y mapa Leaflet", "done": true },
+      { "id": "ui-4-3", "text": "Acción rápida de cambio de estado de orden", "done": true }
+    ]
+  },
+  {
+    "id": "SCR-05",
+    "name": "CRM de Clientes & Historial",
+    "route": "/clientes",
+    "previewUrl": "/clientes",
+    "layout": "CRM Table con Filtros y Estadísticas",
+    "status": "done",
+    "healthPercent": 80,
+    "components": ["CustomerCRM.tsx", "CustomerDetailSheet", "WhatsAppDirectButton"],
+    "wireframeDescription": "Listado de compradores únicos, cálculo de valor de vida (LTV), cantidad de pedidos, fecha de última compra, botón de contacto directo a WhatsApp con mensaje pre-rellenado y notas internas.",
+    "checklist": [
+      { "id": "ui-5-1", "text": "Agrupación automática de compradores por teléfono", "done": true },
+      { "id": "ui-5-2", "text": "Botón de WhatsApp que abre chat con el cliente", "done": true },
+      { "id": "ui-5-3", "text": "Etiquetas de cliente VIP vs Nuevo", "done": true }
+    ]
+  },
+  {
+    "id": "SCR-06",
+    "name": "Conversaciones en Vivo de WhatsApp",
+    "route": "/conversaciones",
+    "previewUrl": "/conversaciones",
+    "layout": "Split-view estilo WhatsApp Web",
+    "status": "in_progress",
+    "healthPercent": 70,
+    "components": ["ChatSidebar", "MessageThread", "TakeoverToggle", "QuickReplies"],
+    "wireframeDescription": "Columna izquierda con lista de chats recientes ordenados por fecha y badge de no leídos. Columna derecha con historial de mensajes entre cliente y bot IA, con toggle para intervención humana manual.",
+    "checklist": [
+      { "id": "ui-6-1", "text": "Listado de sesiones activas en WhatsAppSession", "done": true },
+      { "id": "ui-6-2", "text": "Historial de mensajes con burbujas de entrada y salida", "done": true },
+      { "id": "ui-6-3", "text": "Switch para pausar el bot y atender como humano", "done": false }
+    ]
+  },
+  {
+    "id": "SCR-07",
+    "name": "Studio IA Multimedia (Reels & Copies)",
+    "route": "/studio",
+    "previewUrl": "/studio",
+    "layout": "Creator Canvas con Preview 9:16",
+    "status": "in_progress",
+    "healthPercent": 60,
+    "components": ["StudioIaClient.tsx", "VideoCanvas", "CopyGenerator", "ExportButton"],
+    "wireframeDescription": "Panel izquierdo con selector de producto y estilo de guión. Panel central con canvas vertical 9:16 animado con foto de producto, precio y texto dinámico. Panel derecho con botón de descarga MP4 y copies.",
+    "checklist": [
+      { "id": "ui-7-1", "text": "Generación de guiones de venta con DeepSeek", "done": true },
+      { "id": "ui-7-2", "text": "Renderizado de video canvas 9:16 con MediaRecorder", "done": true },
+      { "id": "ui-7-3", "text": "Botón de compartir directo a Estados de WhatsApp", "done": false }
+    ]
+  },
+  {
+    "id": "SCR-08",
+    "name": "Configuración de Tienda & Llaves de Pago",
+    "route": "/configuracion",
+    "previewUrl": "/configuracion",
+    "layout": "Formulario por Pestañas (Tabs)",
+    "status": "in_progress",
+    "healthPercent": 50,
+    "components": ["SettingsPageContent.tsx", "StoreForm", "BrebKeysForm", "WhatsAppQrConnect"],
+    "wireframeDescription": "Pestañas: 1. Datos de la Tienda (Nombre, Slug, Logo), 2. Pasarela Bre-B (Llave telefónica/cédula, Nombre del titular), 3. Conexión WhatsApp (Código QR para vincular teléfono con Evolution API).",
+    "checklist": [
+      { "id": "ui-8-1", "text": "Corregir redirect roto de /login a /sign-in", "done": false },
+      { "id": "ui-8-2", "text": "Guardado de llave Bre-B en la tabla Store", "done": true },
+      { "id": "ui-8-3", "text": "Visor de QR en vivo para escanear WhatsApp con Evolution API", "done": true }
+    ]
+  }
+]

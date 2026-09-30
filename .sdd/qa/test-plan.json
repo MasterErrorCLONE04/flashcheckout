@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-09-30T17:15:00.000Z",
+  "frameworks": ["Playwright E2E", "Vitest Unit", "Postman / Newman"],
+  "testSuites": [
+    {
+      "id": "SUITE-01",
+      "name": "E2E Checkout Bre-B en 30 Segundos",
+      "priority": "CRITICO",
+      "automated": true,
+      "testCases": [
+        {
+          "id": "TC-0101",
+          "title": "Comprador ingresa al checkout desde enlace de WhatsApp con carrito precargado",
+          "preconditions": "Tienda con Bre-B activo y producto en inventario",
+          "steps": [
+            "Navegar a /checkout/[slug] con query params de items",
+            "Verificar que el total calculado en pantalla coincide con la suma de precios",
+            "Llenar datos de entrega (Nombre, WhatsApp, Dirección)",
+            "Hacer clic en 'Pagar con Bre-B'"
+          ],
+          "expectedResult": "Se genera un BrebPaymentIntent, aparece código QR EMVCo y botón 'Copiar Llave Bre-B' en menos de 1.5s",
+          "status": "passed"
+        },
+        {
+          "id": "TC-0102",
+          "title": "Tiempo total de flujo de compra menor a 30 segundos",
+          "preconditions": "Usuario con datos guardados en LocalStorage",
+          "steps": [
+            "Cargar formulario de checkout",
+            "Auto-completar datos con un tap",
+            "Copiar llave Bre-B y marcar comprobante simulado"
+          ],
+          "expectedResult": "Cronómetro de orden inferior a 30 segundos en el 90% de las corridas",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "SUITE-02",
+      "name": "OCR de Comprobantes & Detección de Fraude",
+      "priority": "CRITICO",
+      "automated": true,
+      "testCases": [
+        {
+          "id": "TC-0201",
+          "title": "Aprobación automática de comprobante Nequi legítimo",
+          "preconditions": "Orden pendiente por $85.000 COP",
+          "steps": [
+            "Subir imagen de comprobante Nequi auténtico con monto $85.000 COP y fecha de hoy",
+            "Ejecutar endpoint POST /api/payments/breb/proof"
+          ],
+          "expectedResult": "Confidence > 92%, decisión AUTO_APPROVED, estado de orden actualizado a 'paid'",
+          "status": "passed"
+        },
+        {
+          "id": "TC-0202",
+          "title": "Rechazo de comprobante con número de transacción duplicado",
+          "preconditions": "Transacción M1234567 ya registrada en BrebPaymentProof previo",
+          "steps": [
+            "Subir comprobante con el mismo ID de transacción",
+            "Procesar con el motor OCR"
+          ],
+          "expectedResult": "Decisión REJECTED por conflicto de unicidad en Prisma, alerta generada al comercio",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "SUITE-03",
+      "name": "Radar de Repartidores & Verificación con PIN",
+      "priority": "ALTO",
+      "automated": false,
+      "testCases": [
+        {
+          "id": "TC-0301",
+          "title": "Broadcast a mensajeros en radio de 5km al marcar pedido como listo",
+          "preconditions": "Comerciante marca pedido como 'ready_for_pickup'",
+          "steps": [
+            "Hacer clic en 'Despachar a Mensajero'",
+            "Verificar generación de DriverOffers para mensajeros disponibles"
+          ],
+          "expectedResult": "Mensajero más cercano recibe notificación push/WhatsApp con tiempo límite de 45s para aceptar",
+          "status": "in_progress"
+        },
+        {
+          "id": "TC-0302",
+          "title": "Entrega completada solo tras digitar PIN correcto",
+          "preconditions": "Repartidor en ubicación del cliente",
+          "steps": [
+            "Repartidor introduce PIN de 4 dígitos suministrado por el comprador",
+            "Enviar a /api/orders/[id]/verify-pin"
+          ],
+          "expectedResult": "Si PIN coincide, estado pasa a 'delivered' y fondos se liberan de escrow",
+          "status": "in_progress"
+        }
+      ]
+    }
+  ]
+}

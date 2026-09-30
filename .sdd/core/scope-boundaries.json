@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0-MVP",
+  "launchTimelineWeeks": 2,
+  "scopePhilosophy": "Hacer pocas cosas con excelencia y salir a vender en 2 semanas en vez de construir una suite infinita que nunca ve la luz.",
+  "inScope": [
+    {
+      "area": "Catálogo Web & Carrito",
+      "deliverables": [
+        "Tienda web móvil en /tienda/[slug] con renderizado SSR y carga < 1s",
+        "Carrito persistente en LocalStorage sincronizado con la sesión",
+        "Formulario de entrega rápido (Nombre, Teléfono, Dirección / Pin GPS)",
+        "Validación y descuento con cupones promocionales (tabla Coupon de Prisma)"
+      ]
+    },
+    {
+      "area": "Bot de Ventas WhatsApp",
+      "deliverables": [
+        "FSM de estados en lib/bot/chatbot-logic.ts para clasificar intenciones",
+        "Búsqueda semántica con pgvector sobre embeddings de productos",
+        "Generación de link de compra al carrito pre-cargado",
+        "Manejo de timeouts y transfer a humano si el cliente lo solicita"
+      ]
+    },
+    {
+      "area": "SmartPay Bre-B",
+      "deliverables": [
+        "Generador de payload QR EMVCo interoperable para ACH SPI Colombia",
+        "Pantalla de pago /pay/[orderId] con referencia única de 6 caracteres",
+        "Botón de copia al portapapeles de la llave del comercio",
+        "OCR de visión IA para validación automática de comprobantes de pago"
+      ]
+    },
+    {
+      "area": "Logística Repartidores WhatsApp",
+      "deliverables": [
+        "Registro de repartidores en 1 mensaje de WhatsApp (Nombre, Cédula, Placa)",
+        "Matching geoespacial básico (radio <= 5km) para subasta de órdenes PAID",
+        "Confirmación de entrega obligatoria con PIN de 4 dígitos proporcionado por el comprador"
+      ]
+    },
+    {
+      "area": "Dashboard & Operaciones",
+      "deliverables": [
+        "Métricas en vivo: ventas de hoy, pedidos pendientes, ticket promedio",
+        "Tabla de pedidos con filtros de pago y drawer lateral logístico",
+        "CRM básico de compradores únicos y botón de WhatsApp en 1 clic",
+        "Cron job real para recuperación de carritos abandonados (/api/cron/abandoned-carts)"
+      ]
+    }
+  ],
+  "explicitNonGoals": [
+    {
+      "id": "non-goal-meta-flows",
+      "feature": "Meta WhatsApp Flows Nativos v2",
+      "rationale": "Requiere verificación de empresa en Meta Business Manager (WABA), templates aprobados y tokens complejos que demoran semanas. Se congela para V2; la V1 opera con WebViews móviles ultra-rápidos que funcionan en cualquier WhatsApp hoy."
+    },
+    {
+      "id": "non-goal-the-office",
+      "feature": "The Office (Experimento 2D Pixel Art)",
+      "rationale": "Es una prueba de concepto interna sin valor comercial para el lanzamiento en 2 semanas. Queda oculta del menú de producción."
+    },
+    {
+      "id": "non-goal-shopify-sync",
+      "feature": "Sincronización multi-canal con Shopify / MercadoLibre",
+      "rationale": "Añade complejidad de rate-limits y resolución de conflictos de inventario. FlashCheckout opera como la fuente primaria de inventario en V1."
+    },
+    {
+      "id": "non-goal-native-apps",
+      "feature": "Aplicaciones móviles nativas iOS / Android para repartidores",
+      "rationale": "El mayor valor competitivo de FlashCheckout para los repartidores es CERO descargas: todo el ciclo de entrega corre 100% sobre WhatsApp."
+    },
+    {
+      "id": "non-goal-multi-warehouse",
+      "feature": "Gestión de multi-bodegas físicas y traslados de stock",
+      "rationale": "Las tiendas de lanzamiento operan desde 1 sede o bodega principal."
+    }
+  ]
+}

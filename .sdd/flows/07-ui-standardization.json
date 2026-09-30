@@ -1,0 +1,51 @@
+{
+  "id": "07-ui-standardization",
+  "name": "Estandarización de UI & Design Tokens",
+  "category": "design_system",
+  "priority": "P0",
+  "targetWeek": 1,
+  "progress": 40,
+  "description": "Unificación de la experiencia visual: eliminar fragmentación de 5 estilos, fijar tokens y reparar navegación móvil.",
+  "nodes": [
+    {
+      "id": "node-design-tokens",
+      "name": "Tokens Globales & Tipografía",
+      "status": "in_progress",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["app/globals.css", "app/layout.tsx"],
+      "agentPrompt": "Eliminar reglas CSS destructivas con !important, estandarizar a Geist Sans y paleta Zinc neutral.",
+      "checklist": [
+        { "id": "t50", "text": "Unificar fuentes eliminando referencia rota a 'Circular'", "done": false },
+        { "id": "t51", "text": "Corregir hover primario (eliminar naranja #e64500 desalineado)", "done": false },
+        { "id": "t52", "text": "Estandarizar radios de bordes a rounded-xl y rounded-lg", "done": false }
+      ]
+    },
+    {
+      "id": "node-ui-primitives",
+      "name": "Biblioteca de Componentes Base",
+      "status": "todo",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["components/ui/table.tsx", "components/ui/sheet.tsx", "components/ui/tabs.tsx"],
+      "agentPrompt": "Añadir primitivas de Shadcn para evitar tablas y modales manuales en cada módulo.",
+      "checklist": [
+        { "id": "t53", "text": "Componente Table reutilizable para pedidos, pagos y cupones", "done": false },
+        { "id": "t54", "text": "Componente Sheet / Drawer estándar para detalles laterales", "done": false },
+        { "id": "t55", "text": "Componente PageHeader estandarizado para cabeceras de página", "done": false }
+      ]
+    },
+    {
+      "id": "node-navigation-fixes",
+      "name": "Navegación Móvil & Sidebar Estable",
+      "status": "todo",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["app/(dashboard)/layout.tsx", "components/dashboard/SidebarNav.tsx", "components/pages/SettingsPageContent.tsx"],
+      "agentPrompt": "Conectar botón hamburguesa móvil a un Drawer real y arreglar redirect roto en /configuracion.",
+      "checklist": [
+        { "id": "t56", "text": "Corregir redirect('/login') por redirect('/sign-in') en SettingsPageContent", "done": false },
+        { "id": "t57", "text": "Habilitar evento onClick y Sheet móvil en el botón hamburguesa del header", "done": false },
+        { "id": "t58", "text": "Ocultar 'The Office' e integraciones mock del menú lateral principal", "done": false },
+        { "id": "t59", "text": "Reorganizar enlaces huérfanos (/verificaciones, /envios, /analitica)", "done": false }
+      ]
+    }
+  ]
+}

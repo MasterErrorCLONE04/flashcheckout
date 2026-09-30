@@ -1,0 +1,48 @@
+{
+  "id": "05-studio-ia",
+  "name": "Studio IA (Reels & Contenido)",
+  "category": "marketing",
+  "priority": "P1",
+  "targetWeek": 2,
+  "progress": 55,
+  "description": "Generación de guiones publicitarios con IA y renderizado local de videos promocionales 9:16 para redes.",
+  "nodes": [
+    {
+      "id": "node-studio-script",
+      "name": "Generador de Guiones Comerciales",
+      "status": "done",
+      "assignedTo": "Humano",
+      "scopeFiles": ["app/api/studio-ia/generate-script/route.ts", "lib/ai/studio-prompts.ts"],
+      "agentPrompt": "Estructurar prompts para ganchos virales (Hooks), historia de valor y CTA según el tono de la marca.",
+      "checklist": [
+        { "id": "t35", "text": "Generación de guion de 15 segundos con DeepSeek", "done": true },
+        { "id": "t36", "text": "Generación de copy para Instagram/TikTok con hashtags", "done": true }
+      ]
+    },
+    {
+      "id": "node-studio-canvas-render",
+      "name": "Motor de Render en Canvas (MP4)",
+      "status": "done",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["components/StudioIaClient.tsx"],
+      "agentPrompt": "Compilar animación Ken Burns, overlays de texto, badge de descuento y exportar video en cliente.",
+      "checklist": [
+        { "id": "t37", "text": "Renderizado 1080x1920 a 30 FPS con MediaRecorder", "done": true },
+        { "id": "t38", "text": "Descarga directa de archivo .mp4 sin depender de servidores pesados", "done": true },
+        { "id": "t39", "text": "Guardado en historial de creaciones AiMediaContent", "done": true }
+      ]
+    },
+    {
+      "id": "node-studio-v1-closure",
+      "name": "Pulido y Cierre de Alcance V1",
+      "status": "todo",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["components/StudioIaClient.tsx"],
+      "agentPrompt": "Eliminar dependencias de TTS que fallan en silencio y agregar botón de compartir directo a WhatsApp.",
+      "checklist": [
+        { "id": "t40", "text": "Añadir botón 'Compartir en mis Estados de WhatsApp'", "done": false },
+        { "id": "t41", "text": "Manejo resiliente de fallos si la imagen del producto falla por CORS", "done": false }
+      ]
+    }
+  ]
+}

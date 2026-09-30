@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-09-30T17:15:00.000Z",
+  "hypotheses": [
+    {
+      "id": "HYP-01",
+      "statement": "Si los comercios ofrecen un botón de pago con Llave Bre-B precargada en WhatsApp, la tasa de conversión subirá un 35% frente a dar número de cuenta en texto plano.",
+      "metric": "Tasa de conversión en checkout de WhatsApp (Funnel View -> Completed Order)",
+      "validationMethod": "A/B Testing en los primeros 10 comercios beta con 500 pedidos",
+      "status": "in_validation",
+      "resultNote": "En pruebas piloto preliminares, el tiempo de pago bajó de 14 minutos a 28 segundos."
+    },
+    {
+      "id": "HYP-02",
+      "statement": "El motor de visión artificial (OCR) con detección de transacción bancaria eliminará el 99% de los fraudes con comprobantes falsos de Nequi/Daviplata.",
+      "metric": "Incidentes de pedido despachado sin fondos acreditados",
+      "validationMethod": "Validación con dataset de 200 comprobantes (150 reales, 50 manipulados con Canva/Photoshop)",
+      "status": "validated",
+      "resultNote": "El modelo detectó inconsistencias de fuentes, montos y timestamps en 49 de los 50 comprobantes fraudulentos (98% de precisión)."
+    },
+    {
+      "id": "HYP-03",
+      "statement": "El despacho por radar a mensajeros independientes con validación de PIN reduce el tiempo de entrega de 90 a 35 minutos sin necesidad de contratar flota fija.",
+      "metric": "Tiempo promedio de despacho (Order Paid -> Order Delivered)",
+      "validationMethod": "Prueba de campo en Bogotá Chapinero / Chicó con 15 mensajeros registrados",
+      "status": "pending_test",
+      "resultNote": "En espera de activar el radar de pedidos en vivo."
+    }
+  ]
+}

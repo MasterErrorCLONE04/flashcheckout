@@ -1,0 +1,251 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-09-30T17:15:00.000Z",
+  "projectSlug": "flashcheckout",
+  "interviewSessions": [
+    {
+      "id": "PHASE-01",
+      "category": "Fase 1: Problema, Usuario & Propuesta de Valor (El Por Qué)",
+      "title": "Fase 1: Problema, Usuario & Propuesta de Valor (El Por Qué)",
+      "badge": "El Por Qué",
+      "description": "Validación de fricciones reales y dolor del cliente en el proceso de compra por WhatsApp antes de codificar.",
+      "questions": [
+        {
+          "id": "Q-01",
+          "question": "¿Cuál es la fricción número uno que hace que un cliente abandone una compra en WhatsApp hoy?",
+          "answer": "La demora de 10 a 20 minutos mientras el comerciante calcula el total manual, pasa el número de cuenta Nequi/Daviplata y el cliente debe salir a su banco a digitar datos, tomar captura y enviarla.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Problema",
+          "insights": "El 68% de abandono ocurre entre la solicitud del precio/envío y el envío del comprobante de transferencia."
+        },
+        {
+          "id": "Q-02",
+          "question": "¿Cuánto tiempo invierte un comerciante promedio validando cada comprobante de pago?",
+          "answer": "Entre 3 y 8 minutos por pedido abriendo la app bancaria para verificar si el saldo realmente subió y no es un comprobante editado con Photoshop.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Dolor del Negocio",
+          "insights": "El fraude por comprobantes falsos es la pesadilla #1 de los comercios medianos en Colombia."
+        },
+        {
+          "id": "Q-03",
+          "question": "¿Cuál es la acción principal cuyo éxito genera valor inmediato (el momento ¡Eureka!)?",
+          "answer": "El comprador hace 1 tap desde WhatsApp, paga en 15 segundos con su banco usando Llave Bre-B interoperable y recibe acuse de recibo instantáneo.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Propuesta de Valor",
+          "insights": "Reducir el tiempo de pago de 14 minutos a menos de 30 segundos eleva la conversión más de un 35%."
+        }
+      ]
+    },
+    {
+      "id": "PHASE-02",
+      "category": "Fase 2: Delimitación de Alcance & Non-Goals V1 (El Hasta Dónde)",
+      "title": "Fase 2: Delimitación de Alcance & Non-Goals V1 (El Hasta Dónde)",
+      "badge": "El Hasta Dónde",
+      "description": "Foco estricto en la V1 congelando features complejas para evitar sobre-ingeniería y retrasos.",
+      "questions": [
+        {
+          "id": "Q-04",
+          "question": "¿Los compradores prefieren instalar una aplicación nativa o interactuar puramente por WhatsApp/Web?",
+          "answer": "Cero descargas de apps. El 94% de compradores en comercio conversacional rechazan registrarse o descargar una APK/app nueva para comprar un artículo puntual.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Non-Goals",
+          "insights": "La experiencia de checkout debe ser 100% web ultraliviana accesible con 1 tap desde WhatsApp y autocompletada."
+        },
+        {
+          "id": "Q-05",
+          "question": "¿Aplica integración con sistemas ERP corporativos tipo SAP o Netsuite en esta etapa inicial?",
+          "answer": "",
+          "status": "not_applicable",
+          "isNotApplicable": true,
+          "notApplicableReason": "El perfil de Flashcheckout V1 es comercio conversacional ágil y medianas empresas en Colombia (mercado informal y Pymes). SAP/Netsuite está explícitamente en Non-Goals V1.",
+          "category": "Alcance V1",
+          "insights": "Mantener scope liviano sin sobre-ingeniería de conectores enterprise."
+        },
+        {
+          "id": "Q-06",
+          "question": "¿Aplica soporte de pagos en efectivo contra entrega (COD)?",
+          "answer": "Soporte secundario registrado como pago manual, pero el enfoque primario y automatizado por IA es Bre-B / transferencias inmediatas verificadas.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Alcance V1",
+          "insights": "El contra entrega tiene 25% de tasa de devolución; incentivar Bre-B baja drásticamente las cancelaciones."
+        }
+      ]
+    },
+    {
+      "id": "PHASE-03",
+      "category": "Fase 3: Stack Tecnológico y Arquitectura (El Con Qué)",
+      "title": "Fase 3: Stack Tecnológico y Arquitectura (El Con Qué)",
+      "badge": "El Con Qué",
+      "description": "Definición del Frontend, Backend, Base de Datos, Autenticación y Despliegue antes de programar.",
+      "questions": [
+        {
+          "id": "q-stack-frontend",
+          "question": "¿Qué framework y librería de UI se usará para el Checkout Web Frontend y por qué?",
+          "answer": "Next.js 15 (React 19) con Tailwind CSS. Renderizado ultrarrápido para cargar en < 800ms en redes móviles 4G.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Frontend",
+          "insights": "El 90% de los usuarios abre el link desde el navegador embebido de WhatsApp en Android/iOS."
+        },
+        {
+          "id": "q-stack-backend",
+          "question: "¿Cuál es el runtime y patrón de Backend para la API y bots?",
+          "answer": "Node.js con Route Handlers tipados en TypeScript y microservicios ligeros para procesamiento OCR asíncrono.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Backend",
+          "insights": "Permite compartir validadores Zod entre frontend y backend sin duplicar código."
+        },
+        {
+          "id": "q-stack-database",
+          "question": "¿Qué motor de base de datos relacional y ORM gestionará pedidos y transacciones?",
+          "answer": "PostgreSQL 16 gestionado con Prisma ORM, índices compuestos en orderId y status, y transacciones atómicas.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Base de Datos",
+          "insights": "PostgreSQL garantiza integridad ACID y consistencia estricta en conciliaciones financieras."
+        },
+        {
+          "id": "q-stack-auth",
+          "question": "¿Qué estrategia de autenticación se usa para el panel del comerciante vs el comprador en WhatsApp?",
+          "answer": "Comprador: Tokens JWT efímeros firmados por pedido (magic-links con 1-tap). Comerciante: Sesión con cookies HttpOnly seguras y RBAC.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Autenticación",
+          "insights": "El comprador nunca debe tener que recordar contraseñas para pagar un pedido."
+        },
+        {
+          "id": "q-stack-hosting",
+          "question": "¿Dónde y cómo se despliega la plataforma en producción?",
+          "answer": "Vercel Edge para el Frontend y API Gateway, y clúster PostgreSQL en la nube con réplica de lectura.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Infraestructura",
+          "insights": "La infraestructura serverless escala automáticamente durante picos de ventas (Black Friday, quincenas)."
+        }
+      ]
+    },
+    {
+      "id": "PHASE-04",
+      "category": "Fase 4: Entidades de Datos & Contratos de API (El Qué Maneja)",
+      "title": "Fase 4: Entidades de Datos & Contratos de API (El Qué Maneja)",
+      "badge": "El Qué Maneja",
+      "description": "Modelado de entidades financieras, ciclo de vida del pedido y auditoría estricta.",
+      "questions": [
+        {
+          "id": "q-data-entities",
+          "question": "¿Cuáles son las entidades centrales del sistema y sus relaciones?",
+          "answer": "Merchant (1:N) -> Order (1:1) -> PaymentTransaction (1:1) -> DispatchDelivery (1:N) -> AuditLog.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Modelos",
+          "insights": "Separar PaymentTransaction de Order permite múltiples intentos de pago sin corromper el pedido."
+        },
+        {
+          "id": "q-state-machine",
+          "question": "¿Qué máquina de estados recorre una orden de compra?",
+          "answer": "CREATED -> PAYMENT_PENDING -> VALIDATING_OCR -> PAID_CONFIRMED -> DISPATCH_ASSIGNED -> DELIVERED (o CANCELLED).",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Estados",
+          "insights": "Cada transición de estado dispara un evento pub/sub que notifica por WhatsApp en tiempo real."
+        },
+        {
+          "id": "q-audit-logs",
+          "question": "¿Se almacenan números de tarjetas de crédito o datos PCI en el servidor?",
+          "answer": "Cero almacenamiento de datos PCI. Solo se procesan códigos QR EMVCo Bre-B y comprobantes de transferencia. Los cobros con tarjeta opcionales se delegan a Stripe Elements / Wompi Widget.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Auditoría",
+          "insights": "Evita compliance PCI DSS nivel 1 y simplifica auditorías de seguridad."
+        }
+      ]
+    },
+    {
+      "id": "PHASE-05",
+      "category": "Fase 5: Flujo de Usuario & Casos de Borde (El Cómo Funciona)",
+      "title": "Fase 5: Flujo de Usuario & Casos de Borde (El Cómo Funciona)",
+      "badge": "El Cómo Funciona",
+      "description": "Mapeo del Happy Path y control anticipado de fallas de red y comprobantes falsos.",
+      "questions": [
+        {
+          "id": "q-happy-path",
+          "question": "¿Cuál es el Happy Path de extremo a extremo desde el chat de WhatsApp hasta la entrega?",
+          "answer": "1. Cliente solicita producto en WhatsApp -> 2. Bot envía link de checkout -> 3. Cliente abre web y ve QR Bre-B -> 4. Paga en app bancaria -> 5. Comprobante validado por IA -> 6. Radar despacha mensajero con PIN.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Flujo",
+          "insights": "La automatización completa elimina la necesidad de intervención humana en el 90% de pedidos."
+        },
+        {
+          "id": "q-edge-cases",
+          "question": "¿Qué problemas tienen con la logística y el despacho de última milla?",
+          "answer": "Coordinación manual en chats separados: pedir dirección por WhatsApp, cotizar con mensajeros independientes y volver al chat del cliente. Se soluciona con radar de mensajeros y PIN de entrega.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Resiliencia",
+          "insights": "El PIN de 4 dígitos entregado al comprador garantiza que el mensajero solo cobra cuando entrega físicamente."
+        }
+      ]
+    },
+    {
+      "id": "PHASE-06",
+      "category": "Fase 6: Integraciones Externas & Pagos (Las Dependencias)",
+      "title": "Fase 6: Integraciones Externas & Pagos (Las Dependencias)",
+      "badge": "Las Dependencias",
+      "description": "Integraciones con Banco de la República (Bre-B), Evolution API y modelos de visión artificial.",
+      "questions": [
+        {
+          "id": "Q-08",
+          "question": "¿Qué porcentaje de compradores en Colombia está familiarizado con llaves Bre-B (cédula, celular, email)?",
+          "answer": "En 2026, tras el despliegue del Sistema de Pagos Inmediatos del Banco de la República, más del 70% de usuarios de banca digital conocen o usan llaves Bre-B interoperables.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Integraciones",
+          "insights": "La interoperabilidad Bre-B elimina la fricción de transferencias interbancarias lentas o cobro de comisiones ACH."
+        },
+        {
+          "id": "Q-09",
+          "question": "¿Qué latencia máxima es aceptable para que el comprador no sienta abandono en WhatsApp?",
+          "answer": "Menos de 2 segundos para respuesta del bot conversacional (Evolution API + DeepSeek LLM) y menos de 15 segundos para el procesamiento OCR de comprobantes.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Idempotencia",
+          "insights": "La interfaz de checkout web debe renderizar en < 800ms en redes 4G móviles colombianas."
+        }
+      ]
+    },
+    {
+      "id": "PHASE-07",
+      "category": "Fase 7: Criterios de Aceptación, Calidad & QA (El Cómo Validamos)",
+      "title": "Fase 7: Criterios de Aceptación, Calidad & QA (El Cómo Validamos)",
+      "badge": "El Cómo Validamos",
+      "description": "Garantizar que ninguna línea de código se acepte sin cumplir los escenarios Gherkin formales.",
+      "questions": [
+        {
+          "id": "Q-10",
+          "question": "¿Cuáles son los criterios Gherkin indispensables para certificar el lanzamiento de Flashcheckout V1?",
+          "answer": "1. Dado un comprobante con timestamp y monto coincidente, cuando el OCR lo procesa, entonces el pedido pasa a PAID_CONFIRMED en < 15s.\n2. Dado un comprobante con edición en fuente o inconsistencia, entonces se marca como FRAUD_SUSPECT y alerta al comerciante.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Gherkin",
+          "insights": "La verificación automática de criterios Gherkin evita que el agente de IA dé por terminadas tareas a medias."
+        },
+        {
+          "id": "Q-11",
+          "question": "¿Qué suites de prueba QA automatizadas bloquean el despliegue a producción?",
+          "answer": "1. Suite E2E de simulación de compra completa con Playwright.\n2. Suite de estrés con 50 comprobantes falsificados para certificar 98%+ de precisión OCR.",
+          "status": "answered",
+          "isNotApplicable": false,
+          "category": "Estrategia QA",
+          "insights": "Ningún release se despliega si alguna prueba de seguridad o cálculo monetario falla."
+        }
+      ]
+    }
+  ]
+}

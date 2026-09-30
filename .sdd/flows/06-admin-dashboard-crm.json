@@ -1,0 +1,59 @@
+{
+  "id": "06-admin-dashboard-crm",
+  "name": "Dashboard, CRM & Operaciones",
+  "category": "administration",
+  "priority": "P0",
+  "targetWeek": 1,
+  "progress": 80,
+  "description": "Panel de control del vendedor, gestión de órdenes de alta densidad, CRM de clientes y configuración de tienda.",
+  "nodes": [
+    {
+      "id": "node-kpi-dashboard",
+      "name": "Métricas & KPIs Principales",
+      "status": "done",
+      "assignedTo": "Humano",
+      "scopeFiles": ["components/pages/DashboardPageContent.tsx", "components/DashboardCharts.tsx"],
+      "agentPrompt": "Calcular ventas netas, pedidos de hoy vs ayer y alertas operacionales desde la base de datos.",
+      "checklist": [
+        { "id": "t42", "text": "Agregación de ingresos reales con Prisma", "done": true },
+        { "id": "t43", "text": "Widgets de alertas: pagos por revisar y pedidos listos para enviar", "done": true }
+      ]
+    },
+    {
+      "id": "node-orders-table",
+      "name": "Tabla de Pedidos & Drawer",
+      "status": "done",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["components/OrderList.tsx", "components/pages/PedidosPageContent.tsx"],
+      "agentPrompt": "Tabla de pedidos con paginación, filtros de pago y drawer deslizante de detalle logístico.",
+      "checklist": [
+        { "id": "t44", "text": "Filtros por estado de pago (PAID, PENDING, CANCELLED)", "done": true },
+        { "id": "t45", "text": "Drawer lateral con mapa y desglose de variaciones", "done": true }
+      ]
+    },
+    {
+      "id": "node-crm-customers",
+      "name": "CRM de Clientes & Fidelización",
+      "status": "done",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["components/CustomerCRM.tsx", "components/pages/ClientesPageContent.tsx"],
+      "agentPrompt": "Cruce de datos entre compradores de órdenes y registros de contacto.",
+      "checklist": [
+        { "id": "t46", "text": "Cálculo de ticket promedio y segmentación automática", "done": true },
+        { "id": "t47", "text": "Notas internas y contacto en 1 clic a WhatsApp", "done": true }
+      ]
+    },
+    {
+      "id": "node-automation-cron",
+      "name": "Motor Real de Carrito Abandonado",
+      "status": "todo",
+      "assignedTo": "Antigravity",
+      "scopeFiles": ["app/api/cron/abandoned-carts/route.ts", "lib/whatsapp/evolution.ts"],
+      "agentPrompt": "Crear cron job real para recuperar carritos abandonados por WhatsApp en vez de datos mock.",
+      "checklist": [
+        { "id": "t48", "text": "Endpoint /api/cron/abandoned-carts con validación de Bearer token", "done": false },
+        { "id": "t49", "text": "Disparo de mensaje con link al carrito pre-cargado", "done": false }
+      ]
+    }
+  ]
+}

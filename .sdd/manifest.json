@@ -1,0 +1,60 @@
+{
+  "project": "FlashCheckout",
+  "version": "1.0.0-beta",
+  "description": "Suite integral de e-commerce conversacional, catálogo web, agentes de WhatsApp y pagos electrónicos.",
+  "targetLaunchWeeks": 2,
+  "lastUpdated": "2026-09-30T16:18:12.920Z",
+  "metrics": {
+    "globalHealth": 72,
+    "architectureHealth": 85,
+    "flowsHealth": 68,
+    "uiHealth": 45,
+    "totalFlows": 7,
+    "completedFlows": 0,
+    "inProgressFlows": 7
+  },
+  "flowsSummary": [
+    {
+      "id": "01-catalogo-checkout-web",
+      "name": "Catálogo Web & Carrito",
+      "priority": "P0",
+      "progress": 78
+    },
+    {
+      "id": "02-whatsapp-sales-bot",
+      "name": "Ventas por WhatsApp (Bot & WebView)",
+      "priority": "P0",
+      "progress": 75
+    },
+    {
+      "id": "03-smartpay-breb",
+      "name": "Smart Pay & Pagos Bre-B (SPI ACH)",
+      "priority": "P0",
+      "progress": 78
+    },
+    {
+      "id": "04-driver-logistics",
+      "name": "Repartidores & Logística WhatsApp",
+      "priority": "P1",
+      "progress": 60
+    },
+    {
+      "id": "05-studio-ia",
+      "name": "Studio IA (Reels & Contenido)",
+      "priority": "P1",
+      "progress": 55
+    },
+    {
+      "id": "06-admin-dashboard-crm",
+      "name": "Dashboard, CRM & Operaciones",
+      "priority": "P0",
+      "progress": 80
+    },
+    {
+      "id": "07-ui-standardization",
+      "name": "Estandarización de UI & Design Tokens",
+      "priority": "P0",
+      "progress": 40
+    }
+  ]
+}

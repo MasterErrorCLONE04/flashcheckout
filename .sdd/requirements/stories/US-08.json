@@ -1,0 +1,33 @@
+{
+  "id": "US-08",
+  "epicId": "EP-07",
+  "title": "Reparación de navegación móvil y drawer en el panel de control",
+  "role": "Comerciante administrando la tienda desde el celular",
+  "action": "Tocar el botón hamburguesa del header en pantallas menores a 768px",
+  "benefit": "Abrir el menú lateral completo con todas las secciones sin bloqueos de pantalla",
+  "points": 3,
+  "priority": "P0",
+  "status": "in_progress",
+  "assignedTo": "Antigravity",
+  "scopeFiles": [
+    "app/(dashboard)/layout.tsx",
+    "components/pages/SettingsPageContent.tsx"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC-08-1",
+      "text": "El botón de menú hamburguesa debe tener evento onClick que abra un Sheet deslizante",
+      "done": false
+    },
+    {
+      "id": "AC-08-2",
+      "text": "Corregir bug de redirección en SettingsPageContent que envía a /login en vez de /sign-in",
+      "done": false
+    },
+    {
+      "id": "AC-08-3",
+      "text": "Ocultar links experimentales (The Office) para mantener el menú enfocado en el lanzamiento",
+      "done": false
+    }
+  ]
+}

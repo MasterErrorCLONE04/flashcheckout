@@ -1,0 +1,33 @@
+{
+  "id": "US-05",
+  "epicId": "EP-03",
+  "title": "Validación automática de comprobantes de transferencia con OCR IA",
+  "role": "Comercio y comprador",
+  "action": "Subir la captura de pantalla del comprobante de Nequi/Bancolombia/Daviplata",
+  "benefit": "Confirmar el pago y cambiar el estado de la orden automáticamente sin esperar revisión manual",
+  "points": 8,
+  "priority": "P0",
+  "status": "in_progress",
+  "assignedTo": "Antigravity",
+  "scopeFiles": [
+    "lib/payments/breb/proof-analysis.ts",
+    "app/api/payments/breb/proof/route.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC-05-1",
+      "text": "Dado el upload de una imagen JPG/PNG, analizar texto con prompt de visión LLM",
+      "done": true
+    },
+    {
+      "id": "AC-05-2",
+      "text": "Extraer monto, fecha, ID de transacción bancaria y comparar con la orden",
+      "done": true
+    },
+    {
+      "id": "AC-05-3",
+      "text": "Si coincide en un 100%, actualizar orden a 'PAID' y disparar webhook a logística",
+      "done": false
+    }
+  ]
+}

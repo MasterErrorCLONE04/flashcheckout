@@ -1,0 +1,34 @@
+{
+  "id": "US-06",
+  "epicId": "EP-04",
+  "title": "Registro y asignación de pedidos a repartidores 100% por WhatsApp",
+  "role": "Repartidor independiente",
+  "action": "Registrarse escribiendo al WhatsApp de la tienda y recibir ofertas de entregas cercanas",
+  "benefit": "Aceptar pedidos y despacharlos sin tener que descargar ninguna app nativa",
+  "points": 8,
+  "priority": "P1",
+  "status": "in_progress",
+  "assignedTo": "Antigravity",
+  "scopeFiles": [
+    "lib/bot/driver-chatbot-logic.ts",
+    "lib/dispatch/matching-algorithm.ts",
+    "app/api/dispatch/webhook/route.ts"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC-06-1",
+      "text": "Dado un mensaje entrante 'Quiero ser repartidor', el bot solicita nombre, cédula y vehículo",
+      "done": false
+    },
+    {
+      "id": "AC-06-2",
+      "text": "Cuando una orden pasa a PAID, el algoritmo busca conductores en radio de 5km y envía mensaje con botón 'ACEPTAR'",
+      "done": true
+    },
+    {
+      "id": "AC-06-3",
+      "text": "Al entregar, el conductor solicita al cliente un PIN de 4 dígitos para completar el pedido",
+      "done": false
+    }
+  ]
+}
