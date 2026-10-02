@@ -7,11 +7,7 @@
     "build": "DATABASE_URL=$(echo $DATABASE_URL | sed 's/:6543/:5432/') prisma db push && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
-    "sdd": "node packages/sdd-cli/bin/sdd.js studio",
-    "sdd:scan": "node packages/sdd-cli/bin/sdd.js scan",
-    "sdd:drift": "node packages/sdd-cli/bin/sdd.js drift",
-    "sdd:init": "node packages/sdd-cli/bin/sdd.js init"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.8",
