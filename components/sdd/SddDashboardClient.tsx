@@ -1218,7 +1218,7 @@ export default function SddDashboardClient() {
     }
   }, [data, viewPerspective, activeFlowId, liveHealth])
 
-  if (!mounted || (loading && !data)) {
+  if (!mounted || !data) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-50">
         <div className="flex flex-col items-center gap-3">
@@ -2648,7 +2648,7 @@ Al finalizar:
                 <Controls className="!bg-white !border-zinc-200 !shadow-sm !rounded-lg" />
                 <MiniMap
                   className="!bg-white !border-zinc-200 !rounded-lg"
-                  nodeColor={(n) => (n.type === 'archService' ? '#18181b' : '#10b981')}
+                  nodeColor={(n: any) => (n.type === 'archService' ? '#18181b' : '#10b981')}
                 />
               </ReactFlow>
             </div>
@@ -2683,7 +2683,7 @@ Al finalizar:
               <Controls className="!bg-white !border-zinc-200 !shadow-sm !rounded-lg" />
               <MiniMap
                 className="!bg-white !border-zinc-200 !rounded-lg"
-                nodeColor={(n) => (n.type === 'archService' ? '#18181b' : '#10b981')}
+                nodeColor={(n: any) => (n.type === 'archService' ? '#18181b' : '#10b981')}
               />
             </ReactFlow>
           </div>
