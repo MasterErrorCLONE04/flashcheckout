@@ -1,0 +1,86 @@
+{
+  "version": "6.0",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "CATALOG": []
+  },
+  "screens": [
+    {
+      "id": "CATALOG",
+      "title": "${data.store_name}",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "store_name": {
+          "type": "string",
+          "__example__": "Flashcheckout Store"
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "prod_sample_1",
+              "title": "Vestido Floral Rojo",
+              "description": "$25.000 COP • Talla M"
+            },
+            {
+              "id": "prod_sample_2",
+              "title": "Camisa Lino Blanca",
+              "description": "$35.000 COP • Talla L"
+            }
+          ]
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "catalog_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Catálogo de Productos 🛍️"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "Selecciona los productos que deseas añadir a tu carrito de compras:"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "selections",
+                "label": "Productos Disponibles",
+                "required": true,
+                "data-source": "${data.products}"
+              },
+              {
+                "type": "Footer",
+                "label": "Confirmar y Añadir al Carrito",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "selections": "${form.selections}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

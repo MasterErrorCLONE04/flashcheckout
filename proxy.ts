@@ -15,6 +15,7 @@ const isPublicRoute = createRouteMatcher([
   '/sitemap.xml',
   '/robots.txt',
   '/api/whatsapp/webhook(.*)',
+  '/api/whatsapp/flows(.*)',
   '/api/webhook/(.*)',
   '/api/checkout/(.*)',
   '/api/cron/(.*)',

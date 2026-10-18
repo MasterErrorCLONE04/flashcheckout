@@ -214,6 +214,35 @@ function extractEvolutionText(messageType: string, message: PlainObject): string
     return `[Documento] ${fileName}`
   }
 
+  if (messageType === 'buttonsResponseMessage') {
+    const payload = isPlainObject(message.buttonsResponseMessage) ? message.buttonsResponseMessage : null
+    return typeof payload?.selectedButtonId === 'string'
+      ? payload.selectedButtonId
+      : typeof payload?.selectedDisplayText === 'string'
+      ? payload.selectedDisplayText
+      : ''
+  }
+
+  if (messageType === 'listResponseMessage') {
+    const payload = isPlainObject(message.listResponseMessage) ? message.listResponseMessage : null
+    const singleSelect = isPlainObject(payload?.singleSelectReply) ? payload.singleSelectReply : null
+    return typeof singleSelect?.selectedRowId === 'string' ? singleSelect.selectedRowId : ''
+  }
+
+  if (messageType === 'templateButtonReplyMessage') {
+    const payload = isPlainObject(message.templateButtonReplyMessage) ? message.templateButtonReplyMessage : null
+    return typeof payload?.selectedId === 'string' ? payload.selectedId : ''
+  }
+
+  if (messageType === 'interactiveResponseMessage') {
+    const payload = isPlainObject(message.interactiveResponseMessage) ? message.interactiveResponseMessage : null
+    const nativeFlow = isPlainObject(payload?.nativeFlowResponseMessage) ? payload.nativeFlowResponseMessage : null
+    const paramsJson = typeof nativeFlow?.paramsJson === 'string' ? nativeFlow.paramsJson : ''
+    if (paramsJson) {
+      return `flow_response_${paramsJson}`
+    }
+  }
+
   return ''
 }
 
@@ -386,7 +415,14 @@ export async function POST(req: Request) {
           eventId,
         })
         await logIncomingMessage(from, text, eventId)
-        await handleWhatsAppMessage(from, text, GLOBAL_STORE_ID)
+        try {
+          await handleWhatsAppMessage(from, text, GLOBAL_STORE_ID)
+        } catch (botErr) {
+          logWebhookError('whatsapp', 'bot_processing_error', {
+            error: botErr instanceof Error ? botErr.message : 'Unknown bot error',
+            from,
+          })
+        }
       } else {
         logWebhookEvent('whatsapp', 'ignored', {
           from,
