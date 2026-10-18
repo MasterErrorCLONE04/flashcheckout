@@ -15,6 +15,7 @@ const isPublicRoute = createRouteMatcher([
   '/sitemap.xml',
   '/robots.txt',
   '/api/whatsapp/webhook(.*)',
+  '/api/whatsapp/flows(.*)',
   '/api/webhook/(.*)',
   '/api/checkout/(.*)',
   '/api/cron/(.*)',
@@ -23,7 +24,9 @@ const isPublicRoute = createRouteMatcher([
   '/api/breb/payment-intents(.*)',
   '/pay(.*)',
   '/api/qr(.*)',
-  '/legal(.*)'
+  '/legal(.*)',
+  '/sdd(.*)',
+  '/api/sdd(.*)'
 ]);
 
 export const proxy = clerkMiddleware(async (auth, request) => {

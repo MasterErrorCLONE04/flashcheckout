@@ -27,7 +27,17 @@ import {
   Image as ImageIcon,
   Lock,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
+  Trash2,
+  RefreshCw,
+  ShoppingBag,
+  BadgeCheck,
+  Send,
+  Eye,
+  Bot,
+  HelpCircle,
+  CheckCheck
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -37,18 +47,20 @@ import CustomUserMenu from '@/components/dashboard/CustomUserMenu'
 type StepType = {
   num: number
   label: string
+  shortLabel: string
+  category: string
   desc: string
 }
 
 const STEPS: StepType[] = [
-  { num: 1, label: 'Bienvenido', desc: 'Paso 1 de 8' },
-  { num: 2, label: 'Información de tu negocio', desc: 'Paso 2 de 8' },
-  { num: 3, label: 'Conecta WhatsApp', desc: 'Paso 3 de 8' },
-  { num: 4, label: 'Catálogo de productos', desc: 'Paso 4 de 8' },
-  { num: 5, label: 'Métodos de pago', desc: 'Paso 5 de 8' },
-  { num: 6, label: 'Preferencias de tienda', desc: 'Paso 6 de 8' },
-  { num: 7, label: 'Revisa y confirma', desc: 'Paso 7 de 8' },
-  { num: 8, label: '¡Listo!', desc: 'Paso 8 de 8' }
+  { num: 1, label: 'Bienvenido', shortLabel: 'Inicio', category: 'Introducción', desc: 'Conoce cómo Nova venderá por ti' },
+  { num: 2, label: 'Información del negocio', shortLabel: 'Negocio', category: 'Identidad Comercial', desc: 'Nombre, slug público y número' },
+  { num: 3, label: 'Conecta WhatsApp', shortLabel: 'WhatsApp', category: 'Canal de Ventas', desc: 'Vincula tu WhatsApp Business con QR' },
+  { num: 4, label: 'Catálogo de productos', shortLabel: 'Productos', category: 'Inventario', desc: 'Añade tus artículos estrella' },
+  { num: 5, label: 'Métodos de pago', shortLabel: 'Pagos', category: 'Cobranza', desc: 'Nequi, Daviplata y Mercado Pago' },
+  { num: 6, label: 'Preferencias de Nova', shortLabel: 'Agente IA', category: 'Memoria & Bot', desc: 'Personaliza tono y bienvenida' },
+  { num: 7, label: 'Revisa y confirma', shortLabel: 'Resumen', category: 'Verificación', desc: 'Comprueba los detalles de tu tienda' },
+  { num: 8, label: '¡Lanzamiento!', shortLabel: 'Listo', category: 'En producción', desc: 'Tu tienda está en vivo' }
 ]
 
 export default function StoreCreationWizard({ 
@@ -78,7 +90,7 @@ export default function StoreCreationWizard({
   // WhatsApp Connection State
   const [whatsappStatus, setWhatsappStatus] = useState<'DISCONNECTED' | 'LOADING' | 'QRCODE' | 'CONNECTED' | 'ERROR'>('DISCONNECTED')
   const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null)
-  const [qrExpiresIn, setQrExpiresIn] = useState(180) // 3 minutes in seconds
+  const [qrExpiresIn, setQrExpiresIn] = useState(180)
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -101,13 +113,13 @@ export default function StoreCreationWizard({
 
   // Store Preferences / Bot Settings
   const [preferences, setPreferences] = useState({
-    welcomeMessage: '¡Hola! Bienvenido a nuestra tienda de WhatsApp. 🤖 ¿En qué te puedo ayudar hoy?',
+    welcomeMessage: '¡Hola! Bienvenido a nuestra tienda de WhatsApp. 🛍️ ¿En qué te puedo ayudar hoy?',
     systemPrompt: 'Eres Nova, un asistente de ventas de WhatsApp empático y proactivo. Tu objetivo es guiar al cliente por el catálogo, ayudarle a armar su carrito y motivarlo a concretar el pago mediante Smart Pay.',
     businessHours: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     themeColor: 'emerald'
   })
 
-  // Business Profile for Nova Memory (Chocodate Style Onboarding)
+  // Business Profile for Nova Memory
   const [businessProfile, setBusinessProfile] = useState({
     niche: '',
     targetAudience: '',
@@ -115,7 +127,10 @@ export default function StoreCreationWizard({
     coreProposition: ''
   })
 
-  // Check database state on mount to prevent skipping and restore step context
+  // Preview Mode Toggle: WhatsApp Chat vs Web Catalog
+  const [previewTab, setPreviewTab] = useState<'chat' | 'catalog'>('chat')
+
+  // Restore onboarding progress from existing store
   useEffect(() => {
     if (isNewStore) {
       setCurrentStep(1)
@@ -131,9 +146,9 @@ export default function StoreCreationWizard({
           if (data.store) {
             setCreatedStore(data.store)
             setStoreForm({
-              name: data.store.name,
-              slug: data.store.slug,
-              whatsapp: data.store.whatsapp,
+              name: data.store.name || '',
+              slug: data.store.slug || '',
+              whatsapp: data.store.whatsapp || '',
               category: data.store.category || 'Moda',
             })
 
@@ -149,27 +164,24 @@ export default function StoreCreationWizard({
               }
             }
             
-            // Check connected WhatsApp status
             if (data.store.whatsappConnected) {
               setWhatsappStatus('CONNECTED')
             }
 
-            // Fetch products count
             const productsRes = await fetch('/api/products')
             const productsData = await productsRes.json()
             const prods = productsData.products || []
             setAddedProducts(prods)
 
-            // Determine correct onboarding step based on completed fields
             if (prods.length === 0) {
-              setCurrentStep(4) // Need to add first product
+              setCurrentStep(4)
             } else if (!data.store.welcomeMessage) {
-              setCurrentStep(6) // Need to set store/bot preferences
+              setCurrentStep(6)
             } else {
-              setCurrentStep(8) // Ready screen
+              setCurrentStep(8)
             }
           } else {
-            setCurrentStep(1) // Normal fresh start
+            setCurrentStep(1)
           }
         }
       } catch (e) {
@@ -185,9 +197,8 @@ export default function StoreCreationWizard({
       stopWhatsappPolling()
       stopQrTimer()
     }
-  }, [])
+  }, [isNewStore])
 
-  // Auto-generate slug from name
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -197,7 +208,6 @@ export default function StoreCreationWizard({
       .replace(/^-|-$/g, '')
   }
 
-  // QR Timer count-down
   const startQrTimer = () => {
     stopQrTimer()
     setQrExpiresIn(180)
@@ -205,7 +215,6 @@ export default function StoreCreationWizard({
       setQrExpiresIn(prev => {
         if (prev <= 1) {
           stopQrTimer()
-          // Re-trigger WhatsApp connection to get a new QR
           triggerWhatsappConnect()
           return 180
         }
@@ -224,7 +233,6 @@ export default function StoreCreationWizard({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Polling to check WhatsApp state
   const startWhatsappPolling = () => {
     stopWhatsappPolling()
     pollingRef.current = setInterval(async () => {
@@ -252,7 +260,6 @@ export default function StoreCreationWizard({
     if (pollingRef.current) clearInterval(pollingRef.current)
   }
 
-  // Trigger Evolution API Connection
   const triggerWhatsappConnect = async () => {
     setWhatsappStatus('LOADING')
     try {
@@ -280,7 +287,6 @@ export default function StoreCreationWizard({
     }
   }
 
-  // File upload logic for product image
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadingImage(true)
@@ -296,7 +302,7 @@ export default function StoreCreationWizard({
         if (res.ok) {
           const data = await res.json()
           setProductForm(f => ({ ...f, imageUrl: data.url }))
-          toast.success('Imagen de producto cargada correctamente.')
+          toast.success('Imagen cargada correctamente.')
         } else {
           toast.error('Error al subir la imagen del producto.')
         }
@@ -309,7 +315,6 @@ export default function StoreCreationWizard({
     }
   }
 
-  // Add Product to database
   const handleAddProduct = async () => {
     if (!productForm.name || !productForm.price) return
     setLoading(true)
@@ -349,11 +354,21 @@ export default function StoreCreationWizard({
     }
   }
 
-  // Next step handler
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setAddedProducts(prev => prev.filter(p => p.id !== id))
+        toast.success('Producto removido.')
+      }
+    } catch (e) {
+      console.error('Error removing product', e)
+    }
+  }
+
   const handleNext = async () => {
     setError('')
     
-    // Validate Step 2 inputs before saving Store
     if (currentStep === 2) {
       if (!storeForm.name || !storeForm.slug || !storeForm.whatsapp) {
         setError('Por favor completa todos los campos del negocio.')
@@ -370,14 +385,14 @@ export default function StoreCreationWizard({
 
         if (!res.ok) {
           const data = await res.json()
-          setError(data.error || 'Fallo al inicializar la tienda. El slug ya podría estar en uso.')
+          setError(data.error || 'El slug ya podría estar en uso. Prueba con otro.')
           setLoading(false)
           return
         }
 
         const data = await res.json()
         setCreatedStore(data.store)
-        toast.success('¡Negocio configurado con éxito! 🏪')
+        toast.success('¡Negocio configurado!')
       } catch (err) {
         setError('Error al registrar la información del negocio.')
         setLoading(false)
@@ -387,13 +402,11 @@ export default function StoreCreationWizard({
       }
     }
 
-    // Step 4 Catalog protection: Must have at least 1 product
     if (currentStep === 4 && addedProducts.length === 0) {
-      toast.warning('Por favor añade al menos 1 producto a tu catálogo para continuar.')
+      toast.warning('Añade al menos 1 producto para continuar.')
       return
     }
 
-    // Save preferences on Step 6
     if (currentStep === 6) {
       setLoading(true)
       try {
@@ -405,9 +418,7 @@ export default function StoreCreationWizard({
             systemPrompt: preferences.systemPrompt,
             businessHours: preferences.businessHours,
             themeColor: preferences.themeColor,
-            settings: {
-              businessProfile
-            }
+            settings: { businessProfile }
           })
         })
         if (!res.ok) {
@@ -431,7 +442,6 @@ export default function StoreCreationWizard({
 
   const handleBack = () => {
     if (currentStep > 1 && currentStep !== 8) {
-      // Clean intervals if exiting WhatsApp connect step
       if (currentStep === 3) {
         stopWhatsappPolling()
         stopQrTimer()
@@ -443,7 +453,6 @@ export default function StoreCreationWizard({
   const handleFinishOnboarding = async () => {
     setLoading(true)
     try {
-      // Set store active flag on final step
       await fetch('/api/stores', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -462,37 +471,36 @@ export default function StoreCreationWizard({
     }
   }
 
+  // Upgrade to Pro Gate
   if (isNewStore && !isPro && hasExistingStores) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-zinc-50 font-sans p-4 select-none">
         <div className="max-w-md w-full bg-white border border-zinc-200/80 rounded-2xl p-8 text-center shadow-lg space-y-6 animate-in fade-in duration-300">
-          <div className="w-16 h-16 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center text-amber-500 mx-auto">
-            <Lock className="w-8 h-8" />
+          <div className="w-14 h-14 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center text-amber-500 mx-auto">
+            <Lock className="w-7 h-7" />
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-zinc-900">Actualiza a Pro</h2>
-            <p className="text-sm font-medium text-zinc-500">
+            <h2 className="text-xl font-bold text-zinc-950 tracking-tight">Actualiza a Pro</h2>
+            <p className="text-xs text-zinc-500 font-medium leading-relaxed">
               Has alcanzado el límite de 1 tienda en el plan Gratuito. Para crear y administrar múltiples tiendas en tu workspace, actualiza tu suscripción.
             </p>
           </div>
 
           <div className="flex flex-col gap-2.5 pt-2">
             <button 
-              onClick={() => {
-                window.location.href = '/pricing'
-              }}
-              className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-sm rounded-lg transition-all active:scale-[0.98] cursor-pointer"
+              onClick={() => { window.location.href = '/pricing' }}
+              className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg transition-all active:scale-[0.98] cursor-pointer"
             >
               Ver planes de suscripción
             </button>
             
             <button 
               onClick={() => {
-                document.cookie = "create_new_store=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
-                window.location.reload();
+                document.cookie = "create_new_store=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC"
+                window.location.reload()
               }}
-              className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold text-xs rounded-lg transition-all cursor-pointer"
+              className="w-full py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 font-bold text-xs rounded-lg transition-all cursor-pointer"
             >
               Volver a mi tienda
             </button>
@@ -504,663 +512,480 @@ export default function StoreCreationWizard({
 
   if (initializing) {
     return (
-      <div className="w-full h-full bg-white flex items-center justify-center">
+      <div className="w-full h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-zinc-900" />
-          <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Cargando Onboarding...</span>
+          <Loader2 className="w-7 h-7 animate-spin text-zinc-950" />
+          <span className="text-xs text-zinc-400 font-bold tracking-wider">Cargando Onboarding...</span>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="w-full h-full bg-white flex overflow-hidden shadow-none animate-in fade-in duration-300 font-sans text-left">
-      
-      {/* 1. PROGRESS SIDEBAR (LEFT COLUMN) */}
-      <aside className="hidden lg:flex w-[260px] xl:w-[320px] bg-[#FAFAFA] border-r border-zinc-200 p-6 xl:p-8 flex-col justify-between shrink-0 select-none h-full font-sans">
-        <div className="space-y-8 xl:space-y-12">
-          {/* Logo Brand Header matching /dashboard */}
-          <div className="flex items-center gap-2.5 px-2 py-1">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm">
-              <Zap className="h-5 w-5 text-white fill-current" />
-            </div>
-            <span className="text-sm xl:text-base font-bold text-zinc-900 tracking-tight">Flashcheckouts</span>
-          </div>
+  const currentStepData = STEPS.find(s => s.num === currentStep) || STEPS[0]
+  const storeDisplayName = storeForm.name.trim() || 'Tu Tienda'
+  const storeDisplaySlug = storeForm.slug.trim() || 'tu-tienda'
+  const primaryProduct = addedProducts[0] || (productForm.name ? {
+    name: productForm.name,
+    price: parseFloat(productForm.price) || 25000,
+    imageUrl: productForm.imageUrl || '/red_floral_dress.png',
+    stock: productForm.stock || 10
+  } : null)
 
-          <div className="space-y-1.5">
-            {STEPS.map(s => {
-              const isCompleted = s.num < currentStep
-              const isActive = s.num === currentStep
+  return (
+    <div className="w-full h-screen flex flex-col bg-white overflow-hidden font-sans text-left selection:bg-zinc-900 selection:text-white">
+      
+      {/* 1. TOP HEADER (Identical aesthetic to /dashboard breadcrumb header) */}
+      <header className="h-14 w-full shrink-0 items-center justify-between border-b border-zinc-200/80 bg-[#FAFAFA] px-6 sticky top-0 z-40 flex">
+        
+        {/* Brand & Setup Breadcrumb */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-zinc-950 rounded-lg flex items-center justify-center shadow-xs">
+            <Zap className="h-4.5 w-4.5 text-white fill-current" />
+          </div>
+          
+          <span className="text-zinc-300 font-light select-none">/</span>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-zinc-950 tracking-tight">Flashcheckouts</span>
+            <span className="text-zinc-300 font-light select-none">/</span>
+            <span className="text-xs font-semibold text-zinc-500">Configuración de Tienda</span>
+          </div>
+        </div>
+
+        {/* Center: Dynamic Step Timeline Pills */}
+        <div className="hidden md:flex items-center gap-1.5 select-none bg-white border border-zinc-200/80 py-1.5 px-3 rounded-full shadow-2xs">
+          <div className="flex items-center gap-1 mr-2">
+            {STEPS.map((s) => {
+              const isPast = s.num < currentStep
+              const isCurrent = s.num === currentStep
               return (
-                <div 
-                  key={s.num} 
+                <div
+                  key={s.num}
+                  title={`${s.num}. ${s.label}`}
                   className={cn(
-                    "flex items-center justify-between p-2.5 xl:p-3 rounded-lg transition-all border",
-                    isActive 
-                      ? "bg-white border-zinc-200 text-zinc-900 font-bold" 
-                      : "border-transparent text-zinc-400"
+                    "h-1.5 rounded-full transition-all duration-300",
+                    isCurrent ? "w-6 bg-zinc-950" : isPast ? "w-2.5 bg-emerald-500" : "w-1.5 bg-zinc-200"
                   )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="shrink-0 mt-0.5">
-                      {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 stroke-[2.5px]" />
-                      ) : (
-                        <div className={cn(
-                          "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors",
-                          isActive 
-                            ? "bg-zinc-900 border-zinc-900 text-white" 
-                            : "border-zinc-300 text-zinc-400 bg-white"
-                        )}>
-                          {s.num}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className={cn(
-                        "text-xs font-semibold tracking-tight",
-                        isActive ? "text-zinc-900 font-bold" : isCompleted ? "text-zinc-600" : "text-zinc-400"
-                      )}>
-                        {s.label}
-                      </h4>
-                      <p className="text-[9px] xl:text-[10px] font-medium text-zinc-400 mt-0.5">{s.desc}</p>
-                    </div>
-                  </div>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-zinc-900" />}
-                </div>
+                />
               )
             })}
           </div>
-        </div>
-
-        {/* Sidebar Footer User Area */}
-        <div className="flex items-center gap-3 border-t border-zinc-200 pt-4 xl:pt-6 px-2">
-          <CustomUserMenu />
-          <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase select-none">
-            Flashcheckouts v1.0
+          <span className="text-[11px] font-bold text-zinc-900 tracking-tight">
+            Paso {currentStep} de 8
+          </span>
+          <span className="text-zinc-300 text-xs">•</span>
+          <span className="text-[11px] font-semibold text-zinc-500 truncate max-w-[140px]">
+            {currentStepData.shortLabel}
           </span>
         </div>
-      </aside>
 
-      {/* 2. MIDDLE COLUMN (MOCK WHATSAPP PREVIEW - ONLY IN STEP 1) */}
-      {currentStep === 1 && (
-        <div className="hidden xl:flex w-[350px] xl:w-[400px] 2xl:w-[460px] border-r border-zinc-200 p-8 xl:p-10 flex-col justify-center items-center text-center shrink-0 select-none animate-in slide-in-from-left duration-300 bg-[#FAFAFA] h-full">
-          <h4 className="text-[11px] xl:text-xs font-bold text-zinc-500 tracking-wide mb-5">Así vende Nova por ti en WhatsApp</h4>
-          
-          {/* Smart Phone Frame */}
-          <div className="w-[280px] xl:w-[300px] bg-white rounded-[24px] overflow-hidden border border-zinc-200 flex flex-col aspect-[9/17.5] relative">
-            {/* Phone Header */}
-            <div className="bg-[#075E54] px-2.5 py-2 flex items-center justify-between text-white shrink-0">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <ChevronLeft className="w-3.5 h-3.5 text-zinc-200" />
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0">
-                  <img src="/nova_robot_mascot.png" alt="Nova Avatar" className="w-5 h-5 object-contain" />
-                </div>
-                <div className="min-w-0 text-left">
-                  <div className="flex items-center gap-0.5">
-                    <span className="text-[10px] font-bold leading-none">Nova</span>
-                    <CheckCircle2 className="w-3 h-3 text-[#25D366] fill-white stroke-[2px]" />
-                  </div>
-                  <span className="text-[7px] text-zinc-200 block mt-0.5">En línea</span>
-                </div>
-              </div>
-              <MoreHorizontal className="w-3.5 h-3.5 text-zinc-200" />
-            </div>
-
-            {/* Messages body */}
-            <div className="flex-grow p-2 space-y-2 overflow-y-auto custom-scrollbar flex flex-col justify-end bg-zinc-50">
-              {/* Message 1: User */}
-              <div className="bg-[#E1F3D4] self-end rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col text-left">
-                <p className="leading-tight">Hola, quiero ver el catálogo por favor 👋</p>
-                <div className="self-end flex items-center gap-0.5 mt-0.5">
-                  <span className="text-[7px] text-zinc-400">10:00 AM</span>
-                  <span className="text-[8px] text-[#34B7F1] font-bold">✓✓</span>
-                </div>
-              </div>
-
-              {/* Message 2: Nova */}
-              <div className="bg-white self-start rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col gap-1 text-left border border-zinc-150">
-                <p className="leading-tight">¡Hola! Bienvenido a Boutique Bella Vista 🌸 Aquí tienes nuestro catálogo:</p>
-                
-                {/* Store link card */}
-                <div className="bg-zinc-50 border border-zinc-150 rounded p-1 flex items-center gap-1.5">
-                  <div className="w-6 h-6 bg-[#075E54] rounded flex items-center justify-center text-white shrink-0">
-                    <Store className="w-3 h-3" />
-                  </div>
-                  <div className="min-w-0">
-                    <h6 className="text-[8px] font-bold text-zinc-900 leading-tight">Ver catálogo</h6>
-                    <p className="text-[7px] text-zinc-400 truncate">boutique-bella.flashcheckout.co</p>
-                  </div>
-                </div>
-                <span className="self-end text-[7px] text-zinc-400">10:01 AM</span>
-              </div>
-
-              {/* Message 3: User */}
-              <div className="bg-[#E1F3D4] self-end rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col text-left">
-                <p className="leading-tight">Me interesa el vestido floral rojo en talla M.</p>
-                <div className="self-end flex items-center gap-0.5 mt-0.5">
-                  <span className="text-[7px] text-zinc-400">10:01 AM</span>
-                  <span className="text-[8px] text-[#34B7F1] font-bold">✓✓</span>
-                </div>
-              </div>
-
-              {/* Message 4: Nova with product card */}
-              <div className="bg-white self-start rounded-lg p-1.5 max-w-[85%] text-[9px] text-zinc-800 shadow-none relative flex flex-col gap-1 text-left border border-zinc-150">
-                <p className="leading-tight">¡Excelente elección! 🌸 Nos quedan 3 en stock. Para confirmar tu pedido, puedes pagar de forma segura aquí:</p>
-                
-                {/* Product Card */}
-                <div className="bg-zinc-50 border border-zinc-150 rounded p-1 flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <img src="/red_floral_dress.png" alt="Product" className="w-8 h-10 object-cover rounded border bg-white shrink-0" />
-                    <div className="min-w-0">
-                      <h6 className="text-[8px] font-bold text-zinc-900 leading-tight truncate font-sans">Vestido Floral Rojo (Talla M)</h6>
-                      <p className="text-[8px] font-extrabold text-emerald-600 mt-0.5">$25.000 COP</p>
-                    </div>
-                  </div>
-                  <button className="w-full bg-[#059669] hover:bg-[#047857] text-white font-bold text-[8px] rounded py-1 flex items-center justify-center transition-all cursor-pointer">
-                    Pagar ahora
-                  </button>
-                </div>
-                <span className="self-end text-[7px] text-zinc-400">10:02 AM</span>
-              </div>
-            </div>
-            {/* Phone Footer Input Bar */}
-            <div className="p-1.5 bg-[#F0F2F5] border-t border-zinc-200 flex items-center gap-1.5 shrink-0 select-none">
-              <div className="flex-grow bg-white rounded-full px-2.5 py-1 flex items-center justify-between border border-zinc-200 min-w-0">
-                <span className="text-[7.5px] text-zinc-400 font-medium truncate">Escribe un mensaje...</span>
-                <div className="flex items-center gap-1.5 text-zinc-400 shrink-0">
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316A2.192 2.192 0 0014.512 4h-5.024c-.587 0-1.13.318-1.435.82L6.827 6.175zM12 16.5a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="w-5.5 h-5.5 rounded-full bg-[#075E54] flex items-center justify-center text-white cursor-pointer shrink-0">
-                <svg className="w-2 h-2 fill-current transform rotate-45 -translate-x-0.5" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
-              </div>
-            </div>
+        {/* Right Status & User Menu */}
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Guardado automático</span>
           </div>
 
-          <div className="flex gap-1.5 justify-center mt-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-          </div>
+          <div className="h-4 w-px bg-zinc-200 hidden sm:block" />
 
-          <p className="text-[10px] text-zinc-500 font-semibold leading-relaxed max-w-[260px] mt-4">
-            Nova atiende tus chats, responde dudas, sugiere productos y cierra la venta con pasarelas de pago automatizadas.
-          </p>
+          <CustomUserMenu />
         </div>
-      )}
+      </header>
 
-      {/* 3. RIGHT CONTENT PANEL */}
-      <div className="flex-1 p-6 md:p-8 xl:p-12 flex flex-col justify-between h-full overflow-hidden relative">
+      {/* 2. SPLIT-SCREEN MAIN WORKSPACE */}
+      <div className="flex-1 flex overflow-hidden">
         
-        {/* Top Header */}
-        <div className="flex items-center justify-between pb-6 border-b border-zinc-200">
-          <div className="flex items-center gap-4">
-            {currentStep > 1 && currentStep !== 8 && (
-              <button 
-                onClick={handleBack}
-                className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Volver
-              </button>
-            )}
-            <div className="lg:hidden shrink-0">
-              <CustomUserMenu />
-            </div>
-          </div>
-          <div className="flex items-center gap-3 select-none">
-            <span className="text-[10px] font-extrabold text-zinc-450 tracking-wider">
-              PASO {currentStep} DE 8
-            </span>
-            <div className="flex gap-1">
-              {STEPS.map(s => (
-                <div 
-                  key={s.num}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all duration-300",
-                    s.num === currentStep 
-                      ? "w-6 bg-zinc-950" 
-                      : s.num < currentStep 
-                      ? "w-2 bg-zinc-300" 
-                      : "w-2 bg-zinc-150"
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Middle Step Content */}
-        <div className={cn(
-          "flex-grow py-6 overflow-y-auto scrollbar-none pr-1",
-          (currentStep === 1 || currentStep === 8 || currentStep === 5 || currentStep === 6 || currentStep === 7 || currentStep === 2) && "md:flex md:flex-col md:justify-center"
-        )}>
+        {/* LEFT COLUMN: ACTIVE STEP FORM (54%) */}
+        <div className="flex-1 lg:w-[54%] xl:w-[52%] flex flex-col justify-between overflow-y-auto custom-scrollbar border-r border-zinc-200/80 bg-white">
           
-          {/* STEP 1: WELCOME SCREEN */}
-          {currentStep === 1 && (
-            <div className="space-y-6 text-left animate-in fade-in duration-300 max-w-3xl mx-auto w-full">
-              <div className="space-y-1.5">
-                <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
-                  Bienvenido a Flashcheckouts
-                </h2>
-                <p className="text-sm font-semibold text-zinc-800">
-                  La plataforma AI First para vender más por WhatsApp.
-                </p>
-                <p className="text-xs text-zinc-500 font-semibold leading-relaxed">
-                  En pocos minutos tendrás tu tienda lista para empezar a vender.
-                </p>
-              </div>
-
-              {/* Feature blocks in 2x2 Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-4 border border-zinc-200 bg-white rounded-lg shadow-none hover:bg-zinc-50/50 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
-                      <MessageSquare className="w-5 h-5 text-zinc-900" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-zinc-900 leading-none">Vende 24/7 por WhatsApp</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Nova responde y vende automáticamente mientras tú te enfocas en tu negocio.</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-zinc-200 bg-white rounded-lg shadow-none hover:bg-zinc-50/50 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
-                      <ImageIcon className="w-5 h-5 text-zinc-900" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-zinc-900 leading-none">Catálogo inteligente</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Crea tu catálogo en segundos con IA y mantenlo siempre actualizado.</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-zinc-200 bg-white rounded-lg shadow-none hover:bg-zinc-50/50 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
-                      <CreditCard className="w-5 h-5 text-zinc-900" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-zinc-900 leading-none">Cobros seguros</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Recibe pagos fácilmente con múltiples métodos de pago integrados.</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-zinc-200 bg-white rounded-lg shadow-none hover:bg-zinc-50/50 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
-                      <TrendingUp className="w-5 h-5 text-zinc-900" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-zinc-900 leading-none">Todo en un solo lugar</h5>
-                      <p className="text-[10px] font-semibold text-zinc-400 mt-1 max-w-[210px] leading-tight">Gestiona pedidos, clientes, productos y análisis desde tu dashboard.</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-300 shrink-0" />
-                </div>
-              </div>
-
-              {/* Sparkles Box */}
-              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-lg flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-5 h-5 text-zinc-900 shrink-0" />
-                  <div>
-                    <p className="text-xs text-zinc-900 font-bold leading-none">
-                      En menos de 5 minutos tendrás tu tienda lista para empezar a vender.
-                    </p>
-                    <p className="text-[10px] text-zinc-400 font-semibold mt-1">
-                      Fácil, rápido y sin complicaciones.
-                    </p>
-                  </div>
-                </div>
-                
-                {/* 5 min badge */}
-                <div className="bg-white border border-zinc-200 px-2.5 py-1 rounded-full flex items-center gap-1 text-[10px] text-zinc-650 font-bold shrink-0">
-                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>5 min</span>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <button
-                  onClick={handleNext}
-                  className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg h-11 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer"
-                >
-                  Comenzar ahora
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <p className="text-[10px] text-zinc-450 font-semibold flex items-center justify-center gap-1">
-                  <Lock className="w-3.5 h-3.5 text-zinc-400" />
-                  Es gratis. Configura tu tienda sin tarjeta de crédito.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: BUSINESS INFORMATION */}
-          {currentStep === 2 && (
-            <div className="max-w-md mx-auto space-y-6 animate-in fade-in duration-300 text-left w-full">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">Información de tu negocio</h3>
-                <p className="text-[10px] text-zinc-400 font-bold tracking-wider uppercase">Establece tu identidad digital</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="storeName" className="text-[11px] font-bold text-zinc-500">Nombre de la tienda</label>
-                  <input
-                    id="storeName"
-                    type="text"
-                    required
-                    placeholder="Ej. Boutique Bella Vista"
-                    className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all"
-                    value={storeForm.name}
-                    onChange={e => {
-                      const name = e.target.value
-                      setStoreForm(f => ({
-                        ...f,
-                        name,
-                        slug: generateSlug(name)
-                      }))
-                    }}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="storeSlug" className="text-[11px] font-bold text-zinc-500">Dirección web única (Slug)</label>
-                  <div className="flex items-center bg-white border border-zinc-200 rounded-lg overflow-hidden focus-within:border-zinc-950 transition-all">
-                    <span className="pl-3 text-xs font-semibold text-zinc-400 select-none shrink-0">flash.checkout/tienda/</span>
-                    <input
-                      id="storeSlug"
-                      type="text"
-                      required
-                      placeholder="boutique-bella"
-                      className="flex-1 px-1 py-2.5 text-xs border-none bg-transparent focus:outline-none font-bold text-zinc-900 min-w-0"
-                      value={storeForm.slug}
-                      onChange={e => setStoreForm(f => ({ ...f, slug: generateSlug(e.target.value) }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="storeWhatsapp" className="text-[11px] font-bold text-zinc-500">WhatsApp del Negocio</label>
-                  <input
-                    id="storeWhatsapp"
-                    type="tel"
-                    required
-                    placeholder="573001234567"
-                    className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-955 transition-all tabular-nums"
-                    value={storeForm.whatsapp}
-                    onChange={e => setStoreForm(f => ({ ...f, whatsapp: e.target.value.replace(/\D/g, '') }))}
-                  />
-                  <p className="text-[10px] text-zinc-400 font-semibold mt-1">Incluye el código de país sin el símbolo "+" (Ej: Colombia: 57)</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-zinc-500">Categoría comercial</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { id: 'Moda', icon: Shirt, label: 'Moda' },
-                      { id: 'Tecnología', icon: Smartphone, label: 'Tecnología' },
-                      { id: 'Hogar', icon: Home, label: 'Hogar' },
-                      { id: 'Comida', icon: Utensils, label: 'Comida' },
-                      { id: 'Deportes', icon: Dumbbell, label: 'Deportes' },
-                      { id: 'Otros', icon: MoreHorizontal, label: 'Otros' }
-                    ].map(cat => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setStoreForm(f => ({ ...f, category: cat.id }))}
-                        className={cn(
-                          "flex items-center gap-2 p-2.5 rounded-lg border transition-all text-left cursor-pointer active:scale-95",
-                          storeForm.category === cat.id
-                            ? "bg-zinc-900 border-zinc-900 text-white"
-                            : "bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50"
-                        )}
-                      >
-                        <cat.icon className={cn("w-3.5 h-3.5 shrink-0", storeForm.category === cat.id ? "text-white" : "text-zinc-400")} />
-                        <span className="text-[10px] font-bold tracking-tight">{cat.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-100 text-red-700 text-xs font-bold px-3 py-2.5 rounded-lg flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
+          <div className="flex-1 p-6 md:p-10 lg:p-12 max-w-2xl mx-auto w-full flex flex-col justify-center">
+            
+            {/* Step Metadata Badge */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-200/60">
+                Paso {currentStep} de 8 • {currentStepData.category}
+              </span>
+              {currentStep > 1 && currentStep !== 8 && (
+                <span className="text-[11px] text-zinc-400 font-semibold">
+                  {Math.round((currentStep / 8) * 100)}% completado
+                </span>
               )}
             </div>
-          )}
 
-          {/* STEP 3: CONNECT WHATSAPP */}
-          {currentStep === 3 && (
-            <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-300 w-full text-left">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
-                  Conecta tu WhatsApp 
-                  <Smartphone className="w-5 h-5 text-zinc-900" />
-                </h3>
-                <p className="text-xs text-zinc-500 font-semibold leading-relaxed">
-                  Escanea el código QR con tu WhatsApp Business para conectar tu número y activar tu bot de ventas automatizado.
-                </p>
-              </div>
+            {/* STEP 1: BIENVENIDA */}
+            {currentStep === 1 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-2">
+                  <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-950">
+                    Bienvenido a Flashcheckouts
+                  </h1>
+                  <p className="text-sm md:text-base font-semibold text-zinc-700">
+                    La plataforma AI-First para vender automáticamente por WhatsApp.
+                  </p>
+                  <p className="text-xs md:text-sm text-zinc-500 font-medium leading-relaxed">
+                    Configura tu tienda en menos de 5 minutos. Nova atenderá a tus compradores, enviará tu catálogo y cerrará ventas 24/7.
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                
-                {/* Left Card: QR and instructions */}
-                <div className="bg-white border border-zinc-200 rounded-lg p-5 flex flex-col justify-between gap-6 relative min-h-[350px]">
-                  
-                  {/* Status Indicator */}
-                  <div className="flex items-center gap-2 select-none">
-                    <div className={cn(
-                      "w-2 h-2 rounded-full animate-pulse",
-                      whatsappStatus === 'CONNECTED' ? 'bg-emerald-500' : 'bg-amber-500'
-                    )} />
-                    <span className="text-xs font-bold text-zinc-800">
-                      Estado: {whatsappStatus === 'CONNECTED' ? 'Conectado' : 'Esperando conexión'}
+                {/* 2x2 Bento Feature Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                  <div className="p-4 border border-zinc-200/90 rounded-xl bg-white hover:border-zinc-300 hover:shadow-xs transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-950 mb-3 group-hover:scale-105 transition-transform">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-zinc-950">Venta 24/7 por WhatsApp</h3>
+                    <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                      Nova atiende clientes, responde preguntas y concreta carritos de compra sin pausas.
+                    </p>
+                  </div>
+
+                  <div className="p-4 border border-zinc-200/90 rounded-xl bg-white hover:border-zinc-300 hover:shadow-xs transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-950 mb-3 group-hover:scale-105 transition-transform">
+                      <ShoppingBag className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-zinc-950">Catálogo Inteligente</h3>
+                    <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                      Sube fotos, sincroniza precios y comparte tu menú visual instantáneamente.
+                    </p>
+                  </div>
+
+                  <div className="p-4 border border-zinc-200/90 rounded-xl bg-white hover:border-zinc-300 hover:shadow-xs transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-950 mb-3 group-hover:scale-105 transition-transform">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-zinc-950">Pagos Automatizados</h3>
+                    <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                      Recibe pagos por Nequi, Daviplata, Mercado Pago o PSE con validación segura.
+                    </p>
+                  </div>
+
+                  <div className="p-4 border border-zinc-200/90 rounded-xl bg-white hover:border-zinc-300 hover:shadow-xs transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-950 mb-3 group-hover:scale-105 transition-transform">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-zinc-950">Control Centralizado</h3>
+                    <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                      Métricas en tiempo real, trazabilidad de pedidos y gestión de clientes desde tu panel.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Guarantee Banner */}
+                <div className="p-3.5 bg-zinc-50 border border-zinc-200/80 rounded-xl flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-4 h-4 text-zinc-950 shrink-0" />
+                    <span className="text-xs font-semibold text-zinc-800">
+                      Configuración guiada y sin complicaciones en pocos clics.
                     </span>
                   </div>
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-zinc-600 bg-white border border-zinc-200 px-2 py-0.5 rounded-full shrink-0">
+                    <Clock className="w-3 h-3 text-zinc-400" />
+                    <span>~3 min</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                  {/* QR Box */}
-                  <div className="flex flex-col items-center justify-center flex-grow py-2">
-                    {whatsappStatus === 'LOADING' ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-6 h-6 animate-spin text-zinc-900" />
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Generando QR...</span>
-                      </div>
-                    ) : whatsappStatus === 'QRCODE' && qrCodeBase64 ? (
-                      <div className="space-y-3 flex flex-col items-center">
-                        <div className="relative border border-zinc-200 rounded-lg p-2 bg-white">
-                          <img 
-                            src={qrCodeBase64.startsWith('data:') ? qrCodeBase64 : `data:image/png;base64,${qrCodeBase64}`} 
-                            alt="QR de conexión de WhatsApp" 
-                            className="w-40 h-40 object-contain"
-                          />
-                        </div>
+            {/* STEP 2: INFORMACIÓN DEL NEGOCIO */}
+            {currentStep === 2 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950">
+                    Información de tu negocio
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Personaliza la identidad y el link público de tu tienda en Flashcheckouts.
+                  </p>
+                </div>
 
-                        {/* Expiration Timer badge */}
-                        <div className="bg-zinc-50 border border-zinc-200 px-3 py-1 rounded-full flex items-center gap-1.5 text-zinc-900 text-xs font-bold select-none">
-                          <Clock className="w-3.5 h-3.5 text-zinc-650" />
-                          <span>El código expirará en {formatTime(qrExpiresIn)}</span>
-                        </div>
-                      </div>
-                    ) : whatsappStatus === 'CONNECTED' ? (
-                      <div className="flex flex-col items-center gap-2 text-zinc-900">
-                        <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                        <span className="text-xs font-bold">¡WhatsApp Vinculado!</span>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={triggerWhatsappConnect}
-                        className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg px-5 py-2.5 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Zap className="w-3.5 h-3.5 fill-current" />
-                        Generar código QR
-                      </button>
-                    )}
+                <div className="space-y-4 pt-1">
+                  {/* Store Name */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="storeName" className="text-xs font-bold text-zinc-700 block">
+                      Nombre de la tienda <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="storeName"
+                      type="text"
+                      required
+                      placeholder="Ej. Boutique Bella Vista"
+                      className="w-full bg-white border border-zinc-200/90 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all"
+                      value={storeForm.name}
+                      onChange={e => {
+                        const name = e.target.value
+                        setStoreForm(f => ({
+                          ...f,
+                          name,
+                          slug: generateSlug(name)
+                        }))
+                      }}
+                    />
                   </div>
 
-                  {/* Connect Steps list */}
-                  <div className="space-y-2 pt-4 border-t border-zinc-250">
-                    <h5 className="text-[9px] font-bold text-zinc-450 tracking-wider uppercase">Pasos para conectar:</h5>
-                    <div className="space-y-1.5">
+                  {/* Slug / Web Address */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="storeSlug" className="text-xs font-bold text-zinc-700 block">
+                      Dirección web única (Slug) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center bg-zinc-50/60 border border-zinc-200/90 rounded-xl overflow-hidden focus-within:border-zinc-950 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-950/5 transition-all">
+                      <span className="pl-3.5 pr-1 text-xs font-semibold text-zinc-400 select-none shrink-0">
+                        flash.checkout/tienda/
+                      </span>
+                      <input
+                        id="storeSlug"
+                        type="text"
+                        required
+                        placeholder="boutique-bella"
+                        className="flex-1 px-1 py-2.5 text-xs border-none bg-transparent focus:outline-none font-bold text-zinc-950 min-w-0"
+                        value={storeForm.slug}
+                        onChange={e => setStoreForm(f => ({ ...f, slug: generateSlug(e.target.value) }))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* WhatsApp Number */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="storeWhatsapp" className="text-xs font-bold text-zinc-700 block">
+                      Número de WhatsApp del Negocio <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="storeWhatsapp"
+                      type="tel"
+                      required
+                      placeholder="573001234567"
+                      className="w-full bg-white border border-zinc-200/90 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all tabular-nums"
+                      value={storeForm.whatsapp}
+                      onChange={e => setStoreForm(f => ({ ...f, whatsapp: e.target.value.replace(/\D/g, '') }))}
+                    />
+                    <p className="text-[11px] text-zinc-400 font-medium">
+                      Ingresa el número con el código de país sin espacios ni signo "+" (Ej: Colombia: 57).
+                    </p>
+                  </div>
+
+                  {/* Category Pills */}
+                  <div className="space-y-2 pt-1">
+                    <label className="text-xs font-bold text-zinc-700 block">Categoría principal</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {[
-                        "Abre WhatsApp Business en tu celular.",
-                        "Ve a Configuración > Dispositivos vinculados.",
-                        "Escanea este código QR con la cámara."
-                      ].map((step, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs text-zinc-600 font-semibold">
-                          <span className="w-4.5 h-4.5 rounded-full bg-zinc-100 text-zinc-900 font-bold text-[10px] flex items-center justify-center shrink-0">{i + 1}</span>
-                          <span>{step}</span>
-                        </div>
-                      ))}
+                        { id: 'Moda', icon: Shirt, label: 'Moda & Ropa' },
+                        { id: 'Tecnología', icon: Smartphone, label: 'Tecnología' },
+                        { id: 'Hogar', icon: Home, label: 'Hogar & Deco' },
+                        { id: 'Comida', icon: Utensils, label: 'Comida & Bebidas' },
+                        { id: 'Deportes', icon: Dumbbell, label: 'Fitness & Deporte' },
+                        { id: 'Otros', icon: MoreHorizontal, label: 'Servicios / Otros' }
+                      ].map(cat => {
+                        const isSelected = storeForm.category === cat.id
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setStoreForm(f => ({ ...f, category: cat.id }))}
+                            className={cn(
+                              "flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer active:scale-98",
+                              isSelected
+                                ? "bg-zinc-950 border-zinc-950 text-white shadow-xs"
+                                : "bg-white border-zinc-200/90 text-zinc-700 hover:bg-zinc-50"
+                            )}
+                          >
+                            <cat.icon className={cn("w-4 h-4 shrink-0", isSelected ? "text-white" : "text-zinc-400")} />
+                            <span className="text-[11px] font-bold tracking-tight">{cat.label}</span>
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>
 
-                {/* Right Card: Status summary / Features */}
-                <div className="bg-white border border-zinc-200 rounded-lg p-5 flex flex-col justify-between gap-6">
+                {error && (
+                  <div className="bg-red-50 border border-red-200/80 text-red-700 text-xs font-bold px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 3: CONECTA WHATSAPP */}
+            {currentStep === 3 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950 flex items-center gap-2">
+                    Conecta tu WhatsApp
+                    <Smartphone className="w-5 h-5 text-emerald-600" />
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Escanea el código QR con WhatsApp Business para activar las respuestas automáticas de Nova.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch pt-1">
                   
-                  {/* Status Illustration */}
-                  <div className="flex flex-col items-center text-center justify-center py-4 flex-grow space-y-3 border-b border-zinc-100">
-                    <div className={cn(
-                      "w-14 h-14 rounded-full flex items-center justify-center border",
-                      whatsappStatus === 'CONNECTED' 
-                        ? 'bg-zinc-900 border-zinc-900 text-white'
-                        : 'bg-zinc-50 border-zinc-200 text-zinc-400'
-                    )}>
-                      {whatsappStatus === 'CONNECTED' ? (
-                        <Check className="w-6 h-6 stroke-[3px]" />
+                  {/* Left QR Container */}
+                  <div className="border border-zinc-200/90 rounded-2xl p-5 bg-white flex flex-col justify-between items-center text-center gap-4">
+                    
+                    {/* Status Badge */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-zinc-50 border border-zinc-200/70 select-none">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        whatsappStatus === 'CONNECTED' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-ping'
+                      )} />
+                      <span>{whatsappStatus === 'CONNECTED' ? 'Conectado con éxito' : 'Esperando vinculación'}</span>
+                    </div>
+
+                    {/* QR Display */}
+                    <div className="w-48 h-48 bg-zinc-50 border border-zinc-200/80 rounded-2xl flex flex-col items-center justify-center p-3 relative overflow-hidden">
+                      {whatsappStatus === 'LOADING' ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="w-7 h-7 animate-spin text-zinc-950" />
+                          <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Generando QR...</span>
+                        </div>
+                      ) : whatsappStatus === 'QRCODE' && qrCodeBase64 ? (
+                        <img 
+                          src={qrCodeBase64.startsWith('data:') ? qrCodeBase64 : `data:image/png;base64,${qrCodeBase64}`} 
+                          alt="QR de conexión" 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : whatsappStatus === 'CONNECTED' ? (
+                        <div className="flex flex-col items-center gap-2 text-emerald-700">
+                          <CheckCircle2 className="w-12 h-12 text-emerald-500 stroke-[2.5px]" />
+                          <span className="text-xs font-bold">¡WhatsApp Vinculado!</span>
+                        </div>
                       ) : (
-                        <Smartphone className="w-6 h-6" />
+                        <button 
+                          onClick={triggerWhatsappConnect}
+                          className="bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl px-4 py-2.5 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                        >
+                          <Zap className="w-3.5 h-3.5 fill-current" />
+                          Generar código QR
+                        </button>
                       )}
                     </div>
 
-                    <div>
-                      <h4 className="text-sm font-bold text-zinc-900">
-                        {whatsappStatus === 'CONNECTED' ? '¡WhatsApp conectado!' : 'Esperando Vinculación'}
-                      </h4>
-                      <p className="text-[11px] text-zinc-500 font-semibold mt-0.5">
-                        {whatsappStatus === 'CONNECTED' 
-                          ? `Tu número +${storeForm.whatsapp} ha sido conectado correctamente.`
-                          : 'Escanea el código con tu celular para activar el bot de ventas Nova.'}
-                      </p>
-                    </div>
+                    {/* Timer or Refresh */}
+                    {whatsappStatus === 'QRCODE' && (
+                      <div className="flex items-center gap-2 text-[11px] font-bold text-zinc-600">
+                        <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>Expira en {formatTime(qrExpiresIn)}</span>
+                        <button 
+                          onClick={triggerWhatsappConnect}
+                          className="text-zinc-400 hover:text-zinc-900 ml-1 cursor-pointer" 
+                          title="Regenerar QR"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Feature Highlights */}
-                  <div className="space-y-3 text-left">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-900 shrink-0 mt-0.5">
-                        <MessageSquare className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h5 className="text-[11px] font-bold text-zinc-900 leading-none">Nova está lista para conversar</h5>
-                        <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Responderá a tus clientes e ingresará pedidos al instante.</p>
+                  {/* Right Instruction Steps */}
+                  <div className="border border-zinc-200/90 rounded-2xl p-5 bg-zinc-50/50 flex flex-col justify-between gap-4">
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+                        Pasos para escanear:
+                      </h4>
+
+                      <div className="space-y-2.5">
+                        {[
+                          "Abre WhatsApp o WhatsApp Business en tu celular.",
+                          "Entra a Configuración > Dispositivos vinculados.",
+                          "Toca en 'Vincular un dispositivo' y apunta la cámara a la pantalla."
+                        ].map((txt, idx) => (
+                          <div key={idx} className="flex items-start gap-2.5 text-xs text-zinc-700 font-semibold leading-relaxed">
+                            <span className="w-5 h-5 rounded-full bg-white border border-zinc-200 text-zinc-900 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                              {idx + 1}
+                            </span>
+                            <span>{txt}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-900 shrink-0 mt-0.5">
-                        <Clock className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h5 className="text-[11px] font-bold text-zinc-900 leading-none">Atención 24/7 sin límites</h5>
-                        <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Tus compradores serán atendidos a cualquier hora del día.</p>
-                      </div>
+                    <div className="p-3 bg-white border border-zinc-200/80 rounded-xl text-[11px] text-zinc-500 font-medium">
+                      💡 ¿No tienes tu celular a mano? Puedes continuar y conectar tu número más tarde desde la sección de Configuración.
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* STEP 4: PRODUCT CATALOG */}
-          {currentStep === 4 && (
-            <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300 w-full text-left">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">Catálogo de productos</h3>
-                <p className="text-xs text-zinc-500 font-semibold">Crea el primer producto de tu menú visual</p>
-              </div>
+            {/* STEP 4: CATÁLOGO DE PRODUCTOS */}
+            {currentStep === 4 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950">
+                    Catálogo de productos
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Añade al menos un producto para que Nova empiece a recomendarlo en tus chats.
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                
-                {/* Left side: Product Form */}
-                <div className="md:col-span-7 bg-white border border-zinc-200 rounded-lg p-5 space-y-4">
-                  <div className="space-y-1.5">
-                    <label htmlFor="prodName" className="text-[11px] font-bold text-zinc-500">Nombre del producto</label>
-                    <input
-                      id="prodName"
-                      type="text"
-                      placeholder="Ej. Pizza Margarita Gigante"
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all"
-                      value={productForm.name}
-                      onChange={e => setProductForm(f => ({ ...f, name: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4 pt-1">
+                  {/* Product Form Card */}
+                  <div className="border border-zinc-200/90 rounded-2xl p-5 bg-white space-y-3.5">
                     <div className="space-y-1.5">
-                      <label htmlFor="prodPrice" className="text-[11px] font-bold text-zinc-500">Precio (COP)</label>
+                      <label htmlFor="prodName" className="text-xs font-bold text-zinc-700 block">
+                        Nombre del producto <span className="text-red-500">*</span>
+                      </label>
                       <input
-                        id="prodPrice"
-                        type="number"
-                        placeholder="25000"
-                        className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all tabular-nums"
-                        value={productForm.price}
-                        onChange={e => setProductForm(f => ({ ...f, price: e.target.value }))}
+                        id="prodName"
+                        type="text"
+                        placeholder="Ej. Vestido Floral Rojo (Talla M)"
+                        className="w-full bg-white border border-zinc-200/90 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all"
+                        value={productForm.name}
+                        onChange={e => setProductForm(f => ({ ...f, name: e.target.value }))}
                       />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label htmlFor="prodPrice" className="text-xs font-bold text-zinc-700 block">
+                          Precio en COP <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="prodPrice"
+                          type="number"
+                          placeholder="25000"
+                          className="w-full bg-white border border-zinc-200/90 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all tabular-nums"
+                          value={productForm.price}
+                          onChange={e => setProductForm(f => ({ ...f, price: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor="prodStock" className="text-xs font-bold text-zinc-700 block">
+                          Stock inicial
+                        </label>
+                        <input
+                          id="prodStock"
+                          type="number"
+                          placeholder="10"
+                          className="w-full bg-white border border-zinc-200/90 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all tabular-nums"
+                          value={productForm.stock}
+                          onChange={e => setProductForm(f => ({ ...f, stock: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-1.5">
-                      <label htmlFor="prodStock" className="text-[11px] font-bold text-zinc-500">Stock físico</label>
-                      <input
-                        id="prodStock"
-                        type="number"
-                        placeholder="10"
-                        className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all tabular-nums"
-                        value={productForm.stock}
-                        onChange={e => setProductForm(f => ({ ...f, stock: e.target.value }))}
+                      <label htmlFor="prodDesc" className="text-xs font-bold text-zinc-700 block">
+                        Descripción o detalles (Opcional)
+                      </label>
+                      <textarea
+                        id="prodDesc"
+                        rows={2}
+                        placeholder="Color, talla, materiales o información de entrega..."
+                        className="w-full bg-white border border-zinc-200/90 rounded-xl p-3 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all resize-none leading-relaxed"
+                        value={productForm.description}
+                        onChange={e => setProductForm(f => ({ ...f, description: e.target.value }))}
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <label htmlFor="prodDesc" className="text-[11px] font-bold text-zinc-500">Descripción (Opcional)</label>
-                    <textarea
-                      id="prodDesc"
-                      placeholder="Ingredientes, tallas, colores o detalles importantes del artículo..."
-                      rows={2}
-                      className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all resize-none leading-relaxed"
-                      value={productForm.description}
-                      onChange={e => setProductForm(f => ({ ...f, description: e.target.value }))}
-                    />
-                  </div>
-
-                  {/* Image upload */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-zinc-500 block">Foto del producto</label>
-                    <div className="flex items-center gap-3">
-                      <label className="flex items-center justify-center gap-2 border border-zinc-200 rounded-lg px-3 py-2 cursor-pointer text-xs font-bold text-zinc-600 bg-zinc-50 hover:bg-zinc-100 transition-all">
-                        <Upload className="w-3.5 h-3.5 text-zinc-400" />
-                        <span>Subir Imagen</span>
+                    {/* Image Upload Area */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <label className="flex items-center gap-2 border border-zinc-200/90 rounded-xl px-3.5 py-2 cursor-pointer text-xs font-bold text-zinc-700 bg-zinc-50 hover:bg-zinc-100 transition-all shrink-0">
+                        <Upload className="w-3.5 h-3.5 text-zinc-500" />
+                        <span>{productForm.imageUrl ? 'Cambiar imagen' : 'Subir foto'}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1168,339 +993,647 @@ export default function StoreCreationWizard({
                           className="hidden"
                         />
                       </label>
-                      {uploadingImage && <Loader2 className="w-4 h-4 text-zinc-900 animate-spin" />}
+
+                      {uploadingImage && (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-semibold">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-950" />
+                          <span>Subiendo imagen...</span>
+                        </div>
+                      )}
+
+                      {productForm.imageUrl && !uploadingImage && (
+                        <div className="flex items-center gap-2">
+                          <img src={productForm.imageUrl} alt="Preview" className="w-8 h-8 rounded-lg object-cover border" />
+                          <span className="text-[11px] font-bold text-emerald-600">✓ Foto lista</span>
+                        </div>
+                      )}
                     </div>
+
+                    <button
+                      onClick={handleAddProduct}
+                      disabled={loading || !productForm.name || !productForm.price}
+                      className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl py-2.5 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all disabled:opacity-40 cursor-pointer shadow-xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Añadir al Catálogo
+                    </button>
                   </div>
 
-                  <button
-                    onClick={handleAddProduct}
-                    disabled={loading || !productForm.name || !productForm.price}
-                    className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg py-2.5 flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all disabled:opacity-40 cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Añadir al Catálogo
-                  </button>
-                </div>
-
-                {/* Right side: Catalog View */}
-                <div className="md:col-span-5 bg-zinc-50 border border-zinc-200 rounded-lg p-5 flex flex-col justify-between h-full min-h-[300px]">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
-                      <h4 className="text-[10px] font-extrabold text-zinc-800 uppercase tracking-wider">Catálogo preliminar</h4>
-                      <span className="px-2 py-0.5 rounded bg-white border border-zinc-200 text-[10px] font-bold text-zinc-700">
-                        {addedProducts.length} productos
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
-                      {addedProducts.length === 0 ? (
-                        <div className="text-center py-10 text-zinc-400 flex flex-col items-center justify-center gap-2">
-                          <ImageIcon className="w-8 h-8 stroke-[1.5px]" />
-                          <p className="text-[10px] font-bold uppercase tracking-wider">Tu menú está vacío</p>
-                        </div>
-                      ) : (
-                        addedProducts.map((p, idx) => (
-                          <div key={idx} className="flex gap-2.5 p-2 bg-white border border-zinc-200 rounded-lg items-center justify-between animate-in fade-in">
-                            <div className="flex items-center gap-2 min-w-0">
+                  {/* Added Products Pill List */}
+                  {addedProducts.length > 0 && (
+                    <div className="border border-zinc-200/80 rounded-2xl p-4 bg-zinc-50/50 space-y-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-zinc-800 pb-1">
+                        <span>Productos registrados ({addedProducts.length})</span>
+                        <span className="text-emerald-600 text-[11px]">✓ Catálogo activo</span>
+                      </div>
+                      
+                      <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1 custom-scrollbar">
+                        {addedProducts.map((p) => (
+                          <div key={p.id} className="flex items-center justify-between p-2.5 bg-white border border-zinc-200/80 rounded-xl">
+                            <div className="flex items-center gap-2.5 min-w-0">
                               {p.imageUrl ? (
-                                <img src={p.imageUrl} alt={p.name} className="w-9 h-9 object-cover rounded border" />
+                                <img src={p.imageUrl} alt={p.name} className="w-8 h-8 rounded-lg object-cover border shrink-0" />
                               ) : (
-                                <div className="w-9 h-9 bg-zinc-50 rounded border flex items-center justify-center text-zinc-300">
+                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-400 shrink-0">
                                   <ImageIcon className="w-4 h-4" />
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <h5 className="text-xs font-bold text-zinc-900 truncate leading-tight">{p.name}</h5>
-                                <p className="text-[10px] text-zinc-400 font-semibold mt-0.5">Stock: {p.stock}</p>
+                                <h4 className="text-xs font-bold text-zinc-900 truncate leading-tight">{p.name}</h4>
+                                <span className="text-[10px] text-zinc-400 font-semibold">Stock: {p.stock} uds</span>
                               </div>
                             </div>
-                            <span className="text-xs font-bold text-zinc-900 shrink-0 tabular-nums">
-                              ${p.price.toLocaleString('es-CO')}
-                            </span>
+
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-xs font-bold text-zinc-950 tabular-nums">
+                                ${p.price?.toLocaleString('es-CO')} COP
+                              </span>
+                              <button
+                                onClick={() => handleDeleteProduct(p.id)}
+                                className="text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
+                                title="Eliminar producto"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
-                        ))
-                      )}
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: MÉTODOS DE PAGO */}
+            {currentStep === 5 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950">
+                    Métodos de pago
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Configura cómo tus clientes transferirán el dinero de sus compras en WhatsApp.
+                  </p>
+                </div>
+
+                <div className="space-y-3.5 pt-1">
+                  {/* Manual Payment Option */}
+                  <label className={cn(
+                    "flex items-start gap-3.5 p-4 border rounded-2xl transition-all cursor-pointer",
+                    payments.manual 
+                      ? "bg-white border-zinc-950 ring-1 ring-zinc-950/10 shadow-xs" 
+                      : "bg-white border-zinc-200/80 hover:bg-zinc-50"
+                  )}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 text-zinc-950 border-zinc-300 rounded focus:ring-0 cursor-pointer"
+                      checked={payments.manual}
+                      onChange={e => setPayments(p => ({ ...p, manual: e.target.checked }))}
+                    />
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-zinc-950 flex items-center gap-1.5">
+                          Transferencia Directa (Nequi / Daviplata / Bancolombia)
+                        </span>
+                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Recomendado
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
+                        Tus compradores envían la captura del comprobante por WhatsApp y podrás auditarlo y confirmarlo fácilmente con un clic desde el panel.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Mercado Pago Option */}
+                  <label className={cn(
+                    "flex items-start gap-3.5 p-4 border rounded-2xl transition-all cursor-pointer",
+                    payments.mercadopago 
+                      ? "bg-white border-zinc-950 ring-1 ring-zinc-950/10 shadow-xs" 
+                      : "bg-white border-zinc-200/80 hover:bg-zinc-50"
+                  )}>
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 text-zinc-950 border-zinc-300 rounded focus:ring-0 cursor-pointer"
+                      checked={payments.mercadopago}
+                      onChange={e => setPayments(p => ({ ...p, mercadopago: e.target.checked }))}
+                    />
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-zinc-950 flex items-center gap-1.5">
+                          Mercado Pago Connect
+                          <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
+                        </span>
+                        <span className="bg-zinc-100 text-zinc-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Tarjetas & PSE
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
+                        Cobra con tarjetas de crédito, débito, PSE y puntos de pago en efectivo. Podrás vincular tu cuenta oficial de Mercado Pago en cualquier momento.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: PREFERENCIAS & MEMORIA DE NOVA */}
+            {currentStep === 6 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950">
+                    Preferencias & Memoria de Nova
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Dale a tu agente de IA el contexto de tu marca para que hable exactamente como tú.
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-1">
+                  {/* Context Cards */}
+                  <div className="bg-zinc-50/70 border border-zinc-200/80 rounded-2xl p-4.5 space-y-3.5">
+                    <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider block">
+                      🧠 Memoria de Negocio para Nova
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-zinc-700 block">Nicho o productos</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Joyería artesanal y plata 925"
+                          value={businessProfile.niche}
+                          onChange={e => setBusinessProfile(prev => ({ ...prev, niche: e.target.value }))}
+                          className="w-full bg-white border border-zinc-200/90 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-950"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-zinc-700 block">Tono de voz de la marca</label>
+                        <select
+                          value={businessProfile.brandTone}
+                          onChange={e => setBusinessProfile(prev => ({ ...prev, brandTone: e.target.value }))}
+                          className="w-full bg-white border border-zinc-200/90 rounded-xl px-3 py-2 text-xs font-bold text-zinc-900 focus:outline-none cursor-pointer"
+                        >
+                          <option value="Sofisticado y elegante">Sofisticado y elegante</option>
+                          <option value="Amigable y cercano">Amigable y cercano</option>
+                          <option value="Profesional y directo">Profesional y directo</option>
+                          <option value="Divertido e informal">Divertido e informal</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-zinc-700 block">Público objetivo</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Hombres y mujeres de 20 a 45 años que buscan regalos únicos"
+                        value={businessProfile.targetAudience}
+                        onChange={e => setBusinessProfile(prev => ({ ...prev, targetAudience: e.target.value }))}
+                        className="w-full bg-white border border-zinc-200/90 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-950"
+                      />
                     </div>
                   </div>
 
-                  <div className="p-3 bg-zinc-100/50 border border-zinc-200 rounded-lg text-[10px] text-zinc-500 leading-normal font-semibold">
-                    💡 Agrega tus productos estrella para que Nova empiece a recomendarlos a tus clientes desde el día uno.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: PAYMENT METHODS */}
-          {currentStep === 5 && (
-            <div className="max-w-md mx-auto space-y-6 animate-in fade-in duration-300 text-left w-full">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">Métodos de pago</h3>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Elige cómo te pagarán tus clientes</p>
-              </div>
-
-              <div className="space-y-4">
-                {/* Option 1: Manual Bank Transfer */}
-                <label className="flex items-start gap-3.5 p-4 border border-zinc-200 rounded-lg bg-white hover:bg-zinc-50/50 transition-all cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-4 w-4 text-zinc-900 border-zinc-300 rounded focus:ring-0"
-                    checked={payments.manual}
-                    onChange={e => setPayments(p => ({ ...p, manual: e.target.checked }))}
-                  />
-                  <div className="space-y-1">
-                    <span className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
-                      Transferencia Manual (Nequi / Daviplata)
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-250 text-[9px] font-bold px-1.5 py-0.5 rounded">Recomendado</span>
-                    </span>
-                    <p className="text-[11px] text-zinc-400 font-semibold leading-relaxed">
-                      Tus clientes adjuntarán la captura de la transferencia en el chat y tú auditarás y aprobarás manualmente el pago desde el panel.
-                    </p>
-                  </div>
-                </label>
-
-                {/* Option 2: Mercado Pago */}
-                <label className="flex items-start gap-3.5 p-4 border border-zinc-200 rounded-lg bg-white hover:bg-zinc-50/50 transition-all cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-4 w-4 text-zinc-900 border-zinc-300 rounded focus:ring-0"
-                    checked={payments.mercadopago}
-                    onChange={e => setPayments(p => ({ ...p,  mercadopago: e.target.checked }))}
-                  />
-                  <div className="space-y-1">
-                    <span className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
-                      Mercado Pago Connect
-                      <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
-                    </span>
-                    <p className="text-[11px] text-zinc-400 font-semibold leading-relaxed">
-                      Permite cobros con tarjetas de crédito, PSE y efectivo. Podrás vincular tu cuenta real de Mercado Pago fácilmente desde el panel una vez finalices la configuración.
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 6: STORE PREFERENCES */}
-          {currentStep === 6 && (
-            <div className="max-w-md mx-auto space-y-6 animate-in fade-in duration-300 text-left w-full">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">Preferencias del bot y tienda</h3>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Personaliza el comportamiento de Nova</p>
-              </div>
-
-              <div className="space-y-4">
-                {/* Memoria de Negocio Form Cards */}
-                <div className="bg-zinc-50 p-4 border border-zinc-150 rounded-xl space-y-3.5 select-none mb-3 text-left animate-in fade-in duration-300">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">🧠 Memoria del Negocio (Contexto para Nova)</span>
-                  
+                  {/* Welcome Message */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 block">¿Qué tipo de productos vendes? (Nicho)</label>
-                    <input 
-                      type="text"
-                      placeholder="Ej: Dátiles rellenos premium y chocolates artesanales"
-                      value={businessProfile.niche}
-                      onChange={e => setBusinessProfile(prev => ({ ...prev, niche: e.target.value }))}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 block">¿Quién es tu público objetivo?</label>
-                    <input 
-                      type="text"
-                      placeholder="Ej: Personas de 25-50 años que compran regalos gourmet"
-                      value={businessProfile.targetAudience}
-                      onChange={e => setBusinessProfile(prev => ({ ...prev, targetAudience: e.target.value }))}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 block">Propuesta de Valor / Historia</label>
-                    <textarea 
-                      placeholder="Ej: Fusionamos dátiles naturales con chocolate belga fino para crear confitería de lujo."
-                      value={businessProfile.coreProposition}
-                      onChange={e => setBusinessProfile(prev => ({ ...prev, coreProposition: e.target.value }))}
+                    <label htmlFor="welcomeMessage" className="text-xs font-bold text-zinc-700 block">
+                      Mensaje de saludo inicial en WhatsApp
+                    </label>
+                    <textarea
+                      id="welcomeMessage"
                       rows={2}
-                      className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-950 resize-none leading-relaxed"
+                      className="w-full bg-white border border-zinc-200/90 rounded-xl p-3 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all resize-none leading-relaxed"
+                      value={preferences.welcomeMessage}
+                      onChange={e => setPreferences(p => ({ ...p, welcomeMessage: e.target.value }))}
                     />
                   </div>
 
+                  {/* Business Hours */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 block">Tono de voz de la marca</label>
-                    <select
-                      value={businessProfile.brandTone}
-                      onChange={e => setBusinessProfile(prev => ({ ...prev, brandTone: e.target.value }))}
-                      className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-bold text-zinc-800 focus:outline-none cursor-pointer"
-                    >
-                      <option value="Sofisticado y elegante">Sofisticado y elegante (Estilo Chocodate)</option>
-                      <option value="Amigable y cercano">Amigable y cercano</option>
-                      <option value="Profesional y directo">Profesional y directo</option>
-                      <option value="Divertido e informal">Divertido e informal</option>
-                    </select>
+                    <label htmlFor="businessHours" className="text-xs font-bold text-zinc-700 block">
+                      Horarios de atención
+                    </label>
+                    <input
+                      id="businessHours"
+                      type="text"
+                      className="w-full bg-white border border-zinc-200/90 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-zinc-950 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/5 transition-all"
+                      value={preferences.businessHours}
+                      onChange={e => setPreferences(p => ({ ...p, businessHours: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 7: REVISA Y CONFIRMA */}
+            {currentStep === 7 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950">
+                    Revisa y confirma
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Verifica los datos de tu nueva tienda antes de ponerla en producción.
+                  </p>
+                </div>
+
+                <div className="border border-zinc-200/90 rounded-2xl bg-zinc-50/50 p-5 space-y-3 text-xs font-semibold text-zinc-700">
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-200/80">
+                    <span className="text-zinc-500">Nombre de la Tienda</span>
+                    <span className="font-bold text-zinc-950">{storeForm.name || 'Sin especificar'}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-200/80">
+                    <span className="text-zinc-500">Enlace público</span>
+                    <span className="font-bold text-zinc-950 bg-white border border-zinc-200 px-2 py-0.5 rounded-lg text-[11px]">
+                      flash.checkout/tienda/{storeForm.slug}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-200/80">
+                    <span className="text-zinc-500">Estado de WhatsApp</span>
+                    <span className={cn(
+                      "font-bold px-2 py-0.5 rounded-full text-[10px]",
+                      whatsappStatus === 'CONNECTED' ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                    )}>
+                      {whatsappStatus === 'CONNECTED' ? 'Conectado ✓' : 'Pendiente de escaneo'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-200/80">
+                    <span className="text-zinc-500">Productos en Catálogo</span>
+                    <span className="font-bold text-zinc-950">{addedProducts.length} productos registrados</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2 border-b border-zinc-200/80">
+                    <span className="text-zinc-500">Cobranza</span>
+                    <span className="font-bold text-zinc-950">
+                      {[payments.manual ? 'Nequi/Daviplata' : null, payments.mercadopago ? 'Mercado Pago' : null].filter(Boolean).join(' + ') || 'Manual'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-zinc-500">Tono de Nova</span>
+                    <span className="font-bold text-zinc-950">{businessProfile.brandTone}</span>
                   </div>
                 </div>
 
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2.5 text-xs text-emerald-900 font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Tu tienda está lista para ser activada y empezar a recibir clientes.</span>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 8: COMPLETION SUCCESS */}
+            {currentStep === 8 && (
+              <div className="text-center space-y-6 py-4 animate-in zoom-in-95 duration-300">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                  <Check className="w-8 h-8 stroke-[3px]" />
+                </div>
+                
                 <div className="space-y-1.5">
-                  <label htmlFor="welcomeMessage" className="text-[11px] font-bold text-zinc-500">Mensaje de bienvenida automático</label>
-                  <textarea
-                    id="welcomeMessage"
-                    rows={2}
-                    className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all resize-none leading-relaxed"
-                    value={preferences.welcomeMessage}
-                    onChange={e => setPreferences(p => ({ ...p, welcomeMessage: e.target.value }))}
-                  />
+                  <h2 className="text-3xl font-extrabold tracking-tight text-zinc-950">
+                    ¡Tu tienda está lista! 🎉
+                  </h2>
+                  <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider">
+                    Lanzada en producción con éxito
+                  </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="systemPrompt" className="text-[11px] font-bold text-zinc-500">Instrucciones de comportamiento (Prompt de Nova)</label>
-                  <textarea
-                    id="systemPrompt"
-                    rows={3}
-                    className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all resize-none leading-relaxed"
-                    value={preferences.systemPrompt}
-                    onChange={e => setPreferences(p => ({ ...p, systemPrompt: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="businessHours" className="text-[11px] font-bold text-zinc-500">Horarios de atención comercial</label>
-                  <input
-                    id="businessHours"
-                    type="text"
-                    className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-950 transition-all"
-                    value={preferences.businessHours}
-                    onChange={e => setPreferences(p => ({ ...p, businessHours: e.target.value }))}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 7: REVIEW AND CONFIRM */}
-          {currentStep === 7 && (
-            <div className="max-w-md mx-auto space-y-6 animate-in fade-in duration-300 text-left w-full">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-zinc-900">Revisa y confirma</h3>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Todo listo para lanzar tu tienda</p>
-              </div>
-
-              <div className="p-5 bg-zinc-50 border border-zinc-200 rounded-lg space-y-3.5 text-xs font-semibold text-zinc-700">
-                <div className="flex justify-between py-1.5 border-b border-zinc-200">
-                  <span className="text-zinc-500">Tienda</span>
-                  <span className="font-bold text-zinc-900">{storeForm.name}</span>
-                </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-zinc-200 gap-4">
-                  <span className="text-zinc-500">Enlace público</span>
-                  <span className="font-bold text-zinc-900 break-all text-right max-w-[65%]">flash.checkout/tienda/{storeForm.slug}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-zinc-200">
-                  <span className="text-zinc-500">WhatsApp conectado</span>
-                  <span className={cn(
-                    "font-bold",
-                    whatsappStatus === 'CONNECTED' ? "text-emerald-600" : "text-amber-600"
-                  )}>
-                    {whatsappStatus === 'CONNECTED' ? 'Sí (Conectado)' : 'No (Omitido por ahora)'}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-zinc-200">
-                  <span className="text-zinc-500">Catálogo inicial</span>
-                  <span className="font-bold text-zinc-900">{addedProducts.length} productos registrados</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-zinc-500">Métodos de Pago</span>
-                  <span className="font-bold text-zinc-900">
-                    {payments.manual && 'Manual '}
-                    {payments.mercadopago && 'Mercado Pago'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 8: COMPLETION SUCCESS */}
-          {currentStep === 8 && (
-            <div className="max-w-md mx-auto text-center space-y-6 py-6 animate-in zoom-in-95 duration-300 w-full">
-              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-250 text-emerald-700 flex items-center justify-center mx-auto">
-                <Check className="w-7 h-7 stroke-[3px]" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-bold tracking-tight text-zinc-900">
-                  ¡Todo listo y configurado!
-                </h3>
-                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
-                  Tu tienda digital ha sido lanzada en producción
+                <p className="text-xs md:text-sm text-zinc-600 max-w-md mx-auto leading-relaxed font-medium">
+                  Hemos configurado tu tienda <strong className="text-zinc-950">{storeDisplayName}</strong>. Nova ya está lista para responder mensajes, enviar tu catálogo y procesar pedidos en tiempo real.
                 </p>
-              </div>
-              <p className="text-xs text-zinc-500 leading-relaxed font-semibold">
-                Has completado exitosamente la configuración de tu tienda. Nova ya está lista para recibir mensajes, interactuar y cerrar ventas en tiempo real.
-              </p>
 
-              <div className="pt-4">
+                <div className="pt-2">
+                  <button
+                    onClick={handleFinishOnboarding}
+                    disabled={loading}
+                    className="bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl px-6 py-3 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mx-auto cursor-pointer shadow-md"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Iniciando tu panel...
+                      </>
+                    ) : (
+                      <>
+                        Ir al Panel de Control
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* BOTTOM PERSISTENT NAVIGATION BAR */}
+          {currentStep !== 8 && (
+            <footer className="h-18 px-6 md:px-12 border-t border-zinc-200/80 bg-white/90 backdrop-blur-md flex items-center justify-between sticky bottom-0 z-30">
+              <div>
+                {currentStep > 1 && (
+                  <button
+                    onClick={handleBack}
+                    className="flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-zinc-950 border border-zinc-200/90 hover:bg-zinc-50 rounded-xl px-4 py-2.5 transition-all cursor-pointer select-none active:scale-98"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Volver
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={handleFinishOnboarding}
-                  disabled={loading}
-                  className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg px-6 py-2.5 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                  onClick={handleNext}
+                  disabled={
+                    loading || 
+                    (currentStep === 2 && (!storeForm.name || !storeForm.slug || !storeForm.whatsapp)) ||
+                    (currentStep === 4 && addedProducts.length === 0)
+                  }
+                  className="bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl px-5 py-2.5 active:scale-98 transition-all flex items-center gap-2 cursor-pointer select-none disabled:opacity-40 disabled:pointer-events-none shadow-xs"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Lanzando panel...
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Guardando...
                     </>
                   ) : (
                     <>
-                      Ir al Panel de Control
-                      <ArrowRight className="w-4 h-4" />
+                      {currentStep === 1 
+                        ? 'Comenzar ahora' 
+                        : currentStep === 7 
+                        ? 'Confirmar y Lanzar' 
+                        : 'Continuar'}
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
                 </button>
               </div>
-            </div>
+            </footer>
           )}
 
         </div>
 
-        {/* Bottom Navigation Buttons */}
-        {currentStep !== 8 && currentStep !== 1 && (
-          <div className="flex items-center justify-between pt-6 border-t border-zinc-200">
-            <div>
-              {currentStep > 1 && (
-                <button
-                  onClick={handleBack}
-                  className="bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-500 font-bold text-xs rounded-lg px-4 py-2.5 active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer select-none"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  Volver
-                </button>
-              )}
+        {/* RIGHT COLUMN: DYNAMIC LIVE WHATSAPP & STORE PREVIEW (46%) */}
+        <div className="hidden lg:flex flex-1 lg:w-[46%] xl:w-[48%] bg-[#F8F9FA] p-6 xl:p-8 flex-col justify-between items-center relative overflow-hidden select-none">
+          
+          {/* Subtle Ambient Background Gradients */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-zinc-950/5 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top Preview Status Bar */}
+          <div className="w-full max-w-[340px] flex items-center justify-between z-10">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-bold text-zinc-900 tracking-tight">
+                Vista previa en tiempo real
+              </span>
             </div>
 
-            <button
-              onClick={handleNext}
-              disabled={
-                loading || 
-                (currentStep === 2 && (!storeForm.name || !storeForm.slug || !storeForm.whatsapp)) ||
-                (currentStep === 4 && addedProducts.length === 0)
-              }
-              className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg px-5 py-2.5 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer select-none disabled:opacity-40 disabled:pointer-events-none"
-            >
-              {loading ? (
+            {/* Device Switcher Pills */}
+            <div className="flex items-center gap-1 bg-white border border-zinc-200/80 rounded-full p-1 shadow-2xs">
+              <button
+                onClick={() => setPreviewTab('chat')}
+                className={cn(
+                  "px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all cursor-pointer",
+                  previewTab === 'chat' 
+                    ? "bg-zinc-950 text-white shadow-xs" 
+                    : "text-zinc-500 hover:text-zinc-900"
+                )}
+              >
+                WhatsApp Nova
+              </button>
+              <button
+                onClick={() => setPreviewTab('catalog')}
+                className={cn(
+                  "px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all cursor-pointer",
+                  previewTab === 'catalog' 
+                    ? "bg-zinc-950 text-white shadow-xs" 
+                    : "text-zinc-500 hover:text-zinc-900"
+                )}
+              >
+                Catálogo Web
+              </button>
+            </div>
+          </div>
+
+          {/* SMARTPHONE DEVICE FRAME */}
+          <div className="my-auto w-[310px] xl:w-[325px] aspect-[9/18.5] bg-zinc-950 rounded-[44px] p-2.5 shadow-2xl border-4 border-zinc-800/80 relative flex flex-col overflow-hidden z-10 transition-all duration-300">
+            
+            {/* Dynamic Island / Notch */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-zinc-950 rounded-full z-30 flex items-center justify-center">
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-900 ml-auto mr-1" />
+            </div>
+
+            {/* Screen Inner Display */}
+            <div className="w-full h-full bg-[#EFEAE2] rounded-[36px] overflow-hidden flex flex-col relative text-left">
+              
+              {/* WhatsApp App Header */}
+              <div className="bg-[#075E54] pt-7 pb-2.5 px-3 text-white flex items-center justify-between shrink-0 shadow-sm z-20">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <ChevronLeft className="w-4 h-4 text-white shrink-0" />
+                  <div className="w-7 h-7 rounded-full bg-white/20 p-0.5 flex items-center justify-center overflow-hidden shrink-0 border border-white/20">
+                    <img src="/nova_robot_mascot.png" alt="Nova" className="w-full h-full object-contain" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[11px] font-bold leading-none truncate max-w-[130px]">
+                        Nova • {storeDisplayName}
+                      </span>
+                      <CheckCircle2 className="w-3 h-3 text-[#25D366] fill-white stroke-[2px] shrink-0" />
+                    </div>
+                    <span className="text-[8px] text-emerald-100 block mt-0.5 leading-none">
+                      en línea
+                    </span>
+                  </div>
+                </div>
+                <MoreHorizontal className="w-4 h-4 text-white/80 shrink-0" />
+              </div>
+
+              {/* VIEW 1: WHATSAPP CHAT FLOW */}
+              {previewTab === 'chat' && (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  {currentStep === 7 ? 'Confirmar y Lanzar' : 'Continuar'}
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <div className="flex-1 p-2.5 space-y-2.5 overflow-y-auto custom-scrollbar flex flex-col justify-end text-[10px]">
+                    
+                    {/* Date Pill */}
+                    <div className="self-center bg-white/80 backdrop-blur-xs text-zinc-600 px-2.5 py-0.5 rounded-full text-[8px] font-bold shadow-2xs border border-zinc-200/50">
+                      HOY
+                    </div>
+
+                    {/* Message 1: Buyer */}
+                    <div className="bg-[#E1F3D4] self-end rounded-xl rounded-tr-xs p-2 max-w-[85%] text-zinc-900 shadow-2xs">
+                      <p className="leading-snug">Hola, buenas tardes 👋 ¿Tienen catálogo disponible?</p>
+                      <div className="flex items-center justify-end gap-1 mt-1 text-[8px] text-zinc-400">
+                        <span>10:41 AM</span>
+                        <CheckCheck className="w-3 h-3 text-[#34B7F1]" />
+                      </div>
+                    </div>
+
+                    {/* Message 2: Nova Welcome + Store Link */}
+                    <div className="bg-white self-start rounded-xl rounded-tl-xs p-2.5 max-w-[88%] text-zinc-900 shadow-2xs space-y-2 border border-zinc-200/40">
+                      <p className="leading-snug">
+                        {currentStep >= 6 && preferences.welcomeMessage ? (
+                          preferences.welcomeMessage
+                        ) : (
+                          <>¡Hola! Te damos la bienvenida a <strong>{storeDisplayName}</strong> ✨ ¿Qué producto te gustaría conocer hoy?</>
+                        )}
+                      </p>
+
+                      {/* Store Link Card */}
+                      <div className="bg-zinc-50 border border-zinc-200/80 rounded-lg p-2 flex items-center gap-2">
+                        <div className="w-7 h-7 bg-[#075E54] rounded-md flex items-center justify-center text-white shrink-0">
+                          <Store className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="text-[9px] font-bold text-zinc-900 leading-none truncate">
+                            {storeDisplayName}
+                          </h5>
+                          <span className="text-[8px] text-zinc-400 truncate block mt-0.5">
+                            flash.checkout/tienda/{storeDisplaySlug}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end text-[8px] text-zinc-400">
+                        <span>10:41 AM</span>
+                      </div>
+                    </div>
+
+                    {/* Message 3: Buyer asks for product */}
+                    <div className="bg-[#E1F3D4] self-end rounded-xl rounded-tr-xs p-2 max-w-[85%] text-zinc-900 shadow-2xs">
+                      <p className="leading-snug">
+                        {primaryProduct ? `Me interesa ${primaryProduct.name}` : 'Quiero ver sus productos estrella.'}
+                      </p>
+                      <div className="flex items-center justify-end gap-1 mt-1 text-[8px] text-zinc-400">
+                        <span>10:42 AM</span>
+                        <CheckCheck className="w-3 h-3 text-[#34B7F1]" />
+                      </div>
+                    </div>
+
+                    {/* Message 4: Nova Interactive Product Card */}
+                    <div className="bg-white self-start rounded-xl rounded-tl-xs p-2.5 max-w-[88%] text-zinc-900 shadow-2xs space-y-2 border border-zinc-200/40">
+                      <p className="leading-snug">
+                        ¡Excelente elección! 🌸 Lo tenemos disponible para entrega inmediata:
+                      </p>
+
+                      {/* Interactive Product Card */}
+                      <div className="bg-zinc-50 border border-zinc-200/80 rounded-xl p-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                          {primaryProduct?.imageUrl ? (
+                            <img 
+                              src={primaryProduct.imageUrl} 
+                              alt="Producto" 
+                              className="w-10 h-10 rounded-lg object-cover border shrink-0 bg-white" 
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-zinc-200 flex items-center justify-center text-zinc-400 shrink-0">
+                              <ShoppingBag className="w-5 h-5" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <h6 className="text-[9px] font-bold text-zinc-900 leading-tight truncate">
+                              {primaryProduct?.name || 'Vestido Floral Rojo (Talla M)'}
+                            </h6>
+                            <p className="text-[9px] font-extrabold text-emerald-600 mt-0.5">
+                              ${(primaryProduct?.price || 25000).toLocaleString('es-CO')} COP
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Payment CTA Button */}
+                        <div className="w-full bg-[#059669] text-white font-bold text-[8.5px] rounded-lg py-1.5 flex items-center justify-center gap-1 shadow-2xs">
+                          <Zap className="w-2.5 h-2.5 fill-current" />
+                          <span>Pagar con Smart Pay</span>
+                        </div>
+                      </div>
+
+                      {/* Payment Methods Indicator */}
+                      <div className="flex items-center justify-between text-[7.5px] text-zinc-400 font-semibold pt-0.5">
+                        <span>{payments.manual ? '✓ Nequi / Daviplata' : ''} {payments.mercadopago ? '✓ Mercado Pago' : ''}</span>
+                        <span>10:42 AM</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* WhatsApp Input Bar */}
+                  <div className="p-2 bg-[#F0F2F5] border-t border-zinc-200 flex items-center gap-1.5 shrink-0 select-none">
+                    <div className="flex-1 bg-white rounded-full px-3 py-1.5 flex items-center justify-between border border-zinc-200/60 min-w-0">
+                      <span className="text-[8.5px] text-zinc-400 font-medium truncate">Escribe un mensaje...</span>
+                    </div>
+                    <div className="w-6 h-6 rounded-full bg-[#075E54] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Send className="w-2.5 h-2.5" />
+                    </div>
+                  </div>
                 </>
               )}
-            </button>
+
+              {/* VIEW 2: WEB STORE CATALOG PREVIEW */}
+              {previewTab === 'catalog' && (
+                <div className="flex-1 bg-white p-3 overflow-y-auto custom-scrollbar flex flex-col justify-start space-y-3">
+                  <div className="text-center py-2 border-b border-zinc-100">
+                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-zinc-400 block">Tienda Oficial</span>
+                    <h4 className="text-xs font-bold text-zinc-900">{storeDisplayName}</h4>
+                    <span className="text-[8px] text-emerald-600 font-bold">● Abierto ahora</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-bold text-zinc-900 block">Productos destacados:</span>
+                    
+                    {addedProducts.length === 0 ? (
+                      <div className="p-3 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl text-center text-zinc-400 text-[9px]">
+                        Añade productos en el paso 4 para verlos aquí
+                      </div>
+                    ) : (
+                      addedProducts.map((p, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-zinc-50 border border-zinc-200/80 rounded-xl">
+                          <div className="flex items-center gap-2">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.name} className="w-7 h-7 rounded-md object-cover border" />
+                            ) : (
+                              <div className="w-7 h-7 rounded-md bg-zinc-200 flex items-center justify-center text-zinc-400">
+                                <ShoppingBag className="w-3.5 h-3.5" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <h6 className="text-[8.5px] font-bold text-zinc-900 truncate max-w-[110px]">{p.name}</h6>
+                              <span className="text-[8px] text-emerald-600 font-bold">${p.price?.toLocaleString('es-CO')}</span>
+                            </div>
+                          </div>
+                          <span className="bg-zinc-950 text-white text-[7.5px] font-bold px-2 py-0.5 rounded">Comprar</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
-        )}
+
+          {/* Bottom Context Pill */}
+          <div className="w-full max-w-[340px] p-3 bg-white border border-zinc-200/80 rounded-2xl flex items-center gap-3 shadow-2xs z-10">
+            <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-950 shrink-0">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h5 className="text-[11px] font-bold text-zinc-950 leading-tight">
+                {currentStepData.label}
+              </h5>
+              <p className="text-[10px] text-zinc-500 font-medium truncate mt-0.5">
+                {currentStepData.desc}
+              </p>
+            </div>
+          </div>
+
+        </div>
 
       </div>
+
     </div>
   )
 }

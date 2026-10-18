@@ -150,6 +150,107 @@ async function updateWhatsAppSession(id: string, data: Prisma.WhatsAppSessionUpd
   });
 }
 
+/**
+ * Estrategia Híbrida Inteligente para Despacho de Catálogo:
+ * 1. Si la tienda opera con Meta Cloud API y tiene Flow ID configurado -> Despliega Meta WhatsApp Flow nativo interactivo.
+ * 2. Si opera con Evolution API (Baileys/QR) o el Flow no está disponible -> Despliega botón de Catálogo Web + Lista Interactiva de WhatsApp en el chat.
+ */
+export async function dispatchStoreCatalog(
+  from: string,
+  store: StoreRecord,
+  waClient: BotClient,
+  session: SessionRecord
+) {
+  const aiSettings = (store.aiSettings as Record<string, unknown> | null) || {};
+  const flowId = (aiSettings.whatsappCatalogFlowId as string) || process.env.WHATSAPP_CATALOG_FLOW_ID;
+  const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
+
+  // 1. Verificación de Meta WhatsApp Flows Nativo
+  const canUseFlow = Boolean(
+    typeof waClient.sendFlow === 'function' &&
+    flowId &&
+    flowId !== '789456123' &&
+    flowId.trim() !== ''
+  );
+
+  if (canUseFlow) {
+    try {
+      const products = await prisma.product.findMany({
+        where: { storeId: store.id, active: true },
+        take: 30,
+        select: { id: true, name: true, price: true, description: true }
+      });
+
+      if (products.length > 0) {
+        const flowData = {
+          store_name: store.name.slice(0, 30),
+          products: products.map(p => ({
+            id: p.id,
+            title: p.name.slice(0, 30),
+            description: `$${p.price.toLocaleString('es-CO')} COP${p.description ? ` • ${p.description.slice(0, 30)}` : ''}`
+          }))
+        };
+
+        await waClient.sendFlow!(
+          from,
+          flowId!,
+          'Ver Catálogo 🛍️',
+          `store_${store.id}_${session.id}`,
+          'CATALOG',
+          flowData,
+          store.name,
+          store.welcomeMessage || `¡Hola! Bienvenido a *${store.name}*. Abre nuestro catálogo interactivo para elegir tus productos:`
+        );
+
+        await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
+        return;
+      }
+    } catch (flowErr) {
+      console.warn('[Hybrid Catalog] Meta Flow delivery failed, falling back to Web + List:', flowErr);
+    }
+  }
+
+  // 2. Fallback Inteligente Híbrido (Evolution API o sin Flow ID)
+  // A) Botón CTA con enlace a Catálogo Web
+  const defaultWelcome = `¡Hola! Bienvenido a *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
+  const welcomeText = store.welcomeMessage || defaultWelcome;
+
+  await waClient.sendUrlButton(
+    from,
+    welcomeText,
+    '📱 Abrir Catálogo Web',
+    storeUrl
+  );
+
+  // B) Lista nativa de WhatsApp para seleccionar productos en el chat
+  const products = await prisma.product.findMany({
+    where: { storeId: store.id, active: true },
+    take: 10,
+    select: { id: true, name: true, price: true, description: true }
+  });
+
+  if (products.length > 0) {
+    await waClient.sendList(
+      from,
+      store.name,
+      '¿Prefieres pedir directamente en este chat? Selecciona aquí:',
+      'Ver Productos',
+      [
+        {
+          title: 'Productos Disponibles',
+          rows: products.map(p => ({
+            id: `select_${p.id}`,
+            title: p.name.slice(0, 24),
+            description: `$${p.price.toLocaleString('es-CO')} COP`
+          }))
+        }
+      ]
+    );
+  }
+
+  await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
+}
+
 export async function handleWhatsAppMessage(from: string, text: string, sessionOrStoreId: SessionRecord | string = 'global') {
   // 1. Obtener o crear sesión usando el índice compuesto
   let session: SessionRecord;
@@ -220,52 +321,85 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   // Wrapped client to intercept and log all messages sent by the bot
   const waClient = {
     sendText: async (to: string, msg: string) => {
-      const res = await client.sendText(to, msg);
-      await logBotOutgoing(msg);
-      return res;
+      try {
+        const res = await client.sendText(to, msg);
+        await logBotOutgoing(msg);
+        return res;
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendText warning:', err);
+      }
     },
     sendButtons: async (to: string, msg: string, btns: { id: string; title: string }[]) => {
-      const res = await client.sendButtons(to, msg, btns);
-      await logBotOutgoing(msg);
-      return res;
+      try {
+        const res = await client.sendButtons(to, msg, btns);
+        await logBotOutgoing(msg);
+        return res;
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendButtons warning:', err);
+      }
     },
     sendList: async (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => {
-      const res = await client.sendList(to, hdr, bdy, btnText, secs);
-      await logBotOutgoing(`${hdr}\n${bdy}`);
-      return res;
+      try {
+        const res = await client.sendList(to, hdr, bdy, btnText, secs);
+        await logBotOutgoing(`${hdr}\n${bdy}`);
+        return res;
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendList warning:', err);
+      }
     },
     sendImage: async (to: string, img: string, cap: string) => {
-      const res = await client.sendImage(to, img, cap);
-      await logBotOutgoing(cap ? `[Imagen] ${cap}` : '[Imagen]');
-      return res;
+      try {
+        const res = await client.sendImage(to, img, cap);
+        await logBotOutgoing(cap ? `[Imagen] ${cap}` : '[Imagen]');
+        return res;
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendImage warning:', err);
+      }
     },
     sendDocument: async (to: string, doc: string, fn: string) => {
-      const res = await client.sendDocument(to, doc, fn);
-      await logBotOutgoing(`[Documento] ${fn}`);
-      return res;
+      try {
+        const res = await client.sendDocument(to, doc, fn);
+        await logBotOutgoing(`[Documento] ${fn}`);
+        return res;
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendDocument warning:', err);
+      }
     },
     sendUrlButton: async (to: string, bdy: string, btnText: string, url: string) => {
-      const res = await client.sendUrlButton(to, bdy, btnText, url);
-      await logBotOutgoing(bdy);
-      return res;
+      try {
+        const res = await client.sendUrlButton(to, bdy, btnText, url);
+        await logBotOutgoing(bdy);
+        return res;
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendUrlButton warning:', err);
+      }
     },
     sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string) => {
       if (typeof client.sendFlow === 'function') {
-        const res = await client.sendFlow(to, flowId, buttonText, flowToken, screen, data, header, body);
-        await logBotOutgoing(body || `[Flujo: ${buttonText}]`);
-        return res;
+        try {
+          const res = await client.sendFlow(to, flowId, buttonText, flowToken, screen, data, header, body);
+          await logBotOutgoing(body || `[Flujo: ${buttonText}]`);
+          return res;
+        } catch (err) {
+          console.warn('[WhatsApp Bot] sendFlow warning:', err);
+          throw err;
+        }
       }
       throw new Error('sendFlow is not supported on this client configuration.');
     },
     sendLocationRequest: async (to: string, msg: string) => {
-      if (typeof client.sendLocationRequest === 'function') {
-        const res = await client.sendLocationRequest(to, msg);
-        await logBotOutgoing(msg);
-        return res;
-      } else {
-        const res = await client.sendText(to, msg);
-        await logBotOutgoing(msg);
-        return res;
+      try {
+        if (typeof client.sendLocationRequest === 'function') {
+          const res = await client.sendLocationRequest(to, msg);
+          await logBotOutgoing(msg);
+          return res;
+        } else {
+          const res = await client.sendText(to, msg);
+          await logBotOutgoing(msg);
+          return res;
+        }
+      } catch (err) {
+        console.warn('[WhatsApp Bot] sendLocationRequest warning:', err);
       }
     }
   };
@@ -274,6 +408,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   const isSystemAction = 
     text.startsWith('store_') || 
     text.startsWith('view_list_') || 
+    text.startsWith('view_catalog') ||
     text.startsWith('select_') || 
     text.startsWith('confirm_') || 
     text === 'cancel' || 
@@ -415,89 +550,110 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     const jsonStr = text.replace('flow_response_', '');
     try {
       const response = JSON.parse(jsonStr);
-      // Estructura esperada del Flow de Catálogo: { selections: ["prod_1", "prod_2"] }
-      // Nota: Para cantidades más complejas, el Flow devolvería un array de objetos.
-      if (response.selections && Array.isArray(response.selections)) {
-        let currentCart: CartState = buildCartState(cartStateToLines(session.cart));
+      // Estructura esperada del Flow de Catálogo:
+      // { selections: ["prod_1", "prod_2"] } o { items: [...] } o { products: [...] }
+      const selections: (string | { id?: string; qty?: number })[] = Array.isArray(response.selections)
+        ? response.selections
+        : Array.isArray(response.items)
+        ? response.items
+        : Array.isArray(response.products)
+        ? response.products
+        : [];
 
-        for (const prodId of response.selections) {
+      if (selections.length > 0) {
+        let currentCart: CartState = buildCartState(cartStateToLines(session.cart));
+        const addedItems: string[] = [];
+
+        for (const itemOrId of selections) {
+          const prodId = typeof itemOrId === 'string' ? itemOrId : itemOrId?.id;
+          const qty = typeof itemOrId === 'object' && itemOrId?.qty ? Number(itemOrId.qty) : 1;
+
+          if (!prodId) continue;
           const product = await prisma.product.findUnique({ where: { id: prodId } });
           if (product) {
             currentCart.items[product.id] = {
               id: product.id,
               name: product.name,
               price: product.price,
-              qty: (currentCart.items[product.id]?.qty || 0) + 1 // Por ahora asumo +1 si no hay stepper
+              qty: (currentCart.items[product.id]?.qty || 0) + (qty > 0 ? qty : 1),
+              storeId: product.storeId
             };
+            addedItems.push(`${product.name} (x${qty > 0 ? qty : 1})`);
           }
         }
 
-        session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' });
+        const firstItem = Object.values(currentCart.items)[0] as CartLine | undefined;
+        const primaryStoreId = addedItems.length > 0 ? firstItem?.storeId : undefined;
+        const newStoreId = session.storeId && session.storeId !== 'global' ? session.storeId : (primaryStoreId || session.storeId);
 
-        // Trigger summary
+        if (newStoreId && newStoreId !== session.storeId) {
+          const existingSession = await prisma.whatsAppSession.findUnique({
+            where: {
+              phoneNumber_storeId: {
+                phoneNumber: from,
+                storeId: newStoreId
+              }
+            }
+          });
+
+          if (existingSession) {
+            session = await updateWhatsAppSession(existingSession.id, {
+              cart: currentCart,
+              step: 'IDLE'
+            });
+          } else {
+            session = await updateWhatsAppSession(session.id, {
+              cart: currentCart,
+              step: 'IDLE',
+              storeId: newStoreId
+            });
+          }
+        } else {
+          session = await updateWhatsAppSession(session.id, {
+            cart: currentCart,
+            step: 'IDLE'
+          });
+        }
+
+        await waClient.sendText(
+          from,
+          `✅ ¡Listo! Se agregaron *${addedItems.length} producto(s)* a tu carrito desde el Catálogo:\n${addedItems.map(i => `• ${i}`).join('\n')}`
+        );
+
+        // Disparar resumen de carrito de inmediato para continuar al checkout
         await handleWhatsAppMessage(from, 'view_cart_summary', session);
+        return;
+      } else {
+        await waClient.sendText(from, 'No seleccionaste ningún producto del catálogo. ¿Deseas volver a revisarlo?');
       }
     } catch (e) {
       console.error('[Flow Response Error]', e);
+      await waClient.sendText(from, 'Hubo un inconveniente al procesar tu selección del catálogo. Por favor intenta nuevamente.');
     }
     return;
   }
 
-  // Manejo de SELECCIÓN DE TIENDA (Nativo 100% estilo Jelou)
-  if (text.startsWith('view_list_')) {
-    const storeId = text.replace('view_list_', '');
-    const store = await prisma.store.findUnique({
-      where: { id: storeId, active: true },
-      include: { products: { where: { active: true }, take: 20 } }
+  // Manejo de SELECCIÓN DE TIENDA O APERTURA DE CATÁLOGO (Híbrido)
+  if (text.startsWith('view_list_') || text.startsWith('view_catalog_') || text === 'view_catalog') {
+    let storeId = text.startsWith('view_list_') 
+      ? text.replace('view_list_', '')
+      : text.startsWith('view_catalog_')
+      ? text.replace('view_catalog_', '')
+      : session.storeId;
+
+    if (!storeId || storeId === 'global') {
+      const firstStore = await prisma.store.findFirst({ where: { active: true } });
+      storeId = firstStore?.id || '';
+    }
+
+    const targetStore = await prisma.store.findUnique({
+      where: { id: storeId, active: true }
     });
 
-    if (store) {
-      const flowId = process.env.WHATSAPP_CATALOG_FLOW_ID;
-      
-      // Intentar enviar Flow solo si el ID está configurado y no es un placeholder obvio
-      if (flowId && flowId !== '789456123') {
-        const flowData = {
-          products: store.products.map(p => ({
-            id: p.id,
-            title: p.name,
-            description: `$${p.price.toLocaleString('es-CO')}`,
-            image_url: p.imageUrl ? p.imageUrl.split(',')[0] : 'https://via.placeholder.com/300'
-          }))
-        };
-
-        try {
-          await waClient.sendFlow(
-            from,
-            flowId,
-            'Abrir Menú Visual 🎨',
-            `flow_catalog_${store.id}`,
-            'CATALOG_SCREEN',
-            flowData,
-            store.name,
-            store.systemPrompt || 'Selecciona todos los productos que desees pedir:'
-          );
-          
-          await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
-          return;
-        } catch (err) {
-          console.warn('[WhatsApp Flow] Failed to send, falling back to List:', err);
-        }
-      }
-
-      // Fallback a lista de texto (Chat Menu)
-      await waClient.sendText(from, 'He preparado el menú aquí abajo para ti:');
-      await waClient.sendList(from, store.name, store.systemPrompt || 'Selecciona los productos:', 'Ver Productos', [
-        {
-          title: 'Productos Disponibles',
-          rows: store.products.map(p => ({
-            id: `select_${p.id}`,
-            title: p.name,
-            description: `$${p.price.toLocaleString()}`
-          }))
-        }
-      ]);
-
-      await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
+    if (targetStore) {
+      await dispatchStoreCatalog(from, targetStore, waClient, session);
+    } else {
+      await waClient.sendText(from, 'No se encontró la tienda seleccionada. Por favor escribe "Hola" para ver las tiendas disponibles.');
     }
     return;
   }
@@ -848,30 +1004,23 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
   switch (session.step) {
     case 'START':
       if (session.storeId && session.storeId !== 'global' && store) {
-        const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
-        const defaultMsg = `¡Hola! Bienvenido a *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
-        const welcomeText = store.welcomeMessage || defaultMsg;
-
-        await waClient.sendUrlButton(
-          from, 
-          welcomeText,
-          '📱 Abrir Catálogo Pro',
-          storeUrl
-        );
-
-        await waClient.sendButtons(from, '¿Prefieres comprar enviando mensajes directamente aquí?', [
-          { id: `view_list_${store.id}`, title: '📜 Usar Chat' }
-        ]);
+        await dispatchStoreCatalog(from, store, waClient, session);
       } else {
         await waClient.sendButtons(from, '¡Hola! Bienvenido a *StoreFCheckout*. 🚀\n\n¿Cómo prefieres empezar hoy?', [
           { id: 'view_stores', title: '🏬 Ver tiendas' },
           { id: 'search_now', title: '🔍 Buscar algo' },
         ]);
+        await updateWhatsAppSession(session.id, { step: 'IDLE' });
       }
-      await updateWhatsAppSession(session.id, { step: 'IDLE' });
       break;
 
     case 'IDLE':
+      const normalizedQuery = text.toLowerCase().trim();
+      const isCatalogKeyword = ['catalogo', 'catálogo', 'ver catalogo', 'ver catálogo', 'ver productos', 'menu', 'menú', 'productos'].includes(normalizedQuery);
+      if (isCatalogKeyword && session.storeId && session.storeId !== 'global' && store) {
+        await dispatchStoreCatalog(from, store, waClient, session);
+        break;
+      }
       // El resto de la búsqueda se mantiene igual
       if (intent.intent === 'QUERY' && intent.query) {
         // Si hay una tienda seleccionada, buscamos solo ahí
@@ -1054,22 +1203,7 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
               await updateWhatsAppSession(session.id, { step: 'START', storeId: 'global' });
             } else {
               // Fallback: stay on global line
-              const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
-              const defaultMsg = `¡Genial! Estás en *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
-              const welcomeText = store.welcomeMessage || defaultMsg;
-
-              await waClient.sendUrlButton(
-                from, 
-                welcomeText,
-                '📱 Abrir Catálogo Pro',
-                storeUrl
-              );
-
-              await waClient.sendButtons(from, '¿Prefieres comprar enviando mensajes directamente aquí?', [
-                { id: `view_list_${store.id}`, title: '📜 Usar Chat' }
-              ]);
-
-              await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
+              await dispatchStoreCatalog(from, store, waClient, session);
             }
           }
         }
