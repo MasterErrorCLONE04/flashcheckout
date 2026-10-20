@@ -24,9 +24,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/breb/payment-intents(.*)',
   '/pay(.*)',
   '/api/qr(.*)',
-  '/legal(.*)',
-  '/sdd(.*)',
-  '/api/sdd(.*)'
+  '/legal(.*)'
 ]);
 
 export const proxy = clerkMiddleware(async (auth, request) => {
