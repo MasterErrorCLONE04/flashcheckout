@@ -97,7 +97,8 @@ export async function POST(req: Request) {
     const parsedJson = cleanJson(rawContent)
 
     const formattedPrice = `$${product.price.toLocaleString('es-CO')}`
-    const checkoutLink = `https://flashcheckout.co/tienda/${store.slug}`
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://flashcheckout.co'
+    const checkoutLink = `${appBaseUrl}/tienda/${store.slug}`
 
     // Si falló el parseo o la IA simuló texto plano, aplicamos un fallback premium
     const result = parsedJson || {
