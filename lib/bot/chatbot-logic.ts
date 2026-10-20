@@ -419,7 +419,9 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     text === 'final_summary' ||
     text.startsWith('flow_response_') ||
     text.startsWith('accept_delivery_') ||
-    text === 'btn_pay_breb'
+    text === 'btn_pay_breb' ||
+    text === 'btn_pay_cod' ||
+    text === 'btn_pay_link'
 
   const isInProgress = session.step !== 'START' && session.step !== 'IDLE'
 
@@ -586,7 +588,22 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
         const primaryStoreId = addedItems.length > 0 ? firstItem?.storeId : undefined;
         const newStoreId = session.storeId && session.storeId !== 'global' ? session.storeId : (primaryStoreId || session.storeId);
 
+        const fullName = (typeof response.full_name === 'string' && response.full_name.trim())
+          ? response.full_name.trim()
+          : (typeof response.customer_name === 'string' ? response.customer_name.trim() : null);
+        const address = (typeof response.address === 'string' && response.address.trim())
+          ? `${response.address.trim()}${response.city ? `, ${response.city.trim()}` : ''}`
+          : null;
+
+        const updateData: any = {
+          cart: currentCart,
+          step: 'IDLE'
+        };
+        if (fullName) updateData.customerName = fullName;
+        if (address) updateData.address = address;
+
         if (newStoreId && newStoreId !== session.storeId) {
+          updateData.storeId = newStoreId;
           const existingSession = await prisma.whatsAppSession.findUnique({
             where: {
               phoneNumber_storeId: {
@@ -597,22 +614,12 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           });
 
           if (existingSession) {
-            session = await updateWhatsAppSession(existingSession.id, {
-              cart: currentCart,
-              step: 'IDLE'
-            });
+            session = await updateWhatsAppSession(existingSession.id, updateData);
           } else {
-            session = await updateWhatsAppSession(session.id, {
-              cart: currentCart,
-              step: 'IDLE',
-              storeId: newStoreId
-            });
+            session = await updateWhatsAppSession(session.id, updateData);
           }
         } else {
-          session = await updateWhatsAppSession(session.id, {
-            cart: currentCart,
-            step: 'IDLE'
-          });
+          session = await updateWhatsAppSession(session.id, updateData);
         }
 
         await waClient.sendText(
@@ -620,8 +627,12 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
           `✅ ¡Listo! Se agregaron *${addedItems.length} producto(s)* a tu carrito desde el Catálogo:\n${addedItems.map(i => `• ${i}`).join('\n')}`
         );
 
-        // Disparar resumen de carrito de inmediato para continuar al checkout
-        await handleWhatsAppMessage(from, 'view_cart_summary', session);
+        // Si el Flow ya capturó los datos de entrega, proceder directamente al checkout
+        if (fullName && address) {
+          await handleWhatsAppMessage(from, 'confirm_checkout', session);
+        } else {
+          await handleWhatsAppMessage(from, 'view_cart_summary', session);
+        }
         return;
       } else {
         await waClient.sendText(from, 'No seleccionaste ningún producto del catálogo. ¿Deseas volver a revisarlo?');
@@ -902,7 +913,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
     return;
   }
 
-  // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL CON DRUO ---
+  // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL Y MULTICANAL ---
   if (text === 'confirm_checkout') {
     const cartItems = await getCartItemsForSession(session);
     if (cartItems.length === 0) {
@@ -911,20 +922,52 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
       return;
     }
 
-    let summary = '*TU PEDIDO:* 🛒\n\n';
-    let total = 0;
+    // 1. Validar si falta el Nombre Completo
+    if (!session.customerName || !session.customerName.trim() || session.customerName === 'Cliente WhatsApp') {
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_NAME' });
+      await waClient.sendText(from, '📦 *Datos para el Despacho*\n\nPara preparar tu pedido, por favor escribe tu *Nombre Completo*: 📝');
+      return;
+    }
+
+    // 2. Validar si falta la Dirección de Entrega
+    if (!session.address || !session.address.trim() || session.address === 'WhatsApp') {
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_ADDRESS' });
+      await waClient.sendText(from, `¡Mucho gusto, *${session.customerName}*! 📍\n\nPor favor escribe tu *Dirección de Entrega y Ciudad* (o comparte tu ubicación por este chat):`);
+      return;
+    }
+
+    // 3. Liquidación con costo de envío transparente
+    const subtotal = cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0);
+    const store = session.storeId && session.storeId !== 'global'
+      ? await prisma.store.findUnique({ where: { id: session.storeId }, include: { brebConfig: true } })
+      : null;
+    const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
+    const total = subtotal + deliveryCost;
+
+    let summary = '*RESUMEN DE TU PEDIDO:* 🛒\n\n';
     cartItems.forEach(item => {
-      const subtotal = item.price * item.qty;
-      summary += `• ${item.name} x${item.qty}: *$${subtotal.toLocaleString('es-CO')}*\n`;
-      total += subtotal;
+      summary += `• ${item.name} x${item.qty}: *$${(item.price * item.qty).toLocaleString('es-CO')}*\n`;
     });
-    summary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')} COP*`;
+    summary += `\n📦 *Subtotal:* $${subtotal.toLocaleString('es-CO')} COP`;
+    summary += `\n🚚 *Envío:* $${deliveryCost.toLocaleString('es-CO')} COP`;
+    summary += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString('es-CO')} COP*`;
+    summary += `\n\n👤 *Destinatario:* ${session.customerName}`;
+    summary += `\n📍 *Entrega en:* ${session.address}`;
+
+    // 4. Determinar métodos de pago disponibles
+    const storeBrebKey = store?.brebConfig?.keyValue || (store?.settings as any)?.brebConfig?.keyValue;
+    const storeBrebEnabled = store?.brebConfig?.enabled || (store?.settings as any)?.brebConfig?.enabled;
+    const canUseBreb = Boolean(storeBrebKey && storeBrebEnabled);
+
+    const paymentButtons = [];
+    if (canUseBreb) {
+      paymentButtons.push({ id: 'btn_pay_breb', title: '💳 Pagar con Bre-B' });
+    }
+    paymentButtons.push({ id: 'btn_pay_cod', title: '💵 Contra Entrega' });
+    paymentButtons.push({ id: 'btn_pay_link', title: '🔗 Pagar en Línea' });
 
     await updateWhatsAppSession(session.id, { step: 'AWAITING_PAYMENT_SELECTION' });
-    await waClient.sendButtons(from, `${summary}\n\nPresiona el botón de abajo para pagar de forma instantánea y segura:`, [
-      { id: 'btn_pay_breb', title: '💳 Pagar con Bre-B' },
-      { id: 'cancel', title: '❌ Cancelar' }
-    ]);
+    await waClient.sendButtons(from, `${summary}\n\n¿Cómo prefieres pagar tu pedido? Elige una opción abajo:`, paymentButtons);
     return;
   }
 
@@ -1219,15 +1262,23 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       break;
 
     case 'AWAITING_NAME': {
-      const updatedSession = await updateWhatsAppSession(session.id, { customerName: text, step: 'IDLE' });
-      // Re-disparar el flujo de checkout con la sesión actualizada
+      const trimmed = text.trim();
+      if (!trimmed || trimmed.length < 2) {
+        await waClient.sendText(from, 'Por favor, escribe un nombre válido para el despacho de tu pedido:');
+        break;
+      }
+      const updatedSession = await updateWhatsAppSession(session.id, { customerName: trimmed, step: 'IDLE' });
       await handleWhatsAppMessage(from, 'confirm_checkout', updatedSession);
       break;
     }
 
     case 'AWAITING_ADDRESS': {
-      const updatedSession = await updateWhatsAppSession(session.id, { address: text, step: 'IDLE' });
-      // Re-disparar el flujo de checkout con la sesión actualizada
+      const trimmed = text.trim();
+      if (!trimmed || trimmed.length < 4) {
+        await waClient.sendText(from, 'Por favor, indícanos una dirección de entrega válida (Calle, Carrera, Barrio y Ciudad):');
+        break;
+      }
+      const updatedSession = await updateWhatsAppSession(session.id, { address: trimmed, step: 'IDLE' });
       await handleWhatsAppMessage(from, 'confirm_checkout', updatedSession);
       break;
     }
@@ -1236,6 +1287,114 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
       if (text === 'btn_pay_breb') {
         await updateWhatsAppSession(session.id, { step: 'AWAITING_BREB_KEY' });
         await waClient.sendText(from, "📱 *Pago con Bre-B*\n\nPor favor, escribe tu **número de celular o llave Bre-B** para enviarle la solicitud de cobro directo a tu banco:");
+      } else if (text === 'btn_pay_cod') {
+        const items = await getCartItemsForSession(session);
+        if (items.length === 0) {
+          await waClient.sendText(from, 'Tu carrito está vacío. 🛒');
+          await updateWhatsAppSession(session.id, { step: 'IDLE' });
+          break;
+        }
+
+        const storeId = session.storeId || items[0]?.storeId || 'global';
+        const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
+        const store = await prisma.store.findUnique({ where: { id: storeId } });
+        const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
+        const total = subtotal + deliveryCost;
+
+        const order = await prisma.order.create({
+          data: {
+            customerName: session.customerName || 'Cliente WhatsApp',
+            customerPhone: from,
+            customerWhatsAppId: from,
+            address: session.address || 'Dirección por confirmar',
+            city: 'Colombia',
+            items: items as any,
+            total: total,
+            storeId: storeId,
+            source: 'WHATSAPP',
+            status: 'pending_delivery',
+            paymentStatus: 'CASH_ON_DELIVERY',
+            deliveryRequested: true
+          }
+        });
+
+        await updateWhatsAppSession(session.id, {
+          step: 'IDLE',
+          cart: emptyCartState()
+        });
+
+        await waClient.sendText(
+          from,
+          `🎉 *¡Pedido Confirmado con Éxito!*\n\n` +
+          `• *Número de Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
+          `• *Total a pagar al recibir:* $${total.toLocaleString('es-CO')} COP en efectivo\n` +
+          `• *Dirección:* ${order.address}\n` +
+          `• *Destinatario:* ${order.customerName}\n\n` +
+          `El vendedor ya fue notificado y preparará tu envío. Te avisaremos cuando vaya en camino. 🛵`
+        );
+
+        if (store?.whatsapp) {
+          await waClient.sendButtons(
+            store.whatsapp,
+            `📦 *¡Nuevo Pedido Contra Entrega!* 🛵\n\n` +
+            `• *Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
+            `• *Cliente:* ${order.customerName} (${from})\n` +
+            `• *Dirección:* ${order.address}\n` +
+            `• *Total a cobrar:* $${total.toLocaleString('es-CO')} COP\n\n` +
+            `¿Deseas solicitar un repartidor de la red para despachar este pedido?`,
+            [
+              { id: `delivery_yes_${order.id}`, title: '🏍️ Solicitar Domicilio' },
+              { id: `delivery_no_${order.id}`, title: '📦 Enviar por mi cuenta' }
+            ]
+          );
+        }
+      } else if (text === 'btn_pay_link') {
+        const items = await getCartItemsForSession(session);
+        if (items.length === 0) {
+          await waClient.sendText(from, 'Tu carrito está vacío. 🛒');
+          await updateWhatsAppSession(session.id, { step: 'IDLE' });
+          break;
+        }
+
+        const storeId = session.storeId || items[0]?.storeId || 'global';
+        const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
+        const store = await prisma.store.findUnique({ where: { id: storeId } });
+        const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
+        const total = subtotal + deliveryCost;
+
+        const order = await prisma.order.create({
+          data: {
+            customerName: session.customerName || 'Cliente WhatsApp',
+            customerPhone: from,
+            customerWhatsAppId: from,
+            address: session.address || 'Dirección por confirmar',
+            city: 'Colombia',
+            items: items as any,
+            total: total,
+            storeId: storeId,
+            source: 'WHATSAPP',
+            status: 'pending_payment',
+            paymentStatus: 'PENDING'
+          }
+        });
+
+        await updateWhatsAppSession(session.id, {
+          step: 'IDLE',
+          cart: emptyCartState()
+        });
+
+        const payUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${order.id}`;
+
+        await waClient.sendText(
+          from,
+          `💳 *Enlace de Pago Seguro Generado*\n\n` +
+          `• *Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
+          `• *Total:* $${total.toLocaleString('es-CO')} COP\n` +
+          `• *Entrega en:* ${order.address}\n\n` +
+          `Haz clic en el enlace para pagar con Tarjeta de Crédito, Débito, PSE o tu método favorito:\n` +
+          `🔗 ${payUrl}\n\n` +
+          `_En cuanto completes el pago, tu orden será procesada automáticamente._`
+        );
       } else if (text === 'cancel') {
         await updateWhatsAppSession(session.id, { step: 'IDLE' });
         await waClient.sendText(from, 'Pedido cancelado. Tu carrito se mantiene intacto. ❌');
@@ -1257,12 +1416,15 @@ Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
         }
 
         const storeId = session.storeId || items[0]?.storeId || 'global';
-        const total = items.reduce((s, i) => s + (i.price * i.qty), 0);
+        const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
 
         const store = await prisma.store.findUnique({
           where: { id: storeId },
           include: { brebConfig: true }
         });
+
+        const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
+        const total = subtotal + deliveryCost;
 
         const storeBrebKey = store?.brebConfig?.keyValue || (store?.settings as any)?.brebConfig?.keyValue;
         const storeBrebEnabled = store?.brebConfig?.enabled || (store?.settings as any)?.brebConfig?.enabled;
