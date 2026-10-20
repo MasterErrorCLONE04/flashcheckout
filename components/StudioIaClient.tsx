@@ -265,17 +265,23 @@ export default function StudioIaClient({
       const ctx = canvas.getContext('2d')
       if (!ctx) throw new Error('No se pudo inicializar el motor de render')
 
-      // Pre-cargar la imagen del producto con soporte CORS
+      // Pre-cargar la imagen del producto con soporte CORS y fallback seguro
+      let imageLoadFailed = false
       const img = new (window as any).Image()
       img.crossOrigin = 'anonymous'
 
       await new Promise((resolve) => {
         if (!selectedProduct.imageUrl) {
+          imageLoadFailed = true
           resolve(true)
           return
         }
         img.onload = () => resolve(true)
-        img.onerror = () => resolve(true)
+        img.onerror = () => {
+          console.warn('[Studio IA] Imagen externa con CORS no habilitado. Usando renderizado cinemático vector.')
+          imageLoadFailed = true
+          resolve(true)
+        }
         img.src = selectedProduct.imageUrl
       })
 
@@ -290,9 +296,40 @@ export default function StudioIaClient({
         'video/webm'
       ]
       const selectedMime = mimeTypes.find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm'
+      const isActualMp4 = selectedMime.includes('mp4')
+      const fileExt = isActualMp4 ? 'mp4' : 'webm'
 
-      const stream = canvas.captureStream(30)
-      const recorder = new MediaRecorder(stream, {
+      // Iniciar sintetizador de audio para incluir pista en el stream
+      let audioCtx: AudioContext | null = null
+      let audioDest: MediaStreamAudioDestinationNode | null = null
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass()
+          audioDest = audioCtx.createMediaStreamDestination()
+          const osc = audioCtx.createOscillator()
+          const gain = audioCtx.createGain()
+          gain.gain.value = 0.05
+          osc.type = musicTrack === 'lofi' ? 'triangle' : musicTrack === 'luxury' ? 'sine' : 'sawtooth'
+          osc.frequency.setValueAtTime(musicTrack === 'lofi' ? 220 : 180, audioCtx.currentTime)
+          osc.connect(gain)
+          gain.connect(audioDest)
+          osc.start()
+        }
+      } catch (audioErr) {
+        console.warn('[Studio IA Audio Track]', audioErr)
+      }
+
+      const canvasStream = canvas.captureStream(30)
+      let combinedStream = canvasStream
+      if (audioDest && audioDest.stream.getAudioTracks().length > 0) {
+        combinedStream = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...audioDest.stream.getAudioTracks()
+        ])
+      }
+
+      const recorder = new MediaRecorder(combinedStream, {
         mimeType: selectedMime,
         videoBitsPerSecond: 6000000 // 6 Mbps alta definición
       })
@@ -324,16 +361,22 @@ export default function StudioIaClient({
         ctx.fillRect(0, 0, 1080, 1920)
 
         // 2. Dibujar foto del producto con efecto Ken Burns Zoom
-        if (img.complete && img.naturalWidth > 0) {
-          const zoom = 1.0 + (t / totalSeconds) * 0.18
-          const w = 1080 * zoom
-          const h = 1920 * zoom
-          const ox = (1080 - w) / 2
-          const oy = (1920 - h) / 2
-          ctx.drawImage(img, ox, oy, w, h)
-        } else {
+        if (!imageLoadFailed && img.complete && img.naturalWidth > 0) {
+          try {
+            const zoom = 1.0 + (t / totalSeconds) * 0.18
+            const w = 1080 * zoom
+            const h = 1920 * zoom
+            const ox = (1080 - w) / 2
+            const oy = (1920 - h) / 2
+            ctx.drawImage(img, ox, oy, w, h)
+          } catch (corsErr) {
+            imageLoadFailed = true
+          }
+        }
+        if (imageLoadFailed || !img.complete || img.naturalWidth === 0) {
           const grad = ctx.createLinearGradient(0, 0, 1080, 1920)
           grad.addColorStop(0, '#1e1b4b')
+          grad.addColorStop(0.5, '#2e1065')
           grad.addColorStop(1, '#09090b')
           ctx.fillStyle = grad
           ctx.fillRect(0, 0, 1080, 1920)
@@ -481,12 +524,15 @@ export default function StudioIaClient({
       }
 
       recorder.onstop = async () => {
+        if (audioCtx) {
+          try { audioCtx.close() } catch (e) {}
+        }
         const blob = new Blob(chunks, { type: selectedMime })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         const sanitized = selectedProduct.name.replace(/[^a-zA-Z0-9]/g, '_')
         a.href = url
-        a.download = `${sanitized}_reel_promo.mp4`
+        a.download = `${sanitized}_reel_promo.${fileExt}`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -518,7 +564,7 @@ export default function StudioIaClient({
 
         setRenderProgress(100)
         setIsRenderingVideo(false)
-        toast.success('¡Video MP4 en alta definición descargado con éxito!')
+        toast.success(`¡Video ${fileExt.toUpperCase()} en alta definición descargado con éxito!`)
       }
 
       renderLoop()
@@ -541,6 +587,13 @@ export default function StudioIaClient({
       return
     }
 
+    let phoneToSend = store.whatsapp
+    if (type === 'TEST' && !phoneToSend) {
+      const inputPhone = window.prompt('Ingresa tu número de WhatsApp con código de país (ej: 573001234567):')
+      if (!inputPhone || !inputPhone.trim()) return
+      phoneToSend = inputPhone.trim()
+    }
+
     setIsPublishing(true)
     try {
       const res = await fetch('/api/studio-ia/publish-whatsapp', {
@@ -551,6 +604,7 @@ export default function StudioIaClient({
           caption: generatedData.copyWhatsApp,
           mediaUrl: selectedProduct?.imageUrl || undefined,
           mediaType: 'image',
+          targetPhone: phoneToSend || undefined,
           productId: selectedProduct?.id,
           title: `Reel IA - ${selectedProduct?.name}`
         })
@@ -578,6 +632,38 @@ export default function StudioIaClient({
       toast.error(err.message || 'Error al publicar en WhatsApp')
     } finally {
       setIsPublishing(false)
+    }
+  }
+
+  // Re-publicar pieza de la biblioteca
+  const handleRepublish = async (item: any) => {
+    if (!store.whatsappConnected) {
+      toast.error('Conecta tu WhatsApp en Integraciones antes de publicar.')
+      return
+    }
+    const toastId = toast.loading('Publicando pieza en WhatsApp...')
+    try {
+      const res = await fetch('/api/studio-ia/publish-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'STATUS',
+          caption: item.copyCaption || item.title,
+          mediaUrl: item.thumbnailUrl || undefined,
+          mediaType: 'image',
+          productId: item.productId,
+          title: item.title
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Error al re-publicar')
+      }
+      toast.dismiss(toastId)
+      toast.success('¡Pieza re-publicada en los Estados de WhatsApp!')
+    } catch (err: any) {
+      toast.dismiss(toastId)
+      toast.error(err.message || 'Error al re-publicar')
     }
   }
 
@@ -704,7 +790,26 @@ export default function StudioIaClient({
       </div>
 
       {/* ── CONTENIDO SEGÚN LA PESTAÑA PRINCIPAL ─────────────────────────── */}
-      {mainTab === 'studio' ? (
+      {products.length === 0 ? (
+        <div className="py-16 px-6 bg-white border border-zinc-200/90 rounded-2xl text-center space-y-4 shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-sm">
+            <ShoppingBag className="w-8 h-8" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1">
+            <h2 className="text-base font-extrabold text-zinc-950">Aún no tienes productos en tu catálogo</h2>
+            <p className="text-xs text-zinc-500 font-medium">
+              Studio IA necesita al menos un producto para crear reels virales, textos publicitarios y audios comerciales.
+            </p>
+          </div>
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+          >
+            <span>+ Crear Mi Primer Producto</span>
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
+        </div>
+      ) : mainTab === 'studio' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
           
           {/* COLUMNA IZQUIERDA: CONTROLES, CATÁLOGO Y GUIONES (7/12) */}
@@ -1352,11 +1457,11 @@ export default function StudioIaClient({
               {/* Botón Prueba a mi Teléfono */}
               <button
                 onClick={() => handlePublishWhatsApp('TEST')}
-                disabled={isPublishing || !generatedData || !store.whatsapp}
+                disabled={isPublishing || !generatedData}
                 className="w-full py-2.5 px-4 bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 disabled:opacity-50 text-zinc-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <MessageCircle className="w-3.5 h-3.5 text-zinc-500" />
-                <span>Enviar prueba a mi número ({store.whatsapp || 'Sin registrar'})</span>
+                <span>Enviar prueba a mi WhatsApp {store.whatsapp ? `(${store.whatsapp})` : ''}</span>
               </button>
 
               {/* Botón Descargar Video Real */}
@@ -1460,7 +1565,7 @@ export default function StudioIaClient({
                       Copiar Copy
                     </button>
                     <button
-                      onClick={() => toast.success('Publicando pieza en WhatsApp...')}
+                      onClick={() => handleRepublish(item)}
                       className="px-3 py-1.5 text-[11px] font-bold bg-[#25D366] text-white rounded-md hover:bg-[#20ba59] cursor-pointer"
                     >
                       Re-publicar

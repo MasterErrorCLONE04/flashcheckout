@@ -1,14 +1,15 @@
 {
   "version": "6.0",
   "routing_model": {
-    "CATALOG": []
+    "CATALOG": [
+      "CHECKOUT"
+    ],
+    "CHECKOUT": []
   },
   "screens": [
     {
       "id": "CATALOG",
       "title": "${data.store_name}",
-      "terminal": true,
-      "success": true,
       "data": {
         "store_name": {
           "type": "string",
@@ -57,7 +58,7 @@
               },
               {
                 "type": "TextSubheading",
-                "text": "Selecciona los productos que deseas añadir a tu carrito de compras:"
+                "text": "Selecciona los productos que deseas añadir a tu pedido:"
               },
               {
                 "type": "CheckboxGroup",
@@ -68,11 +69,85 @@
               },
               {
                 "type": "Footer",
-                "label": "Confirmar y Añadir al Carrito",
+                "label": "Siguiente: Datos de Envío ➡️",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": {
+                    "type": "screen",
+                    "name": "CHECKOUT"
+                  },
+                  "payload": {
+                    "selections": "${form.selections}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHECKOUT",
+      "title": "Datos de Envío 📍",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "selections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "__example__": [
+            "prod_sample_1"
+          ]
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "checkout_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Finaliza tu Pedido 📦"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "Ingresa los datos para la entrega de tus productos:"
+              },
+              {
+                "type": "TextInput",
+                "name": "full_name",
+                "label": "Nombre Completo",
+                "required": true,
+                "input-type": "text"
+              },
+              {
+                "type": "TextInput",
+                "name": "address",
+                "label": "Dirección de Entrega",
+                "required": true,
+                "input-type": "text"
+              },
+              {
+                "type": "TextInput",
+                "name": "city",
+                "label": "Ciudad",
+                "required": true,
+                "input-type": "text"
+              },
+              {
+                "type": "Footer",
+                "label": "Confirmar y Elegir Pago ✅",
                 "on-click-action": {
                   "name": "complete",
                   "payload": {
-                    "selections": "${form.selections}"
+                    "selections": "${data.selections}",
+                    "full_name": "${form.full_name}",
+                    "address": "${form.address}",
+                    "city": "${form.city}"
                   }
                 }
               }

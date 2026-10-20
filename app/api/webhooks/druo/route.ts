@@ -76,22 +76,28 @@ export async function POST(req: Request) {
             const { evolutionClient } = await import('@/lib/whatsapp/evolution');
             storeClient = {
               sendText: (to: string, msg: string) => evolutionClient.sendText(order.store.whatsappInstanceName!, to, msg),
+              sendButtons: (to: string, msg: string, btns: any[]) => evolutionClient.sendButtons(order.store.whatsappInstanceName!, to, msg, btns)
             } as any;
           }
 
           await storeClient.sendText(
             recipientPhone,
             `🎉 *¡Pago Confirmado con Éxito!*\n\n` +
-            `Hemos recibido correctamente tu pago para la orden *#${orderId.slice(-6).toUpperCase()}*.\n\n` +
-            `El vendedor ya está preparando tu pedido. ¡Gracias por tu compra!`
+            `Hemos recibido correctamente tu pago de *$${order.total.toLocaleString('es-CO')} COP* para la orden *#${orderId.slice(-6).toUpperCase()}*.\n\n` +
+            `El vendedor ya está preparando tu despacho a:\n📍 *${order.address}*\n\n¡Muchas gracias por tu compra!`
           );
+
+          // Enviar factura PDF si está disponible
+          const { sendInvoiceToWhatsApp } = await import('@/lib/whatsapp/send-invoice');
+          await sendInvoiceToWhatsApp(orderId).catch(err => console.error('[DRUO Webhook Invoice Error]', err));
+
           console.log(`[DRUO Webhook] Notified customer ${recipientPhone} for order ${orderId}`);
         } catch (waErr) {
           console.error('[DRUO Webhook] Error sending WhatsApp notification:', waErr);
         }
       }
 
-      // 5. Notificar al vendedor si tiene número configurado
+      // 5. Notificar al vendedor con opción de solicitar repartidor
       if (order.store?.whatsapp) {
         try {
           let storeClient = waClient;
@@ -99,15 +105,26 @@ export async function POST(req: Request) {
             const { evolutionClient } = await import('@/lib/whatsapp/evolution');
             storeClient = {
               sendText: (to: string, msg: string) => evolutionClient.sendText(order.store.whatsappInstanceName!, to, msg),
+              sendButtons: (to: string, msg: string, btns: any[]) => evolutionClient.sendButtons(order.store.whatsappInstanceName!, to, msg, btns)
             } as any;
           }
 
-          await storeClient.sendText(
-            order.store.whatsapp,
-            `💰 *¡Nuevo Pago por Bre-B!* 🚀\n\n` +
-            `Se ha confirmado el pago de *$${order.total.toLocaleString('es-CO')} COP* para el pedido *#${orderId.slice(-6).toUpperCase()}* de *${order.customerName}*.\n\n` +
-            `Puedes ver los detalles en tu dashboard.`
-          );
+          const merchantMsg = 
+            `💰 *¡Nuevo Pago por Bre-B Confirmado!* 🚀\n\n` +
+            `• *Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
+            `• *Cliente:* ${order.customerName} (${recipientPhone || 'N/A'})\n` +
+            `• *Dirección:* ${order.address}\n` +
+            `• *Total cobrado:* $${order.total.toLocaleString('es-CO')} COP\n\n` +
+            `¿Deseas solicitar un repartidor de la red para despachar este pedido?`;
+
+          if (typeof storeClient.sendButtons === 'function') {
+            await storeClient.sendButtons(order.store.whatsapp, merchantMsg, [
+              { id: `delivery_yes_${order.id}`, title: '🏍️ Solicitar Domicilio' },
+              { id: `delivery_no_${order.id}`, title: '📦 Enviar por mi cuenta' }
+            ]);
+          } else {
+            await storeClient.sendText(order.store.whatsapp, merchantMsg);
+          }
         } catch (storeWaErr) {
           console.error('[DRUO Webhook] Error notifying merchant:', storeWaErr);
         }
