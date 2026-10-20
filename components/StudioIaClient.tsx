@@ -98,6 +98,57 @@ type CreativeMode = 'DYNAMIC_REEL' | 'GENERATIVE_I2V' | 'AVATAR_UGC'
 type CreativeTone = 'urgency' | 'luxury' | 'casual' | 'educational'
 type MusicTrack = 'viral' | 'lofi' | 'luxury' | 'upbeat'
 
+export interface AiAvatar {
+  id: string
+  name: string
+  niche: string
+  badge: string
+  imageUrl: string
+  gender: 'female' | 'male'
+  tone: string
+}
+
+export type AvatarLayout = 'BUBBLE_PIP' | 'SPLIT_UGC' | 'NONE'
+
+export const AI_AVATARS: AiAvatar[] = [
+  {
+    id: 'sofia_ugc',
+    name: 'Sofía',
+    niche: 'Moda & Tendencias',
+    badge: 'Más Popular',
+    imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+    gender: 'female',
+    tone: 'Espontánea & Fresca'
+  },
+  {
+    id: 'carlos_tech',
+    name: 'Carlos',
+    niche: 'Tech & Gadgets',
+    badge: 'Reviewer Pro',
+    imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80',
+    gender: 'male',
+    tone: 'Analítico & Seguro'
+  },
+  {
+    id: 'valentina_sales',
+    name: 'Valentina',
+    niche: 'Ofertas & Belleza',
+    badge: 'Alta Conversión',
+    imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80',
+    gender: 'female',
+    tone: 'Entusiasta & Enérgica'
+  },
+  {
+    id: 'mateo_business',
+    name: 'Mateo',
+    niche: 'Lujo & Estilo',
+    badge: 'Premium',
+    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80',
+    gender: 'male',
+    tone: 'Elegante & Convincente'
+  }
+]
+
 export default function StudioIaClient({
   store,
   products,
@@ -119,6 +170,10 @@ export default function StudioIaClient({
   const [duration, setDuration] = useState<'15s' | '30s'>('15s')
   const [musicTrack, setMusicTrack] = useState<MusicTrack>('viral')
   const [selectedCouponId, setSelectedCouponId] = useState<string>('')
+  
+  // Sistema de Avatares de IA & Creadores UGC
+  const [selectedAvatar, setSelectedAvatar] = useState<AiAvatar>(AI_AVATARS[0])
+  const [avatarLayout, setAvatarLayout] = useState<AvatarLayout>('BUBBLE_PIP')
   
   // Estados de generación y publicación
   const [isGenerating, setIsGenerating] = useState(false)
@@ -285,6 +340,23 @@ export default function StudioIaClient({
         img.src = selectedProduct.imageUrl
       })
 
+      // Pre-cargar la imagen del avatar seleccionado si no está en 'NONE'
+      let avatarLoadFailed = false
+      const avatarImg = new (window as any).Image()
+      avatarImg.crossOrigin = 'anonymous'
+
+      if (avatarLayout !== 'NONE' && selectedAvatar?.imageUrl) {
+        await new Promise((resolve) => {
+          avatarImg.onload = () => resolve(true)
+          avatarImg.onerror = () => {
+            console.warn('[Studio IA] Imagen de avatar no disponible vía CORS.')
+            avatarLoadFailed = true
+            resolve(true)
+          }
+          avatarImg.src = selectedAvatar.imageUrl
+        })
+      }
+
       setRenderProgress(15)
 
       // Identificar formato de video soportado por el navegador
@@ -299,22 +371,121 @@ export default function StudioIaClient({
       const isActualMp4 = selectedMime.includes('mp4')
       const fileExt = isActualMp4 ? 'mp4' : 'webm'
 
-      // Iniciar sintetizador de audio para incluir pista en el stream
+      // Iniciar sintetizador de audio profesional con voz de IA y música comercial
       let audioCtx: AudioContext | null = null
       let audioDest: MediaStreamAudioDestinationNode | null = null
+
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
         if (AudioContextClass) {
           audioCtx = new AudioContextClass()
+          if (audioCtx.state === 'suspended') {
+            await audioCtx.resume()
+          }
           audioDest = audioCtx.createMediaStreamDestination()
-          const osc = audioCtx.createOscillator()
-          const gain = audioCtx.createGain()
-          gain.gain.value = 0.05
-          osc.type = musicTrack === 'lofi' ? 'triangle' : musicTrack === 'luxury' ? 'sine' : 'sawtooth'
-          osc.frequency.setValueAtTime(musicTrack === 'lofi' ? 220 : 180, audioCtx.currentTime)
-          osc.connect(gain)
-          gain.connect(audioDest)
-          osc.start()
+
+          // 1. OBTENER LOCUCIÓN REAL DE LA IA (MP3)
+          try {
+            const voiceRes = await fetch('/api/studio-ia/generate-voice', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                text: `${generatedData.hook}. ${generatedData.script}`,
+                voice: tone === 'luxury' ? 'onyx' : tone === 'casual' ? 'shimmer' : 'nova'
+              })
+            })
+            if (voiceRes.ok) {
+              const arrayBuffer = await voiceRes.arrayBuffer()
+              if (arrayBuffer.byteLength > 500) {
+                const voiceBuffer = await audioCtx.decodeAudioData(arrayBuffer)
+                const voiceSource = audioCtx.createBufferSource()
+                voiceSource.buffer = voiceBuffer
+                const voiceGain = audioCtx.createGain()
+                voiceGain.gain.setValueAtTime(1.0, audioCtx.currentTime) // Voz al 100%
+                voiceSource.connect(voiceGain)
+                voiceGain.connect(audioDest)
+                voiceSource.start(audioCtx.currentTime + 0.2) // Inicia a los 200ms
+              }
+            }
+          } catch (vErr) {
+            console.warn('[Studio IA Voiceover Download Error]:', vErr)
+          }
+
+          // 2. MEZCLAR PISTA MUSICAL DE FONDO COMERCIAL (CHORDS + RHYTHM GROOVE)
+          const musicGain = audioCtx.createGain()
+          musicGain.gain.setValueAtTime(0.18, audioCtx.currentTime) // 18% para no tapar la voz
+          musicGain.connect(audioDest)
+
+          const filter = audioCtx.createBiquadFilter()
+          filter.type = 'lowpass'
+          filter.frequency.setValueAtTime(musicTrack === 'lofi' ? 700 : 1300, audioCtx.currentTime)
+          filter.connect(musicGain)
+
+          const chordProgressions: Record<string, number[][]> = {
+            viral: [
+              [220, 261.63, 329.63],   // Am
+              [174.61, 220, 261.63],   // F
+              [130.81, 164.81, 196.00],// C
+              [196.00, 246.94, 293.66] // G
+            ],
+            lofi: [
+              [146.83, 174.61, 220, 261.63],     // Dm7
+              [196.00, 246.94, 293.66, 349.23],  // G7
+              [130.81, 164.81, 196.00, 246.94],  // Cmaj7
+              [220.00, 277.18, 329.63, 392.00]   // A7
+            ],
+            upbeat: [
+              [261.63, 329.63, 392.00], // C
+              [196.00, 246.94, 293.66], // G
+              [220.00, 261.63, 329.63], // Am
+              [174.61, 220.00, 261.63]  // F
+            ],
+            luxury: [
+              [174.61, 220.00, 261.63, 329.63], // Fmaj7
+              [164.81, 196.00, 246.94, 293.66], // Em7
+              [146.83, 174.61, 220.00, 261.63], // Dm7
+              [130.81, 164.81, 196.00, 246.94]  // Cmaj7
+            ]
+          }
+
+          const chords = chordProgressions[musicTrack] || chordProgressions.viral
+          const chordDuration = 2.0
+          const totalChords = Math.ceil(totalSeconds / chordDuration)
+
+          for (let i = 0; i < totalChords; i++) {
+            const chord = chords[i % chords.length]
+            const startTime = audioCtx.currentTime + (i * chordDuration)
+
+            chord.forEach((freq) => {
+              if (!audioCtx) return
+              const osc = audioCtx.createOscillator()
+              const noteGain = audioCtx.createGain()
+              osc.type = musicTrack === 'luxury' ? 'sine' : musicTrack === 'lofi' ? 'triangle' : 'sawtooth'
+              osc.frequency.setValueAtTime(freq, startTime)
+
+              noteGain.gain.setValueAtTime(0.001, startTime)
+              noteGain.gain.exponentialRampToValueAtTime(0.07, startTime + 0.12)
+              noteGain.gain.exponentialRampToValueAtTime(0.04, startTime + chordDuration * 0.7)
+              noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + chordDuration - 0.05)
+
+              osc.connect(noteGain)
+              noteGain.connect(filter)
+              osc.start(startTime)
+              osc.stop(startTime + chordDuration)
+            })
+
+            // Golpe suave de bajo rítmico en cada cambio
+            const bassOsc = audioCtx.createOscillator()
+            const bassGain = audioCtx.createGain()
+            bassOsc.type = 'sine'
+            bassOsc.frequency.setValueAtTime(chord[0] / 2, startTime)
+            bassGain.gain.setValueAtTime(0.14, startTime)
+            bassGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.55)
+            bassOsc.connect(bassGain)
+            bassGain.connect(musicGain)
+            bassOsc.start(startTime)
+            bassOsc.stop(startTime + 0.6)
+          }
         }
       } catch (audioErr) {
         console.warn('[Studio IA Audio Track]', audioErr)
@@ -360,34 +531,100 @@ export default function StudioIaClient({
         ctx.fillStyle = '#0a0a0c'
         ctx.fillRect(0, 0, 1080, 1920)
 
-        // 2. Dibujar foto del producto con efecto Ken Burns Zoom
-        if (!imageLoadFailed && img.complete && img.naturalWidth > 0) {
-          try {
-            const zoom = 1.0 + (t / totalSeconds) * 0.18
-            const w = 1080 * zoom
-            const h = 1920 * zoom
-            const ox = (1080 - w) / 2
-            const oy = (1920 - h) / 2
-            ctx.drawImage(img, ox, oy, w, h)
-          } catch (corsErr) {
-            imageLoadFailed = true
+        // 2. DIBUJADO SEGÚN EL MODO DE AVATAR (SPLIT_UGC | BUBBLE_PIP | NONE)
+        if (avatarLayout === 'SPLIT_UGC') {
+          // --- MODO PANTALLA DIVIDIDA 50/50 ---
+          // MITAD SUPERIOR: AVATAR UGC (y: 0 a 860)
+          if (!avatarLoadFailed && avatarImg.complete && avatarImg.naturalWidth > 0) {
+            try {
+              const avZoom = 1.0 + Math.sin(t * 3) * 0.02
+              const avW = 1080 * avZoom
+              const avH = 880 * avZoom
+              const avOx = (1080 - avW) / 2
+              const avOy = (860 - avH) / 2
+              ctx.drawImage(avatarImg, avOx, avOy, avW, avH)
+            } catch (e) {
+              avatarLoadFailed = true
+            }
           }
-        }
-        if (imageLoadFailed || !img.complete || img.naturalWidth === 0) {
-          const grad = ctx.createLinearGradient(0, 0, 1080, 1920)
-          grad.addColorStop(0, '#1e1b4b')
-          grad.addColorStop(0.5, '#2e1065')
-          grad.addColorStop(1, '#09090b')
-          ctx.fillStyle = grad
-          ctx.fillRect(0, 0, 1080, 1920)
+          if (avatarLoadFailed || !avatarImg.complete || avatarImg.naturalWidth === 0) {
+            const avGrad = ctx.createLinearGradient(0, 0, 0, 860)
+            avGrad.addColorStop(0, '#2e1065')
+            avGrad.addColorStop(1, '#09090b')
+            ctx.fillStyle = avGrad
+            ctx.fillRect(0, 0, 1080, 860)
+          }
+
+          // Sombra en base de mitad superior
+          const avShadow = ctx.createLinearGradient(0, 680, 0, 860)
+          avShadow.addColorStop(0, 'transparent')
+          avShadow.addColorStop(1, 'rgba(0,0,0,0.95)')
+          ctx.fillStyle = avShadow
+          ctx.fillRect(0, 680, 1080, 180)
+
+          // Badge del creador UGC
+          ctx.fillStyle = 'rgba(0,0,0,0.7)'
+          ctx.beginPath()
+          ctx.roundRect(80, 750, 480, 75, 20)
+          ctx.fill()
+          ctx.strokeStyle = 'rgba(255,255,255,0.2)'
+          ctx.lineWidth = 2
+          ctx.stroke()
+          ctx.fillStyle = '#ffffff'
+          ctx.font = 'bold 32px sans-serif'
+          ctx.textAlign = 'left'
+          ctx.fillText(`🎙️ ${selectedAvatar.name} • Creador UGC`, 110, 800)
+
+          // MITAD INFERIOR: PRODUCTO (y: 860 a 1920)
+          if (!imageLoadFailed && img.complete && img.naturalWidth > 0) {
+            try {
+              const pZoom = 1.0 + (t / totalSeconds) * 0.15
+              const pW = 1080 * pZoom
+              const pH = 1060 * pZoom
+              const pOx = (1080 - pW) / 2
+              const pOy = 860 + (1060 - pH) / 2
+              ctx.drawImage(img, pOx, pOy, pW, pH)
+            } catch (e) {
+              imageLoadFailed = true
+            }
+          }
+          if (imageLoadFailed || !img.complete || img.naturalWidth === 0) {
+            const pGrad = ctx.createLinearGradient(0, 860, 0, 1920)
+            pGrad.addColorStop(0, '#1e1b4b')
+            pGrad.addColorStop(1, '#09090b')
+            ctx.fillStyle = pGrad
+            ctx.fillRect(0, 860, 1080, 1060)
+          }
+        } else {
+          // --- MODO PANTALLA COMPLETA DEL PRODUCTO ---
+          if (!imageLoadFailed && img.complete && img.naturalWidth > 0) {
+            try {
+              const zoom = 1.0 + (t / totalSeconds) * 0.18
+              const w = 1080 * zoom
+              const h = 1920 * zoom
+              const ox = (1080 - w) / 2
+              const oy = (1920 - h) / 2
+              ctx.drawImage(img, ox, oy, w, h)
+            } catch (corsErr) {
+              imageLoadFailed = true
+            }
+          }
+          if (imageLoadFailed || !img.complete || img.naturalWidth === 0) {
+            const grad = ctx.createLinearGradient(0, 0, 1080, 1920)
+            grad.addColorStop(0, '#1e1b4b')
+            grad.addColorStop(0.5, '#2e1065')
+            grad.addColorStop(1, '#09090b')
+            ctx.fillStyle = grad
+            ctx.fillRect(0, 0, 1080, 1920)
+          }
         }
 
         // Sombras superior e inferior
-        const topGrad = ctx.createLinearGradient(0, 0, 0, 500)
+        const topGrad = ctx.createLinearGradient(0, 0, 0, 420)
         topGrad.addColorStop(0, 'rgba(0,0,0,0.85)')
         topGrad.addColorStop(1, 'transparent')
         ctx.fillStyle = topGrad
-        ctx.fillRect(0, 0, 1080, 500)
+        ctx.fillRect(0, 0, 1080, 420)
 
         const btmGrad = ctx.createLinearGradient(0, 1250, 0, 1920)
         btmGrad.addColorStop(0, 'transparent')
@@ -398,78 +635,147 @@ export default function StudioIaClient({
         // 3. Cabecera Tienda
         ctx.fillStyle = 'rgba(0,0,0,0.65)'
         ctx.beginPath()
-        ctx.roundRect(60, 80, 520, 110, 55)
+        ctx.roundRect(60, 60, 520, 100, 50)
         ctx.fill()
         ctx.strokeStyle = 'rgba(255,255,255,0.2)'
         ctx.lineWidth = 2
         ctx.stroke()
 
-        // Avatar
         ctx.fillStyle = '#7c3aed'
         ctx.beginPath()
-        ctx.arc(115, 135, 40, 0, Math.PI * 2)
+        ctx.arc(115, 110, 36, 0, Math.PI * 2)
         ctx.fill()
 
         ctx.fillStyle = '#ffffff'
-        ctx.font = 'bold 36px sans-serif'
+        ctx.font = 'bold 34px sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText(store.name.charAt(0).toUpperCase(), 115, 148)
+        ctx.fillText(store.name.charAt(0).toUpperCase(), 115, 122)
 
         ctx.textAlign = 'left'
-        ctx.font = 'bold 36px sans-serif'
-        ctx.fillText(store.name.slice(0, 18), 180, 148)
+        ctx.font = 'bold 34px sans-serif'
+        ctx.fillText(store.name.slice(0, 18), 175, 122)
 
-        // 4. Gancho en Pantalla (0s a 3.5s)
-        if (t <= 3.5) {
+        // 4. SUBTÍTULOS ESTILO CAPCUT (KARAOKE DINÁMICO PALABRA POR PALABRA)
+        const fullScript = (t <= 3.2 ? generatedData.hook : generatedData.script)
+          .replace(/[*#_~`]/g, '')
+          .trim()
+        const allWords = fullScript.split(/\s+/).filter(Boolean)
+        const scriptDuration = t <= 3.2 ? 3.2 : (totalSeconds - 3.2)
+        const elapsedScript = t <= 3.2 ? t : (t - 3.2)
+        const activeWordIndex = Math.min(
+          Math.floor((elapsedScript / scriptDuration) * allWords.length),
+          Math.max(0, allWords.length - 1)
+        )
+
+        // Ventana de 3 a 4 palabras visibles con karaoke fluido
+        const windowSize = 4
+        const chunkIndex = Math.floor(activeWordIndex / windowSize)
+        const startIdx = chunkIndex * windowSize
+        const visibleWords = allWords.slice(startIdx, startIdx + windowSize)
+
+        const subY = avatarLayout === 'SPLIT_UGC' ? 1000 : 840
+
+        ctx.save()
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.82)'
+        ctx.beginPath()
+        ctx.roundRect(60, subY - 80, 960, 150, 26)
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)'
+        ctx.lineWidth = 2
+        ctx.stroke()
+
+        ctx.font = '900 46px system-ui, -apple-system, sans-serif'
+        let phraseTotalWidth = 0
+        const wordMetrics = visibleWords.map(w => {
+          const m = ctx.measureText(w.toUpperCase() + ' ')
+          phraseTotalWidth += m.width
+          return m.width
+        })
+
+        let wordStartX = 540 - (phraseTotalWidth / 2)
+
+        visibleWords.forEach((word, idx) => {
+          const globalIdx = startIdx + idx
+          const isActive = globalIdx === activeWordIndex
+          const wWidth = wordMetrics[idx]
+          const wordCenterX = wordStartX + (wWidth / 2)
+
           ctx.save()
-          ctx.shadowColor = 'rgba(0,0,0,0.9)'
-          ctx.shadowBlur = 30
-          ctx.shadowOffsetY = 10
+          if (isActive) {
+            ctx.font = '900 52px system-ui, -apple-system, sans-serif'
+            ctx.fillStyle = '#facc15' // Amarillo CapCut brillante
+            ctx.shadowColor = 'rgba(250, 204, 21, 0.85)'
+            ctx.shadowBlur = 18
 
-          ctx.fillStyle = '#facc15' // Amarillo brillante
-          ctx.beginPath()
-          ctx.roundRect(80, 800, 920, 220, 30)
-          ctx.fill()
-
-          ctx.fillStyle = '#09090b'
-          ctx.font = '900 48px sans-serif'
-          ctx.textAlign = 'center'
-          
-          const hookText = generatedData.hook.toUpperCase()
-          const words = hookText.split(' ')
-          const half = Math.ceil(words.length / 2)
-          ctx.fillText(words.slice(0, half).join(' '), 540, 890)
-          if (words.slice(half).length > 0) {
-            ctx.fillText(words.slice(half).join(' '), 540, 960)
+            ctx.strokeStyle = '#000000'
+            ctx.lineWidth = 10
+            ctx.strokeText(word.toUpperCase(), wordCenterX, subY)
+            ctx.fillText(word.toUpperCase(), wordCenterX, subY)
+          } else {
+            ctx.font = '800 44px system-ui, -apple-system, sans-serif'
+            ctx.fillStyle = '#ffffff'
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)'
+            ctx.lineWidth = 6
+            ctx.strokeText(word.toUpperCase(), wordCenterX, subY)
+            ctx.fillText(word.toUpperCase(), wordCenterX, subY)
           }
-
           ctx.restore()
-        } else {
-          // Subtítulos Karaoke Dinámicos
+
+          wordStartX += wWidth
+        })
+        ctx.restore()
+
+        // 5. SI ESTÁ ACTIVO MODO BURBUJA FLOTANTE (BUBBLE_PIP)
+        if (avatarLayout === 'BUBBLE_PIP') {
+          const bubbleX = 180
+          const bubbleY = 1380
+          const bubbleRadius = 95
+
+          // Anillo reactivo de audio (pulso suave de onda de voz)
           ctx.save()
-          ctx.fillStyle = 'rgba(0,0,0,0.75)'
+          const ringPulse = Math.sin(t * 12) * 8
           ctx.beginPath()
-          ctx.roundRect(80, 780, 920, 260, 30)
-          ctx.fill()
-          ctx.strokeStyle = 'rgba(255,255,255,0.25)'
-          ctx.lineWidth = 3
+          ctx.arc(bubbleX, bubbleY, bubbleRadius + 10 + ringPulse, 0, Math.PI * 2)
+          ctx.strokeStyle = 'rgba(168, 85, 247, 0.75)'
+          ctx.lineWidth = 6
           ctx.stroke()
 
-          ctx.fillStyle = '#fef08a'
-          ctx.font = 'bold 42px sans-serif'
+          // Círculo de la foto del avatar
+          ctx.beginPath()
+          ctx.arc(bubbleX, bubbleY, bubbleRadius, 0, Math.PI * 2)
+          ctx.clip()
+
+          if (!avatarLoadFailed && avatarImg.complete && avatarImg.naturalWidth > 0) {
+            try {
+              ctx.drawImage(avatarImg, bubbleX - bubbleRadius, bubbleY - bubbleRadius, bubbleRadius * 2, bubbleRadius * 2)
+            } catch (e) {
+              avatarLoadFailed = true
+            }
+          }
+          if (avatarLoadFailed || !avatarImg.complete || avatarImg.naturalWidth === 0) {
+            ctx.fillStyle = '#7c3aed'
+            ctx.fillRect(bubbleX - bubbleRadius, bubbleY - bubbleRadius, bubbleRadius * 2, bubbleRadius * 2)
+            ctx.fillStyle = '#ffffff'
+            ctx.font = 'bold 44px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.fillText(selectedAvatar.name.charAt(0), bubbleX, bubbleY + 15)
+          }
+          ctx.restore()
+
+          // Badge con el nombre del Avatar
+          ctx.save()
+          ctx.fillStyle = 'rgba(15, 15, 20, 0.85)'
+          ctx.beginPath()
+          ctx.roundRect(bubbleX - 110, bubbleY + bubbleRadius + 12, 220, 48, 14)
+          ctx.fill()
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+          ctx.lineWidth = 1.5
+          ctx.stroke()
+
+          ctx.fillStyle = '#ffffff'
+          ctx.font = 'bold 24px sans-serif'
           ctx.textAlign = 'center'
-
-          const scriptSnippet = generatedData.script.slice(0, 130)
-          const sWords = scriptSnippet.split(' ')
-          const step = Math.ceil(sWords.length / 3)
-          ctx.fillText(`"${sWords.slice(0, step).join(' ')}`, 540, 860)
-          if (sWords.slice(step, step * 2).length > 0) {
-            ctx.fillText(sWords.slice(step, step * 2).join(' '), 540, 920)
-          }
-          if (sWords.slice(step * 2).length > 0) {
-            ctx.fillText(`${sWords.slice(step * 2).join(' ')}..."`, 540, 980)
-          }
-
+          ctx.fillText(`🎙️ ${selectedAvatar.name} (IA)`, bubbleX, bubbleY + bubbleRadius + 34)
           ctx.restore()
         }
 
@@ -1087,7 +1393,96 @@ export default function StudioIaClient({
               </button>
             </div>
 
-            {/* 3. GUIONES Y COPYS ADAPTABLES */}
+            {/* 3. AVATARES DE IA & CREADORES UGC */}
+            <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-purple-50 text-purple-700 flex items-center justify-center">
+                    <UserCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                      Paso 3: Avatar de IA & Creador UGC
+                    </h2>
+                    <p className="text-[11px] text-zinc-400 font-medium">
+                      Elige el rostro virtual que presentará y venderá tu producto.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Selector de Modo de Layout del Avatar */}
+                <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl">
+                  {[
+                    { id: 'BUBBLE_PIP' as AvatarLayout, label: 'Burbuja PIP' },
+                    { id: 'SPLIT_UGC' as AvatarLayout, label: 'Split 50/50' },
+                    { id: 'NONE' as AvatarLayout, label: 'Sin Avatar' }
+                  ].map(l => (
+                    <button
+                      key={l.id}
+                      onClick={() => setAvatarLayout(l.id)}
+                      className={cn(
+                        "px-2.5 py-1 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer",
+                        avatarLayout === l.id
+                          ? "bg-white text-zinc-950 shadow-xs"
+                          : "text-zinc-500 hover:text-zinc-900"
+                      )}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {avatarLayout !== 'NONE' && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {AI_AVATARS.map((avatar) => {
+                    const isSelected = selectedAvatar.id === avatar.id
+                    return (
+                      <button
+                        key={avatar.id}
+                        onClick={() => setSelectedAvatar(avatar)}
+                        className={cn(
+                          "relative p-2.5 rounded-xl border text-left transition-all cursor-pointer group flex flex-col justify-between overflow-hidden",
+                          isSelected
+                            ? "border-purple-600 bg-purple-50/40 ring-2 ring-purple-600 shadow-sm"
+                            : "border-zinc-200/90 bg-white hover:border-zinc-300"
+                        )}
+                      >
+                        <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-2 bg-zinc-100">
+                          <img
+                            src={avatar.imageUrl}
+                            alt={avatar.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[8px] font-black bg-black/70 backdrop-blur-md text-white">
+                            {avatar.badge}
+                          </span>
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-zinc-950 truncate">
+                              {avatar.name}
+                            </span>
+                            <span className="text-[9px] font-bold text-purple-700">
+                              IA
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-zinc-500 font-medium truncate mt-0.5">
+                            {avatar.niche}
+                          </p>
+                          <span className="text-[9px] text-zinc-400 font-semibold block mt-1">
+                            {avatar.tone}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 4. GUIONES Y COPYS ADAPTABLES */}
             <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-150 pb-3">
                 <div className="flex items-center gap-2">
@@ -1096,7 +1491,7 @@ export default function StudioIaClient({
                   </div>
                   <div>
                     <h2 className="text-xs font-black uppercase tracking-wider text-zinc-900">
-                      Paso 3: Guion & Copys Generados
+                      Paso 4: Guion & Copys Generados
                     </h2>
                     <p className="text-[11px] text-zinc-400 font-medium">
                       Listos para locución y descripción en redes sociales.
@@ -1275,8 +1670,35 @@ export default function StudioIaClient({
               {/* Pantalla 9:16 Dinámica */}
               <div className="relative w-full aspect-[9/16] bg-zinc-900 rounded-[28px] overflow-hidden flex flex-col justify-between p-4 shadow-inner border border-white/5">
                 
-                {/* Fondo cinemático con zoom dinámico Ken Burns */}
-                {selectedProduct?.imageUrl ? (
+                {/* Fondo cinemático con zoom dinámico Ken Burns y soporte para Split Screen UGC */}
+                {avatarLayout === 'SPLIT_UGC' ? (
+                  <div className="absolute inset-0 flex flex-col">
+                    {/* Mitad superior: Avatar UGC */}
+                    <div className="relative h-1/2 w-full overflow-hidden bg-zinc-950">
+                      <img 
+                        src={selectedAvatar.imageUrl} 
+                        alt={selectedAvatar.name} 
+                        className={cn("w-full h-full object-cover transition-transform duration-1000", isPlaying ? "scale-105" : "scale-100")} 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" />
+                      <div className="absolute bottom-2 left-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 text-[9px] font-bold text-white flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>{selectedAvatar.name} • Creador UGC</span>
+                      </div>
+                    </div>
+                    {/* Mitad inferior: Producto */}
+                    <div className="relative h-1/2 w-full overflow-hidden bg-zinc-900">
+                      {selectedProduct?.imageUrl ? (
+                        <img 
+                          src={selectedProduct.imageUrl} 
+                          alt="" 
+                          className={cn("w-full h-full object-cover transition-transform duration-1000", isPlaying ? "scale-110" : "scale-100")} 
+                        />
+                      ) : null}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+                    </div>
+                  </div>
+                ) : selectedProduct?.imageUrl ? (
                   <div 
                     className={cn(
                       "absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out",
@@ -1289,6 +1711,21 @@ export default function StudioIaClient({
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center">
                     <ShoppingBag className="w-16 h-16 text-zinc-700" />
+                  </div>
+                )}
+
+                {/* Burbuja Flotante PIP del Avatar si está activo BUBBLE_PIP */}
+                {avatarLayout === 'BUBBLE_PIP' && (
+                  <div className="absolute bottom-24 left-3 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md p-1.5 pr-2.5 rounded-full border border-purple-500/50 shadow-xl">
+                    <div className="relative">
+                      <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-purple-400 ring-2 ring-purple-500/40 shadow-sm">
+                        <img src={selectedAvatar.imageUrl} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black animate-ping" />
+                    </div>
+                    <span className="text-[10px] font-black text-white tracking-tight">
+                      {selectedAvatar.name} (IA)
+                    </span>
                   </div>
                 )}
 
@@ -1309,23 +1746,55 @@ export default function StudioIaClient({
                   </div>
                 </div>
 
-                {/* Capa Central: Hook de 3s o Subtítulos Karaoke */}
+                {/* Capa Central: Hook de 3s o Subtítulos Karaoke Dinámicos estilo CapCut */}
                 <div className="relative z-10 text-center space-y-2 my-auto px-2">
-                  {previewSecond <= 4 ? (
+                  {previewSecond <= 3 ? (
                     <div className="animate-in zoom-in duration-300">
-                      <span className="inline-block bg-amber-400 text-zinc-950 px-3.5 py-1.5 rounded-xl font-black text-sm uppercase tracking-tight shadow-xl border-2 border-amber-300">
+                      <span className="inline-block bg-amber-400 text-zinc-950 px-3.5 py-1.5 rounded-xl font-black text-xs uppercase tracking-tight shadow-xl border-2 border-amber-300">
                         {generatedData?.hook || '¡OFERTA IMPERDIBLE! 🔥'}
                       </span>
                     </div>
                   ) : (
-                    <div className="bg-black/65 backdrop-blur-md p-3 rounded-2xl border border-white/20 animate-in fade-in duration-300 shadow-xl">
-                      <p className="text-xs font-black text-yellow-300 leading-snug drop-shadow-md">
-                        "{generatedData?.script ? generatedData.script.slice(0, 110) + '...' : selectedProduct?.name}"
-                      </p>
-                      <div className="flex items-center justify-center gap-1 mt-2 text-[9px] text-zinc-300 font-bold">
-                        <Music className="w-2.5 h-2.5 text-purple-400" />
-                        <span>Pista: {musicTrack === 'viral' ? 'TikTok Trend' : musicTrack}</span>
-                      </div>
+                    <div className="bg-black/80 backdrop-blur-md py-2.5 px-3 rounded-2xl border border-white/20 animate-in fade-in duration-200 shadow-xl">
+                      {(() => {
+                        const fullText = (generatedData?.script || selectedProduct?.name || '').replace(/[*#_~`]/g, '')
+                        const words = fullText.split(/\s+/).filter(Boolean)
+                        const activeWordIdx = Math.min(
+                          Math.floor(((previewSecond - 3) / (maxSeconds - 3)) * words.length),
+                          Math.max(0, words.length - 1)
+                        )
+                        const windowSize = 4
+                        const chunkIdx = Math.floor(activeWordIdx / windowSize)
+                        const start = chunkIdx * windowSize
+                        const visible = words.slice(start, start + windowSize)
+
+                        return (
+                          <div>
+                            <div className="flex flex-wrap items-center justify-center gap-1.5 font-black text-xs leading-tight">
+                              {visible.map((w, idx) => {
+                                const isCur = (start + idx) === activeWordIdx
+                                return (
+                                  <span
+                                    key={idx}
+                                    className={cn(
+                                      "transition-all duration-150 uppercase tracking-tight",
+                                      isCur 
+                                        ? "text-yellow-400 scale-110 drop-shadow-[0_2px_8px_rgba(250,204,21,0.9)] font-black underline decoration-yellow-400 decoration-2" 
+                                        : "text-white drop-shadow-sm font-extrabold"
+                                    )}
+                                  >
+                                    {w}
+                                  </span>
+                                )
+                              })}
+                            </div>
+                            <div className="flex items-center justify-center gap-1 mt-2 text-[9px] text-zinc-300 font-bold">
+                              <Music className="w-2.5 h-2.5 text-purple-400 animate-spin" />
+                              <span>Subtítulos CapCut IA • {selectedAvatar.name}</span>
+                            </div>
+                          </div>
+                        )
+                      })()}
                     </div>
                   )}
                 </div>
