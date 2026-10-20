@@ -72,10 +72,37 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Fallback inteligente: Indicar al cliente que use la síntesis nativa de alta calidad del navegador
+    // 3. Fallback inteligente: Usar motor TTS en español de alta fidelidad para devolver MP3 real siempre
+    try {
+      const cleanText = text
+        .replace(/[*#_~`]/g, '')
+        .replace(/\n+/g, ' ')
+        .trim()
+      const truncated = cleanText.length > 200 ? cleanText.slice(0, 197) + '...' : cleanText
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(truncated)}&tl=es&client=tw-ob`
+      const ttsRes = await fetch(ttsUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      })
+
+      if (ttsRes.ok) {
+        const audioBuffer = await ttsRes.arrayBuffer()
+        return new NextResponse(audioBuffer, {
+          headers: {
+            'Content-Type': 'audio/mpeg',
+            'Content-Length': audioBuffer.byteLength.toString(),
+            'Cache-Control': 'public, max-age=86400'
+          }
+        })
+      }
+    } catch (ttsErr) {
+      console.warn('[Studio IA Fallback TTS error]:', ttsErr)
+    }
+
     return NextResponse.json({
       fallback: true,
-      message: 'Utilizando motor de síntesis de voz en el navegador (Web Speech API)'
+      message: 'No se pudo generar el audio TTS'
     })
   } catch (error: any) {
     console.error('[Studio IA Generate Voice Error]:', error)
