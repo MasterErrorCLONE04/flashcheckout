@@ -37,6 +37,14 @@ export async function POST(req: Request) {
       }, 55)
 
       if (!result.success || !result.output) {
+        if (result.isBillingError) {
+          return NextResponse.json({
+            success: false,
+            isBillingError: true,
+            error: result.error,
+            billingUrl: 'https://replicate.com/account/billing'
+          }, { status: 402 })
+        }
         return badRequest(result.error || 'No se pudo generar el video a partir de la imagen.')
       }
 
