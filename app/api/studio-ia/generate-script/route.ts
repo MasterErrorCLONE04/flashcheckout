@@ -101,13 +101,25 @@ export async function POST(req: Request) {
     const checkoutLink = `${appBaseUrl}/tienda/${store.slug}`
 
     // Si falló el parseo o la IA simuló texto plano, aplicamos un fallback premium
-    const result = parsedJson || {
-      hook: `¿Buscabas ${product.name}? ¡Mira esto antes de que se agote! 🔥`,
-      script: `Si estabas buscando ${product.name}, llegaste al lugar correcto. Calidad garantizada, envíos rápidos y el mejor precio del mercado: solo ${formattedPrice}. ¡Toca el botón aquí abajo y pide el tuyo con Flashcheckout antes de que se agoten las unidades!`,
-      copyInstagram: `🔥 ¡Novedad en nuestra tienda! ${product.name} disponible ahora mismo a ${formattedPrice}.\n\n✨ Calidad insuperable\n🚚 Envíos seguros a todo el país\n🔒 Pago fácil y garantizado\n\n👉 Toca el enlace de nuestro perfil o comenta 'QUIERO' para enviarte el link directo.\n\n${checkoutLink}`,
-      copyWhatsApp: `*¡Hola!* Mira lo que acaba de llegar a ${store.name}: ✨\n\n*${product.name}*\n💰 Precio especial: *${formattedPrice}*\n${coupon ? `🎟️ Cupón de descuento: *${coupon.code}* (${coupon.valor})\n` : ''}📦 Envío rápido y seguro.\n\n👉 *Pídelo aquí con un toque:* ${checkoutLink}`,
-      hashtags: ['#Flashcheckout', '#TiendaOnline', `#${product.category || 'Tendencia'}`, '#OfertasColombia', '#CompraSegura'],
-      callToAction: 'Comprar ahora en 1 clic'
+    const result = {
+      hook: parsedJson?.hook || `¿Buscabas ${product.name}? ¡Mira esto antes de que se agote! 🔥`,
+      script: parsedJson?.script || `Si estabas buscando ${product.name}, llegaste al lugar correcto. Calidad garantizada, envíos rápidos y el mejor precio del mercado: solo ${formattedPrice}. ¡Toca el botón aquí abajo y pide el tuyo con Flashcheckout antes de que se agoten las unidades!`,
+      copyInstagram: parsedJson?.copyInstagram || `🔥 ¡Novedad en nuestra tienda! ${product.name} disponible ahora mismo a ${formattedPrice}.\n\n✨ Calidad insuperable\n🚚 Envíos seguros a todo el país\n🔒 Pago fácil y garantizado\n\n👉 Toca el enlace de nuestro perfil o comenta 'QUIERO' para enviarte el link directo.\n\n${checkoutLink}`,
+      copyWhatsApp: parsedJson?.copyWhatsApp || `*¡Hola!* Mira lo que acaba de llegar a ${store.name}: ✨\n\n*${product.name}*\n💰 Precio especial: *${formattedPrice}*\n${coupon ? `🎟️ Cupón de descuento: *${coupon.code}* (${coupon.valor})\n` : ''}📦 Envío rápido y seguro.\n\n👉 *Pídelo aquí con un toque:* ${checkoutLink}`,
+      copyAida: parsedJson?.copyAida || {
+        attention: `¿Cansado de productos que prometen mucho y no cumplen? Conoce ${product.name}.`,
+        interest: `Diseñado con los más altos estándares y materiales de primera calidad para durar.`,
+        desire: `Disfruta de la mejor experiencia y la comodidad que mereces a un precio inigualable de ${formattedPrice}.`,
+        action: `¡Compra hoy en 1 clic antes de que se agote el stock disponible!`
+      },
+      copyPas: parsedJson?.copyPas || {
+        problem: `Encontrar ${product.name} con garantía real y precio justo suele ser un dolor de cabeza.`,
+        agitation: `Comprar réplicas o pagar sobreprecio termina saliendo más caro y generando frustración.`,
+        solution: `${store.name} te lo entrega directamente en tu puerta con total respaldo y garantía.`
+      },
+      couponRecommendation: parsedJson?.couponRecommendation || (product.price > 100000 ? 'Recomendación: Cupón de $15.000 COP o 10% OFF para compras superiores a $100.000' : 'Recomendación: Envío gratis en segunda unidad o 5% de descuento flash'),
+      hashtags: parsedJson?.hashtags || ['#Flashcheckout', '#TiendaOnline', `#${product.category || 'Tendencia'}`, '#OfertasColombia', '#CompraSegura'],
+      callToAction: parsedJson?.callToAction || 'Comprar ahora en 1 clic'
     }
 
     return NextResponse.json({

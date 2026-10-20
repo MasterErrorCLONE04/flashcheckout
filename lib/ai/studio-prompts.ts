@@ -49,6 +49,18 @@ El JSON debe tener la siguiente estructura exacta:
   "script": "Guion completo de locución para la voz en off o avatar (aprox. 40-70 palabras)",
   "copyInstagram": "Copy persuasivo para el pie de foto de Instagram/TikTok con emojis, beneficios y llamados a la acción",
   "copyWhatsApp": "Mensaje optimizado para difusión o estado de WhatsApp con negritas (*texto*) y llamado a escribir o tocar el link",
+  "copyAida": {
+    "attention": "Gancho de atención disruptivo",
+    "interest": "Dato o beneficio intrigante",
+    "desire": "Transformación o resultado deseado",
+    "action": "Llamado urgente a comprar ahora"
+  },
+  "copyPas": {
+    "problem": "El problema o frustración común que vive el cliente",
+    "agitation": "Por qué ignorar ese problema cuesta caro o causa molestias",
+    "solution": "Cómo este producto resuelve el problema de inmediato"
+  },
+  "couponRecommendation": "Sugerencia de oferta o cupón flash según el precio (ej: 10% OFF o $10.000 COP)",
   "hashtags": ["#Etiqueta1", "#Etiqueta2", "#Etiqueta3", "#Etiqueta4", "#Etiqueta5"],
   "callToAction": "Texto breve para el botón de compra (ej: 'Pedir con Envío Gratis Hoy')"
 }`

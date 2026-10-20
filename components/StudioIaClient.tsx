@@ -35,10 +35,11 @@ import {
   Wand2,
   ArrowUpRight,
   ChevronDown,
-  RotateCcw,
   Video,
   Radio,
-  FileText
+  FileText,
+  Camera,
+  Scissors
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -155,8 +156,17 @@ export default function StudioIaClient({
   coupons,
   initialCreations = []
 }: StudioIaClientProps) {
-  // Pestaña principal superior
-  const [mainTab, setMainTab] = useState<'studio' | 'creaciones' | 'plantillas'>('studio')
+  // Pestañas principales del Studio IA completo: 'foto' | 'contenido' | 'video' | 'creaciones'
+  const [mainTab, setMainTab] = useState<'foto' | 'contenido' | 'video' | 'creaciones'>('foto')
+
+  // Estados de Foto Studio IA (Replicate / FLUX)
+  const [enhancedPhotoUrl, setEnhancedPhotoUrl] = useState<string | null>(null)
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
+  const [photoActionType, setPhotoActionType] = useState<'remove-bg' | 'generate-scene' | 'upscale' | null>(null)
+  const [selectedScene, setSelectedScene] = useState<'marble' | 'neon-podium' | 'luxury-wood' | 'sunlight-nature' | 'urban-minimal'>('marble')
+  const [customScenePrompt, setCustomScenePrompt] = useState('')
+  const [isGeneratingI2V, setIsGeneratingI2V] = useState(false)
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
 
   // Producto seleccionado
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(
@@ -186,6 +196,9 @@ export default function StudioIaClient({
     script: string
     copyInstagram: string
     copyWhatsApp: string
+    copyAida?: { attention: string; interest: string; desire: string; action: string }
+    copyPas?: { problem: string; agitation: string; solution: string }
+    couponRecommendation?: string
     hashtags: string[]
     callToAction: string
   } | null>(null)
@@ -197,6 +210,7 @@ export default function StudioIaClient({
   const [previewSecond, setPreviewSecond] = useState(0)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [savedCreations, setSavedCreations] = useState<any[]>(initialCreations)
+  const [copyFramework, setCopyFramework] = useState<'aida' | 'pas'>('aida')
 
   // Estados de renderizado de video MP4
   const [isRenderingVideo, setIsRenderingVideo] = useState(false)
@@ -254,6 +268,112 @@ export default function StudioIaClient({
     }
     return () => clearInterval(interval)
   }, [isPlaying, maxSeconds])
+
+  // ── FOTO STUDIO IA HANDLERS ──────────────────────────────────────────
+  const handleEnhancePhoto = async (action: 'remove-bg' | 'generate-scene' | 'upscale') => {
+    if (!selectedProduct?.imageUrl) {
+      toast.error('El producto seleccionado no tiene una imagen base.')
+      return
+    }
+
+    setIsProcessingPhoto(true)
+    setPhotoActionType(action)
+    const toastId = toast.loading(
+      action === 'remove-bg' 
+        ? 'Removiendo fondo del producto con IA...' 
+        : action === 'generate-scene' 
+        ? 'Generando escenario fotográfico con IA...' 
+        : 'Mejorando resolución a 4K con IA...'
+    )
+
+    try {
+      const res = await fetch('/api/studio-ia/enhance-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          imageUrl: enhancedPhotoUrl || selectedProduct.imageUrl,
+          productId: selectedProduct.id,
+          sceneType: selectedScene,
+          customPrompt: customScenePrompt || undefined
+        })
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Error al procesar la foto con IA.')
+      }
+
+      setEnhancedPhotoUrl(data.resultUrl)
+      toast.dismiss(toastId)
+      toast.success(data.message || '¡Proceso fotográfico completado con éxito!')
+    } catch (err: any) {
+      toast.dismiss(toastId)
+      toast.error(err.message || 'Error al conectar con el motor de IA.')
+    } finally {
+      setIsProcessingPhoto(false)
+      setPhotoActionType(null)
+    }
+  }
+
+  // Establecer foto mejorada como imagen principal del producto
+  const handleSetPrimaryPhoto = async () => {
+    if (!selectedProduct || !enhancedPhotoUrl) return
+    const toastId = toast.loading('Guardando como foto principal del producto...')
+    try {
+      const res = await fetch('/api/studio-ia/enhance-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'set-primary',
+          imageUrl: enhancedPhotoUrl,
+          productId: selectedProduct.id
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Error al actualizar producto')
+
+      selectedProduct.imageUrl = enhancedPhotoUrl
+      toast.dismiss(toastId)
+      toast.success('¡Foto de estudio establecida como portada oficial del producto!')
+    } catch (e: any) {
+      toast.dismiss(toastId)
+      toast.error(e.message || 'No se pudo actualizar el producto')
+    }
+  }
+
+  // ── VIDEO I2V HANDLER ──────────────────────────────────────────
+  const handleGenerateI2V = async () => {
+    if (!selectedProduct?.imageUrl) {
+      toast.error('Elige un producto con imagen para generar video.')
+      return
+    }
+
+    setIsGeneratingI2V(true)
+    const toastId = toast.loading('Animando producto con IA (Image-to-Video)... Esto puede tomar unos segundos.')
+    try {
+      const res = await fetch('/api/studio-ia/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'i2v',
+          imageUrl: enhancedPhotoUrl || selectedProduct.imageUrl,
+          productId: selectedProduct.id
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Error al generar video')
+
+      setGeneratedVideoUrl(data.videoUrl)
+      toast.dismiss(toastId)
+      toast.success('¡Video cinemático generado con éxito!')
+    } catch (e: any) {
+      toast.dismiss(toastId)
+      toast.error(e.message || 'No se pudo generar el video')
+    } finally {
+      setIsGeneratingI2V(false)
+    }
+  }
 
   // Generar contenido con IA
   const handleGenerateContent = async (customProduct?: Product) => {
@@ -370,6 +490,7 @@ export default function StudioIaClient({
       const selectedMime = mimeTypes.find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm'
       const isActualMp4 = selectedMime.includes('mp4')
       const fileExt = isActualMp4 ? 'mp4' : 'webm'
+      const totalSeconds = duration === '15s' ? 10 : 15
 
       // Iniciar sintetizador de audio profesional con voz de IA y música comercial
       let audioCtx: AudioContext | null = null
@@ -510,7 +631,6 @@ export default function StudioIaClient({
         if (e.data && e.data.size > 0) chunks.push(e.data)
       }
 
-      const totalSeconds = duration === '15s' ? 10 : 15
       const fps = 30
       const totalFrames = totalSeconds * fps
 
@@ -1059,12 +1179,13 @@ export default function StudioIaClient({
           </div>
         </div>
 
-        {/* PESTAÑAS DE NAVEGACIÓN SUPERIOR */}
-        <div className="flex items-center gap-2 border-t border-zinc-150 pt-4 mt-5">
+        {/* PESTAÑAS PRINCIPALES DEL STUDIO IA COMPLETO */}
+        <div className="flex flex-wrap items-center gap-2 border-t border-zinc-150 pt-4 mt-5">
           {[
-            { id: 'studio' as const, label: 'Estudio Creativo', icon: Sparkles },
-            { id: 'creaciones' as const, label: 'Biblioteca de Creaciones', count: savedCreations.length, icon: Video },
-            { id: 'plantillas' as const, label: 'Formatos Virales', icon: Wand2 }
+            { id: 'foto' as const, label: '📸 Foto Studio IA', icon: Camera, badge: 'Replicate FLUX' },
+            { id: 'contenido' as const, label: '✍️ Content Studio', icon: FileText, badge: 'Copy AIDA' },
+            { id: 'video' as const, label: '🎬 Video & Avatar Studio', icon: Video, badge: 'Reels 9:16' },
+            { id: 'creaciones' as const, label: '📁 Biblioteca & Activos', count: savedCreations.length, icon: ShoppingBag }
           ].map(t => {
             const Icon = t.icon
             const isActive = mainTab === t.id
@@ -1073,18 +1194,26 @@ export default function StudioIaClient({
                 key={t.id}
                 onClick={() => setMainTab(t.id)}
                 className={cn(
-                  "px-3.5 py-1.5 text-xs font-bold rounded-lg flex items-center gap-2 transition-all cursor-pointer",
+                  "px-4 py-2 text-xs font-extrabold rounded-xl flex items-center gap-2 transition-all cursor-pointer",
                   isActive 
-                    ? "bg-zinc-950 text-white shadow-xs" 
-                    : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100"
+                    ? "bg-zinc-950 text-white shadow-md ring-2 ring-zinc-950" 
+                    : "bg-zinc-50 border border-zinc-200/90 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100"
                 )}
               >
                 <Icon className={cn("w-3.5 h-3.5", isActive ? "text-purple-300" : "text-zinc-400")} />
                 <span>{t.label}</span>
+                {t.badge && (
+                  <span className={cn(
+                    "text-[9px] px-1.5 py-0.2 rounded font-black hidden sm:inline-block",
+                    isActive ? "bg-purple-900/60 text-purple-200 border border-purple-700/60" : "bg-zinc-200/80 text-zinc-600"
+                  )}>
+                    {t.badge}
+                  </span>
+                )}
                 {t.count !== undefined && (
                   <span className={cn(
                     "text-[10px] px-1.5 py-0.2 rounded font-black",
-                    isActive ? "bg-zinc-800 text-purple-200" : "bg-zinc-150 text-zinc-600"
+                    isActive ? "bg-zinc-800 text-purple-200" : "bg-zinc-200 text-zinc-700"
                   )}>
                     {t.count}
                   </span>
@@ -1115,7 +1244,675 @@ export default function StudioIaClient({
             <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
-      ) : mainTab === 'studio' ? (
+      ) : mainTab === 'foto' ? (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* Header de Foto Studio */}
+          <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                    Estudio Fotográfico de Productos (AI Product Photography)
+                  </h2>
+                  <p className="text-[11px] text-zinc-400 font-medium">
+                    Elimina fondos desordenados y coloca tu producto en escenarios hiperrealistas de estudio con luces y sombras 3D.
+                  </p>
+                </div>
+              </div>
+
+              {selectedProduct && (
+                <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
+                  <span className="text-[11px] font-bold text-zinc-500">Producto:</span>
+                  <span className="text-xs font-black text-zinc-950 truncate max-w-[160px]">{selectedProduct.name}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Selector de Producto en Carrusel */}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              {products.map(p => {
+                const isSelected = selectedProduct?.id === p.id
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setSelectedProduct(p)
+                      setEnhancedPhotoUrl(null)
+                    }}
+                    className={cn(
+                      "shrink-0 flex items-center gap-2.5 p-2 rounded-xl border transition-all cursor-pointer text-left",
+                      isSelected
+                        ? "border-zinc-950 bg-zinc-50 ring-2 ring-zinc-950 shadow-xs"
+                        : "border-zinc-200/90 bg-white hover:border-zinc-300"
+                    )}
+                  >
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-100 shrink-0">
+                      {p.imageUrl ? (
+                        <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <ShoppingBag className="w-5 h-5 m-2.5 text-zinc-300" />
+                      )}
+                    </div>
+                    <div className="pr-2">
+                      <span className="text-xs font-extrabold text-zinc-900 block truncate max-w-[140px]">
+                        {p.name}
+                      </span>
+                      <span className="text-[10px] font-bold text-zinc-500">
+                        {formatCOP(p.price)}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Grid de 2 Columnas: Panel de IA (5 cols) + Comparador Visual (7 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+            
+            {/* Panel de Herramientas IA */}
+            <div className="lg:col-span-5 space-y-5">
+              {/* Acciones de Edición Rápida */}
+              <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
+                  <Wand2 className="w-4 h-4 text-purple-600" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                    Mejoras Rápidas con IA
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleEnhancePhoto('remove-bg')}
+                    disabled={isProcessingPhoto || !selectedProduct?.imageUrl}
+                    className="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300 disabled:opacity-50 transition-all text-left space-y-1.5 cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                      <Scissors className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-black text-zinc-950 block">Quitar Fondo</span>
+                    <p className="text-[10px] text-zinc-500 font-medium">Recorte perfecto con Replicate RMBG</p>
+                  </button>
+
+                  <button
+                    onClick={() => handleEnhancePhoto('upscale')}
+                    disabled={isProcessingPhoto || !selectedProduct?.imageUrl}
+                    className="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300 disabled:opacity-50 transition-all text-left space-y-1.5 cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-black text-zinc-950 block">Upscaling 4K</span>
+                    <p className="text-[10px] text-zinc-500 font-medium">Elimina ruido y aumenta nitidez</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Generador de Escenarios 3D con FLUX */}
+              <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
+                  <Layers className="w-4 h-4 text-purple-600" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                    Escenarios de Estudio Hiperrealistas
+                  </h3>
+                </div>
+
+                <div className="space-y-2.5">
+                  {[
+                    { id: 'marble' as const, name: 'Mármol Blanco & Oro', desc: 'Cosméticos, perfumes y joyería de lujo', icon: '🏛️' },
+                    { id: 'neon-podium' as const, name: 'Podio Minimalista Neón', desc: 'Tecnología, gadgets y zapatillas', icon: '⚡' },
+                    { id: 'luxury-wood' as const, name: 'Madera Noble & Café Cálido', desc: 'Cuero, calzado y accesorios artesanales', icon: '🪵' },
+                    { id: 'sunlight-nature' as const, name: 'Naturaleza & Luz Solar', desc: 'Skincare, ropa orgánica y bienestar', icon: '🌿' },
+                    { id: 'urban-minimal' as const, name: 'Urbano Minimalista', desc: 'Moda streetwear y estilo contemporáneo', icon: '🏙️' }
+                  ].map(sc => {
+                    const isSel = selectedScene === sc.id
+                    return (
+                      <button
+                        key={sc.id}
+                        onClick={() => setSelectedScene(sc.id)}
+                        className={cn(
+                          "w-full p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between",
+                          isSel
+                            ? "border-purple-600 bg-purple-50/50 ring-2 ring-purple-600 shadow-xs"
+                            : "border-zinc-200 bg-white hover:border-zinc-300"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{sc.icon}</span>
+                          <div>
+                            <span className="text-xs font-extrabold text-zinc-950 block">{sc.name}</span>
+                            <span className="text-[10px] text-zinc-500 font-medium">{sc.desc}</span>
+                          </div>
+                        </div>
+                        {isSel && <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Prompt personalizado opcional */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-[11px] font-bold text-zinc-700 block">
+                    Instrucción adicional para la IA (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={customScenePrompt}
+                    onChange={(e) => setCustomScenePrompt(e.target.value)}
+                    placeholder="Ej: Iluminación cálida de atardecer, reflejos de agua..."
+                    className="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-950 focus:bg-white"
+                  />
+                </div>
+
+                <button
+                  onClick={() => handleEnhancePhoto('generate-scene')}
+                  disabled={isProcessingPhoto || !selectedProduct?.imageUrl}
+                  className="w-full py-3 px-4 bg-zinc-950 hover:bg-zinc-900 disabled:opacity-50 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-[0.99]"
+                >
+                  <Sparkles className={cn("w-4 h-4", isProcessingPhoto && "animate-spin text-purple-400")} />
+                  <span>
+                    {isProcessingPhoto 
+                      ? 'Generando escenario con Replicate FLUX...' 
+                      : 'Generar Escenario de Estudio con IA'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Comparador Visual Before / After */}
+            <div className="lg:col-span-7 bg-white border border-zinc-200/90 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+                <span className="text-xs font-black uppercase tracking-wider text-zinc-900 flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-purple-600" />
+                  Visualizador de Catálogo Fotográfico
+                </span>
+                {enhancedPhotoUrl && (
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Procesado por Replicate AI
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                {/* Foto Original */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-zinc-500 block text-center">
+                    Foto Original del Producto
+                  </span>
+                  <div className="relative aspect-square rounded-2xl border-2 border-dashed border-zinc-200 overflow-hidden bg-zinc-50 flex items-center justify-center">
+                    {selectedProduct?.imageUrl ? (
+                      <img src={selectedProduct.imageUrl} alt="Original" className="w-full h-full object-cover" />
+                    ) : (
+                      <ShoppingBag className="w-12 h-12 text-zinc-300" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Foto Mejorada con IA */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-purple-700 block text-center">
+                    Foto de Estudio Generada con IA
+                  </span>
+                  <div className="relative aspect-square rounded-2xl border-2 border-purple-300 overflow-hidden bg-zinc-950 flex items-center justify-center shadow-md">
+                    {enhancedPhotoUrl ? (
+                      <img src={enhancedPhotoUrl} alt="Mejorada con IA" className="w-full h-full object-cover animate-in zoom-in-95 duration-300" />
+                    ) : isProcessingPhoto ? (
+                      <div className="text-center p-4 space-y-2">
+                        <div className="w-10 h-10 border-3 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                        <span className="text-xs font-bold text-white block">Creando fotografía de estudio...</span>
+                        <span className="text-[10px] text-zinc-400 block">Aplicando iluminación y sombras 3D</span>
+                      </div>
+                    ) : (
+                      <div className="text-center p-6 space-y-1.5">
+                        <Wand2 className="w-10 h-10 text-zinc-600 mx-auto" />
+                        <span className="text-xs font-bold text-zinc-400 block">Sin procesar aún</span>
+                        <p className="text-[10px] text-zinc-500">
+                          Selecciona una acción (Quitar fondo o Escenario) para ver el resultado aquí.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de acción al tener foto mejorada */}
+              {enhancedPhotoUrl && (
+                <div className="pt-3 border-t border-zinc-150 flex flex-wrap items-center justify-between gap-3 animate-in fade-in">
+                  <a
+                    href={enhancedPhotoUrl}
+                    download="producto_estudio_ia.png"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-xs font-bold text-zinc-800 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Descargar Imagen HD</span>
+                  </a>
+
+                  <button
+                    onClick={handleSetPrimaryPhoto}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-black text-white flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>⭐ Establecer como Portada Oficial del Producto</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : mainTab === 'contenido' ? (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* Header & Product Selector */}
+          <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                    Redactor Publicitario de Alto Impacto (AI Content & Growth Engine)
+                  </h2>
+                  <p className="text-[11px] text-zinc-400 font-medium">
+                    Genera guiones virales para Reels/TikTok, descripciones AIDA/PAS para la tienda y copys de WhatsApp en 1 clic.
+                  </p>
+                </div>
+              </div>
+
+              {selectedProduct && (
+                <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl">
+                  <span className="text-[11px] font-bold text-zinc-500">Producto:</span>
+                  <span className="text-xs font-black text-zinc-950 truncate max-w-[160px]">{selectedProduct.name}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Carrusel de Selección Rápida de Productos */}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              {products.map(p => {
+                const isSelected = selectedProduct?.id === p.id
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setSelectedProduct(p)
+                      handleGenerateContent(p)
+                    }}
+                    className={cn(
+                      "shrink-0 flex items-center gap-2.5 p-2 rounded-xl border transition-all cursor-pointer text-left",
+                      isSelected
+                        ? "border-zinc-950 bg-zinc-50 ring-2 ring-zinc-950 shadow-xs"
+                        : "border-zinc-200/90 bg-white hover:border-zinc-300"
+                    )}
+                  >
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-100 shrink-0">
+                      {p.imageUrl ? (
+                        <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <ShoppingBag className="w-5 h-5 m-2.5 text-zinc-300" />
+                      )}
+                    </div>
+                    <div className="pr-2">
+                      <span className="text-xs font-extrabold text-zinc-900 block truncate max-w-[140px]">
+                        {p.name}
+                      </span>
+                      <span className="text-[10px] font-bold text-zinc-500">
+                        {formatCOP(p.price)}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Configuración Rápida: Tono, Cupón y Botón Generador */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-zinc-100">
+              <div>
+                <label className="text-[11px] font-bold text-zinc-700 block mb-1">Tono de Comunicación</label>
+                <select
+                  value={tone}
+                  onChange={(e) => setTone(e.target.value as CreativeTone)}
+                  className="w-full text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-lg p-2 text-zinc-800 focus:outline-none focus:border-zinc-950"
+                >
+                  <option value="urgency">⚡ Urgencia & Oferta Flash</option>
+                  <option value="luxury">💎 Elegante & Calidad Superior</option>
+                  <option value="casual">👋 Cercano & Amigable</option>
+                  <option value="educational">💡 Problema / Solución</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-zinc-700 block mb-1">Cupón Asociado</label>
+                <select
+                  value={selectedCouponId}
+                  onChange={(e) => setSelectedCouponId(e.target.value)}
+                  className="w-full text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-lg p-2 text-zinc-800 focus:outline-none focus:border-zinc-950"
+                >
+                  <option value="">Precio normal (Sin cupón)</option>
+                  {coupons.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} ({c.valor} {c.desc})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => handleGenerateContent()}
+                  disabled={isGenerating || !selectedProduct}
+                  className="w-full py-2 px-4 bg-zinc-950 hover:bg-zinc-900 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all"
+                >
+                  <RefreshCw className={cn("w-3.5 h-3.5", isGenerating && "animate-spin text-purple-400")} />
+                  <span>{isGenerating ? 'Generando Estrategia...' : 'Regenerar con IA'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid de 2 Columnas de Contenido de Alto Impacto */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+            {/* Columna Izquierda (7 cols): Guión Viral + Metodologías AIDA & PAS */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* 1. Guión para Reels & TikTok */}
+              <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                      Guion Viral para Reels / TikTok
+                    </h3>
+                  </div>
+                  {generatedData && (
+                    <button
+                      onClick={() => handleCopyText(`Gancho:\n${generatedData.hook}\n\nGuion:\n${generatedData.script}`, 'guion-full')}
+                      className="text-[10px] text-purple-700 font-extrabold flex items-center gap-1 hover:underline cursor-pointer"
+                    >
+                      {copiedKey === 'guion-full' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      <span>Copiar Guion Completo</span>
+                    </button>
+                  )}
+                </div>
+
+                {isGenerating ? (
+                  <div className="py-8 text-center space-y-2">
+                    <div className="w-7 h-7 rounded-full border-2 border-zinc-950 border-t-purple-500 animate-spin mx-auto" />
+                    <p className="text-xs text-zinc-500 font-medium">Redactando gancho de 3s y guión publicitario...</p>
+                  </div>
+                ) : generatedData ? (
+                  <div className="space-y-3">
+                    {/* Gancho de 3 segundos */}
+                    <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-400/10 to-transparent border border-amber-300/80 rounded-xl space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1">
+                          ⚡ Gancho de los Primeros 3 Segundos (Detén el Scroll)
+                        </span>
+                        <button
+                          onClick={() => handleCopyText(generatedData.hook, 'hook')}
+                          className="text-[10px] text-amber-900 font-bold flex items-center gap-1 hover:underline cursor-pointer"
+                        >
+                          {copiedKey === 'hook' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>Copiar</span>
+                        </button>
+                      </div>
+                      <p className="text-xs font-black text-zinc-950">
+                        "{generatedData.hook}"
+                      </p>
+                    </div>
+
+                    {/* Guion de Locución / Storytelling */}
+                    <div className="p-4 bg-zinc-50 border border-zinc-200/80 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-zinc-500 tracking-wider flex items-center gap-1">
+                          <Volume2 className="w-3.5 h-3.5 text-zinc-400" />
+                          Argumento de Valor & Manejo de Objeciones
+                        </span>
+                        <button
+                          onClick={() => handleCopyText(generatedData.script, 'script')}
+                          className="text-[10px] text-zinc-700 font-bold flex items-center gap-1 hover:underline cursor-pointer"
+                        >
+                          {copiedKey === 'script' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>Copiar</span>
+                        </button>
+                      </div>
+                      <p className="text-xs font-medium text-zinc-800 leading-relaxed whitespace-pre-line">
+                        {generatedData.script}
+                      </p>
+                    </div>
+
+                    {/* Llamada a la Acción CTA */}
+                    <div className="p-3 bg-purple-50/70 border border-purple-200 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                        <span className="text-[11px] font-bold text-purple-950">CTA sugerido:</span>
+                        <span className="text-xs font-black text-purple-800">{generatedData.callToAction}</span>
+                      </div>
+                      <button
+                        onClick={() => handleCopyText(generatedData.callToAction, 'cta')}
+                        className="text-[10px] text-purple-700 font-bold hover:underline cursor-pointer"
+                      >
+                        {copiedKey === 'cta' ? '¡Copiado!' : 'Copiar'}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* 2. Descripciones Persuasivas para Tienda Online (AIDA & PAS) */}
+              <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                      Descripciones Persuasivas para Tienda Online
+                    </h3>
+                  </div>
+
+                  {/* Selector AIDA vs PAS */}
+                  <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl">
+                    <button
+                      onClick={() => setCopyFramework('aida')}
+                      className={cn(
+                        "px-3 py-1 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer",
+                        copyFramework === 'aida' ? "bg-white text-zinc-950 shadow-xs" : "text-zinc-500 hover:text-zinc-900"
+                      )}
+                    >
+                      Fórmula AIDA
+                    </button>
+                    <button
+                      onClick={() => setCopyFramework('pas')}
+                      className={cn(
+                        "px-3 py-1 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer",
+                        copyFramework === 'pas' ? "bg-white text-zinc-950 shadow-xs" : "text-zinc-500 hover:text-zinc-900"
+                      )}
+                    >
+                      Fórmula PAS
+                    </button>
+                  </div>
+                </div>
+
+                {isGenerating ? (
+                  <div className="py-6 text-center text-xs text-zinc-400">Generando descripción con copywriting probado...</div>
+                ) : generatedData ? (
+                  copyFramework === 'aida' ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 gap-2.5">
+                        <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">A - ATENCIÓN</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyAida?.attention}</p>
+                        </div>
+                        <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-blue-700 tracking-wider">I - INTERÉS</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyAida?.interest}</p>
+                        </div>
+                        <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-emerald-700 tracking-wider">D - DESEO</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyAida?.desire}</p>
+                        </div>
+                        <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-amber-700 tracking-wider">A - ACCIÓN</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyAida?.action}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const aidaText = `${generatedData.copyAida?.attention}\n\n${generatedData.copyAida?.interest}\n\n${generatedData.copyAida?.desire}\n\n${generatedData.copyAida?.action}`
+                          handleCopyText(aidaText, 'aida')
+                        }}
+                        className="w-full py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-xs font-bold text-zinc-800 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      >
+                        {copiedKey === 'aida' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>Copiar Descripción AIDA Completa</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 gap-2.5">
+                        <div className="p-3 bg-red-50/50 border border-red-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-red-700 tracking-wider">P - PROBLEMA</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyPas?.problem}</p>
+                        </div>
+                        <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider">A - AGITACIÓN</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyPas?.agitation}</p>
+                        </div>
+                        <div className="p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-1">
+                          <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider">S - SOLUCIÓN</span>
+                          <p className="text-xs text-zinc-800 font-medium">{generatedData.copyPas?.solution}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const pasText = `${generatedData.copyPas?.problem}\n\n${generatedData.copyPas?.agitation}\n\n${generatedData.copyPas?.solution}`
+                          handleCopyText(pasText, 'pas')
+                        }}
+                        className="w-full py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-xs font-bold text-zinc-800 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      >
+                        {copiedKey === 'pas' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>Copiar Descripción PAS Completa</span>
+                      </button>
+                    </div>
+                  )
+                ) : null}
+              </div>
+
+            </div>
+
+            {/* Columna Derecha (5 cols): WhatsApp + Cupones Flash */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* 3. Copys para WhatsApp con formato enriquecido */}
+              <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-emerald-600" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                      Difusión para WhatsApp (1 Clic)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Formato Negritas
+                  </span>
+                </div>
+
+                {generatedData && (
+                  <div className="space-y-3">
+                    <div className="p-4 bg-[#DCF8C6]/50 border border-emerald-200 rounded-2xl space-y-2 relative shadow-xs">
+                      <p className="text-xs text-zinc-900 leading-relaxed whitespace-pre-line font-sans">
+                        {generatedData.copyWhatsApp}
+                      </p>
+                      <div className="flex items-center justify-end gap-1 text-[10px] text-zinc-400 font-mono">
+                        <span>12:00</span>
+                        <Check className="w-3 h-3 text-sky-500 stroke-[3]" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleCopyText(generatedData.copyWhatsApp, 'wpp')}
+                        className="w-full py-2.5 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-xs font-bold text-zinc-800 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      >
+                        {copiedKey === 'wpp' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>Copiar Mensaje para WhatsApp</span>
+                      </button>
+
+                      <button
+                        onClick={() => handlePublishWhatsApp('TEST')}
+                        disabled={isPublishing}
+                        className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-900 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        <Send className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Enviar Prueba a mi WhatsApp {store.whatsapp ? `(${store.whatsapp})` : ''}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handlePublishWhatsApp('STATUS')}
+                        disabled={isPublishing}
+                        className="w-full py-2.5 bg-[#25D366] hover:bg-[#20ba59] disabled:opacity-50 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Publicar en Estado de WhatsApp</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Estrategia de Oferta & Cupón Flash */}
+              <div className="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
+                  <Tag className="w-4 h-4 text-purple-600" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                    Estrategia de Oferta & Cupones Flash
+                  </h3>
+                </div>
+
+                {generatedData && (
+                  <div className="space-y-3">
+                    <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-xl space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-purple-800 text-[11px] font-black uppercase">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Recomendación Inteligente de Oferta</span>
+                      </div>
+                      <p className="text-xs font-bold text-zinc-900">
+                        {generatedData.couponRecommendation}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-zinc-500">Caption para Instagram / TikTok</span>
+                        <button
+                          onClick={() => handleCopyText(`${generatedData.copyInstagram}\n\n${generatedData.hashtags.join(' ')}`, 'insta')}
+                          className="text-[10px] text-purple-700 font-bold hover:underline cursor-pointer"
+                        >
+                          {copiedKey === 'insta' ? '¡Copiado!' : 'Copiar'}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-zinc-600 line-clamp-3 font-medium">
+                        {generatedData.copyInstagram}
+                      </p>
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {generatedData.hashtags.map((h, i) => (
+                          <span key={i} className="text-[9px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200/50">
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      ) : mainTab === 'video' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
           
           {/* COLUMNA IZQUIERDA: CONTROLES, CATÁLOGO Y GUIONES (7/12) */}
@@ -1391,6 +2188,58 @@ export default function StudioIaClient({
                 <RefreshCw className={cn("w-3.5 h-3.5", isGenerating && "animate-spin text-purple-400")} />
                 <span>{isGenerating ? 'Generando guión y adaptando video...' : 'Regenerar Contenido y Guion con IA'}</span>
               </button>
+            </div>
+
+            {/* GENERACIÓN IMAGE-TO-VIDEO (I2V) CON REPLICATE */}
+            <div className="bg-gradient-to-r from-purple-900/5 via-indigo-900/5 to-transparent border border-purple-200/90 rounded-2xl p-5 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-zinc-950 text-white flex items-center justify-center shadow-xs">
+                    <Film className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900">
+                      Animación 3D Image-to-Video (I2V) con Replicate
+                    </h3>
+                    <p className="text-[11px] text-zinc-500 font-medium">
+                      Anima la foto de tu producto con movimiento de cámara 360°, paneo cinemático y luces de estudio.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200">
+                  Minimax Video-01
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleGenerateI2V}
+                  disabled={isGeneratingI2V || !selectedProduct?.imageUrl}
+                  className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  <Sparkles className={cn("w-4 h-4", isGeneratingI2V && "animate-spin")} />
+                  <span>{isGeneratingI2V ? 'Generando Video Cinemático...' : 'Generar Animación 3D del Producto (I2V)'}</span>
+                </button>
+
+                {generatedVideoUrl && (
+                  <a
+                    href={generatedVideoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    download="animacion_producto_ia.mp4"
+                    className="px-4 py-2.5 bg-zinc-950 text-white hover:bg-zinc-900 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Descargar Video I2V</span>
+                  </a>
+                )}
+              </div>
+
+              {generatedVideoUrl && (
+                <div className="rounded-xl overflow-hidden border border-purple-200 bg-black aspect-video max-h-56 flex items-center justify-center mt-2">
+                  <video src={generatedVideoUrl} controls autoPlay loop className="h-full w-full object-contain" />
+                </div>
+              )}
             </div>
 
             {/* 3. AVATARES DE IA & CREADORES UGC */}
@@ -1981,7 +2830,7 @@ export default function StudioIaClient({
               <p className="text-xs text-zinc-500 font-medium">Revisa y republica las piezas generadas previamente por Studio IA.</p>
             </div>
             <button
-              onClick={() => setMainTab('studio')}
+              onClick={() => setMainTab('video')}
               className="px-3.5 py-1.5 bg-zinc-950 text-white rounded-lg text-xs font-bold hover:bg-zinc-900 cursor-pointer"
             >
               + Crear Nueva Pieza
@@ -1998,7 +2847,7 @@ export default function StudioIaClient({
                 Selecciona un producto en el Estudio Creativo y genera tu primer video publicitario o reel para WhatsApp.
               </p>
               <button
-                onClick={() => setMainTab('studio')}
+                onClick={() => setMainTab('video')}
                 className="mt-2 px-4 py-2 bg-zinc-950 text-white rounded-lg text-xs font-bold cursor-pointer"
               >
                 Comenzar ahora
@@ -2064,7 +2913,7 @@ export default function StudioIaClient({
                 action: () => {
                   setMode('DYNAMIC_REEL')
                   setTone('urgency')
-                  setMainTab('studio')
+                  setMainTab('video')
                 }
               },
               {
@@ -2074,7 +2923,7 @@ export default function StudioIaClient({
                 action: () => {
                   setMode('GENERATIVE_I2V')
                   setTone('luxury')
-                  setMainTab('studio')
+                  setMainTab('video')
                 }
               },
               {
@@ -2084,7 +2933,7 @@ export default function StudioIaClient({
                 action: () => {
                   setMode('AVATAR_UGC')
                   setTone('casual')
-                  setMainTab('studio')
+                  setMainTab('video')
                 }
               }
             ].map((p, idx) => (
