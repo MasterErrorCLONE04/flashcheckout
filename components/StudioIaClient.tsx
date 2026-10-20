@@ -301,6 +301,17 @@ export default function StudioIaClient({
 
       const data = await res.json()
       if (!res.ok || !data.success) {
+        if (data.isBillingError) {
+          toast.dismiss(toastId)
+          toast.error('Saldo de Replicate agotado ($0 USD). Recarga $5 USD en replicate.com/account/billing para procesar con IA.', {
+            duration: 10000,
+            action: {
+              label: 'Recargar Replicate',
+              onClick: () => window.open('https://replicate.com/account/billing', '_blank')
+            }
+          })
+          return
+        }
         throw new Error(data.error || 'Error al procesar la foto con IA.')
       }
 
@@ -362,7 +373,20 @@ export default function StudioIaClient({
         })
       })
       const data = await res.json()
-      if (!res.ok || !data.success) throw new Error(data.error || 'Error al generar video')
+      if (!res.ok || !data.success) {
+        if (data.isBillingError) {
+          toast.dismiss(toastId)
+          toast.error('Saldo de Replicate agotado ($0 USD). Recarga $5 USD en replicate.com/account/billing para procesar con IA.', {
+            duration: 10000,
+            action: {
+              label: 'Recargar Replicate',
+              onClick: () => window.open('https://replicate.com/account/billing', '_blank')
+            }
+          })
+          return
+        }
+        throw new Error(data.error || 'Error al generar video')
+      }
 
       setGeneratedVideoUrl(data.videoUrl)
       toast.dismiss(toastId)

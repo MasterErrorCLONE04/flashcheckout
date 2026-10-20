@@ -54,11 +54,19 @@ export async function POST(req: Request) {
 
     // 2. Remoción de fondo (Background Removal)
     if (action === 'remove-bg') {
-      const result = await runReplicateModel('briaai/rmbg-1.4', {
+      const result = await runReplicateModel('cjwbw/rembg', {
         image: imageUrl
       })
 
       if (!result.success || !result.output) {
+        if (result.isBillingError) {
+          return NextResponse.json({
+            success: false,
+            isBillingError: true,
+            error: result.error,
+            billingUrl: 'https://replicate.com/account/billing'
+          }, { status: 402 })
+        }
         return badRequest(result.error || 'No se pudo remover el fondo de la imagen.')
       }
 
@@ -92,6 +100,14 @@ export async function POST(req: Request) {
       })
 
       if (!result.success || !result.output) {
+        if (result.isBillingError) {
+          return NextResponse.json({
+            success: false,
+            isBillingError: true,
+            error: result.error,
+            billingUrl: 'https://replicate.com/account/billing'
+          }, { status: 402 })
+        }
         return badRequest(result.error || 'No se pudo generar el escenario para el producto.')
       }
 
@@ -115,6 +131,14 @@ export async function POST(req: Request) {
       })
 
       if (!result.success || !result.output) {
+        if (result.isBillingError) {
+          return NextResponse.json({
+            success: false,
+            isBillingError: true,
+            error: result.error,
+            billingUrl: 'https://replicate.com/account/billing'
+          }, { status: 402 })
+        }
         return badRequest(result.error || 'No se pudo mejorar la resolución de la imagen.')
       }
 
