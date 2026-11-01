@@ -16,18 +16,20 @@ import {
   Store,
   Link2,
   Building,
-  Sparkles
+  Sparkles,
+  Zap
 } from 'lucide-react'
 
 const getNavItems = (conversationsCount: number, ordersCount: number) => [
   { href: "/dashboard", icon: LayoutDashboard, label: "Inicio" },
+  { href: "/agente", icon: Bot, label: "Agente IA", badgeText: "FLOWS" },
   { href: "/conversaciones", icon: MessageSquare, label: "Conversaciones", badge: conversationsCount },
   { href: "/pedidos", icon: ShoppingCart, label: "Pedidos", badge: ordersCount },
   { href: "/productos", icon: Package, label: "Productos" },
   { href: "/studio-ia", icon: Sparkles, label: "Studio IA", badgeText: "NUEVO" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/pagos", icon: CreditCard, label: "Pagos" },
-  { href: "/automatizaciones", icon: Bot, label: "Automatizaciones" },
+  { href: "/automatizaciones", icon: Zap, label: "Automatizaciones" },
   { href: "/descuentos", icon: Tag, label: "Descuentos" },
   { href: "/tienda", icon: Store, label: "Tienda" },
   { href: "/dashboard/the-office", icon: Building, label: "The Office" },

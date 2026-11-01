@@ -171,6 +171,16 @@ export async function PUT(req: Request) {
       }
     }
 
+    const existingAiSettings = (store.aiSettings as Record<string, unknown> | null) || {}
+    const mergedAiSettings = aiSettings !== undefined
+      ? { ...existingAiSettings, ...(typeof aiSettings === 'object' && aiSettings !== null ? aiSettings : {}) }
+      : undefined
+
+    const existingSettings = (store.settings as Record<string, unknown> | null) || {}
+    const mergedSettings = settings !== undefined
+      ? { ...existingSettings, ...(typeof settings === 'object' && settings !== null ? settings : {}) }
+      : undefined
+
     const updated = await prisma.store.update({
       where: { id: store.id },
       data: {
@@ -182,10 +192,10 @@ export async function PUT(req: Request) {
         ...(systemPrompt !== undefined && { systemPrompt }),
         ...(welcomeMessage !== undefined && { welcomeMessage }),
         ...(aiActive !== undefined && { aiActive }),
-        ...(aiSettings !== undefined && { aiSettings }),
+        ...(mergedAiSettings !== undefined && { aiSettings: mergedAiSettings }),
         ...(cleanSlug && { slug: cleanSlug }),
         ...(active !== undefined && { active }),
-        ...(settings !== undefined && { settings }),
+        ...(mergedSettings !== undefined && { settings: mergedSettings }),
       },
     })
 

@@ -206,6 +206,7 @@ export class WhatsAppCloudAPI {
             flow_token: flowToken,
             flow_id: flowId,
             flow_cta: flowCta,
+            mode: process.env.WHATSAPP_FLOW_MODE || 'draft',
             flow_action: 'navigate',
             flow_action_payload: {
               screen: screen,

@@ -1,501 +1,82 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
-import { waClient as officialWaClient } from '@/lib/whatsapp/cloud-api';
+import { prisma } from '@/lib/prisma'
 import {
   buildCartState,
   cartStateToLines,
   emptyCartState,
-  normalizeChatMessages,
-  type CartLine,
-  type CartState,
-  type WhatsAppChatMessage,
-} from '@/lib/whatsapp/session-state';
-import { parseIntent } from './intent-engine';
-import { searchGlobalProducts } from './search-service';
-import { mpPreference } from '@/lib/mercadopago';
-import { uploadProofImage } from '@/lib/supabase';
-import { buildBrebEmvcoPayload, DEFAULT_BREB_EMVCO_GUI, type BrebKeyType } from '@/lib/payments/breb/emvco';
-import { buildBrebPaymentReference } from '@/lib/payments/breb/references';
-import QRCode from 'qrcode';
+  type CartState
+} from '@/lib/whatsapp/session-state'
+import { parseIntent } from './intent-engine'
+import { searchGlobalProducts } from './search-service'
+import {
+  SessionRecord,
+  StoreRecord,
+  ensureWhatsAppSession,
+  getCartItemsForSession,
+  updateWhatsAppSession
+} from './bot-types'
+import { createLoggedBotClient } from './bot-client'
+import { shouldIgnorePersonalMessage } from './bot-guards'
+import { dispatchStoreCatalog } from './catalog-dispatcher'
+import { handleFlowResponse, handleDeliveryActions } from './flow-handler'
+import {
+  handleConfirmCheckout,
+  handleAwaitingPaymentSelection,
+  handleAwaitingBrebKey,
+  handleAwaitingConfirmation
+} from './checkout-steps'
 
-type SessionRecord = NonNullable<Awaited<ReturnType<typeof prisma.whatsAppSession.findUnique>>>;
-type StoreRecord = NonNullable<Awaited<ReturnType<typeof prisma.store.findUnique>>>;
-type BotClient = {
-  sendText: (to: string, msg: string) => Promise<unknown>;
-  sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => Promise<unknown>;
-  sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => Promise<unknown>;
-  sendImage: (to: string, img: string, cap: string) => Promise<unknown>;
-  sendDocument: (to: string, doc: string, fn: string) => Promise<unknown>;
-  sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => Promise<unknown>;
-  sendFlow?: (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string) => Promise<unknown>;
-  sendLocationRequest?: (to: string, msg: string) => Promise<unknown>;
-};
+export { dispatchStoreCatalog } from './catalog-dispatcher'
+export { handleWhatsAppImage } from './media-handler'
 
-type ChatMessage = WhatsAppChatMessage
-type CartItem = CartLine
-
-function toChatMessages(value: unknown): ChatMessage[] {
-  return normalizeChatMessages(value);
-}
-
-type DownloadableWhatsAppClient = {
-  sendText: (to: string, msg: string) => Promise<unknown>
-  downloadMedia: (id: string | Record<string, unknown>) => Promise<{ buffer: Buffer }>
-}
-
-function extractMediaId(mediaIdOrKey: string | Record<string, unknown>): string {
-  if (typeof mediaIdOrKey === 'string') {
-    return mediaIdOrKey
-  }
-
-  const candidate = mediaIdOrKey.id
-  return typeof candidate === 'string' ? candidate : ''
-}
-
-function createDownloadableClient(
-  instanceName?: string,
-  messagePayload?: Record<string, unknown>
-): DownloadableWhatsAppClient {
-  if (instanceName && instanceName !== 'global') {
-    return {
-      sendText: async (to: string, msg: string) => {
-        const { evolutionClient } = await import('@/lib/whatsapp/evolution')
-        return evolutionClient.sendText(instanceName, to, msg)
-      },
-      downloadMedia: async (id: string | Record<string, unknown>) => {
-        const { evolutionClient } = await import('@/lib/whatsapp/evolution')
-        const buffer = await evolutionClient.downloadMedia(
-          instanceName,
-          typeof id === 'string' ? { id } : id,
-          messagePayload || {}
-        )
-        return { buffer }
-      },
-    }
-  }
-
-  return {
-    sendText: (to: string, msg: string) => officialWaClient.sendText(to, msg),
-    downloadMedia: async (id: string | Record<string, unknown>) => {
-      const mediaId = extractMediaId(id)
-      if (!mediaId) {
-        throw new Error('Media id missing for WhatsApp download')
-      }
-      return officialWaClient.downloadMedia(mediaId)
-    },
-  }
-}
-
-async function getCartItemsForSession(session: SessionRecord): Promise<CartItem[]> {
-  const items = cartStateToLines(session.cart);
-
-  if (items.length > 0) {
-    return items;
-  }
-
-  if (session.cart && typeof session.cart === 'object' && !Array.isArray(session.cart)) {
-    const legacyCart = session.cart as { productId?: string; storeId?: string }
-    if (typeof legacyCart.productId === 'string') {
-      const product = await prisma.product.findUnique({
-        where: { id: legacyCart.productId },
-      })
-
-      if (product) {
-        return [
-          {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            qty: 1,
-            storeId: legacyCart.storeId || product.storeId,
-          },
-        ]
-      }
-    }
-  }
-
-  return []
-}
-
-async function findWhatsAppSession(phoneNumber: string, storeId: string): Promise<SessionRecord | null> {
-  return prisma.whatsAppSession.findUnique({
-    where: {
-      phoneNumber_storeId: {
-        phoneNumber,
-        storeId,
-      },
-    },
-  });
-}
-
-async function createWhatsAppSession(phoneNumber: string, storeId: string, receivingPhoneId: string): Promise<SessionRecord> {
-  return prisma.whatsAppSession.create({
-    data: {
-      phoneNumber,
-      storeId,
-      receivingPhoneId,
-      step: 'START',
-    },
-  });
-}
-
-async function ensureWhatsAppSession(phoneNumber: string, storeId: string, receivingPhoneId: string): Promise<SessionRecord> {
-  return (await findWhatsAppSession(phoneNumber, storeId)) ?? createWhatsAppSession(phoneNumber, storeId, receivingPhoneId);
-}
-
-async function updateWhatsAppSession(id: string, data: Prisma.WhatsAppSessionUpdateInput): Promise<SessionRecord> {
-  return prisma.whatsAppSession.update({
-    where: { id },
-    data,
-  });
-}
-
-/**
- * Estrategia Híbrida Inteligente para Despacho de Catálogo:
- * 1. Si la tienda opera con Meta Cloud API y tiene Flow ID configurado -> Despliega Meta WhatsApp Flow nativo interactivo.
- * 2. Si opera con Evolution API (Baileys/QR) o el Flow no está disponible -> Despliega botón de Catálogo Web + Lista Interactiva de WhatsApp en el chat.
- */
-export async function dispatchStoreCatalog(
+export async function handleWhatsAppMessage(
   from: string,
-  store: StoreRecord,
-  waClient: BotClient,
-  session: SessionRecord
+  text: string,
+  sessionOrStoreId: SessionRecord | string = 'global'
 ) {
-  const aiSettings = (store.aiSettings as Record<string, unknown> | null) || {};
-  const flowId = (aiSettings.whatsappCatalogFlowId as string) || process.env.WHATSAPP_CATALOG_FLOW_ID;
-  const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/tienda/${store.slug}?wa=${from}&layout=native`;
-
-  // 1. Verificación de Meta WhatsApp Flows Nativo
-  const canUseFlow = Boolean(
-    typeof waClient.sendFlow === 'function' &&
-    flowId &&
-    flowId !== '789456123' &&
-    flowId.trim() !== ''
-  );
-
-  if (canUseFlow) {
-    try {
-      const products = await prisma.product.findMany({
-        where: { storeId: store.id, active: true },
-        take: 30,
-        select: { id: true, name: true, price: true, description: true }
-      });
-
-      if (products.length > 0) {
-        const flowData = {
-          store_name: store.name.slice(0, 30),
-          products: products.map(p => ({
-            id: p.id,
-            title: p.name.slice(0, 30),
-            description: `$${p.price.toLocaleString('es-CO')} COP${p.description ? ` • ${p.description.slice(0, 30)}` : ''}`
-          }))
-        };
-
-        await waClient.sendFlow!(
-          from,
-          flowId!,
-          'Ver Catálogo 🛍️',
-          `store_${store.id}_${session.id}`,
-          'CATALOG',
-          flowData,
-          store.name,
-          store.welcomeMessage || `¡Hola! Bienvenido a *${store.name}*. Abre nuestro catálogo interactivo para elegir tus productos:`
-        );
-
-        await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
-        return;
-      }
-    } catch (flowErr) {
-      console.warn('[Hybrid Catalog] Meta Flow delivery failed, falling back to Web + List:', flowErr);
-    }
-  }
-
-  // 2. Fallback Inteligente Híbrido (Evolution API o sin Flow ID)
-  // A) Botón CTA con enlace a Catálogo Web
-  const defaultWelcome = `¡Hola! Bienvenido a *${store.name}*. 🏬\n\nHe preparado una experiencia visual increíble para ti. Pulsa el botón de abajo para explorar el catálogo completo:`;
-  const welcomeText = store.welcomeMessage || defaultWelcome;
-
-  await waClient.sendUrlButton(
-    from,
-    welcomeText,
-    '📱 Abrir Catálogo Web',
-    storeUrl
-  );
-
-  // B) Lista nativa de WhatsApp para seleccionar productos en el chat
-  const products = await prisma.product.findMany({
-    where: { storeId: store.id, active: true },
-    take: 10,
-    select: { id: true, name: true, price: true, description: true }
-  });
-
-  if (products.length > 0) {
-    await waClient.sendList(
-      from,
-      store.name,
-      '¿Prefieres pedir directamente en este chat? Selecciona aquí:',
-      'Ver Productos',
-      [
-        {
-          title: 'Productos Disponibles',
-          rows: products.map(p => ({
-            id: `select_${p.id}`,
-            title: p.name.slice(0, 24),
-            description: `$${p.price.toLocaleString('es-CO')} COP`
-          }))
-        }
-      ]
-    );
-  }
-
-  await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: store.id });
-}
-
-export async function handleWhatsAppMessage(from: string, text: string, sessionOrStoreId: SessionRecord | string = 'global') {
   // 1. Obtener o crear sesión usando el índice compuesto
-  let session: SessionRecord;
+  let session: SessionRecord
   if (typeof sessionOrStoreId === 'object' && sessionOrStoreId !== null) {
-    session = sessionOrStoreId;
+    session = sessionOrStoreId
   } else {
-    const storeId = sessionOrStoreId || 'global';
-    session = await ensureWhatsAppSession(from, storeId, storeId === 'global' ? 'global' : `store_${storeId}`);
+    const storeId = sessionOrStoreId || 'global'
+    session = await ensureWhatsAppSession(from, storeId, storeId === 'global' ? 'global' : `store_${storeId}`)
   }
 
-  // 1.5 Resolver el cliente de envío dinámico (Meta Cloud API o Evolution API)
-  const isGlobal = !session.storeId || session.storeId === 'global';
-  let client: BotClient = officialWaClient;
-  let store: StoreRecord | null = null;
-
-  if (!isGlobal) {
+  // 1.5 Resolver tienda y cliente de envío dinámico con logging
+  let store: StoreRecord | null = null
+  if (session.storeId && session.storeId !== 'global') {
     store = await prisma.store.findUnique({
       where: { id: session.storeId }
-    });
-    if (store && store.whatsappInstanceName && store.whatsappConnected) {
-      const activeStore = store;
-      const { evolutionClient } = await import('@/lib/whatsapp/evolution');
-      client = {
-        sendText: (to: string, msg: string) => evolutionClient.sendText(activeStore.whatsappInstanceName!, to, msg),
-        sendButtons: (to: string, msg: string, btns: { id: string; title: string }[]) => evolutionClient.sendButtons(activeStore.whatsappInstanceName!, to, msg, btns),
-        sendList: (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => evolutionClient.sendList(activeStore.whatsappInstanceName!, to, hdr, bdy, btnText, secs),
-        sendImage: (to: string, img: string, cap: string) => evolutionClient.sendImage(activeStore.whatsappInstanceName!, to, img, cap),
-        sendDocument: (to: string, doc: string, fn: string) => evolutionClient.sendDocument(activeStore.whatsappInstanceName!, to, doc, fn),
-        sendUrlButton: (to: string, bdy: string, btnText: string, url: string) => evolutionClient.sendUrlButton(activeStore.whatsappInstanceName!, to, bdy, btnText, url),
-        sendLocationRequest: (to: string, msg: string) => evolutionClient.sendLocationRequest(activeStore.whatsappInstanceName!, to, msg)
-      };
-    }
-  }
-
-  // Helper to log bot outgoing messages in database
-  const logBotOutgoing = async (text: string) => {
-    try {
-      const currentSession = await prisma.whatsAppSession.findUnique({
-        where: { id: session.id }
-      });
-      if (!currentSession) return;
-      const messages = toChatMessages(currentSession.messages);
-
-      // Prevent duplication of bot messages
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg && lastMsg.sender === 'bot' && lastMsg.text === text) {
-        return;
-      }
-
-      const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      messages.push({
-        sender: 'bot',
-        text,
-        time: timeString,
-        timestamp: Date.now()
-      });
-
-      await prisma.whatsAppSession.update({
-        where: { id: currentSession.id },
-        data: { messages: messages as any }
-      });
-    } catch (err) {
-      console.error('[logBotOutgoing Error]', err);
-    }
-  };
-
-  // Wrapped client to intercept and log all messages sent by the bot
-  const waClient = {
-    sendText: async (to: string, msg: string) => {
-      try {
-        const res = await client.sendText(to, msg);
-        await logBotOutgoing(msg);
-        return res;
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendText warning:', err);
-      }
-    },
-    sendButtons: async (to: string, msg: string, btns: { id: string; title: string }[]) => {
-      try {
-        const res = await client.sendButtons(to, msg, btns);
-        await logBotOutgoing(msg);
-        return res;
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendButtons warning:', err);
-      }
-    },
-    sendList: async (to: string, hdr: string, bdy: string, btnText: string, secs: { title: string; rows: { id: string; title: string; description?: string }[] }[]) => {
-      try {
-        const res = await client.sendList(to, hdr, bdy, btnText, secs);
-        await logBotOutgoing(`${hdr}\n${bdy}`);
-        return res;
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendList warning:', err);
-      }
-    },
-    sendImage: async (to: string, img: string, cap: string) => {
-      try {
-        const res = await client.sendImage(to, img, cap);
-        await logBotOutgoing(cap ? `[Imagen] ${cap}` : '[Imagen]');
-        return res;
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendImage warning:', err);
-      }
-    },
-    sendDocument: async (to: string, doc: string, fn: string) => {
-      try {
-        const res = await client.sendDocument(to, doc, fn);
-        await logBotOutgoing(`[Documento] ${fn}`);
-        return res;
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendDocument warning:', err);
-      }
-    },
-    sendUrlButton: async (to: string, bdy: string, btnText: string, url: string) => {
-      try {
-        const res = await client.sendUrlButton(to, bdy, btnText, url);
-        await logBotOutgoing(bdy);
-        return res;
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendUrlButton warning:', err);
-      }
-    },
-    sendFlow: async (to: string, flowId: string, buttonText: string, flowToken: string, screen: string, data: Record<string, unknown>, header?: string, body?: string) => {
-      if (typeof client.sendFlow === 'function') {
-        try {
-          const res = await client.sendFlow(to, flowId, buttonText, flowToken, screen, data, header, body);
-          await logBotOutgoing(body || `[Flujo: ${buttonText}]`);
-          return res;
-        } catch (err) {
-          console.warn('[WhatsApp Bot] sendFlow warning:', err);
-          throw err;
-        }
-      }
-      throw new Error('sendFlow is not supported on this client configuration.');
-    },
-    sendLocationRequest: async (to: string, msg: string) => {
-      try {
-        if (typeof client.sendLocationRequest === 'function') {
-          const res = await client.sendLocationRequest(to, msg);
-          await logBotOutgoing(msg);
-          return res;
-        } else {
-          const res = await client.sendText(to, msg);
-          await logBotOutgoing(msg);
-          return res;
-        }
-      } catch (err) {
-        console.warn('[WhatsApp Bot] sendLocationRequest warning:', err);
-      }
-    }
-  };
-
-  // --- FILTRO DE SEGURIDAD PARA CUENTAS PERSONALES / HEURÍSTICA DE NEGOCIO ---
-  const isSystemAction = 
-    text.startsWith('store_') || 
-    text.startsWith('view_list_') || 
-    text.startsWith('view_catalog') ||
-    text.startsWith('select_') || 
-    text.startsWith('confirm_') || 
-    text === 'cancel' || 
-    text === 'view_stores' || 
-    text === 'search_now' ||
-    text === 'clear_cart' ||
-    text === 'view_cart_summary' ||
-    text === 'final_summary' ||
-    text.startsWith('flow_response_') ||
-    text.startsWith('accept_delivery_') ||
-    text === 'btn_pay_breb' ||
-    text === 'btn_pay_cod' ||
-    text === 'btn_pay_link'
-
-  const isInProgress = session.step !== 'START' && session.step !== 'IDLE'
-
-  if (!isSystemAction && !isInProgress && session.storeId && session.storeId !== 'global') {
-    // 1. Verificar si tiene pedidos anteriores en esta tienda
-    const hasPastOrder = await prisma.order.findFirst({
-      where: {
-        storeId: session.storeId,
-        OR: [
-          { customerPhone: from },
-          { customerWhatsAppId: from }
-        ]
-      }
     })
+  }
+  const waClient = await createLoggedBotClient(session, store)
 
-    if (!hasPastOrder) {
-      // 2. Verificar si contiene palabras clave comerciales o de negocio
-      const businessKeywords = [
-        'precio', 'valor', 'costo', 'cuesta', 'comprar', 'pedido', 'compra', 
-        'catalogo', 'catálogo', 'menú', 'menu', 'productos', 'tienda', 'venden', 
-        'disponible', 'quiero', 'pagar', 'carrito', 'orden', 'factura', 'domicilio', 
-        'envio', 'envío', 'delivery', 'comprobante', 'pago', 'cuenta', 'nequi', 'daviplata',
-        'info', 'informacion', 'información', 'servicio', 'contacto'
-      ]
-      
-      const lowerText = text.toLowerCase().trim()
-      const matchesKeyword = businessKeywords.some(kw => lowerText.includes(kw))
-
-      if (!matchesKeyword) {
-        // 3. Verificar si contiene el nombre de algún producto de la tienda
-        const storeProducts = await prisma.product.findMany({
-          where: { storeId: session.storeId, active: true },
-          select: { name: true }
-        })
-
-        const matchesProduct = storeProducts.some(p => 
-          lowerText.includes(p.name.toLowerCase().trim())
-        )
-
-        if (!matchesProduct) {
-          console.log(`[Bot Filter] Ignorando mensaje de contacto personal (${from}): "${text}"`);
-          return; // Detener flujo completamente para no responder ni disparar llamadas de IA
-        }
-      }
-    }
+  // 2. Filtro de seguridad para cuentas personales y heurística de negocio
+  if (await shouldIgnorePersonalMessage(from, text, session)) {
+    return
   }
 
-  const intent = await parseIntent(text);
+  const intent = await parseIntent(text)
 
-  // Verificar si la tienda de la sesión está activa
-  if (session.storeId && session.storeId !== 'global') {
-    const activeStore = await prisma.store.findUnique({
-      where: { id: session.storeId }
-    });
-    if (activeStore && !activeStore.active) {
-      const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-      session = await updateWhatsAppSession(session.id, {
-        storeId: resetStoreId,
-        cart: emptyCartState(),
-      });
-      await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕');
-      return;
-    }
+  // 3. Verificar si la tienda de la sesión está activa
+  if (session.storeId && session.storeId !== 'global' && store && !store.active) {
+    const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId
+    session = await updateWhatsAppSession(session.id, {
+      storeId: resetStoreId,
+      cart: emptyCartState(),
+    })
+    await waClient.sendText(from, 'Lo siento, esta tienda se encuentra temporalmente inactiva o fuera de servicio. 😕')
+    return
   }
 
-  // --- COMANDOS GLOBALES (Funcionan en cualquier estado) ---
+  // 4. Comandos Globales de navegación
   const isViewStores = text === 'view_stores' || 
                        text.toLowerCase().includes('ver tiendas') || 
-                       text.toLowerCase().includes('tiendas');
-
-  const isViewCart = text.toLowerCase().includes('ver carrito') || text === 'view_cart';
+                       text.toLowerCase().includes('tiendas')
+  const isViewCart = text.toLowerCase().includes('ver carrito') || text === 'view_cart'
 
   if (isViewStores) {
-    const stores = await prisma.store.findMany({ where: { active: true }, take: 10 });
+    const stores = await prisma.store.findMany({ where: { active: true }, take: 10 })
     if (stores.length > 0) {
       await waClient.sendList(
         from,
@@ -512,333 +93,112 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             })),
           },
         ]
-      );
-      await updateWhatsAppSession(session.id, { step: 'AWAITING_STORE_SELECTION' });
-      return;
+      )
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_STORE_SELECTION' })
+      return
     }
   }
 
   if (text.toLowerCase().includes('inicio') || text.toLowerCase().includes('hola') || text === 'search_now') {
-    const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-    await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: resetStoreId });
+    const resetStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId
+    await updateWhatsAppSession(session.id, { step: 'IDLE', storeId: resetStoreId })
     if (text === 'search_now') {
-        await waClient.sendText(from, '¡Claro! Dime qué buscas (ej: "Pizza", "Zapatos").');
+      await waClient.sendText(from, '¡Claro! Dime qué buscas (ej: "Pizza", "Zapatos").')
     } else {
-        await handleWhatsAppMessage(from, 'reset_welcome', session); // Disparar bienvenida
+      await handleWhatsAppMessage(from, 'reset_welcome', session)
     }
-    return;
+    return
   }
   
   if (text === 'reset_welcome') {
-      session.step = 'START'; // Forzar paso START en el switch de abajo
+    session.step = 'START'
   }
 
-  // Protocolo de Finalización (EXIT)
   if (intent.intent === 'EXIT') {
-    await waClient.sendText(from, '¡De nada! Ha sido un placer ayudarte. 😊\n\nSi necesitas algo más en el futuro, solo escribe "Hola". ¡Que tengas un gran día! 👋');
-    const exitStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId;
-      await updateWhatsAppSession(session.id, {
-        step: 'START',
-        storeId: exitStoreId,
-        cart: emptyCartState(),
-        customerName: null,
-        address: null
-      });
-    return;
+    await waClient.sendText(from, '¡De nada! Ha sido un placer ayudarte. 😊\n\nSi necesitas algo más en el futuro, solo escribe "Hola". ¡Que tengas un gran día! 👋')
+    const exitStoreId = session.receivingPhoneId === 'global' ? 'global' : session.storeId
+    await updateWhatsAppSession(session.id, {
+      step: 'START',
+      storeId: exitStoreId,
+      cart: emptyCartState(),
+      customerName: null,
+      address: null
+    })
+    return
   }
 
-  // --- MODO JELOU PRO: MANEJO DE RESPUESTAS DE FLOWS ---
-  if (text.startsWith('flow_response_')) {
-    const jsonStr = text.replace('flow_response_', '');
-    try {
-      const response = JSON.parse(jsonStr);
-      // Estructura esperada del Flow de Catálogo:
-      // { selections: ["prod_1", "prod_2"] } o { items: [...] } o { products: [...] }
-      const selections: (string | { id?: string; qty?: number })[] = Array.isArray(response.selections)
-        ? response.selections
-        : Array.isArray(response.items)
-        ? response.items
-        : Array.isArray(response.products)
-        ? response.products
-        : [];
+  // 5. Manejo de WhatsApp Flows
+  const handledFlow = await handleFlowResponse(
+    from,
+    text,
+    session,
+    waClient,
+    async (targetSession) => { await handleConfirmCheckout(from, targetSession, waClient) },
+    async (targetSession) => { await handleWhatsAppMessage(from, 'view_cart_summary', targetSession) }
+  )
+  if (handledFlow) return
 
-      if (selections.length > 0) {
-        let currentCart: CartState = buildCartState(cartStateToLines(session.cart));
-        const addedItems: string[] = [];
+  // 6. Manejo de domicilios de repartidores
+  const handledDelivery = await handleDeliveryActions(from, text, waClient)
+  if (handledDelivery) return
 
-        for (const itemOrId of selections) {
-          const prodId = typeof itemOrId === 'string' ? itemOrId : itemOrId?.id;
-          const qty = typeof itemOrId === 'object' && itemOrId?.qty ? Number(itemOrId.qty) : 1;
-
-          if (!prodId) continue;
-          const product = await prisma.product.findUnique({ where: { id: prodId } });
-          if (product) {
-            currentCart.items[product.id] = {
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              qty: (currentCart.items[product.id]?.qty || 0) + (qty > 0 ? qty : 1),
-              storeId: product.storeId
-            };
-            addedItems.push(`${product.name} (x${qty > 0 ? qty : 1})`);
-          }
-        }
-
-        const firstItem = Object.values(currentCart.items)[0] as CartLine | undefined;
-        const primaryStoreId = addedItems.length > 0 ? firstItem?.storeId : undefined;
-        const newStoreId = session.storeId && session.storeId !== 'global' ? session.storeId : (primaryStoreId || session.storeId);
-
-        const fullName = (typeof response.full_name === 'string' && response.full_name.trim())
-          ? response.full_name.trim()
-          : (typeof response.customer_name === 'string' ? response.customer_name.trim() : null);
-        const address = (typeof response.address === 'string' && response.address.trim())
-          ? `${response.address.trim()}${response.city ? `, ${response.city.trim()}` : ''}`
-          : null;
-
-        const updateData: any = {
-          cart: currentCart,
-          step: 'IDLE'
-        };
-        if (fullName) updateData.customerName = fullName;
-        if (address) updateData.address = address;
-
-        if (newStoreId && newStoreId !== session.storeId) {
-          updateData.storeId = newStoreId;
-          const existingSession = await prisma.whatsAppSession.findUnique({
-            where: {
-              phoneNumber_storeId: {
-                phoneNumber: from,
-                storeId: newStoreId
-              }
-            }
-          });
-
-          if (existingSession) {
-            session = await updateWhatsAppSession(existingSession.id, updateData);
-          } else {
-            session = await updateWhatsAppSession(session.id, updateData);
-          }
-        } else {
-          session = await updateWhatsAppSession(session.id, updateData);
-        }
-
-        await waClient.sendText(
-          from,
-          `✅ ¡Listo! Se agregaron *${addedItems.length} producto(s)* a tu carrito desde el Catálogo:\n${addedItems.map(i => `• ${i}`).join('\n')}`
-        );
-
-        // Si el Flow ya capturó los datos de entrega, proceder directamente al checkout
-        if (fullName && address) {
-          await handleWhatsAppMessage(from, 'confirm_checkout', session);
-        } else {
-          await handleWhatsAppMessage(from, 'view_cart_summary', session);
-        }
-        return;
-      } else {
-        await waClient.sendText(from, 'No seleccionaste ningún producto del catálogo. ¿Deseas volver a revisarlo?');
-      }
-    } catch (e) {
-      console.error('[Flow Response Error]', e);
-      await waClient.sendText(from, 'Hubo un inconveniente al procesar tu selección del catálogo. Por favor intenta nuevamente.');
-    }
-    return;
-  }
-
-  // Manejo de SELECCIÓN DE TIENDA O APERTURA DE CATÁLOGO (Híbrido)
+  // 7. Acciones directas de Catálogo y Pedidos
   if (text.startsWith('view_list_') || text.startsWith('view_catalog_') || text === 'view_catalog') {
     let storeId = text.startsWith('view_list_') 
       ? text.replace('view_list_', '')
       : text.startsWith('view_catalog_')
       ? text.replace('view_catalog_', '')
-      : session.storeId;
+      : session.storeId
 
     if (!storeId || storeId === 'global') {
-      const firstStore = await prisma.store.findFirst({ where: { active: true } });
-      storeId = firstStore?.id || '';
+      const firstStore = await prisma.store.findFirst({ where: { active: true } })
+      storeId = firstStore?.id || ''
     }
 
     const targetStore = await prisma.store.findUnique({
       where: { id: storeId, active: true }
-    });
+    })
 
     if (targetStore) {
-      await dispatchStoreCatalog(from, targetStore, waClient, session);
+      await dispatchStoreCatalog(from, targetStore, waClient, session)
     } else {
-      await waClient.sendText(from, 'No se encontró la tienda seleccionada. Por favor escribe "Hola" para ver las tiendas disponibles.');
+      await waClient.sendText(from, 'No se encontró la tienda seleccionada. Por favor escribe "Hola" para ver las tiendas disponibles.')
     }
-    return;
+    return
   }
 
-  // Manejo de CLICK en CATÁLOGO PRO
   if (text.startsWith('cta_link_')) {
-    await waClient.sendText(from, '¡Excelente elección! 📱\n\nHaz clic en el enlace de arriba ☝️ para abrir el catálogo visual y gestionar tu carrito de forma más rápida.');
-    return;
+    await waClient.sendText(from, '¡Excelente elección! 📱\n\nHaz clic en el enlace de arriba ☝️ para abrir el catálogo visual y gestionar tu carrito de forma más rápida.')
+    return
   }
 
-  // Manejo de CONFIRMACIÓN DE PAGO (Desde el Sync Architecture)
   if (text.startsWith('confirm_pay_')) {
-    const orderId = text.replace('confirm_pay_', '');
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    const orderId = text.replace('confirm_pay_', '')
+    const order = await prisma.order.findUnique({ where: { id: orderId } })
     if (order) {
-       await waClient.sendText(from, `¡Excelente! He recibido tu confirmación para el pedido *#${orderId.slice(-5)}*. 💳\n\nEn breve te contactará un asesor para finalizar el despacho.`);
+      await waClient.sendText(from, `¡Excelente! He recibido tu confirmación para el pedido *#${orderId.slice(-5)}*. 💳\n\nEn breve te contactará un asesor para finalizar el despacho.`)
     }
-    return;
+    return
   }
 
-  // Manejo de CANCELACIÓN DE PEDIDO
   if (text.startsWith('cancel_order_')) {
-    const orderId = text.replace('cancel_order_', '');
+    const orderId = text.replace('cancel_order_', '')
     await prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus: 'FAILED' }
-    });
-    await waClient.sendText(from, 'Entendido. He cancelado el pedido. 🗑️\n\nSi necesitas algo más, solo dime.');
-    return;
+    })
+    await waClient.sendText(from, 'Entendido. He cancelado el pedido. 🗑️\n\nSi necesitas algo más, solo dime.')
+    return
   }
 
-  // Manejo de SOLICITUD DE DOMICILIO POR PARTE DEL VENDEDOR
-  if (text.startsWith('delivery_yes_')) {
-    const orderId = text.replace('delivery_yes_', '');
-    try {
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: { store: true }
-      });
-
-      if (!order) {
-        await waClient.sendText(from, 'Lo siento, no encontramos este pedido. 😕');
-        return;
-      }
-
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { deliveryRequested: true }
-      });
-
-      // 1. Buscar repartidores activos y disponibles
-      const drivers = await prisma.driver.findMany({
-        where: { active: true, available: true }
-      });
-
-      if (drivers.length > 0) {
-        // 2. Notificar a cada repartidor vía WhatsApp
-        for (const driver of drivers) {
-          try {
-            await waClient.sendButtons(
-              driver.phoneNumber,
-              `🚚 *NUEVO DOMICILIO DISPONIBLE* 📦\n\n• *Tienda:* ${order.store.name}\n• *Dirección entrega:* ${order.address}, ${order.city}\n• *Valor envío:* $5.000 COP\n• *Valor pedido:* $${order.total.toLocaleString('es-CO')}\n• *Contacto Tienda:* wa.me/${order.store.whatsapp}\n\n¿Deseas tomar este domicilio?`,
-              [
-                { id: `accept_delivery_${order.id}`, title: '🏍️ Aceptar Domicilio' }
-              ]
-            );
-          } catch (driverErr) {
-            console.error(`Error al notificar al repartidor ${driver.phoneNumber}:`, driverErr);
-          }
-        }
-        await waClient.sendText(from, `¡Excelente! Has solicitado nuestro servicio de domicilio para el pedido *#${orderId.slice(-6).toUpperCase()}*. 🚚\n\nHemos notificado a los repartidores disponibles. Te avisaremos inmediatamente cuando uno de ellos lo acepte.`);
-      } else {
-        await waClient.sendText(from, `¡Excelente! Has solicitado nuestro servicio de domicilio para el pedido *#${orderId.slice(-6).toUpperCase()}*. 🚚\n\nEn este momento no tenemos repartidores disponibles en la zona. Intentaremos buscar uno en los próximos minutos o te sugerimos gestionar el despacho por tu cuenta.`);
-      }
-    } catch (err) {
-      console.error('[Delivery Yes Error]', err);
-    }
-    return;
-  }
-
-  if (text.startsWith('delivery_no_')) {
-    const orderId = text.replace('delivery_no_', '');
-    try {
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { deliveryRequested: false }
-      });
-      await waClient.sendText(from, `Entendido. Te encargarás del envío por tu cuenta para el pedido *#${orderId.slice(-6).toUpperCase()}*. No se te descontará nada de la orden.`);
-    } catch (err) {
-      console.error('[Delivery No Error]', err);
-    }
-    return;
-  }
-
-  // Manejo de ACEPTAR DOMICILIO POR PARTE DEL REPARTIDOR
-  if (text.startsWith('accept_delivery_')) {
-    const orderId = text.replace('accept_delivery_', '');
-    
-    try {
-      // 1. Verificar si es un repartidor activo
-      const driver = await prisma.driver.findUnique({
-        where: { phoneNumber: from, active: true }
-      });
-
-      if (!driver) {
-        await waClient.sendText(from, 'Lo siento, no estás registrado como un repartidor oficial activo. 🚫');
-        return;
-      }
-
-      // 2. Transacción para asegurar la asignación libre de condiciones de carrera
-      const result = await prisma.$transaction(async (tx) => {
-        const order = await tx.order.findUnique({
-          where: { id: orderId },
-          include: { store: true }
-        });
-
-        if (!order) {
-          throw new Error('ORDER_NOT_FOUND');
-        }
-
-        if (order.driverId) {
-          return { success: false, reason: 'TAKEN', driverId: order.driverId };
-        }
-
-        // Asignar repartidor y cambiar estado de la orden
-        const updatedOrder = await tx.order.update({
-          where: { id: orderId },
-          data: {
-            driverId: driver.id,
-            status: 'shipped' // Estado "En camino"
-          },
-          include: { store: true }
-        });
-
-        return { success: true, order: updatedOrder };
-      });
-
-      if (result.success) {
-        const order = result.order!;
-        // Confirmar al repartidor
-        await waClient.sendText(
-          from,
-          `¡Confirmado! 🏍️ Se te ha asignado el domicilio del pedido *#${orderId.slice(-6).toUpperCase()}*.\n\n• *Tienda:* ${order.store.name} (wa.me/${order.store.whatsapp})\n• *Cliente:* ${order.customerName}\n• *Dirección:* ${order.address}, ${order.city}\n• *Total pedido:* $${order.total.toLocaleString('es-CO')}\n\nPor favor, dirígete a la tienda a recoger el producto.`
-        );
-
-        // Notificar al dueño de la tienda
-        if (order.store.whatsapp) {
-          await waClient.sendText(
-            order.store.whatsapp,
-            `🏍️ *Domicilio Asignado:* El repartidor *${driver.name}* (${driver.phoneNumber}) ha aceptado tu solicitud de entrega para el pedido *#${orderId.slice(-6).toUpperCase()}* y va en camino a tu local.`
-          );
-        }
-      } else {
-        if (result.reason === 'TAKEN') {
-          await waClient.sendText(from, 'Lo siento, este domicilio ya fue tomado por otro repartidor. 🏁');
-        }
-      }
-    } catch (err) {
-      console.error('[Accept Delivery Error]', err);
-      await waClient.sendText(from, 'Hubo un error al procesar la aceptación. Inténtalo de nuevo.');
-    }
-    return;
-  }
-
-
-  // Manejo de SELECCIÓN de producto (Global)
+  // 8. Manejo de selección y cantidades de productos
   if (text.startsWith('select_')) {
-    const productId = text.replace('select_', '');
+    const productId = text.replace('select_', '')
     const p = await prisma.product.findUnique({ 
       where: { id: productId, active: true }, 
-    });
+    })
 
     if (p) {
-      // Preguntar CANTIDAD
       await waClient.sendList(
         from,
         'Selecciona Cantidad',
@@ -853,221 +213,101 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             })),
           },
         ]
-      );
-      await updateWhatsAppSession(session.id, { step: 'AWAITING_QUANTITY' });
+      )
+      await updateWhatsAppSession(session.id, { step: 'AWAITING_QUANTITY' })
     } else {
-      await waClient.sendText(from, 'Lo siento, este producto ya no está disponible. 😕');
+      await waClient.sendText(from, 'Lo siento, este producto ya no está disponible. 😕')
     }
-    return;
+    return
   }
 
-  // Manejo de ASIGNACIÓN DE CANTIDAD (Global)
   if (text.startsWith('qty_')) {
-    const parts = text.split('_'); // qty_ID_NUM
-    const productId = parts[1];
-    const qty = parseInt(parts[2]);
-    const p = await prisma.product.findUnique({ where: { id: productId } });
+    const parts = text.split('_')
+    const productId = parts[1]
+    const qty = parseInt(parts[2])
+    const p = await prisma.product.findUnique({ where: { id: productId } })
 
     if (p) {
-      let currentCart: CartState = buildCartState(cartStateToLines(session.cart));
-      
+      const currentCart: CartState = buildCartState(cartStateToLines(session.cart))
       currentCart.items[p.id] = {
         id: p.id,
         name: p.name,
         price: p.price,
         qty: (currentCart.items[p.id]?.qty || 0) + qty
-      };
+      }
 
-      session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' });
-
-      // MODO JELOU: Trigger Summary centralizado
-      return await handleWhatsAppMessage(from, 'view_cart_summary', session);
+      session = await updateWhatsAppSession(session.id, { cart: currentCart, step: 'IDLE' })
+      return await handleWhatsAppMessage(from, 'view_cart_summary', session)
     }
-    return;
+    return
   }
 
-  // Manejo de VER CARRITO
-  // Manejo de RESUMEN DE CARRITO CENTRALIZADO (Modo Jelou Pro)
   if (text === 'view_cart_summary' || isViewCart) {
-    const items = await getCartItemsForSession(session);
+    const items = await getCartItemsForSession(session)
 
     if (items.length === 0) {
-      await waClient.sendText(from, 'Tu carrito está vacío. 🛒\n\nPuedes buscar productos o "Ver tiendas" para empezar.');
-      return;
+      await waClient.sendText(from, 'Tu carrito está vacío. 🛒\n\nPuedes buscar productos o "Ver tiendas" para empezar.')
+      return
     }
 
-    let summary = '*TU CARRITO ACTUAL:* 🛒\n\n';
-    let total = 0;
+    let summary = '*TU CARRITO ACTUAL:* 🛒\n\n'
+    let total = 0
     items.forEach(item => {
-      const subtotal = item.price * item.qty;
-      summary += `• ${item.name} x${item.qty}: *$${subtotal.toLocaleString()}*\n`;
-      total += subtotal;
-    });
-    summary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')}*`;
+      const subtotal = item.price * item.qty
+      summary += `• ${item.name} x${item.qty}: *$${subtotal.toLocaleString()}*\n`
+      total += subtotal
+    })
+    summary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')}*`
 
     await waClient.sendButtons(from, summary, [
       { id: 'confirm_checkout', title: '💳 Finalizar Pedido' },
       { id: 'view_stores', title: '🏬 Añadir más' },
       { id: 'clear_cart', title: '🗑️ Vaciar Carrito' }
-    ]);
-    return;
+    ])
+    return
   }
 
-  // --- MODO JELOU: FLUJO DE CHECKOUT CONVERSACIONAL Y MULTICANAL ---
   if (text === 'confirm_checkout') {
-    const cartItems = await getCartItemsForSession(session);
-    if (cartItems.length === 0) {
-      await waClient.sendText(from, 'Tu carrito está vacío. 🛒 Agrega productos a tu carrito antes de solicitar el pago.');
-      await updateWhatsAppSession(session.id, { step: 'IDLE' });
-      return;
-    }
-
-    // 1. Validar si falta el Nombre Completo
-    if (!session.customerName || !session.customerName.trim() || session.customerName === 'Cliente WhatsApp') {
-      await updateWhatsAppSession(session.id, { step: 'AWAITING_NAME' });
-      await waClient.sendText(from, '📦 *Datos para el Despacho*\n\nPara preparar tu pedido, por favor escribe tu *Nombre Completo*: 📝');
-      return;
-    }
-
-    // 2. Validar si falta la Dirección de Entrega
-    if (!session.address || !session.address.trim() || session.address === 'WhatsApp') {
-      await updateWhatsAppSession(session.id, { step: 'AWAITING_ADDRESS' });
-      await waClient.sendText(from, `¡Mucho gusto, *${session.customerName}*! 📍\n\nPor favor escribe tu *Dirección de Entrega y Ciudad* (o comparte tu ubicación por este chat):`);
-      return;
-    }
-
-    // 3. Liquidación con costo de envío transparente
-    const subtotal = cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0);
-    const store = session.storeId && session.storeId !== 'global'
-      ? await prisma.store.findUnique({ where: { id: session.storeId }, include: { brebConfig: true } })
-      : null;
-    const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
-    const total = subtotal + deliveryCost;
-
-    let summary = '*RESUMEN DE TU PEDIDO:* 🛒\n\n';
-    cartItems.forEach(item => {
-      summary += `• ${item.name} x${item.qty}: *$${(item.price * item.qty).toLocaleString('es-CO')}*\n`;
-    });
-    summary += `\n📦 *Subtotal:* $${subtotal.toLocaleString('es-CO')} COP`;
-    summary += `\n🚚 *Envío:* $${deliveryCost.toLocaleString('es-CO')} COP`;
-    summary += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString('es-CO')} COP*`;
-    summary += `\n\n👤 *Destinatario:* ${session.customerName}`;
-    summary += `\n📍 *Entrega en:* ${session.address}`;
-
-    // 4. Determinar métodos de pago disponibles
-    const storeBrebKey = store?.brebConfig?.keyValue || (store?.settings as any)?.brebConfig?.keyValue;
-    const storeBrebEnabled = store?.brebConfig?.enabled || (store?.settings as any)?.brebConfig?.enabled;
-    const canUseBreb = Boolean(storeBrebKey && storeBrebEnabled);
-
-    const paymentButtons = [];
-    if (canUseBreb) {
-      paymentButtons.push({ id: 'btn_pay_breb', title: '💳 Pagar con Bre-B' });
-    }
-    paymentButtons.push({ id: 'btn_pay_cod', title: '💵 Contra Entrega' });
-    paymentButtons.push({ id: 'btn_pay_link', title: '🔗 Pagar en Línea' });
-
-    await updateWhatsAppSession(session.id, { step: 'AWAITING_PAYMENT_SELECTION' });
-    await waClient.sendButtons(from, `${summary}\n\n¿Cómo prefieres pagar tu pedido? Elige una opción abajo:`, paymentButtons);
-    return;
+    await handleConfirmCheckout(from, session, waClient)
+    return
   }
 
-  // --- MANEJO GLOBAL DE CANCELACIÓN DE FLUJOS ---
-  const isCancelIntent = /^(cancelar|cancel|cancelar pedido|cancelar compra|abortar|reiniciar|olvidalo|olvídalo|ya no quiero|no quiero nada|vaciar carrito|detener)$/i.test(text.trim()) || text === 'clear_cart' || text === 'cancel';
+  const isCancelIntent = /^(cancelar|cancel|cancelar pedido|cancelar compra|abortar|reiniciar|olvidalo|olvídalo|ya no quiero|no quiero nada|vaciar carrito|detener)$/i.test(text.trim()) || text === 'clear_cart' || text === 'cancel'
   if (isCancelIntent) {
     await updateWhatsAppSession(session.id, {
       customerName: null,
       address: null,
       step: 'IDLE',
       cart: emptyCartState()
-    });
-    await waClient.sendText(from, 'Entendido, tu proceso de compra ha sido cancelado y tu carrito vaciado. ❌ ¿En qué más puedo ayudarte?');
-    return;
+    })
+    await waClient.sendText(from, 'Entendido, tu proceso de compra ha sido cancelado y tu carrito vaciado. ❌ ¿En qué más puedo ayudarte?')
+    return
   }
 
-  if (text === 'clear_cart') {
-      await updateWhatsAppSession(session.id, { cart: emptyCartState() });
-      await waClient.sendText(from, 'Carrito vaciado. 🗑️ ¿En qué puedo ayudarte?');
-      return;
-  }
-  // ---------------------------------------------------------
-
-  const nativeCapturingStates = [
-    'AWAITING_NAME', 
-    'AWAITING_ADDRESS', 
-    'AWAITING_CONFIRMATION', 
-    'AWAITING_STORE_SELECTION',
-    'AWAITING_PAYMENT_SELECTION',
-    'AWAITING_BREB_KEY'
-  ];
-  const isNativeState = nativeCapturingStates.includes(session.step || '');
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // FIX A: Interceptar intenciones de PAGO/CHECKOUT antes de cualquier llamada
-  // al LLM. El flujo nativo (confirm_checkout) genera el link real de pago.
-  // Sin este interceptor, el LLM inventa links falsos al no tener contexto.
-  // ─────────────────────────────────────────────────────────────────────────
-  if (!isSystemAction && !isNativeState) {
-    const checkoutTriggerPattern = /\b(pagar|quiero pagar|ir a pagar|finalizar|continuar.{0,15}pago|proceder|checkout|link de pago|enlace de pago|genera.{0,10}link|genera.{0,10}enlace|si.*pago|dale.*pago|procesa.{0,10}pedido|cobrar|cobrame|sigamos.*pedido|continuar.*pedido|confirmar.*pedido|procesar.*pedido|hacer.*pedido|ir.*pago)\b/i
-    if (checkoutTriggerPattern.test(text)) {
-      console.log(`[Bot] Checkout intent interceptado antes de LLM: "${text}" → dispatch confirm_checkout`)
-      await handleWhatsAppMessage(from, 'confirm_checkout', session)
-      return
-    }
-  }
-
-  const aiStates = ['SEARCHING', 'COMPARING', 'CHECKOUT', 'SUPPORT'];
-  if (!isSystemAction && !isNativeState && (aiStates.includes(session.step || '') || (session.storeId && session.storeId !== 'global' && store && store.aiActive))) {
-    try {
-      const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router')
-      const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', session.storeId || 'global')
-      
-      // Recargar la sesión después de que la IA procesó la solicitud (puede haber cambiado el step nativo)
-      session = await prisma.whatsAppSession.findUnique({ where: { id: session.id } }) || session;
-
-      // Si el AgentRouter señala que debe dispararse el checkout nativo, redirigir
-      if ((result as any).triggerNativeCheckout) {
-        await handleWhatsAppMessage(from, 'confirm_checkout', session)
-        return
-      }
-
-      // Solo enviar si hay una respuesta real; si el fallback retornó vacío, la IA no pudo responder
-      if (result.response && result.response.trim()) {
-        if (result.requiresLocationRequest) {
-          await waClient.sendLocationRequest(from, result.response)
-        } else {
-          await waClient.sendText(from, result.response)
-        }
-      }
-      return;
-    } catch (agentErr) {
-      console.error('Error in AgentRouter delegation:', agentErr)
-    }
-  }
-
+  // 9. Máquina de estados conversacional
   switch (session.step) {
     case 'START':
       if (session.storeId && session.storeId !== 'global' && store) {
-        await dispatchStoreCatalog(from, store, waClient, session);
+        await dispatchStoreCatalog(from, store, waClient, session)
       } else {
         await waClient.sendButtons(from, '¡Hola! Bienvenido a *StoreFCheckout*. 🚀\n\n¿Cómo prefieres empezar hoy?', [
           { id: 'view_stores', title: '🏬 Ver tiendas' },
           { id: 'search_now', title: '🔍 Buscar algo' },
-        ]);
-        await updateWhatsAppSession(session.id, { step: 'IDLE' });
+        ])
+        await updateWhatsAppSession(session.id, { step: 'IDLE' })
       }
-      break;
+      break
 
-    case 'IDLE':
-      const normalizedQuery = text.toLowerCase().trim();
-      const isCatalogKeyword = ['catalogo', 'catálogo', 'ver catalogo', 'ver catálogo', 'ver productos', 'menu', 'menú', 'productos'].includes(normalizedQuery);
+    case 'IDLE': {
+      const normalizedQuery = text.toLowerCase().trim()
+      const isCatalogKeyword = ['catalogo', 'catálogo', 'ver catalogo', 'ver catálogo', 'ver productos', 'menu', 'menú', 'productos'].includes(normalizedQuery)
       if (isCatalogKeyword && session.storeId && session.storeId !== 'global' && store) {
-        await dispatchStoreCatalog(from, store, waClient, session);
-        break;
+        await dispatchStoreCatalog(from, store, waClient, session)
+        break
       }
-      // El resto de la búsqueda se mantiene igual
+
       if (intent.intent === 'QUERY' && intent.query) {
-        // Si hay una tienda seleccionada, buscamos solo ahí
-        const products = await searchGlobalProducts(intent.query, session.storeId);
+        const products = await searchGlobalProducts(intent.query, session.storeId)
 
         if (products.length === 0) {
           try {
@@ -1076,15 +316,15 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
             await waClient.sendText(from, result.response)
           } catch (agentErr) {
             console.error('Error in agent router fallback:', agentErr)
-            const storeMsg = session.storeId ? ' en esta tienda' : '';
-            await waClient.sendText(from, `Lo siento, no encontré "${intent.query}"${storeMsg}. 😕 ¿Quieres intentar con otra cosa?`);
+            const storeMsg = session.storeId ? ' en esta tienda' : ''
+            await waClient.sendText(from, `Lo siento, no encontré "${intent.query}"${storeMsg}. 😕 ¿Quieres intentar con otra cosa?`)
           }
         } else if (products.length === 1) {
-          const p = products[0];
+          const p = products[0]
           await waClient.sendButtons(from, `¡Encontré esto! 🧐\n\n*${p.name}*\nTienda: ${p.storeName}\nPrecio: $${p.price.toLocaleString()}\n\n¿Deseas confirmar este pedido?`, [
             { id: `confirm_${p.id}`, title: '✅ Sí, confirmar' },
             { id: 'cancel', title: '❌ No, buscar otro' },
-          ]);
+          ])
           await updateWhatsAppSession(session.id, {
             step: 'AWAITING_CONFIRMATION',
             cart: {
@@ -1098,7 +338,7 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
                 },
               },
             },
-          });
+          })
         } else {
           await waClient.sendList(
             from,
@@ -1115,709 +355,88 @@ export async function handleWhatsAppMessage(from: string, text: string, sessionO
                 })),
               },
             ]
-          );
-          await updateWhatsAppSession(session.id, { step: 'AWAITING_SELECTION' });
+          )
+          await updateWhatsAppSession(session.id, { step: 'AWAITING_SELECTION' })
         }
       } else {
-        // AI Chatbot fallback using DeepSeek
-        let answeredByAI = false;
         if (session.storeId === 'global') {
           try {
-            const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router');
-            const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', 'global');
-            await waClient.sendText(from, result.response);
-            answeredByAI = true;
+            const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router')
+            const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', 'global')
+            await waClient.sendText(from, result.response)
           } catch (agentErr) {
-            console.error('Error invoking global agent router:', agentErr);
+            console.error('Error invoking global agent router:', agentErr)
           }
         } else if (session.storeId && session.storeId !== 'global' && store && store.aiActive) {
           try {
-            // 1. Fetch store products
-            const storeProducts = await prisma.product.findMany({
-              where: { storeId: store.id, active: true },
-              take: 30
-            });
-            const productsListText = storeProducts.map(p => `- ${p.name}: $${p.price.toLocaleString('es-CO')}`).join('\n');
-
-            // 2. Format chat history
-            const history = toChatMessages(session.messages);
-            const chatMessages = history.slice(-10).map(m => ({
-              role: (m.sender === 'bot' ? 'assistant' : 'user') as 'system' | 'user' | 'assistant',
-              content: m.text
-            })).filter(m => {
-              if (!m.content || m.content.trim() === '') return false;
-              const trimmed = m.content.trim();
-              if (m.role === 'assistant' && trimmed.startsWith('{') && trimmed.endsWith('}')) {
-                return false;
-              }
-              return true;
-            });
-            
-            // Append current message if not present
-            if (chatMessages.length === 0 || chatMessages[chatMessages.length - 1].content !== text) {
-              chatMessages.push({ role: 'user', content: text });
-            }
-
-            // 3. Build prompts
-            const storePrompt = store.systemPrompt || `Eres el agente de IA oficial de ${store.name}. Atiende con amabilidad y educación.`;
-            const systemPrompt = `${storePrompt}
-
-Catálogo de productos de la tienda:
-${productsListText}
-
-Instrucciones clave para interactuar con el CLIENTE en WhatsApp:
-- Estás hablando DIRECTAMENTE con el cliente comprador. Sé servicial, educado y enfocado en ventas.
-- NUNCA inventes, sugieras o propongas descuentos, paquetes promocionales o precios diferentes al catálogo. Los precios son fijos.
-- ⚠️ PROHIBIDO ABSOLUTO: NUNCA inventes, construyas, simules ni menciones ningún enlace o URL de pago (ej: NO inventes pay.lcdavid.com, smartpay/12345, checkout/xxx, ni NINGÚN link). Si el cliente quiere pagar, dile ÚNICAMENTE que escriba "pagar" y el sistema le generará el link real automáticamente.
-- Si el cliente pregunta por productos o precios, usa el catálogo arriba mencionado.
-- Si el cliente desea comprar o ver el catálogo, indícales que escriban "Ver catálogo" o "Inicio" para listar las tiendas.
-- Si el cliente quiere pagar o ver sus artículos seleccionados, dile solo: "Escribe *pagar* para generar tu link de pago real 🔗".
-- Mantén las respuestas amigables, cortas y concisas (máximo 2 a 3 oraciones), ideales para leer en pantallas móviles de WhatsApp.
-- NUNCA respondas con código JSON o formato estructurado de herramientas. Responde siempre en texto plano conversacional directo al usuario.
-- No uses Markdown complejo. Usa negrita de WhatsApp (*texto*) si es necesario.`;
-
-
-            // 4. Call OpenRouter (Free Model with optional SalesBot model override)
-            const { generateOpenRouterCompletion } = await import('@/lib/ai/openrouter');
-            const salesModel = process.env.SALES_BOT_MODEL || 'openrouter/free';
-            const aiReply = await generateOpenRouterCompletion(chatMessages, systemPrompt, undefined, salesModel);
-
-            if (aiReply) {
-              const replyText = typeof aiReply === 'string' ? aiReply : (aiReply.content || '');
-              if (replyText) {
-                await waClient.sendText(from, replyText);
-                answeredByAI = true;
-              }
-            }
-          } catch (aiErr) {
-            console.error('Error in chatbot AI response generation:', aiErr);
-          }
-        }
-
-        if (!answeredByAI) {
-          let faqResponse = null;
-          if (session.storeId && session.storeId !== 'global') {
-            try {
-              const faqs = await prisma.faq.findMany({
-                where: { storeId: session.storeId }
-              });
-              const match = faqs.find((f) => text.toLowerCase().includes(f.question.toLowerCase()));
-              if (match) {
-                faqResponse = match.answer;
-              }
-            } catch (faqErr) {
-              console.error('Error fetching FAQs in chatbot fallback:', faqErr);
-            }
-          }
-
-          if (faqResponse) {
-            await waClient.sendText(from, faqResponse);
-          } else {
-            await waClient.sendText(from, 'No logré entender tu pedido. Puedes decir algo como "Busco Pizza" o escribir "Ver productos" para abrir nuestro catálogo.');
+            const { AgentRouter } = await import('@/lib/ai/pipeline/agent-router')
+            const result = await AgentRouter.processMessage(from, text, 'WHATSAPP', store.id)
+            await waClient.sendText(from, result.response)
+          } catch (agentErr) {
+            console.error('Error invoking store agent router:', agentErr)
           }
         }
       }
-      break;
+      break
+    }
 
     case 'AWAITING_STORE_SELECTION':
       if (text.startsWith('store_')) {
-        const storeId = text.replace('store_', '');
-        const store = await prisma.store.findUnique({ 
-          where: { id: storeId, active: true },
-          include: { products: { where: { active: true }, take: 5 } }
-        });
-  
-        if (store) {
-          console.log(`[Bot Debug] Encontrada tienda: ${store.name} con ${store.products.length} productos.`);
-          
-          if (store.products.length === 0) {
-            await waClient.sendText(from, `Esta tienda aún no tiene productos registrados o activos. 😕\n\nPuedes escribir "Tiendas" para ver otro comercio.`);
-          } else {
-            // Handoff redirection link if WhatsApp QR connection is active
-            if (store.whatsappConnected && store.whatsapp) {
-              const waUrl = `https://wa.me/${store.whatsapp}?text=¡Hola!%20Quiero%20hacer%20un%20pedido%20en%20*${encodeURIComponent(store.name)}*`;
-              await waClient.sendUrlButton(
-                from,
-                `¡Excelente elección! Para comprar en *${store.name}*, pulsa el botón de abajo para abrir el chat oficial de la tienda e iniciar tu pedido:`,
-                '💬 Chatear con Tienda',
-                waUrl
-              );
-              // Clean up corporate session
-              await updateWhatsAppSession(session.id, { step: 'START', storeId: 'global' });
-            } else {
-              // Fallback: stay on global line
-              await dispatchStoreCatalog(from, store, waClient, session);
-            }
-          }
+        const storeId = text.replace('store_', '')
+        const selectedStore = await prisma.store.findUnique({ where: { id: storeId, active: true } })
+        if (selectedStore) {
+          await updateWhatsAppSession(session.id, { storeId: selectedStore.id, step: 'START' })
+          await dispatchStoreCatalog(from, selectedStore, waClient, session)
+        } else {
+          await waClient.sendText(from, 'Tienda no encontrada. 😕')
         }
-      } else {
-        // Si el usuario escribe algo en lugar de seleccionar, volvemos a IDLE
-        await updateWhatsAppSession(session.id, { step: 'IDLE' });
-        await handleWhatsAppMessage(from, text, session);
       }
-      break;
+      break
 
     case 'AWAITING_SELECTION':
-      // Ahora manejado globalmente
-      break;
+      break
 
     case 'AWAITING_NAME': {
-      const trimmed = text.trim();
+      const trimmed = text.trim()
       if (!trimmed || trimmed.length < 2) {
-        await waClient.sendText(from, 'Por favor, escribe un nombre válido para el despacho de tu pedido:');
-        break;
+        await waClient.sendText(from, 'Por favor, escribe un nombre válido para el despacho de tu pedido:')
+        break
       }
-      const updatedSession = await updateWhatsAppSession(session.id, { customerName: trimmed, step: 'IDLE' });
-      await handleWhatsAppMessage(from, 'confirm_checkout', updatedSession);
-      break;
+      const updatedSession = await updateWhatsAppSession(session.id, { customerName: trimmed, step: 'IDLE' })
+      await handleConfirmCheckout(from, updatedSession, waClient)
+      break
     }
 
     case 'AWAITING_ADDRESS': {
-      const trimmed = text.trim();
+      const trimmed = text.trim()
       if (!trimmed || trimmed.length < 4) {
-        await waClient.sendText(from, 'Por favor, indícanos una dirección de entrega válida (Calle, Carrera, Barrio y Ciudad):');
-        break;
+        await waClient.sendText(from, 'Por favor, indícanos una dirección de entrega válida (Calle, Carrera, Barrio y Ciudad):')
+        break
       }
-      const updatedSession = await updateWhatsAppSession(session.id, { address: trimmed, step: 'IDLE' });
-      await handleWhatsAppMessage(from, 'confirm_checkout', updatedSession);
-      break;
+      const updatedSession = await updateWhatsAppSession(session.id, { address: trimmed, step: 'IDLE' })
+      await handleConfirmCheckout(from, updatedSession, waClient)
+      break
     }
 
     case 'AWAITING_PAYMENT_SELECTION':
-      if (text === 'btn_pay_breb') {
-        await updateWhatsAppSession(session.id, { step: 'AWAITING_BREB_KEY' });
-        await waClient.sendText(from, "📱 *Pago con Bre-B*\n\nPor favor, escribe tu **número de celular o llave Bre-B** para enviarle la solicitud de cobro directo a tu banco:");
-      } else if (text === 'btn_pay_cod') {
-        const items = await getCartItemsForSession(session);
-        if (items.length === 0) {
-          await waClient.sendText(from, 'Tu carrito está vacío. 🛒');
-          await updateWhatsAppSession(session.id, { step: 'IDLE' });
-          break;
-        }
+      await handleAwaitingPaymentSelection(from, text, session, waClient)
+      break
 
-        const storeId = session.storeId || items[0]?.storeId || 'global';
-        const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
-        const store = await prisma.store.findUnique({ where: { id: storeId } });
-        const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
-        const total = subtotal + deliveryCost;
-
-        const order = await prisma.order.create({
-          data: {
-            customerName: session.customerName || 'Cliente WhatsApp',
-            customerPhone: from,
-            customerWhatsAppId: from,
-            address: session.address || 'Dirección por confirmar',
-            city: 'Colombia',
-            items: items as any,
-            total: total,
-            storeId: storeId,
-            source: 'WHATSAPP',
-            status: 'pending_delivery',
-            paymentStatus: 'CASH_ON_DELIVERY',
-            deliveryRequested: true
-          }
-        });
-
-        await updateWhatsAppSession(session.id, {
-          step: 'IDLE',
-          cart: emptyCartState()
-        });
-
-        await waClient.sendText(
-          from,
-          `🎉 *¡Pedido Confirmado con Éxito!*\n\n` +
-          `• *Número de Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
-          `• *Total a pagar al recibir:* $${total.toLocaleString('es-CO')} COP en efectivo\n` +
-          `• *Dirección:* ${order.address}\n` +
-          `• *Destinatario:* ${order.customerName}\n\n` +
-          `El vendedor ya fue notificado y preparará tu envío. Te avisaremos cuando vaya en camino. 🛵`
-        );
-
-        if (store?.whatsapp) {
-          await waClient.sendButtons(
-            store.whatsapp,
-            `📦 *¡Nuevo Pedido Contra Entrega!* 🛵\n\n` +
-            `• *Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
-            `• *Cliente:* ${order.customerName} (${from})\n` +
-            `• *Dirección:* ${order.address}\n` +
-            `• *Total a cobrar:* $${total.toLocaleString('es-CO')} COP\n\n` +
-            `¿Deseas solicitar un repartidor de la red para despachar este pedido?`,
-            [
-              { id: `delivery_yes_${order.id}`, title: '🏍️ Solicitar Domicilio' },
-              { id: `delivery_no_${order.id}`, title: '📦 Enviar por mi cuenta' }
-            ]
-          );
-        }
-      } else if (text === 'btn_pay_link') {
-        const items = await getCartItemsForSession(session);
-        if (items.length === 0) {
-          await waClient.sendText(from, 'Tu carrito está vacío. 🛒');
-          await updateWhatsAppSession(session.id, { step: 'IDLE' });
-          break;
-        }
-
-        const storeId = session.storeId || items[0]?.storeId || 'global';
-        const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
-        const store = await prisma.store.findUnique({ where: { id: storeId } });
-        const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
-        const total = subtotal + deliveryCost;
-
-        const order = await prisma.order.create({
-          data: {
-            customerName: session.customerName || 'Cliente WhatsApp',
-            customerPhone: from,
-            customerWhatsAppId: from,
-            address: session.address || 'Dirección por confirmar',
-            city: 'Colombia',
-            items: items as any,
-            total: total,
-            storeId: storeId,
-            source: 'WHATSAPP',
-            status: 'pending_payment',
-            paymentStatus: 'PENDING'
-          }
-        });
-
-        await updateWhatsAppSession(session.id, {
-          step: 'IDLE',
-          cart: emptyCartState()
-        });
-
-        const payUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${order.id}`;
-
-        await waClient.sendText(
-          from,
-          `💳 *Enlace de Pago Seguro Generado*\n\n` +
-          `• *Pedido:* #${order.id.slice(-6).toUpperCase()}\n` +
-          `• *Total:* $${total.toLocaleString('es-CO')} COP\n` +
-          `• *Entrega en:* ${order.address}\n\n` +
-          `Haz clic en el enlace para pagar con Tarjeta de Crédito, Débito, PSE o tu método favorito:\n` +
-          `🔗 ${payUrl}\n\n` +
-          `_En cuanto completes el pago, tu orden será procesada automáticamente._`
-        );
-      } else if (text === 'cancel') {
-        await updateWhatsAppSession(session.id, { step: 'IDLE' });
-        await waClient.sendText(from, 'Pedido cancelado. Tu carrito se mantiene intacto. ❌');
-      } else {
-        await waClient.sendText(from, 'Por favor, selecciona una opción válida usando los botones de abajo.');
-      }
-      break;
-
-    case 'AWAITING_BREB_KEY': {
-      const payerKey = text.trim().replace(/\D/g, ''); // Limpiar caracteres no numéricos
-      const isValidKey = payerKey.length >= 10;
-
-      if (isValidKey) {
-        const items = await getCartItemsForSession(session);
-        if (items.length === 0) {
-          await waClient.sendText(from, 'Tu carrito está vacío. 🛒');
-          await updateWhatsAppSession(session.id, { step: 'IDLE' });
-          return;
-        }
-
-        const storeId = session.storeId || items[0]?.storeId || 'global';
-        const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
-
-        const store = await prisma.store.findUnique({
-          where: { id: storeId },
-          include: { brebConfig: true }
-        });
-
-        const deliveryCost = Number((store?.settings as any)?.deliveryCost ?? 5000);
-        const total = subtotal + deliveryCost;
-
-        const storeBrebKey = store?.brebConfig?.keyValue || (store?.settings as any)?.brebConfig?.keyValue;
-        const storeBrebEnabled = store?.brebConfig?.enabled || (store?.settings as any)?.brebConfig?.enabled;
-
-        if (!store || !storeBrebKey || !storeBrebEnabled) {
-          await waClient.sendText(from, 'Lo sentimos, este comercio no tiene configurada o activa la llave Bre-B para recibir pagos en este momento. 😕');
-          await updateWhatsAppSession(session.id, { step: 'IDLE' });
-          return;
-        }
-
-        try {
-          await waClient.sendText(from, 'Iniciando cobro digital por Bre-B... ⏳');
-
-          const order = await prisma.order.create({
-            data: {
-              customerName: session.customerName || 'Cliente WhatsApp',
-              customerPhone: from,
-              customerWhatsAppId: from,
-              address: session.address || 'WhatsApp',
-              city: 'Colombia',
-              items: items as any,
-              total: total,
-              storeId: storeId,
-              source: 'WHATSAPP',
-              paymentStatus: 'PENDING'
-            }
-          });
-
-          const { createDruoPayment } = await import('@/lib/druo');
-          await createDruoPayment({
-            amount: total,
-            orderId: order.id,
-            payerKey: payerKey,
-            sellerKey: storeBrebKey
-          });
-
-          await prisma.order.update({
-            where: { id: order.id },
-            data: {
-              paymentStatus: 'PAYMENT_REQUESTED'
-            }
-          });
-
-          await updateWhatsAppSession(session.id, {
-            step: 'IDLE',
-            cart: emptyCartState()
-          });
-
-          await waClient.sendText(from, 
-            `🚀 *¡Solicitud enviada a tu banco!*\n\n` +
-            `Por favor, abre la app de tu banco (**Nequi, Daviplata, Bancolombia, Davivienda, etc.**), busca las notificaciones de pago pendientes de Bre-B y **autoriza el cobro por $${total.toLocaleString('es-CO')} COP**.\n\n` +
-            `_Te confirmaremos por este chat en cuanto se complete la transferencia._`
-          );
-
-        } catch (payErr) {
-          console.error('[DRUO Payment Error]', payErr);
-          
-          // Cambiar estado del pedido temporal si existe
-          try {
-            const pendingOrder = await prisma.order.findFirst({
-              where: { customerPhone: from, paymentStatus: 'PENDING' },
-              orderBy: { createdAt: 'desc' }
-            });
-            if (pendingOrder) {
-              await prisma.order.update({
-                where: { id: pendingOrder.id },
-                data: { paymentStatus: 'FAILED' }
-              });
-            }
-          } catch (dbErr) {
-            console.error('[DB Order Update Error in Catch]', dbErr);
-          }
-
-          await waClient.sendText(
-            from,
-            '⚠️ Hubo un error al iniciar la solicitud de cobro con DRUO (es posible que el número ingresado no esté registrado en Bre-B o el sistema bancario presente intermitencias).\n\n' +
-            'Por favor, *escribe tu número de celular nuevamente* para volver a intentarlo, o escribe *cancelar* si deseas abortar la compra.'
-          );
-        }
-      } else {
-        await waClient.sendText(from, '⚠️ El número ingresado no es válido. Por favor, ingresa una llave Bre-B (número de celular) de al menos 10 dígitos:');
-      }
-      break;
-    }
+    case 'AWAITING_BREB_KEY':
+      await handleAwaitingBrebKey(from, text, session, waClient)
+      break
 
     case 'AWAITING_CONFIRMATION':
       if (text === 'final_summary' || text === 'confirm_checkout' || intent.intent === 'CONFIRM') {
-        const items = await getCartItemsForSession(session);
-        
-        if (items.length > 0) {
-            const storeId = session.storeId || items[0]?.storeId || 'global';
-            const total = items.reduce((s, i) => s + (i.price * i.qty), 0);
-            
-            // MODO JELOU: Resumen de Pedido Nativo
-            let orderSummary = `*REVISIÓN DE TU PEDIDO* 📋\n\n`;
-            orderSummary += `👤 *Cliente:* ${session.customerName}\n`;
-            orderSummary += `📍 *Dirección:* ${session.address}\n\n`;
-            orderSummary += `*Artículos:*\n`;
-            items.forEach(i => {
-              orderSummary += `- ${i.name} x${i.qty} ($${(i.price * i.qty).toLocaleString()})\n`;
-            });
-            orderSummary += `\n*TOTAL A PAGAR: $${total.toLocaleString('es-CO')}*`;
-
-            const order = await prisma.order.create({
-              data: {
-                customerName: session.customerName || 'Cliente WhatsApp',
-                customerPhone: from,
-                customerWhatsAppId: from,
-                address: session.address || 'WhatsApp',
-                city: 'Colombia',
-                items: items,
-                total: total,
-                storeId: storeId,
-                source: 'WHATSAPP',
-              },
-            });
-
-            try {
-              const store = await prisma.store.findUnique({
-                where: { id: storeId },
-                include: { brebConfig: true },
-              });
-              const bankDetails = store?.whatsapp ? `Nequi o Daviplata al celular ${store.whatsapp}` : '[Datos Cuenta]';
-              const brebConfig = getBrebPaymentConfig(store?.brebConfig, store?.settings);
-              const shouldUseBreb = Boolean(brebConfig?.enabled && brebConfig.keyValue && brebConfig.participantId);
-              
-              let mpPreferenceId: string | null = null;
-
-              // Check if Mercado Pago is active and connected
-              if (store && store.mpConnected && !shouldUseBreb) {
-                const tokenToUse = store.mpAccessToken || process.env.MERCADOPAGO_ACCESS_TOKEN;
-                if (tokenToUse) {
-                  try {
-                    const { MercadoPagoConfig, Preference } = await import('mercadopago');
-                    const dynamicMpClient = new MercadoPagoConfig({
-                      accessToken: tokenToUse,
-                      options: { timeout: 10000 },
-                    });
-                    const dynamicMpPreference = new Preference(dynamicMpClient);
-                    const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
-
-                    const preferenceData: {
-                      body: {
-                        items: Array<{ id: string; title: string; quantity: number; unit_price: number; currency_id: string }>;
-                        external_reference: string;
-                        back_urls: { success: string; failure: string; pending: string };
-                        metadata: { orderId: string; storeId: string };
-                        notification_url?: string;
-                        auto_return?: 'approved';
-                      }
-                    } = {
-                      body: {
-                        items: items.map(line => ({
-                          id: line.id,
-                          title: `${line.name} (x${line.qty})`,
-                          quantity: line.qty,
-                          unit_price: line.price,
-                          currency_id: 'COP',
-                        })),
-                        external_reference: order.id,
-                        back_urls: {
-                          success: `${base}/tienda/${store.slug}/exito`,
-                          failure: `${base}/tienda/${store.slug}`,
-                          pending: `${base}/tienda/${store.slug}`,
-                        },
-                        metadata: {
-                          orderId: order.id,
-                          storeId: store.id,
-                        },
-                      },
-                    };
-
-                    if (base.startsWith('https')) {
-                      preferenceData.body.notification_url = `${base}/api/webhook/mp`;
-                      preferenceData.body.auto_return = 'approved';
-                    }
-
-                    const preference = await dynamicMpPreference.create(preferenceData);
-                    if (preference.id) {
-                      mpPreferenceId = preference.id;
-                      
-                      // Update order in database
-                      await prisma.order.update({
-                        where: { id: order.id },
-                        data: { mpPreferenceId: preference.id }
-                      });
-                    }
-                  } catch (mpErr) {
-                    console.error('[chatbot-logic] Failed to create Mercado Pago preference:', mpErr);
-                  }
-                }
-              }
-
-              // Build Smart Pay URL
-              const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
-              const smartPayUrl = `${baseAppUrl}/pay/${order.id}`;
-
-              // Send the link / QR!
-              if (shouldUseBreb) {
-                const keyType = ((brebConfig as any)?.keyType || 'PHONE') as BrebKeyType;
-                const reference = buildBrebPaymentReference(order.id);
-                const gui = process.env.BREB_EMVCO_GUI?.trim() || DEFAULT_BREB_EMVCO_GUI;
-                const emvPayload = buildBrebEmvcoPayload({
-                  merchantName: (brebConfig as any)?.merchantDisplayName || store?.name || 'Tienda',
-                  amount: total,
-                  reference,
-                  merchantCity: order.city || 'BOGOTA',
-                  merchantAccount: {
-                    gui,
-                    participantId: brebConfig!.participantId!,
-                    keyType,
-                    keyValue: brebConfig!.keyValue!,
-                    keyTypeCode: (brebConfig as any)?.keyTypeCode || undefined,
-                  },
-                });
-
-                let qrImageToSend: string;
-                try {
-                  qrImageToSend = await QRCode.toDataURL(emvPayload, {
-                    width: 400,
-                    margin: 2,
-                    color: {
-                      dark: '#050505',
-                      light: '#FFFFFF'
-                    }
-                  });
-                } catch (qrErr) {
-                  console.error('[chatbot-logic] Error generando QR en base64:', qrErr);
-                  qrImageToSend = `${baseAppUrl}/api/qr?text=${encodeURIComponent(emvPayload)}`;
-                }
-
-                const brebCaption = `${orderSummary}\n\n` +
-                  `🏦 *PAGO MEDIANTE BRE-B / INTEROPERABLE*\n` +
-                  `1️⃣ Escanea este código QR desde tu app bancaria (Nequi, Daviplata, Bancolombia, etc.) o usa los datos:\n` +
-                  `   • *Llave:* ${brebConfig?.keyValue}\n` +
-                  `   • *Referencia:* ${reference}\n` +
-                  `   • *Valor exacto:* $${total.toLocaleString('es-CO')} COP\n\n` +
-                  `2️⃣ Transfiere y *envía la captura del comprobante por este chat* 📸.\n\n` +
-                  `🔗 Portal web alternativo:\n${smartPayUrl}`;
-
-                try {
-                  await waClient.sendImage(from, qrImageToSend, brebCaption);
-                } catch (imgErr) {
-                  console.error('[chatbot-logic] Error enviando imagen QR Bre-B, fallback a botón:', imgErr);
-                  await waClient.sendUrlButton(
-                    from,
-                    brebCaption,
-                    'Pagar por Bre-B',
-                    smartPayUrl
-                  );
-                }
-              } else if (store && store.mpConnected && mpPreferenceId) {
-                // If Mercado Pago is active, send the Smart Pay Link directly as a Payment Redirection
-                await waClient.sendUrlButton(
-                  from,
-                  `${orderSummary}\n\nHe generado tu orden de cobro de forma segura. Presiona el botón de abajo para pagar en línea desde tu celular o escanear el código QR:`,
-                  '💳 Pagar Seguro',
-                  smartPayUrl
-                );
-              } else {
-                // If it is a manual bank transfer, we can still send the Smart Pay portal where they can check their items and details!
-                await waClient.sendText(
-                  from,
-                  `${orderSummary}\n\nPor favor, realiza la transferencia a los datos de la tienda:\n• *${bankDetails}*\n\nUna vez realizada la transferencia, envía la foto o captura del comprobante por este chat.`
-                );
-                
-                await waClient.sendUrlButton(
-                  from,
-                  `También puedes ver el desglose de tu pedido y subir tu captura en nuestro portal de cobros:`,
-                  '📋 Ver Pedido',
-                  smartPayUrl
-                );
-              }
-
-              await updateWhatsAppSession(session.id, {
-                step: 'AWAITING_CONFIRMATION',
-                cart: emptyCartState(),
-                customerName: null,
-                address: null
-              });
-            } catch (err) {
-               console.error('[Chatbot checkout finalize error]', err);
-               await waClient.sendText(from, 'Hubo un error al procesar tu pedido. Inténtalo de nuevo.');
-            }
-        } else {
-          await waClient.sendText(from, 'Tu carrito está vacío. 🛒 Agrega productos a tu carrito antes de solicitar el pago.');
-          await updateWhatsAppSession(session.id, {
-            step: 'IDLE',
-            customerName: null,
-            address: null
-          });
-        }
+        await handleAwaitingConfirmation(from, session, waClient)
       } else if (intent.intent === 'CANCEL' || text === 'cancel') {
-        await waClient.sendText(from, 'Pedido cancelado. Carrito mantenido.');
+        await waClient.sendText(from, 'Pedido cancelado. Carrito mantenido.')
         await updateWhatsAppSession(session.id, {
           step: 'IDLE',
           customerName: null,
           address: null
-        });
+        })
       }
-      break;
+      break
   }
 }
-
-function getBrebPaymentConfig(tableConfig: { enabled?: boolean; keyValue?: string; participantId?: string | null } | null | undefined, settings: unknown) {
-  if (tableConfig) return tableConfig;
-  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null;
-  const config = (settings as Record<string, unknown>).brebConfig;
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  return config as { enabled?: boolean; keyValue?: string; participantId?: string | null };
-}
-
-export async function handleWhatsAppImage(
-  from: string,
-  mediaIdOrKey: string | Record<string, unknown>,
-  mimeType: string,
-  storeId: string = 'global',
-  instanceName?: string,
-  messagePayload?: Record<string, unknown>
-) {
-  const waClient = createDownloadableClient(instanceName, messagePayload);
-
-  // 1. Obtener sesión del bot usando compound key
-  const session = await prisma.whatsAppSession.findUnique({
-    where: {
-      phoneNumber_storeId: {
-        phoneNumber: from,
-        storeId: storeId
-      }
-    },
-  });
-
-  if (!session || session.step !== 'AWAITING_CONFIRMATION') {
-    console.log(`[Bot Filter] Ignorando imagen no relacionada con comprobante de pago de (${from})`);
-    return;
-  }
-
-  // 2. Buscar la orden PENDING más reciente para este cliente
-  const order = await prisma.order.findFirst({
-    where: {
-      OR: [
-        { customerPhone: from },
-        { customerWhatsAppId: from },
-      ],
-      paymentStatus: 'PENDING',
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
-
-  if (!order) {
-    await waClient.sendText(from, 'No encontré ningún pedido pendiente de pago para tu número.');
-    return;
-  }
-
-  try {
-    await waClient.sendText(from, 'Procesando tu comprobante de pago... ⏳');
-
-    // 3. Descargar comprobante de WhatsApp
-    const { buffer } = await waClient.downloadMedia(mediaIdOrKey);
-
-    // 4. Subir a Supabase Storage
-    const ext = mimeType.split('/')[1] || 'png';
-    const filename = `proof_${order.id}.${ext}`;
-    const proofImageUrl = await uploadProofImage(buffer, filename);
-
-    // 5. Actualizar la orden
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: 'UPLOADED',
-        proofImageUrl,
-      },
-    });
-
-    // 6. Cambiar estado de la sesión a IDLE
-    await prisma.whatsAppSession.update({
-      where: { id: session.id },
-      data: { step: 'IDLE' },
-    });
-
-    await waClient.sendText(
-      from,
-      `¡Comprobante recibido correctamente! 📄\n\nEl vendedor validará tu transferencia en breve. Te notificaremos por este medio una vez sea confirmada. ¡Muchas gracias!`
-    );
-
-  } catch (error) {
-    console.error('[handleWhatsAppImage error]', error);
-    await waClient.sendText(
-      from,
-      'Hubo un problema al procesar tu comprobante de pago. Por favor, asegúrate de que sea una imagen válida e intenta nuevamente.'
-    );
-  }
-}
-

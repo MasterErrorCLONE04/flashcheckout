@@ -368,8 +368,14 @@ JSON:`
       )
       const rawText = typeof result === 'string' ? result.trim() : result.content?.trim() || '{}'
       // Extraer la estructura JSON incluso si el modelo incluye preámbulos como "User Safety: safe" o bloques markdown
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-      const cleanJson = jsonMatch ? jsonMatch[0] : rawText.replace(/```json|```/gi, '').trim()
+      let cleanJson = ''
+      const firstBrace = rawText.indexOf('{')
+      const lastBrace = rawText.lastIndexOf('}')
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleanJson = rawText.substring(firstBrace, lastBrace + 1)
+      } else {
+        cleanJson = rawText.replace(/```json|```/gi, '').trim()
+      }
       const parsed = JSON.parse(cleanJson) as ClassificationResult
 
       // Validar que intent sea un valor conocido
@@ -412,8 +418,8 @@ function parseIntentHeuristic(message: string): ClassificationResult | null {
     return { intent: 'checkout' }
   }
 
-  // 3. Intent: add_to_cart (ej: "quiero 1 gelatina", "quiero gelatina", "agrega 2 pizzas")
-  const addToCartMatch = text.match(/\b(?:quiero|agrega|agregar|añadir|añade|ponme|dame)\s+(\d+)?\s*(?:un|una|unos|unas)?\s*([a-záéíóúñ0-9\s]{2,30})/i)
+  // 3. Intent: add_to_cart (ej: "quiero 1 gelatina", "quiero gelatina", "agrega 2 pizzas", "quiero buso", "buso")
+  const addToCartMatch = text.match(/\b(?:quiero|agrega|agregar|añadir|añade|ponme|dame|llevar|comprar)\s+(\d+)?\s*(?:un|una|unos|unas)?\s*([a-záéíóúñ0-9\s]{2,30})/i)
   if (addToCartMatch) {
     const qtyStr = addToCartMatch[1]
     const rawProd = addToCartMatch[2]?.replace(/\b(por favor|gracias|al carrito)\b/gi, '').trim()
@@ -426,6 +432,15 @@ function parseIntentHeuristic(message: string): ClassificationResult | null {
         productName: rawProd,
         quantity: qtyStr ? Math.max(1, parseInt(qtyStr, 10)) : 1
       }
+    }
+  }
+
+  // 4. Si el mensaje es una sola palabra o frase corta (no un comando conocido), asumir intención de producto / add_to_cart
+  if (text.length >= 3 && text.length <= 40 && !/^(hola|buenos|buenas|gracias|adios|chao|si|no|ok|vale|dale)$/i.test(text)) {
+    return {
+      intent: 'add_to_cart',
+      productName: text,
+      quantity: 1
     }
   }
 
