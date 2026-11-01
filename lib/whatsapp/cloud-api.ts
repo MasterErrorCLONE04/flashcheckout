@@ -35,6 +35,7 @@ type InteractivePayload = {
       flow_token?: string
       flow_id?: string
       flow_cta?: string
+      mode?: string
       flow_action?: string
       flow_action_payload?: {
         screen?: string

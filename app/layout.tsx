@@ -126,8 +126,8 @@ export default function RootLayout({
             variables: {
               colorPrimary: "#0066cc",
               colorBackground: "#ffffff",
-              colorInputBackground: "#f5f5f7",
-              colorInputText: "#1d1d1f",
+              colorInput: "#f5f5f7",
+              colorInputForeground: "#1d1d1f",
               borderRadius: "0.75rem",
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
             },
