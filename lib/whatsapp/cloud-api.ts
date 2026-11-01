@@ -35,6 +35,7 @@ type InteractivePayload = {
       flow_token?: string
       flow_id?: string
       flow_cta?: string
+      mode?: string
       flow_action?: string
       flow_action_payload?: {
         screen?: string
@@ -206,6 +207,7 @@ export class WhatsAppCloudAPI {
             flow_token: flowToken,
             flow_id: flowId,
             flow_cta: flowCta,
+            mode: process.env.WHATSAPP_FLOW_MODE || 'draft',
             flow_action: 'navigate',
             flow_action_payload: {
               screen: screen,

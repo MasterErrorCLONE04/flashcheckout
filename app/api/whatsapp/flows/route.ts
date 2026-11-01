@@ -55,7 +55,20 @@ export async function POST(req: Request) {
       })
     }
 
-    // 3. Fallback for unhandled flow action
+    // 3. Flow data exchange (e.g., product selection, cart calculate, or screen navigation)
+    if (body.action === 'data_exchange') {
+      const data = body.data || {}
+      return NextResponse.json({
+        screen: 'SUCCESS',
+        data: {
+          status: 'success',
+          message: 'Pedido procesado con éxito',
+          ...data
+        }
+      })
+    }
+
+    // 4. Fallback for unhandled flow action
     return NextResponse.json({
       data: {
         status: 'ok'
