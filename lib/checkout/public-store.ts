@@ -10,7 +10,9 @@ import type {
 type StoreSource = {
   id: string
   name: string
+  slug?: string
   whatsapp: string
+  category?: string | null
   logoUrl: string | null
   bio: string | null
   aiSettings: unknown
@@ -58,7 +60,9 @@ export function buildPublicCheckoutStore(
   return {
     id: store.id,
     name: store.name,
+    slug: store.slug,
     whatsapp: store.whatsapp,
+    category: store.category ?? null,
     products: normalizeProducts(store.products),
     logoUrl: store.logoUrl,
     bio: store.bio,

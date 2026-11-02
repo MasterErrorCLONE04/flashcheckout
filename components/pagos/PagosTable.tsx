@@ -45,10 +45,10 @@ export function PagosTable({
   return (
     <>
       {/* TRANSACTIONS TABLE */}
-      <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
+      <div className="overflow-x-auto border border-zinc-200 rounded-lg bg-white">
         <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm">
           <thead>
-            <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
+            <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
               <th className="py-3 px-2.5 xl:px-4">Pago</th>
               <th className="py-3 px-2.5 xl:px-4">Cliente</th>
               <th className="py-3 px-2.5 xl:px-4">Pedido</th>
@@ -110,7 +110,7 @@ export function PagosTable({
                     <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                       <div className="flex flex-col">
                         <span className="font-bold text-[#6F42C1] hover:underline cursor-pointer">{p.pedido}</span>
-                        <span className="text-[9px] font-semibold text-zinc-450 mt-0.5">{p.prodCount} productos</span>
+                        <span className="text-[9px] font-semibold text-zinc-500 mt-0.5">{p.prodCount} productos</span>
                       </div>
                     </td>
 
@@ -137,7 +137,7 @@ export function PagosTable({
                     </td>
 
                     {/* Fecha */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-650">{p.fecha}</td>
+                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-600">{p.fecha}</td>
 
                     {/* Monto */}
                     <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap font-bold text-zinc-900 text-xs xl:text-sm">
@@ -212,7 +212,7 @@ export function PagosTable({
                 setRowsPerPage(Number(e.target.value))
                 setCurrentPage(1)
               }}
-              className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-1.5 font-bold text-zinc-750 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
+              className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-1.5 font-bold text-zinc-700 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
             >
               <option value={8}>8</option>
               <option value={15}>15</option>

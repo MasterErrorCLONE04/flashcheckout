@@ -75,7 +75,7 @@ function DocSearch({
         value={value}
         onChange={event => onChange(event.target.value)}
         placeholder="Buscar documentación..."
-        className="w-full h-10 pl-11 pr-4 bg-zinc-900/60 border border-zinc-850 rounded-lg text-xs font-semibold tracking-tight focus:outline-none focus:ring-1 focus:ring-[#10B981] focus:border-[#10B981] transition-all placeholder:text-zinc-500 text-white"
+        className="w-full h-10 pl-11 pr-4 bg-zinc-900/60 border border-zinc-800 rounded-lg text-xs font-semibold tracking-tight focus:outline-none focus:ring-1 focus:ring-[#10B981] focus:border-[#10B981] transition-all placeholder:text-zinc-500 text-white"
       />
     </div>
   )

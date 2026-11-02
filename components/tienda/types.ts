@@ -2,8 +2,42 @@ export interface Product {
   id: string
   name: string
   price: number
+  compareAtPrice?: number | null
+  badge?: string | null
   imageUrl: string | null
   stock: number
+  category?: string | null
+  description?: string | null
+  options?: unknown
+}
+
+export type HeroStyleType = 'waterdrop-collage' | 'cinematic-overlay' | 'split-hero' | 'minimal-banner'
+export type CardStyleType = 'waterdrop-studio' | 'minimal-elevated' | 'clean-border' | 'glass-card'
+export type HeaderStyleType = 'clean-border' | 'floating-glass' | 'editorial-centered'
+
+export type ProcessStepItem = {
+  step: string
+  title: string
+  desc: string
+  imageUrl?: string
+}
+
+export type AmbassadorItem = {
+  name: string
+  role: string
+  imageUrl: string
+}
+
+export type PressLogoItem = {
+  name: string
+  subtitle?: string
+  imageUrl?: string
+}
+
+export type RetailerItem = {
+  name: string
+  badge?: string
+  imageUrl?: string
 }
 
 export type TiendaSettings = {
@@ -17,13 +51,15 @@ export type TiendaSettings = {
   themePreset?: string
   borderRadius?: 'sharp' | 'smooth' | 'pill'
   shadowStyle?: 'flat' | 'soft' | 'floating'
-  headerStyle?: 'floating-glass' | 'clean-border' | 'editorial-centered'
-  heroStyle?: 'cinematic-overlay' | 'split-hero' | 'minimal-banner'
+  headerStyle?: HeaderStyleType
+  heroStyle?: HeroStyleType
   heroBadge?: string
-  cardStyle?: 'minimal-elevated' | 'clean-border' | 'glass-card'
+  heroPanels?: string[]
+  cardStyle?: CardStyleType
   cardAspectRatio?: 'square' | 'portrait'
   badgeStyle?: 'pill' | 'solid' | 'outline'
   catalogColumns?: '3' | '4' | '5'
+  showVariantSwatches?: boolean
   sections?: Record<string, boolean | undefined>
   bentoHighlights?: {
     title?: string
@@ -31,10 +67,24 @@ export type TiendaSettings = {
   }
   visualCategories?: Array<{ category: string; imageUrl: string }>
   processTimeline?: {
+    headline?: string
     title?: string
-    items?: Array<{ step: string; title: string; desc: string }>
+    items?: ProcessStepItem[]
   }
   lifestyleGallery?: string[]
+  ugcGallery?: string[]
+  ambassadors?: {
+    title?: string
+    subtitle?: string
+    items?: AmbassadorItem[]
+  }
+  pressLogos?: PressLogoItem[]
+  retailers?: {
+    title?: string
+    subtitle?: string
+    ctaText?: string
+    items?: RetailerItem[]
+  }
   newsletterWidget?: {
     title?: string
     subtitle?: string
@@ -115,6 +165,10 @@ export type TiendaSettings = {
     twitter?: string
     web?: string
   }
+  policies?: {
+    terms?: string
+    refunds?: string
+  }
   typography?: string
   [key: string]: any
 }
@@ -134,15 +188,15 @@ export interface TiendaClientProps {
   products: Product[]
 }
 
-export type ActiveTab = 
-  | 'estilo' 
-  | 'encabezado' 
-  | 'productos' 
-  | 'secciones' 
-  | 'info' 
-  | 'dominios' 
-  | 'seo' 
-  | 'redes' 
+export type ActiveTab =
+  | 'estilo'
+  | 'encabezado'
+  | 'productos'
+  | 'secciones'
+  | 'info'
+  | 'dominios'
+  | 'seo'
+  | 'redes'
   | 'politicas'
 
 export type DeviceType = 'escritorio' | 'tablet' | 'movil'
@@ -162,9 +216,9 @@ export interface ThemePreset {
   typography: string
   borderRadius: 'sharp' | 'smooth' | 'pill'
   shadowStyle: 'flat' | 'soft' | 'floating'
-  headerStyle: 'floating-glass' | 'clean-border' | 'editorial-centered'
-  heroStyle: 'cinematic-overlay' | 'split-hero' | 'minimal-banner'
-  cardStyle: 'minimal-elevated' | 'clean-border' | 'glass-card'
+  headerStyle: HeaderStyleType
+  heroStyle: HeroStyleType
+  cardStyle: CardStyleType
   cardAspectRatio: 'square' | 'portrait'
   badgeStyle: 'pill' | 'solid' | 'outline'
   colorPills: string[]
@@ -172,113 +226,135 @@ export interface ThemePreset {
 
 export const PRESETS: ThemePreset[] = [
   {
+    id: 'waterdrop',
+    name: 'Waterdrop Editorial',
+    badge: 'Flagship DTC',
+    desc: 'Estética limpia europea: hero collage, tarjetas estudio sin bordes, grilla mixta y mural UGC',
+    colors: {
+      primario: '#111111',
+      secundario: '#52525B',
+      acento: '#8CE5A7',
+      fondo: '#FFFFFF',
+      texto: '#111111',
+    },
+    typography: 'Plus Jakarta Sans',
+    borderRadius: 'pill',
+    shadowStyle: 'flat',
+    headerStyle: 'clean-border',
+    heroStyle: 'waterdrop-collage',
+    cardStyle: 'waterdrop-studio',
+    cardAspectRatio: 'portrait',
+    badgeStyle: 'pill',
+    colorPills: ['#FFFFFF', '#F6F6F5', '#8CE5A7', '#111111'],
+  },
+  {
     id: 'luxe',
     name: 'Minimalist Luxe',
-    badge: 'Recomendado',
-    desc: 'Limpio, espacioso y nórdico con acentos esmeralda',
+    badge: 'Elegante',
+    desc: 'Blanco puro, tarjetas estudio suaves y acentos esmeralda refinados',
     colors: {
       primario: '#18181B',
       secundario: '#71717A',
-      acento: '#10B981',
-      fondo: '#FAFAFA',
-      texto: '#09090B'
+      acento: '#A7F3D0',
+      fondo: '#FFFFFF',
+      texto: '#09090B',
     },
     typography: 'Outfit',
-    borderRadius: 'smooth',
-    shadowStyle: 'soft',
-    headerStyle: 'floating-glass',
-    heroStyle: 'cinematic-overlay',
-    cardStyle: 'minimal-elevated',
+    borderRadius: 'pill',
+    shadowStyle: 'flat',
+    headerStyle: 'clean-border',
+    heroStyle: 'waterdrop-collage',
+    cardStyle: 'waterdrop-studio',
+    cardAspectRatio: 'portrait',
+    badgeStyle: 'pill',
+    colorPills: ['#FFFFFF', '#18181B', '#A7F3D0', '#71717A'],
+  },
+  {
+    id: 'artisan',
+    name: 'Artisan & Warm',
+    badge: 'Cálido',
+    desc: 'Editorial cálido con tonos arena, terracota suave y fotografía protagonista',
+    colors: {
+      primario: '#1C1917',
+      secundario: '#78716C',
+      acento: '#FDE68A',
+      fondo: '#FFFFFF',
+      texto: '#1C1917',
+    },
+    typography: 'Plus Jakarta Sans',
+    borderRadius: 'pill',
+    shadowStyle: 'flat',
+    headerStyle: 'clean-border',
+    heroStyle: 'waterdrop-collage',
+    cardStyle: 'waterdrop-studio',
     cardAspectRatio: 'square',
     badgeStyle: 'pill',
-    colorPills: ['#18181B', '#71717A', '#10B981', '#FAFAFA']
+    colorPills: ['#FFFFFF', '#FDE68A', '#78716C', '#1C1917'],
+  },
+  {
+    id: 'pastel',
+    name: 'Botanical & Beauty',
+    badge: 'Skincare',
+    desc: 'Minimalismo limpio con barra rosa cuarzo y tarjetas estudio luminosas',
+    colors: {
+      primario: '#18181B',
+      secundario: '#71717A',
+      acento: '#FBCFE8',
+      fondo: '#FFFFFF',
+      texto: '#18181B',
+    },
+    typography: 'Outfit',
+    borderRadius: 'pill',
+    shadowStyle: 'flat',
+    headerStyle: 'clean-border',
+    heroStyle: 'waterdrop-collage',
+    cardStyle: 'waterdrop-studio',
+    cardAspectRatio: 'portrait',
+    badgeStyle: 'pill',
+    colorPills: ['#FFFFFF', '#FBCFE8', '#71717A', '#18181B'],
+  },
+  {
+    id: 'streetwear',
+    name: 'Performance & Bold',
+    badge: ' Urbano / Tech',
+    desc: 'Alto contraste monocromático, líneas limpias y energía atlética',
+    colors: {
+      primario: '#09090B',
+      secundario: '#3F3F46',
+      acento: '#BEF264',
+      fondo: '#FFFFFF',
+      texto: '#09090B',
+    },
+    typography: 'Space Grotesk',
+    borderRadius: 'smooth',
+    shadowStyle: 'flat',
+    headerStyle: 'clean-border',
+    heroStyle: 'waterdrop-collage',
+    cardStyle: 'waterdrop-studio',
+    cardAspectRatio: 'portrait',
+    badgeStyle: 'solid',
+    colorPills: ['#FFFFFF', '#BEF264', '#3F3F46', '#09090B'],
   },
   {
     id: 'midnight',
     name: 'Modern Midnight',
     badge: 'Dark Mode',
-    desc: 'Dark mode elegante con reflejos esmeralda y cristal',
+    desc: 'Modo oscuro sofisticado con contraste limpio y acentos cian/menta',
     colors: {
       primario: '#10B981',
-      secundario: '#6366F1',
+      secundario: '#94A3B8',
       acento: '#22D3EE',
       fondo: '#0B0F19',
-      texto: '#F3F4F6'
+      texto: '#F8FAFC',
     },
     typography: 'Plus Jakarta Sans',
     borderRadius: 'smooth',
-    shadowStyle: 'floating',
-    headerStyle: 'floating-glass',
+    shadowStyle: 'soft',
+    headerStyle: 'clean-border',
     heroStyle: 'cinematic-overlay',
     cardStyle: 'glass-card',
     cardAspectRatio: 'square',
     badgeStyle: 'solid',
-    colorPills: ['#0B0F19', '#10B981', '#6366F1', '#22D3EE']
+    colorPills: ['#0B0F19', '#10B981', '#22D3EE', '#F8FAFC'],
   },
-  {
-    id: 'artisan',
-    name: 'Artisan & Gourmet',
-    badge: 'Cálido',
-    desc: 'Cálido, orgánico y sofisticado con tonos tierra',
-    colors: {
-      primario: '#78350F',
-      secundario: '#D97706',
-      acento: '#B45309',
-      fondo: '#FDFBF7',
-      texto: '#292524'
-    },
-    typography: 'Playfair Display',
-    borderRadius: 'smooth',
-    shadowStyle: 'soft',
-    headerStyle: 'clean-border',
-    heroStyle: 'split-hero',
-    cardStyle: 'clean-border',
-    cardAspectRatio: 'square',
-    badgeStyle: 'pill',
-    colorPills: ['#78350F', '#D97706', '#FDFBF7', '#292524']
-  },
-  {
-    id: 'streetwear',
-    name: 'Streetwear & Bold',
-    badge: 'Urbano',
-    desc: 'Alto impacto, bordes marcados y estética pasarela',
-    colors: {
-      primario: '#000000',
-      secundario: '#27272A',
-      acento: '#E11D48',
-      fondo: '#FFFFFF',
-      texto: '#09090B'
-    },
-    typography: 'Space Grotesk',
-    borderRadius: 'sharp',
-    shadowStyle: 'flat',
-    headerStyle: 'clean-border',
-    heroStyle: 'cinematic-overlay',
-    cardStyle: 'clean-border',
-    cardAspectRatio: 'portrait',
-    badgeStyle: 'solid',
-    colorPills: ['#000000', '#27272A', '#E11D48', '#FFFFFF']
-  },
-  {
-    id: 'pastel',
-    name: 'Pastel Boutique',
-    badge: 'Suave',
-    desc: 'Tonos rosa palo, marfil y acabados ultra-suaves',
-    colors: {
-      primario: '#BE185D',
-      secundario: '#F472B6',
-      acento: '#EC4899',
-      fondo: '#FDF2F8',
-      texto: '#831843'
-    },
-    typography: 'Outfit',
-    borderRadius: 'pill',
-    shadowStyle: 'soft',
-    headerStyle: 'floating-glass',
-    heroStyle: 'minimal-banner',
-    cardStyle: 'minimal-elevated',
-    cardAspectRatio: 'portrait',
-    badgeStyle: 'pill',
-    colorPills: ['#BE185D', '#F472B6', '#FDF2F8', '#831843']
-  }
 ]

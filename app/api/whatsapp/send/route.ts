@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import { normalizeChatMessages } from '@/lib/whatsapp/session-state'
 import {
@@ -28,9 +29,7 @@ export async function POST(req: Request) {
       return badRequest('Missing sessionId or text')
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
     if (!store) return notFound('Store not found')
 
     const session = await prisma.whatsAppSession.findUnique({

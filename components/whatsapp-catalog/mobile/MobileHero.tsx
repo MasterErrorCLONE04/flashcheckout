@@ -1,13 +1,15 @@
 'use client'
 
 import React from 'react'
-import { ChevronRight, ShoppingCart, MessageCircle, Sparkles } from 'lucide-react'
-import { cn } from "@/lib/utils"
+import { ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Store } from '../types'
 
 export interface MobileHeroProps {
   heroType: string
+  heroStyle?: string
   bannerUrls: string[]
+  heroPanels?: string[]
   heroVideoUrl: string
   currentBannerIdx: number
   setCurrentBannerIdx: React.Dispatch<React.SetStateAction<number>>
@@ -29,9 +31,18 @@ export interface MobileHeroProps {
   store: Store
 }
 
+const DEFAULT_MOBILE_PANELS = [
+  'https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=700&q=85',
+  'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=700&q=85',
+  'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=700&q=85',
+  'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=700&q=85',
+]
+
 export function MobileHero({
   heroType,
+  heroStyle = 'waterdrop-collage',
   bannerUrls,
+  heroPanels = [],
   heroVideoUrl,
   currentBannerIdx,
   setCurrentBannerIdx,
@@ -41,62 +52,118 @@ export function MobileHero({
   handleBannerButtonClick,
   colors,
   heroBadge,
-  store
+  store,
 }: MobileHeroProps) {
+  if (heroStyle === 'waterdrop-collage' && heroType !== 'video') {
+    const rawCandidates = [...heroPanels, ...bannerUrls]
+      .map(s => (s || '').trim())
+      .filter(Boolean)
+    const uniquePanels: string[] = []
+    for (const url of rawCandidates) {
+      if (!uniquePanels.includes(url)) uniquePanels.push(url)
+    }
+    const panels = [0, 1, 2, 3].map(i => uniquePanels[i] || DEFAULT_MOBILE_PANELS[i])
+
+    return (
+      <div
+        id="catalog-banner-mobile"
+        className="relative h-[350px] w-full bg-white overflow-hidden rounded-[4px] text-left select-none shrink-0"
+      >
+        <div className="grid grid-cols-2 grid-rows-2 gap-[3px] w-full h-full bg-white">
+          {panels.map((src, idx) => (
+            <div key={idx} className="relative w-full h-full overflow-hidden bg-[#F6F6F4]">
+              <img src={src} alt="" className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/68 via-black/15 to-transparent pointer-events-none" />
+
+        {heroBadge && (
+          <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-black/28 backdrop-blur-md border border-white/15 text-white text-[9.5px] font-semibold tracking-[0.06em]">
+            {heroBadge}
+          </div>
+        )}
+
+        <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between gap-3">
+          <div className="space-y-1 max-w-[68%]">
+            <h2 className="text-[22px] font-extrabold text-white leading-[1.06] tracking-[-0.03em] drop-shadow-xs">
+              {bannerTitle || store.name}
+            </h2>
+            {bannerSubtitle && (
+              <p className="text-[11.5px] font-normal text-white/90 leading-snug line-clamp-2">
+                {bannerSubtitle}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleBannerButtonClick}
+            className="px-4 py-2 rounded-full bg-white text-[#111111] font-bold text-[10px] uppercase tracking-[0.08em] shrink-0 shadow-sm active:scale-95 transition-all border-0 cursor-pointer"
+          >
+            {bannerButton.text || 'Explorar'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (heroType === 'video' || bannerUrls.length > 0) {
     return (
-      <div id="catalog-banner-mobile" className="relative h-[190px] w-full bg-zinc-900 overflow-hidden flex items-center px-6 rounded-2xl text-left select-none shrink-0 shadow-sm group">
+      <div
+        id="catalog-banner-mobile"
+        className="relative h-[240px] w-full bg-zinc-900 overflow-hidden flex items-end p-5 rounded-xl text-left select-none shrink-0"
+      >
         {heroType === 'video' && heroVideoUrl ? (
-          <video 
-            src={heroVideoUrl} 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="absolute inset-0 w-full h-full object-cover opacity-100 z-0"
+          <video
+            src={heroVideoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-0"
           />
-        ) : bannerUrls.length > 0 ? (
+        ) : (
           <div className="absolute inset-0 w-full h-full">
             {bannerUrls.map((url, idx) => (
-              <img 
+              <img
                 key={idx}
-                src={url} 
-                alt="Banner" 
+                src={url}
+                alt="Banner"
                 className={cn(
-                  "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-0",
-                  idx === currentBannerIdx ? "opacity-100" : "opacity-0"
-                )} 
+                  'absolute inset-0 w-full h-full object-cover transition-opacity duration-700 z-0',
+                  idx === currentBannerIdx ? 'opacity-100' : 'opacity-0'
+                )}
               />
             ))}
           </div>
-        ) : null}
-        <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none" />
-        
-        <div className="relative z-10 space-y-2.5 max-w-xs">
-          <h2 className="text-base font-black text-white leading-tight">{bannerTitle}</h2>
-          <p className="text-[9.5px] font-semibold text-zinc-200 leading-normal">{bannerSubtitle}</p>
-          <button 
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent z-0 pointer-events-none" />
+
+        <div className="relative z-10 space-y-2 w-full">
+          <h2 className="text-lg font-black text-white leading-tight">{bannerTitle}</h2>
+          <p className="text-[11px] font-medium text-white/85 leading-snug line-clamp-2">
+            {bannerSubtitle}
+          </p>
+          <button
             type="button"
             onClick={handleBannerButtonClick}
-            className="px-4 py-2 rounded-lg text-white font-extrabold text-[10px] flex items-center gap-1 shadow-sm active:scale-95 transition-all select-none border-0 cursor-pointer"
-            style={{ backgroundColor: colors.secundario }}
+            className="px-4 py-2 rounded-full bg-white text-zinc-950 font-bold text-[10px] uppercase tracking-wider inline-flex items-center gap-1 shadow-sm active:scale-95 transition-all border-0 cursor-pointer"
           >
-            <span>{bannerButton.text}</span>
+            <span>{bannerButton.text || 'Explorar'}</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Mobile indicators */}
         {bannerUrls.length > 1 && (
-          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+          <div className="absolute top-3 right-3 flex gap-1 z-10">
             {bannerUrls.map((_, idx) => (
-              <button 
+              <button
                 key={idx}
                 type="button"
                 onClick={() => setCurrentBannerIdx(idx)}
                 className={cn(
-                  "w-1.5 h-1.5 rounded-full transition-all border-0 p-0 cursor-pointer",
-                  idx === currentBannerIdx ? "bg-white w-3.5" : "bg-white/40 hover:bg-white/60"
+                  'w-1.5 h-1.5 rounded-full transition-all border-0 p-0 cursor-pointer',
+                  idx === currentBannerIdx ? 'bg-white w-4' : 'bg-white/40'
                 )}
               />
             ))}
@@ -106,58 +173,31 @@ export function MobileHero({
     )
   }
 
-  /* Mobile High-Conversion Editorial Hero */
   return (
-    <div 
-      id="catalog-banner-mobile" 
-      className="relative p-5 rounded-2xl border text-left select-none shrink-0 shadow-xs space-y-3"
-      style={{
-        background: `radial-gradient(circle at top right, ${colors.primario}14 0%, transparent 70%), linear-gradient(135deg, #FFFFFF 0%, ${colors.fondo} 100%)`,
-        borderColor: `${colors.primario}25`
-      }}
+    <div
+      id="catalog-banner-mobile"
+      className="relative p-6 rounded-xl bg-[#F6F6F5] text-left select-none shrink-0 space-y-3"
     >
-      <div 
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border"
-        style={{
-          backgroundColor: `${colors.primario}12`,
-          color: colors.primario,
-          borderColor: `${colors.primario}30`
-        }}
-      >
-        <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
-        <span>{heroBadge || '⭐ 4.9/5 · Tienda Oficial'}</span>
-      </div>
-
-      <h2 className="text-xl font-black tracking-tight leading-tight" style={{ color: colors.texto }}>
-        {bannerTitle || store.name || 'Calidad Superior Directo a tu Puerta'}
+      {heroBadge && (
+        <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+          {heroBadge}
+        </span>
+      )}
+      <h2 className="text-2xl font-black tracking-tight leading-tight text-zinc-950">
+        {bannerTitle || store.name}
       </h2>
-
-      <p className="text-[11px] font-medium text-zinc-600 leading-normal line-clamp-2">
-        {bannerSubtitle || store.bio || 'Productos seleccionados con la mejor calidad y despacho asegurado.'}
+      <p className="text-xs font-medium text-zinc-600 leading-relaxed line-clamp-2">
+        {bannerSubtitle || store.bio}
       </p>
-
-      <div className="flex items-center gap-2 pt-1">
-        <button 
-          type="button"
-          onClick={handleBannerButtonClick}
-          className="flex-1 py-2.5 px-4 rounded-xl text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all select-none border-0 cursor-pointer"
-          style={{ backgroundColor: colors.primario }}
-        >
-          <ShoppingCart className="w-3.5 h-3.5" />
-          <span>{bannerButton.text || 'Ver Catálogo'}</span>
-        </button>
-
-        {store.whatsapp && (
-          <a
-            href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${store.name}! 👋 Vengo de su tienda web y me gustaría recibir asesoría con mi pedido.`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm active:scale-95 no-underline"
-          >
-            <MessageCircle className="w-5 h-5" />
-          </a>
-        )}
-      </div>
+      <button
+        type="button"
+        onClick={handleBannerButtonClick}
+        className="py-2.5 px-5 rounded-full text-white font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1.5 active:scale-95 transition-all border-0 cursor-pointer"
+        style={{ backgroundColor: colors.primario }}
+      >
+        <span>{bannerButton.text || 'Explorar'}</span>
+        <ChevronRight className="w-3.5 h-3.5" />
+      </button>
     </div>
   )
 }

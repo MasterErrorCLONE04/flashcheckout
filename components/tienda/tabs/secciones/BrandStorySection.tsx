@@ -168,7 +168,7 @@ export function BrandStorySection({ form }: BrandStorySectionProps) {
             </div>
 
             {/* Pilar 1 */}
-            <div className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5">
+            <div className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2.5">
               <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Pilar #1</span>
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-4 space-y-1">
@@ -202,7 +202,7 @@ export function BrandStorySection({ form }: BrandStorySectionProps) {
             </div>
 
             {/* Pilar 2 */}
-            <div className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5">
+            <div className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2.5">
               <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Pilar #2</span>
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-4 space-y-1">
@@ -240,7 +240,7 @@ export function BrandStorySection({ form }: BrandStorySectionProps) {
           <div className="space-y-3.5 border-t border-zinc-100 pt-3">
             <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Equipo de Liderazgo</h4>
             {brandStoryPage.leadership.map((member: any, idx: number) => (
-              <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+              <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Miembro #{idx + 1}</span>
                 <div className="grid grid-cols-12 gap-2">
                   <div className="col-span-3 space-y-1">
@@ -291,7 +291,7 @@ export function BrandStorySection({ form }: BrandStorySectionProps) {
           <div className="space-y-3.5 border-t border-zinc-100 pt-3">
             <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Nuestros Valores</h4>
             {brandStoryPage.values.map((val: any, idx: number) => (
-              <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+              <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2">
                 <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Valor #{idx + 1}</span>
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-bold text-zinc-400 uppercase block">Título</label>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,9 +33,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })

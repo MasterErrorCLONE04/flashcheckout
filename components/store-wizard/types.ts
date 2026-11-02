@@ -24,6 +24,7 @@ export interface StoreForm {
   slug: string
   whatsapp: string
   category: string
+  businessDescription: string
 }
 
 export interface ProductForm {

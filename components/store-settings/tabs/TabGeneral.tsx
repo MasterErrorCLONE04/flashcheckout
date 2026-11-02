@@ -37,7 +37,7 @@ export function TabGeneral({
           <button
             type="button"
             onClick={() => setEditingProfile(!editingProfile)}
-            className="flex items-center gap-1.5 text-xs font-bold text-zinc-650 hover:text-zinc-900 cursor-pointer select-none"
+            className="flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-zinc-900 cursor-pointer select-none"
           >
             <Pencil className="w-3.5 h-3.5" />
             Editar información

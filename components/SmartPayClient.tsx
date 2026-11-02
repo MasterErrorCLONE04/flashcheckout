@@ -113,7 +113,7 @@ export default function SmartPayClient({
     <div className="min-h-screen bg-zinc-50 flex flex-col justify-between font-sans text-left pb-12 select-none">
       
       {/* Header bar */}
-      <header className="w-full bg-white border-b border-zinc-150 py-4 px-6 shrink-0 flex items-center justify-between">
+      <header className="w-full bg-white border-b border-zinc-200 py-4 px-6 shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {store.logoUrl ? (
             <img 
@@ -122,7 +122,7 @@ export default function SmartPayClient({
               className="w-8 h-8 rounded-full border border-zinc-100 object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-650">
+            <div className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600">
               {store.name[0]}
             </div>
           )}
@@ -149,7 +149,7 @@ export default function SmartPayClient({
                   <h1 className="text-xl font-black tracking-tight text-zinc-950">¡Pago Aprobado! 🎉</h1>
                 </div>
               ) : isExpired ? (
-                <h1 className="text-xl font-black tracking-tight text-red-650">Pedido Expirado ⏰</h1>
+                <h1 className="text-xl font-black tracking-tight text-red-600">Pedido Expirado ⏰</h1>
               ) : (
                 <h1 className="text-xl font-black tracking-tight text-zinc-950">Completa tu pago</h1>
               )}
@@ -165,7 +165,7 @@ export default function SmartPayClient({
             {/* Items itemization breakdown */}
             <div className="space-y-3">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block select-none">Resumen del pedido</span>
-              <div className="border border-zinc-150 rounded-xl overflow-hidden divide-y divide-zinc-150">
+              <div className="border border-zinc-200 rounded-xl overflow-hidden divide-y divide-zinc-200">
                 {items.map((item, idx) => (
                   <div key={idx} className="p-3.5 flex items-center justify-between text-xs font-semibold bg-white">
                     <div className="min-w-0 pr-4">
@@ -190,10 +190,10 @@ export default function SmartPayClient({
                 <span className={cn(
                   "px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider leading-none mt-1.5 inline-block border",
                   isPaid 
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-250 animate-pulse" 
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-200 animate-pulse" 
                     : isExpired 
                       ? "bg-red-50 text-red-600 border-red-200"
-                      : "bg-amber-50 text-amber-600 border-amber-250 animate-pulse"
+                      : "bg-amber-50 text-amber-600 border-amber-200 animate-pulse"
                 )}>
                   {isPaid ? 'Pagado' : isExpired ? 'Expirado' : 'Pendiente'}
                 </span>
@@ -212,7 +212,7 @@ export default function SmartPayClient({
                 </div>
                 <div>
                   <h3 className="font-extrabold text-zinc-950 text-sm">Pedido Confirmado</h3>
-                  <p className="text-xs text-zinc-405 font-semibold mt-1 leading-normal max-w-[200px] mx-auto">
+                  <p className="text-xs text-zinc-400 font-semibold mt-1 leading-normal max-w-[200px] mx-auto">
                     Tu comprobante ha sido registrado. El comercio validará y despachará tu orden en breve.
                   </p>
                 </div>
@@ -222,7 +222,7 @@ export default function SmartPayClient({
                     href={`https://wa.me/${store.whatsapp}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-zinc-250 hover:bg-white text-zinc-800 text-xs font-bold rounded-lg transition-all shadow-none cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-zinc-200 hover:bg-white text-zinc-800 text-xs font-bold rounded-lg transition-all shadow-none cursor-pointer"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     <span>Contactar Comercio</span>
@@ -293,7 +293,7 @@ export default function SmartPayClient({
                   
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Escanea el QR</span>
-                    <p className="text-xs text-zinc-405 font-semibold leading-normal max-w-[200px]">
+                    <p className="text-xs text-zinc-400 font-semibold leading-normal max-w-[200px]">
                       Abre la cámara de tu celular o tu app bancaria para pagar inmediatamente.
                     </p>
                   </div>

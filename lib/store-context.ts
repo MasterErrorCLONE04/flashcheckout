@@ -4,23 +4,25 @@ import { prisma } from './prisma'
 
 export async function getActiveStore(
   userId: string,
-  include?: Prisma.StoreFindFirstArgs['include']
+  include?: Prisma.StoreFindFirstArgs['include'],
+  preferredStoreId?: string | null
 ) {
   const cookieStore = await cookies()
-  const activeStoreId = cookieStore.get('active_store_id')?.value
+  const targetStoreId = preferredStoreId || cookieStore.get('active_store_id')?.value
 
   let store: Store | null = null
-  if (activeStoreId) {
+  if (targetStoreId) {
     store = await prisma.store.findFirst({
-      where: { id: activeStoreId, userId },
-      ...(include && { include })
+      where: { id: targetStoreId, userId },
+      ...(include && { include }),
     })
   }
 
   if (!store) {
     store = await prisma.store.findFirst({
       where: { userId },
-      ...(include && { include })
+      orderBy: { createdAt: 'asc' },
+      ...(include && { include }),
     })
   }
 

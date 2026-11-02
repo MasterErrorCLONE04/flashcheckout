@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
-import { X, ShoppingBag, ShoppingCart, Minus, Plus } from 'lucide-react'
-import { cn } from "@/lib/utils"
+import React, { useState, useEffect } from 'react'
+import { X, ShoppingBag, Minus, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Product, normalizeProductOptions } from '../types'
 
 export interface ProductDetailDrawerProps {
@@ -28,62 +28,134 @@ export function ProductDetailDrawer({
   setSelectedOptions,
   qtyInCart,
   selectedCartKey,
-  changeQtyByKey
+  changeQtyByKey,
 }: ProductDetailDrawerProps) {
+  const [localImgIdx, setLocalImgIdx] = useState(0)
+
+  useEffect(() => {
+    setLocalImgIdx(0)
+  }, [selectedProduct?.id])
+
   if (!selectedProduct) return null
 
+  const images = (selectedProduct.imageUrl || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+  const displayImg = images[localImgIdx] || currentDetailImg || null
+
+  const hasDiscount =
+    typeof selectedProduct.compareAtPrice === 'number' &&
+    selectedProduct.compareAtPrice > selectedProduct.price
+
   return (
-    <div className={cn("lg:hidden inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-300", !!device ? "absolute" : "fixed")}>
-      <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onClick={onClose} />
-      
-      <div className="relative w-full bg-white rounded-t-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
-        
+    <div
+      className={cn(
+        'lg:hidden inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200',
+        device ? 'absolute' : 'fixed'
+      )}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+
+      <div className="relative w-full bg-white rounded-t-[12px] max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-250">
         {/* Header */}
-        <div className="p-5 pb-3 flex justify-between items-start border-b border-zinc-100">
-          <div>
-            <p className="text-[9px] font-bold text-zinc-400 tracking-wider">{selectedProduct.category || 'General'} • SKU: {productSku}</p>
-            <h3 className="text-sm font-bold text-zinc-900 mt-0.5 leading-snug">{selectedProduct.name}</h3>
-          </div>
-          <button 
+        <div className="px-5 py-3.5 flex justify-between items-center border-b border-[#EAEAE8] shrink-0">
+          <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#71717A] truncate pr-2">
+            {selectedProduct.category || 'Colección'} · {productSku}
+          </span>
+          <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 bg-zinc-50 border border-zinc-200/50 rounded-lg flex items-center justify-center text-zinc-500 cursor-pointer border-none"
+            aria-label="Cerrar"
+            className="w-8 h-8 rounded-full hover:bg-[#F6F6F4] flex items-center justify-center text-[#111111] cursor-pointer border-0 bg-transparent shrink-0"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 stroke-[1.8]" />
           </button>
         </div>
 
         {/* Scrollable details */}
         <div className="flex-1 overflow-y-auto">
-          
-          {/* Product Image */}
-          <div className="relative w-full aspect-video bg-zinc-50 border-b border-zinc-100 flex items-center justify-center">
-            {currentDetailImg ? <img src={currentDetailImg} alt="" className="w-full h-full object-cover" /> : <ShoppingBag className="w-10 h-10 text-zinc-300" />}
+          {/* Studio Plinth Image */}
+          <div className="relative w-full aspect-[4/5] max-h-[320px] bg-[#F6F6F4] flex items-center justify-center p-6">
+            {displayImg ? (
+              <img
+                src={displayImg}
+                alt={selectedProduct.name}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <ShoppingBag className="w-10 h-10 text-zinc-300" />
+            )}
+
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-black/5">
+                {images.slice(0, 5).map((src, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setLocalImgIdx(i)}
+                    className={cn(
+                      'w-5 h-5 rounded-full overflow-hidden border p-0 cursor-pointer bg-white transition-all',
+                      localImgIdx === i
+                        ? 'border-[#111111] scale-110'
+                        : 'border-zinc-300 opacity-65'
+                    )}
+                  >
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="p-5 space-y-4">
-            <span className="text-xl font-black text-zinc-950 block">${selectedProduct.price.toLocaleString('es-CO')}</span>
+          <div className="p-5 space-y-4 text-left">
+            <div className="space-y-1">
+              <h3 className="text-[19px] font-extrabold text-[#111111] tracking-[-0.02em] leading-snug">
+                {selectedProduct.name}
+              </h3>
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={cn(
+                    'text-[18px] font-bold tabular-nums',
+                    hasDiscount ? 'text-[#C81E1E]' : 'text-[#111111]'
+                  )}
+                >
+                  ${selectedProduct.price.toLocaleString('es-CO')}
+                </span>
+                {hasDiscount && (
+                  <span className="text-[13px] text-[#A1A1AA] line-through tabular-nums">
+                    ${selectedProduct.compareAtPrice!.toLocaleString('es-CO')}
+                  </span>
+                )}
+              </div>
+            </div>
 
             {/* Dynamic Product Options Selectors */}
             {(() => {
               const parsedOpts = normalizeProductOptions(selectedProduct.options)
               if (parsedOpts.length === 0) return null
               return (
-                <div className="space-y-4 pt-1">
-                  {parsedOpts.map((opt) => {
+                <div className="space-y-3.5 pt-2 border-t border-[#EAEAE8]">
+                  {parsedOpts.map(opt => {
                     const currentVal = selectedOptions[opt.name] || opt.values[0]
                     return (
                       <div key={opt.name} className="space-y-1.5 text-left">
-                        <span className="text-[10px] font-bold text-zinc-500">{opt.name}: {currentVal}</span>
+                        <span className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-[#71717A] block">
+                          {opt.name}: <span className="text-[#111111]">{currentVal}</span>
+                        </span>
                         <div className="flex flex-wrap gap-1.5">
                           {opt.values.map((val: string) => (
                             <button
                               key={val}
-                              onClick={() => setSelectedOptions(prev => ({ ...prev, [opt.name]: val }))}
+                              type="button"
+                              onClick={() =>
+                                setSelectedOptions(prev => ({ ...prev, [opt.name]: val }))
+                              }
                               className={cn(
-                                "px-3 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer flex items-center justify-center min-w-9",
+                                'px-3.5 py-1.5 rounded-full border text-[11.5px] font-semibold transition-all cursor-pointer',
                                 currentVal === val
-                                  ? "bg-emerald-600 border-emerald-600 text-white font-extrabold"
-                                  : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                  ? 'bg-[#111111] border-[#111111] text-white'
+                                  : 'bg-[#F6F6F4] border-transparent text-[#111111]'
                               )}
                             >
                               {val}
@@ -97,36 +169,71 @@ export function ProductDetailDrawer({
               )
             })()}
 
-            <div className="text-[10px] font-bold text-emerald-600">Stock disponible: {selectedProduct.stock} unidades</div>
-            <div className="space-y-1.5 pt-2 border-t border-zinc-100">
-              <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Descripción</h4>
-              <p className="text-zinc-500 text-xs leading-relaxed font-semibold whitespace-pre-wrap">{selectedProduct.description || 'Sin descripción disponible.'}</p>
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#52525B]">
+              <span
+                className={cn(
+                  'w-1.5 h-1.5 rounded-full',
+                  selectedProduct.stock > 0 ? 'bg-[#16A34A]' : 'bg-[#DC2626]'
+                )}
+              />
+              <span>
+                {selectedProduct.stock > 0
+                  ? `${selectedProduct.stock} unidades disponibles`
+                  : 'Agotado'}
+              </span>
             </div>
+
+            {selectedProduct.description && (
+              <div className="space-y-1 pt-3 border-t border-[#EAEAE8]">
+                <h4 className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#71717A]">
+                  Descripción
+                </h4>
+                <p className="text-[#52525B] text-[12.5px] leading-relaxed whitespace-pre-wrap">
+                  {selectedProduct.description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Drawer Actions Footer */}
-        <div className="p-5 bg-zinc-50 border-t border-zinc-100 flex items-center gap-3">
+        <div className="px-5 py-4 bg-white border-t border-[#EAEAE8] flex items-center gap-3 shrink-0">
           {qtyInCart > 0 ? (
-            <div className="flex items-center gap-4 bg-white border border-zinc-200 rounded-xl p-1.5 w-full justify-between">
+            <div className="flex items-center gap-4 bg-[#F6F6F4] border border-[#E5E5E3] rounded-full px-3 py-1.5 w-full justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => changeQtyByKey(selectedCartKey, -1)} className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-700 border-none bg-transparent"><Minus className="w-3.5 h-3.5" /></button>
-                <span className="font-extrabold text-sm tabular-nums">{qtyInCart}</span>
-                <button onClick={() => changeQtyByKey(selectedCartKey, 1)} className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-700 border-none bg-transparent"><Plus className="w-3.5 h-3.5" /></button>
+                <button
+                  type="button"
+                  onClick={() => changeQtyByKey(selectedCartKey, -1)}
+                  className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#111111] border border-[#E5E5E3] cursor-pointer"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="font-bold text-sm tabular-nums text-[#111111]">
+                  {qtyInCart}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => changeQtyByKey(selectedCartKey, 1)}
+                  className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#111111] border border-[#E5E5E3] cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <span className="text-xs font-black text-zinc-950 pr-2">${(selectedProduct.price * qtyInCart).toLocaleString('es-CO')}</span>
+              <span className="text-[13px] font-bold text-[#111111] pr-2 tabular-nums">
+                ${(selectedProduct.price * qtyInCart).toLocaleString('es-CO')}
+              </span>
             </div>
           ) : (
             <button
+              type="button"
               onClick={() => changeQtyByKey(selectedCartKey, 1)}
-              className="w-full flex items-center justify-center gap-2 h-11 bg-emerald-600 text-white rounded-xl text-xs font-bold cursor-pointer border-none"
+              disabled={selectedProduct.stock <= 0}
+              className="w-full h-11.5 rounded-full bg-[#111111] disabled:bg-zinc-300 text-white text-[11.5px] font-bold uppercase tracking-[0.08em] cursor-pointer border-0"
             >
-              <ShoppingCart className="w-4 h-4" />
-              <span>Agregar al carrito</span>
+              {selectedProduct.stock > 0 ? 'Añadir a la bolsa' : 'Agotado'}
             </button>
           )}
         </div>
-
       </div>
     </div>
   )

@@ -43,7 +43,7 @@ export function DescuentosTabs({
           {tab.label}
           <span className={cn(
             "px-1.5 py-0.2 rounded text-[10px] font-extrabold",
-            activeTab === tab.id ? "bg-zinc-100 border border-zinc-250 text-zinc-800" : "bg-zinc-100 text-zinc-500"
+            activeTab === tab.id ? "bg-zinc-100 border border-zinc-200 text-zinc-800" : "bg-zinc-100 text-zinc-500"
           )}>
             {tab.count}
           </span>

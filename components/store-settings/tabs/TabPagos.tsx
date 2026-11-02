@@ -178,7 +178,7 @@ export function TabPagos({
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-zinc-500">Banco o billetera</label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-350" />
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300" />
                 <select
                   value={brebConfig.bankProvider}
                   onChange={e => {

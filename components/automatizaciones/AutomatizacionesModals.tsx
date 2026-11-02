@@ -189,7 +189,7 @@ export function ConfigureTemplateModal({
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-650 cursor-pointer p-1 rounded-full hover:bg-zinc-50 transition-colors border-0"
+            className="text-zinc-400 hover:text-zinc-600 cursor-pointer p-1 rounded-full hover:bg-zinc-50 transition-colors border-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -210,7 +210,7 @@ export function ConfigureTemplateModal({
           </div>
 
           {/* Dynamic placeholders helper legend */}
-          <div className="bg-zinc-50 border border-zinc-150 rounded-xl p-4 space-y-2">
+          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-2">
             <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest block">
               Etiquetas dinámicas permitidas
             </span>
@@ -224,7 +224,7 @@ export function ConfigureTemplateModal({
                   onClick={() => {
                     setCustomTemplateText(prev => prev + ' ' + place.tag)
                   }}
-                  className="p-1.5 px-2 bg-white border border-zinc-205 rounded-lg hover:border-zinc-300 cursor-pointer flex items-center justify-between text-[10px] font-bold text-zinc-800 active:scale-95 transition-all"
+                  className="p-1.5 px-2 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 cursor-pointer flex items-center justify-between text-[10px] font-bold text-zinc-800 active:scale-95 transition-all"
                 >
                   <code className="text-zinc-700 font-mono font-extrabold">{place.tag}</code>
                   <span className="text-[8px] text-zinc-400 font-bold">{place.label}</span>

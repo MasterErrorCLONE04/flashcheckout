@@ -82,7 +82,7 @@ export function StudioPhoneMockup({
         <div className="flex items-center justify-between text-[11px] text-zinc-400 px-3 pt-1 font-mono">
           <span className="font-bold text-white text-[12px]">9:41</span>
           
-          <div className="flex items-center gap-1.5 bg-black px-2.5 py-0.5 rounded-full border border-zinc-850">
+          <div className="flex items-center gap-1.5 bg-black px-2.5 py-0.5 rounded-full border border-zinc-800">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <div className="flex items-center gap-0.5">
               {[1, 2, 3].map(bar => (
@@ -288,7 +288,7 @@ export function StudioPhoneMockup({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={onTogglePlay}
-                className="h-7 px-2.5 rounded-md bg-zinc-850 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 font-semibold text-xs border border-zinc-700/50"
+                className="h-7 px-2.5 rounded-md bg-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 font-semibold text-xs border border-zinc-700/50"
               >
                 {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                 <span>{isPlaying ? 'Pausar' : 'Play'}</span>
@@ -300,7 +300,7 @@ export function StudioPhoneMockup({
                   "h-7 px-2.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 font-semibold text-xs border",
                   isVoiceActive 
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs" 
-                    : "bg-zinc-850 hover:bg-zinc-800 text-zinc-300 hover:text-white border-zinc-700/50"
+                    : "bg-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white border-zinc-700/50"
                 )}
                 title="Activar o pausar locución con voz de IA"
               >
@@ -315,7 +315,7 @@ export function StudioPhoneMockup({
 
             <button
               onClick={onToggleMute}
-              className="p-1.5 rounded-md bg-zinc-850 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-all cursor-pointer border border-zinc-700/50"
+              className="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-all cursor-pointer border border-zinc-700/50"
             >
               {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
             </button>

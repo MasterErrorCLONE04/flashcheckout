@@ -59,7 +59,7 @@ export function ChatSessionsList({ chat }: ChatSessionsListProps) {
             onClick={() => { setActiveTab('unread'); setCurrentPage(1); }}
             className={cn(
               "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
-              activeTab === 'unread' ? "text-emerald-600" : "hover:text-zinc-955"
+              activeTab === 'unread' ? "text-emerald-600" : "hover:text-zinc-950"
             )}
           >
             No leídas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{unreadCount}</span>
@@ -70,7 +70,7 @@ export function ChatSessionsList({ chat }: ChatSessionsListProps) {
             onClick={() => { setActiveTab('assigned'); setCurrentPage(1); }}
             className={cn(
               "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
-              activeTab === 'assigned' ? "text-emerald-600" : "hover:text-zinc-955"
+              activeTab === 'assigned' ? "text-emerald-600" : "hover:text-zinc-950"
             )}
           >
             Asignadas <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{assignedCount}</span>
@@ -81,7 +81,7 @@ export function ChatSessionsList({ chat }: ChatSessionsListProps) {
             onClick={() => { setActiveTab('unassigned'); setCurrentPage(1); }}
             className={cn(
               "pb-2 px-1 relative transition-colors shrink-0 cursor-pointer",
-              activeTab === 'unassigned' ? "text-emerald-600" : "hover:text-zinc-955"
+              activeTab === 'unassigned' ? "text-emerald-600" : "hover:text-zinc-950"
             )}
           >
             Sin asignar <span className="text-[9px] font-semibold text-zinc-400 ml-0.5 bg-zinc-100 px-1.5 py-0.2 rounded-full">{unassignedCount}</span>
@@ -154,7 +154,7 @@ export function ChatSessionsList({ chat }: ChatSessionsListProps) {
                       className="w-8.5 h-8.5 rounded-full object-cover shrink-0 border border-zinc-200"
                     />
                   ) : (
-                    <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-650 flex items-center justify-center uppercase">
+                    <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-600 flex items-center justify-center uppercase">
                       {s.customerName.slice(0, 2)}
                     </div>
                   )}

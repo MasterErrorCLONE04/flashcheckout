@@ -39,7 +39,7 @@ export function NovaChatInput({ chat }: NovaChatInputProps) {
                 setShowSlashCommands(false)
                 textareaRef.current?.focus()
               }}
-              className="w-full px-4 py-2.5 hover:bg-zinc-50 flex items-center justify-between text-left text-xs font-bold text-zinc-700 hover:text-zinc-955 transition-colors cursor-pointer"
+              className="w-full px-4 py-2.5 hover:bg-zinc-50 flex items-center justify-between text-left text-xs font-bold text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer"
             >
               <span className="font-extrabold text-zinc-800 bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200">{c.cmd}</span>
               <span className="text-zinc-400 font-semibold">{c.desc}</span>
@@ -48,10 +48,10 @@ export function NovaChatInput({ chat }: NovaChatInputProps) {
         </div>
       )}
       
-      <div className="relative flex items-end gap-3 bg-[#F4F4F4] border border-zinc-200/65 rounded-[24px] px-4 py-3.5 focus-within:border-zinc-350 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-100 transition-all">
+      <div className="relative flex items-end gap-3 bg-[#F4F4F4] border border-zinc-200/65 rounded-[24px] px-4 py-3.5 focus-within:border-zinc-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-zinc-100 transition-all">
         <button 
           onClick={() => toast.info('Cargar archivos estará disponible en la versión final')}
-          className="w-8 h-8 rounded-full bg-transparent hover:bg-zinc-200/50 border border-zinc-300 text-zinc-505 flex items-center justify-center transition-colors shrink-0 cursor-pointer mb-0.5"
+          className="w-8 h-8 rounded-full bg-transparent hover:bg-zinc-200/50 border border-zinc-300 text-zinc-500 flex items-center justify-center transition-colors shrink-0 cursor-pointer mb-0.5"
           title="Adjuntar archivo"
         >
           <Plus className="w-4.5 h-4.5" />
@@ -73,14 +73,14 @@ export function NovaChatInput({ chat }: NovaChatInputProps) {
         <div className="flex items-center gap-2 shrink-0 mb-0.5">
           <button 
             onClick={() => toast.info('Entrada de voz próximamente')}
-            className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-200/50 rounded-full transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-200/50 rounded-full transition-colors cursor-pointer"
             title="Entrada de voz"
           >
             <Mic className="w-4.5 h-4.5" />
           </button>
           <button 
             onClick={() => toast.info('Modo de voz en tiempo real próximamente')}
-            className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-200/50 rounded-full transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-200/50 rounded-full transition-colors cursor-pointer"
             title="Modo de voz"
           >
             <Waves className="w-4.5 h-4.5" />

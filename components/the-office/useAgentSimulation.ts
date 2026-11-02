@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Agent, LayoutItem, BASE_AGENTS, OFFICE_ASSET_URLS } from './types'
 import { removeWhiteBg } from './utils'
 import { toast } from 'sonner'
@@ -98,17 +98,23 @@ export function useAgentSimulation({
   // Synchronize idle agent positions to their desks dynamically
   useEffect(() => {
     setAgentPositions(prev => {
+      let changed = false
       const nextPositions = { ...prev }
       agentsList.forEach(a => {
         if (!agentStatus[a.id] || agentStatus[a.id] === 'idle') {
-          nextPositions[a.id] = getAgentDeskPosition(a.id, customAgents)
+          const pos = getAgentDeskPosition(a.id, customAgents)
+          const curr = prev[a.id]
+          if (!curr || curr.top !== pos.top || curr.left !== pos.left) {
+            nextPositions[a.id] = pos
+            changed = true
+          }
         }
       })
-      return nextPositions
+      return changed ? nextPositions : prev
     })
   }, [layoutItems, agentsList, agentStatus, customAgents, getAgentDeskPosition])
 
-  const walkAgent = (
+  const walkAgent = useCallback((
     agentId: string,
     destination: { top: string; left: string },
     actionText: string,
@@ -123,7 +129,7 @@ export function useAgentSimulation({
       setAgentStatus(prev => ({ ...prev, [agentId]: 'idle' }))
       onFinish()
     }, 4000)
-  }
+  }, [])
 
   // Simulation Loop for autonomous ambient activities
   useEffect(() => {

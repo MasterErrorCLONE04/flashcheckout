@@ -28,6 +28,7 @@ import {
 } from 'react-icons/si'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { PageHeader, PageTabs } from '@/components/ui/page-header'
 
 interface IntegrationsClientProps {
   store: {
@@ -49,7 +50,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       id: 'whatsapp',
       name: 'WhatsApp (Evolution API)',
       icon: SiWhatsapp,
-      iconBg: store.whatsappConnected ? 'bg-emerald-50 border-emerald-100/60' : 'bg-zinc-50 border-zinc-150',
+      iconBg: store.whatsappConnected ? 'bg-emerald-50 border-emerald-100/60' : 'bg-zinc-50 border-zinc-200',
       iconColor: store.whatsappConnected ? 'text-[#25D366]' : 'text-zinc-400',
       desc: 'Recibe y gestiona mensajes de WhatsApp Business mediante código QR.',
       connected: store.whatsappConnected,
@@ -61,7 +62,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       id: 'mercadopago',
       name: 'Mercado Pago',
       icon: SiMercadopago,
-      iconBg: store.mpConnected ? 'bg-sky-50 border-sky-100/60' : 'bg-zinc-50 border-zinc-150',
+      iconBg: store.mpConnected ? 'bg-sky-50 border-sky-100/60' : 'bg-zinc-50 border-zinc-200',
       iconColor: store.mpConnected ? 'text-[#00AEEF]' : 'text-zinc-400',
       desc: 'Procesa cobros dinámicos de tarjetas, efectivo y transferencias.',
       connected: store.mpConnected,
@@ -73,7 +74,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
       id: 'breb',
       name: 'Bre-B (SPI ACH)',
       icon: QrCode,
-      iconBg: store.brebConnected ? 'bg-zinc-100 border border-zinc-200' : 'bg-zinc-50 border-zinc-150',
+      iconBg: store.brebConnected ? 'bg-zinc-100 border border-zinc-200' : 'bg-zinc-50 border-zinc-200',
       iconColor: store.brebConnected ? 'text-zinc-800' : 'text-zinc-400',
       desc: 'Recibe pagos inmediatos interbancarios en Colombia mediante códigos QR estándar Bre-B.',
       connected: store.brebConnected,
@@ -127,42 +128,22 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
     <div className="space-y-6 pb-6 animate-in duration-300 font-sans text-left select-none">
       
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Integraciones</h1>
-          <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
-            Conecta y gestiona las herramientas de tu negocio.
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Integraciones"
+        statusDot="emerald"
+        subtitle="Conecta y gestiona las herramientas de tu negocio."
+      />
 
       {/* Tabs list */}
-      <div className="flex border-b border-zinc-200 overflow-x-auto scrollbar-none whitespace-nowrap gap-6">
-        {[
+      <PageTabs<'Todas' | 'Conectadas' | 'Disponibles'>
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={[
           { id: 'Todas', label: 'Todas', count: connectedApps.length + availableApps.length },
           { id: 'Conectadas', label: 'Conectadas', count: connectedApps.filter(a => a.connected).length },
           { id: 'Disponibles', label: 'Próximamente', count: availableApps.length },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`pb-3 text-xs xl:text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === tab.id 
-                ? 'border-zinc-900 text-zinc-900' 
-                : 'border-transparent text-zinc-500 hover:text-zinc-900'
-            }`}
-          >
-            {tab.label}
-            <span className={cn(
-              "px-1.5 py-0.2 rounded text-[10px] font-extrabold",
-              activeTab === tab.id ? "bg-zinc-100 border border-zinc-250 text-zinc-800" : "bg-zinc-100 text-zinc-500"
-            )}>
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+        ]}
+      />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
@@ -196,14 +177,14 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
                             <Icon className={cn("w-6 h-6", app.iconColor)} />
                           </div>
                           <div>
-                            <h3 className="text-xs xl:text-sm font-extrabold text-zinc-955 leading-tight">{app.name}</h3>
+                            <h3 className="text-xs xl:text-sm font-extrabold text-zinc-950 leading-tight">{app.name}</h3>
                             <span className={cn(
                               "inline-block px-1.5 py-0.2 text-[8.5px] font-black rounded-md mt-1 leading-none border",
                               app.connected 
                                 ? (app.id === 'whatsapp' 
                                     ? "bg-emerald-50 border-emerald-100 text-emerald-700" 
                                     : "bg-zinc-100 border-zinc-200 text-zinc-800")
-                                : "bg-zinc-50 border-zinc-200 text-zinc-550"
+                                : "bg-zinc-50 border-zinc-200 text-zinc-500"
                             )}>
                               {app.connected ? 'Conectado' : 'Desconectado'}
                             </span>
@@ -260,7 +241,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
                           </div>
                         </div>
 
-                        <p className="text-[11px] xl:text-xs font-semibold text-zinc-405 leading-relaxed">
+                        <p className="text-[11px] xl:text-xs font-semibold text-zinc-400 leading-relaxed">
                           {app.desc}
                         </p>
                       </div>
@@ -277,7 +258,7 @@ export default function IntegrationsClient({ store }: IntegrationsClientProps) {
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
             <h3 className="text-xs xl:text-sm font-extrabold text-zinc-800  tracking-wider">¿Cómo funcionan?</h3>
-            <p className="text-xs font-semibold text-zinc-405 leading-relaxed text-left">
+            <p className="text-xs font-semibold text-zinc-400 leading-relaxed text-left">
               Las integraciones conectan tu tienda Flashcheckouts con canales de mensajería (WhatsApp) y pasarelas de pago (Mercado Pago).
             </p>
             <div className="h-px w-full bg-zinc-100" />

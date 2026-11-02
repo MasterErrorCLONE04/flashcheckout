@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import {
   badRequest,
   getErrorMessage,
@@ -95,7 +96,7 @@ const defaultAutomations: AutomationSeed[] = [
 ]
 
 async function getStoreForUser(userId: string) {
-  return prisma.store.findFirst({ where: { userId } })
+  return getActiveStore(userId)
 }
 
 export async function GET() {

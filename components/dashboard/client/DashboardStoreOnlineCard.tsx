@@ -32,7 +32,7 @@ export function DashboardStoreOnlineCard({
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-zinc-800 font-semibold text-sm">
-            <div className="w-6 h-6 rounded-full bg-zinc-100 text-zinc-650 flex items-center justify-center shrink-0 border border-zinc-200">
+            <div className="w-6 h-6 rounded-full bg-zinc-100 text-zinc-600 flex items-center justify-center shrink-0 border border-zinc-200">
               <Globe className="w-3.5 h-3.5" />
             </div>
             <span>Tu tienda online</span>

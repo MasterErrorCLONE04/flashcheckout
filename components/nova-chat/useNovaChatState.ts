@@ -29,7 +29,7 @@ export function useNovaChatState(initialSessions: ChatSessionItem[] = []) {
     const mainEl = document.querySelector('main')
     if (mainEl) {
       const originalClassName = mainEl.className
-      mainEl.classList.remove('px-4', 'md:px-8', 'pb-8', 'md:pb-12', 'pt-4', 'md:pt-6', 'lg:pl-12')
+      mainEl.classList.remove('px-4', 'md:px-8', 'pb-8', 'pb-24', 'md:pb-12', 'lg:pb-12', 'pt-4', 'md:pt-6', 'lg:pl-12')
       mainEl.classList.add('p-0', 'w-full', 'h-[calc(100vh-53px)]')
       return () => {
         mainEl.className = originalClassName

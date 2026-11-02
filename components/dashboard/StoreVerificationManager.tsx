@@ -211,7 +211,7 @@ export default function StoreVerificationManager({
                   <button
                     onClick={handleVerifyOtp}
                     disabled={verifyingOtp}
-                    className="bg-zinc-955 hover:bg-zinc-900 text-white font-bold text-xs rounded-lg px-4 py-2 active:scale-95 transition-transform flex items-center gap-1 cursor-pointer"
+                    className="bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs rounded-lg px-4 py-2 active:scale-95 transition-transform flex items-center gap-1 cursor-pointer"
                   >
                     {verifyingOtp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verificar'}
                   </button>

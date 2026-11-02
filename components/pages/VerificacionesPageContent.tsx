@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { getProofImageUrl } from '@/lib/supabase'
 import ManualVerificationPanel from '@/components/dashboard/ManualVerificationPanel'
 import StoreVerificationManager from '@/components/dashboard/StoreVerificationManager'
@@ -27,9 +28,7 @@ export default async function VerificacionesPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const store = await prisma.store.findFirst({
-    where: { userId },
-  })
+  const store = await getActiveStore(userId)
 
   if (!store) return <StoreCreationWizard />
 

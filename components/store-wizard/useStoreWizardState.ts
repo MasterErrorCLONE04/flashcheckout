@@ -24,6 +24,7 @@ export function useStoreWizardState(isNewStore: boolean = false) {
     slug: '',
     whatsapp: '',
     category: 'Moda',
+    businessDescription: '',
   })
   const [createdStore, setCreatedStore] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -101,6 +102,7 @@ export function useStoreWizardState(isNewStore: boolean = false) {
               slug: data.store.slug || '',
               whatsapp: data.store.whatsapp || '',
               category: data.store.category || 'Moda',
+              businessDescription: data.store.bio || '',
             })
 
             if (data.store.settings && typeof data.store.settings === 'object') {
@@ -314,28 +316,51 @@ export function useStoreWizardState(isNewStore: boolean = false) {
     
     if (currentStep === 2) {
       if (!storeForm.name || !storeForm.slug || !storeForm.whatsapp) {
-        setError('Por favor completa todos los campos del negocio.')
+        setError('Por favor completa nombre, dirección web y WhatsApp del negocio.')
         return
       }
-      
+
       setLoading(true)
       try {
+        const isUpdatingDraft = Boolean(createdStore?.id)
         const res = await fetch('/api/stores', {
-          method: 'POST',
+          method: isUpdatingDraft ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(storeForm)
+          body: JSON.stringify(
+            isUpdatingDraft
+              ? {
+                  storeId: createdStore.id,
+                  ...storeForm,
+                  regeneratePage: true,
+                }
+              : storeForm
+          ),
         })
 
+        const data = await res.json()
         if (!res.ok) {
-          const data = await res.json()
           setError(data.error || 'El slug ya podría estar en uso. Prueba con otro.')
           setLoading(false)
           return
         }
 
-        const data = await res.json()
         setCreatedStore(data.store)
-        toast.success('¡Negocio configurado!')
+        if (data.store?.id) {
+          document.cookie = `active_store_id=${data.store.id}; path=/; max-age=31536000`
+        }
+
+        if (data.generated) {
+          setPreferences(prev => ({
+            ...prev,
+            welcomeMessage: data.generated.welcomeMessage || prev.welcomeMessage,
+            systemPrompt: data.generated.systemPrompt || prev.systemPrompt,
+          }))
+          if (data.generated.businessProfile) {
+            setBusinessProfile(data.generated.businessProfile)
+          }
+        }
+
+        toast.success('¡Negocio y página autogenerados con éxito!')
       } catch (err) {
         setError('Error al registrar la información del negocio.')
         setLoading(false)
@@ -357,6 +382,7 @@ export function useStoreWizardState(isNewStore: boolean = false) {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            storeId: createdStore?.id,
             welcomeMessage: preferences.welcomeMessage,
             systemPrompt: preferences.systemPrompt,
             businessHours: preferences.businessHours,
@@ -393,22 +419,32 @@ export function useStoreWizardState(isNewStore: boolean = false) {
     }
   }
 
-  const handleFinishOnboarding = async () => {
+  const handleCancelNewStore = () => {
+    stopWhatsappPolling()
+    stopQrTimer()
+    document.cookie = 'create_new_store=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC'
+    window.location.href = '/dashboard'
+  }
+
+  const handleFinishOnboarding = async (destination: string = '/dashboard') => {
     setLoading(true)
     try {
       await fetch('/api/stores', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active: true })
+        body: JSON.stringify({
+          storeId: createdStore?.id,
+          active: true,
+        }),
       })
       if (createdStore?.id) {
         document.cookie = `active_store_id=${createdStore.id}; path=/; max-age=31536000`
       }
       document.cookie = `create_new_store=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC`
-      window.location.href = '/dashboard'
+      window.location.href = destination
     } catch (e) {
       console.error(e)
-      window.location.href = '/dashboard'
+      window.location.href = destination
     } finally {
       setLoading(false)
     }
@@ -463,6 +499,7 @@ export function useStoreWizardState(isNewStore: boolean = false) {
     handleDeleteProduct,
     handleNext,
     handleBack,
+    handleCancelNewStore,
     handleFinishOnboarding
   }
 }

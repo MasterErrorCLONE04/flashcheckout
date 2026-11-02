@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 import AffiliateClient from '@/components/AffiliateClient'
 
@@ -8,10 +9,7 @@ export default async function AffiliatePage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const store = await prisma.store.findFirst({
-    where: { userId },
-    select: { slug: true, name: true }
-  })
+  const store = await getActiveStore(userId)
 
   if (!store) {
     return <StoreCreationWizard />

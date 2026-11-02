@@ -32,7 +32,7 @@ export function DescuentosStatsCards({
         <div>
           <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Descuentos totales</span>
           <span className="text-xl xl:text-2xl font-black text-zinc-950 tracking-tight mt-1.5 block leading-none">{totalCount}</span>
-          <span className="text-[10px] font-semibold text-zinc-405 mt-1 block">Todos los descuentos</span>
+          <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">Todos los descuentos</span>
         </div>
       </div>
 
@@ -43,8 +43,8 @@ export function DescuentosStatsCards({
         </div>
         <div>
           <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Activos</span>
-          <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight mt-1.5 block leading-none">{activeCount}</span>
-          <span className="text-[10px] font-semibold text-zinc-405 mt-1 block">
+          <span className="text-xl xl:text-2xl font-black text-zinc-950 tracking-tight mt-1.5 block leading-none">{activeCount}</span>
+          <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">
             {totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}% del total
           </span>
         </div>
@@ -57,8 +57,8 @@ export function DescuentosStatsCards({
         </div>
         <div>
           <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Programados</span>
-          <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight mt-1.5 block leading-none">{scheduledCount}</span>
-          <span className="text-[10px] font-semibold text-zinc-405 mt-1 block">
+          <span className="text-xl xl:text-2xl font-black text-zinc-950 tracking-tight mt-1.5 block leading-none">{scheduledCount}</span>
+          <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">
             {totalCount > 0 ? Math.round((scheduledCount / totalCount) * 100) : 0}% del total
           </span>
         </div>
@@ -71,8 +71,8 @@ export function DescuentosStatsCards({
         </div>
         <div>
           <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Inactivos</span>
-          <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight mt-1.5 block leading-none">{inactiveCount}</span>
-          <span className="text-[10px] font-semibold text-zinc-405 mt-1 block">
+          <span className="text-xl xl:text-2xl font-black text-zinc-950 tracking-tight mt-1.5 block leading-none">{inactiveCount}</span>
+          <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">
             {totalCount > 0 ? Math.round((inactiveCount / totalCount) * 100) : 0}% del total
           </span>
         </div>
@@ -85,8 +85,8 @@ export function DescuentosStatsCards({
         </div>
         <div>
           <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Usos totales</span>
-          <span className="text-xl xl:text-2xl font-black text-zinc-955 tracking-tight mt-1.5 block leading-none">{totalUses.toLocaleString('es-CO')}</span>
-          <span className="text-[10px] font-semibold text-zinc-405 mt-1 block">En todos los descuentos</span>
+          <span className="text-xl xl:text-2xl font-black text-zinc-950 tracking-tight mt-1.5 block leading-none">{totalUses.toLocaleString('es-CO')}</span>
+          <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">En todos los descuentos</span>
         </div>
       </div>
     </div>

@@ -6,6 +6,8 @@ export type PublicCheckoutProduct = {
   id: string
   name: string
   price: number
+  compareAtPrice?: number | null
+  badge?: string | null
   stock: number
   imageUrl: string | null
   category?: string | null
@@ -15,8 +17,10 @@ export type PublicCheckoutProduct = {
 
 export type PublicCheckoutStore = {
   id: string
+  slug?: string
   name: string
   whatsapp: string
+  category?: string | null
   products: PublicCheckoutProduct[]
   logoUrl: string | null
   bio: string | null

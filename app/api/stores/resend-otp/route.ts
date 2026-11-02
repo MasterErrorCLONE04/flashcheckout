@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import { getErrorMessage } from '@/lib/api/route-utils'
 
@@ -24,9 +25,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'El codigo OTP es requerido' }, { status: 400 })
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 })

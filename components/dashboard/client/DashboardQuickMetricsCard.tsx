@@ -48,7 +48,7 @@ export function DashboardQuickMetricsCard({
               <div 
                 className={cn(
                   "h-full transition-all duration-500",
-                  isSubscribed ? "bg-zinc-850 w-full" : 
+                  isSubscribed ? "bg-zinc-800 w-full" : 
                   productsCount >= 10 ? "bg-rose-500 w-full" :
                   productsCount >= 8 ? "bg-amber-500" : "bg-zinc-500"
                 )}
@@ -63,7 +63,7 @@ export function DashboardQuickMetricsCard({
         <button
           onClick={onStripeRedirect}
           disabled={loadingStripe}
-          className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-650 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+          className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-600 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-50"
         >
           {loadingStripe ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -75,7 +75,7 @@ export function DashboardQuickMetricsCard({
       ) : (
         <Link
           href="/pricing"
-          className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-650 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer"
+          className="w-full h-9 mt-4 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-600 flex items-center justify-center gap-1.5 bg-white shadow-sm active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 text-zinc-400" />
           <span>Actualizar Plan</span>

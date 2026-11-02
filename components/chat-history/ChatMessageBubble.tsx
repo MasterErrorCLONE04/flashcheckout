@@ -22,7 +22,7 @@ export function ChatMessageBubble({ msg, customerName, avatarUrl }: ChatMessageB
       const price = parts[1] || '$0'
       const desc = parts[2] || ''
       return (
-        <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden mt-1 max-w-xs text-zinc-955 font-semibold p-0.5">
+        <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden mt-1 max-w-xs text-zinc-950 font-semibold p-0.5">
           <div className="w-full h-24 bg-zinc-50 border-b border-zinc-100 flex items-center justify-center relative p-3">
             <Package className="w-6 h-6 text-zinc-400" />
             <span className="absolute top-2 right-2 text-[8px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded uppercase select-none">
@@ -37,7 +37,7 @@ export function ChatMessageBubble({ msg, customerName, avatarUrl }: ChatMessageB
             {desc && <p className="text-[9px] text-zinc-400 font-medium leading-relaxed truncate">{desc}</p>}
             <button
               onClick={() => toast.success(`Abriendo enlace de: ${title}`)}
-              className="w-full text-center py-1.5 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-[9px] font-bold text-zinc-655 transition-colors uppercase tracking-widest mt-2 cursor-pointer h-7 flex items-center justify-center"
+              className="w-full text-center py-1.5 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 rounded-lg text-[9px] font-bold text-zinc-600 transition-colors uppercase tracking-widest mt-2 cursor-pointer h-7 flex items-center justify-center"
             >
               Ver producto
             </button>
@@ -51,13 +51,13 @@ export function ChatMessageBubble({ msg, customerName, avatarUrl }: ChatMessageB
       const amount = parts[0]?.replace('[Link de Pago Enviado]: ', '') || ''
       const url = parts[1] || '#'
       return (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg overflow-hidden mt-1 max-w-xs text-emerald-955 p-3 space-y-2">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg overflow-hidden mt-1 max-w-xs text-emerald-950 p-3 space-y-2">
           <div className="flex items-center gap-1.5">
             <CheckCircle className="w-4 h-4 text-emerald-600" />
             <span className="font-bold text-xs">Link de Pago Generado</span>
           </div>
-          <p className="text-[10px] text-emerald-805 font-semibold leading-relaxed">
-            Se ha enviado un link de pago por valor de <strong className="text-emerald-955">{amount}</strong>.
+          <p className="text-[10px] text-emerald-800 font-semibold leading-relaxed">
+            Se ha enviado un link de pago por valor de <strong className="text-emerald-950">{amount}</strong>.
           </p>
           <a
             href={url}
@@ -103,7 +103,7 @@ export function ChatMessageBubble({ msg, customerName, avatarUrl }: ChatMessageB
                 className="w-6 h-6 rounded-full object-cover border border-zinc-200"
               />
             ) : (
-              <div className="w-6 h-6 rounded-full bg-zinc-150 border border-zinc-200 flex items-center justify-center text-[9px] text-zinc-655 font-bold uppercase">
+              <div className="w-6 h-6 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-[9px] text-zinc-600 font-bold uppercase">
                 {customerName.slice(0, 1)}
               </div>
             )}
@@ -113,10 +113,10 @@ export function ChatMessageBubble({ msg, customerName, avatarUrl }: ChatMessageB
         <div className={cn(
           "rounded-lg px-3.5 py-2.5 text-xs flex flex-col gap-1.5",
           isUser 
-            ? "bg-zinc-100 text-zinc-955 rounded-tl-none border border-zinc-200/40" 
+            ? "bg-zinc-100 text-zinc-950 rounded-tl-none border border-zinc-200/40" 
             : msg.text.startsWith('[PRODUCT_CARD]') || msg.text.startsWith('[Link de Pago Enviado]')
             ? "bg-transparent p-0 border-none shadow-none"
-            : "bg-[#E6F4EA] text-emerald-955 rounded-tr-none border border-emerald-100"
+            : "bg-[#E6F4EA] text-emerald-950 rounded-tr-none border border-emerald-100"
         )}>
           {renderMessageText(msg.text)}
 

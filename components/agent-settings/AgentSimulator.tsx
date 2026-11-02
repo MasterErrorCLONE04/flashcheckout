@@ -204,7 +204,7 @@ export function AgentSimulator({
       {/* Simulated Chat Warning Footer */}
       <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-lg flex items-start gap-2.5">
         <AlertCircle className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-        <p className="text-[10px] text-zinc-550 font-bold leading-normal">
+        <p className="text-[10px] text-zinc-500 font-bold leading-normal">
           El agente usará IA para entender y responder de forma automática según las instrucciones configuradas.
         </p>
       </div>

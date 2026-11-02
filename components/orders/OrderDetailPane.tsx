@@ -80,7 +80,7 @@ export function OrderDetailPane({
                   <p className="text-[10px] font-bold text-zinc-400 tracking-wider">
                     Nombre Completo
                   </p>
-                  <p className="text-sm font-bold text-zinc-955 mt-0.5">
+                  <p className="text-sm font-bold text-zinc-950 mt-0.5">
                     {activeOrder.customerName}
                   </p>
                 </div>
@@ -103,7 +103,7 @@ export function OrderDetailPane({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full bg-zinc-900 hover:bg-zinc-955 text-white rounded-lg font-semibold text-xs tracking-wider h-11 transition-all active:scale-95 cursor-pointer shadow-sm"
+                  className="flex items-center justify-center gap-2 w-full bg-zinc-900 hover:bg-zinc-950 text-white rounded-lg font-semibold text-xs tracking-wider h-11 transition-all active:scale-95 cursor-pointer shadow-sm"
                 >
                   <MessageCircle className="w-4 h-4 fill-current" />
                   Chat de WhatsApp
@@ -190,7 +190,7 @@ export function OrderDetailPane({
                   href={`https://wa.me/${activeOrder.driver.phoneNumber.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-650 hover:text-zinc-950 transition-colors px-3 py-2 bg-white rounded-lg border border-gray-200 active:scale-95"
+                  className="flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-600 hover:text-zinc-950 transition-colors px-3 py-2 bg-white rounded-lg border border-gray-200 active:scale-95"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-zinc-500 fill-current" />
                   Contactar Repartidor
@@ -244,7 +244,7 @@ export function OrderDetailPane({
                   className="flex items-center justify-between p-4 bg-zinc-50/60 rounded-lg border border-zinc-200 hover:border-zinc-300 transition-colors"
                 >
                   <span className="text-xs font-semibold text-zinc-700">
-                    <span className="text-zinc-955 font-bold tabular-nums mr-2.5">{item.qty}x</span>
+                    <span className="text-zinc-950 font-bold tabular-nums mr-2.5">{item.qty}x</span>
                     {item.name}
                   </span>
                   <span className="text-xs font-semibold text-zinc-950 tabular-nums">
@@ -273,7 +273,7 @@ export function OrderDetailPane({
                   'text-[10px] font-semibold tracking-wider px-3.5 py-2.5 rounded-xl border transition-all active:scale-95',
                   activeOrder.status === 'confirmed'
                     ? 'text-blue-600 bg-blue-50/50 border-blue-200/50'
-                    : 'bg-white border-gray-200 text-zinc-500 hover:text-zinc-955 hover:bg-zinc-50'
+                    : 'bg-white border-gray-200 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50'
                 )}
               >
                 Confirmar
@@ -284,7 +284,7 @@ export function OrderDetailPane({
                   'text-[10px] font-semibold tracking-wider px-3.5 py-2.5 rounded-xl border transition-all active:scale-95',
                   activeOrder.status === 'delivered'
                     ? 'text-zinc-600 bg-zinc-50 border-zinc-200/60'
-                    : 'bg-white border-gray-200 text-zinc-500 hover:text-zinc-955 hover:bg-zinc-50'
+                    : 'bg-white border-gray-200 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50'
                 )}
               >
                 Entregado
@@ -295,7 +295,7 @@ export function OrderDetailPane({
                   'text-[10px] font-semibold tracking-wider px-3.5 py-2.5 rounded-xl border transition-all active:scale-95',
                   activeOrder.status === 'cancelled'
                     ? 'text-rose-600 bg-rose-50/50 border-rose-200/50'
-                    : 'bg-white border-gray-200 text-zinc-500 hover:text-zinc-955 hover:bg-zinc-50'
+                    : 'bg-white border-gray-200 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50'
                 )}
               >
                 Cancelar

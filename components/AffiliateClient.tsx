@@ -190,7 +190,7 @@ export default function AffiliateClient({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-zinc-150 text-zinc-450 uppercase font-black tracking-wider">
+                <tr className="border-b border-zinc-200 text-zinc-500 uppercase font-black tracking-wider">
                   <th className="pb-3.5 pl-2">Tienda</th>
                   <th className="pb-3.5">Fecha de Registro</th>
                   <th className="pb-3.5">Estado de Pago</th>

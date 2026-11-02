@@ -9,7 +9,7 @@ export function OfficeSidebarFurniture({ onAddItem }: OfficeSidebarFurnitureProp
   return (
     <div className="w-full xl:w-64 bg-zinc-950 border border-zinc-800 rounded-3xl p-4 flex flex-col shrink-0 text-left select-none shadow-xl animate-in slide-in-from-right duration-250">
       <h3 className="text-white font-black text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
-        <Plus className="w-4 h-4 text-emerald-450" />
+        <Plus className="w-4 h-4 text-emerald-500" />
         <span>Agregar puesto</span>
       </h3>
       <p className="text-[10px] text-zinc-500 font-semibold mb-4 leading-normal">

@@ -16,6 +16,15 @@ import {
   Tag
 } from 'lucide-react'
 import type { PublicCheckoutStore, PublicCheckoutProduct } from '@/lib/checkout/types'
+import type {
+  AmbassadorItem,
+  CardStyleType,
+  HeaderStyleType,
+  HeroStyleType,
+  PressLogoItem,
+  ProcessStepItem,
+  RetailerItem,
+} from '@/components/tienda/types'
 
 export type CatalogSort = 'default' | 'price-asc' | 'price-desc' | 'name-asc'
 export type CatalogIconName = 'Truck' | 'ShieldCheck' | 'Award' | 'Clock' | 'Gift' | 'Star'
@@ -40,13 +49,15 @@ export type CatalogSettings = {
   themePreset?: string
   borderRadius?: 'sharp' | 'smooth' | 'pill'
   shadowStyle?: 'flat' | 'soft' | 'floating'
-  headerStyle?: 'floating-glass' | 'clean-border' | 'editorial-centered'
-  heroStyle?: 'cinematic-overlay' | 'split-hero' | 'minimal-banner'
+  headerStyle?: HeaderStyleType
+  heroStyle?: HeroStyleType
   heroBadge?: string
-  cardStyle?: 'minimal-elevated' | 'clean-border' | 'glass-card'
+  heroPanels?: string[]
+  cardStyle?: CardStyleType
   cardAspectRatio?: 'square' | 'portrait'
   badgeStyle?: 'pill' | 'solid' | 'outline'
   catalogColumns?: '3' | '4' | '5'
+  showVariantSwatches?: boolean
   bannerUrl?: string
   bannerTitle?: string
   bannerSubtitle?: string
@@ -100,10 +111,24 @@ export type CatalogSettings = {
   }
   visualCategories?: Array<{ category: string; imageUrl: string }>
   processTimeline?: {
+    headline?: string
     title?: string
-    items?: Array<{ step: string; title: string; desc: string }>
+    items?: ProcessStepItem[]
   }
   lifestyleGallery?: string[]
+  ugcGallery?: string[]
+  ambassadors?: {
+    title?: string
+    subtitle?: string
+    items?: AmbassadorItem[]
+  }
+  pressLogos?: PressLogoItem[]
+  retailers?: {
+    title?: string
+    subtitle?: string
+    ctaText?: string
+    items?: RetailerItem[]
+  }
   newsletterWidget?: {
     title?: string
     subtitle?: string
@@ -120,6 +145,13 @@ export type CatalogSettings = {
     tiktok?: string
     twitter?: string
     web?: string
+  }
+  policies?: {
+    terms?: string
+    refunds?: string
+  }
+  info?: {
+    address?: string
   }
   brandStoryPage?: {
     headerTrayectoria?: string

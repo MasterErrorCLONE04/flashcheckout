@@ -63,7 +63,7 @@ export function ProductFormModal({
         <div className="flex items-center justify-between mb-8 relative z-10">
           <div>
             <p className="text-[11px] font-bold tracking-[0.08em] text-zinc-400 uppercase mb-1">Editor de inventario</p>
-            <h3 className="text-2xl font-semibold text-zinc-955 tracking-tight font-display">
+            <h3 className="text-2xl font-semibold text-zinc-950 tracking-tight font-display">
               {editingId ? 'Modificar producto' : 'Nuevo registro'}
             </h3>
           </div>
@@ -85,7 +85,7 @@ export function ProductFormModal({
                   <Type className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                   <input
                     type="text"
-                    className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all"
+                    className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all"
                     placeholder="Ej: AirPods Max"
                     value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -99,7 +99,7 @@ export function ProductFormModal({
                 <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">Descripción y Características</label>
                 <div className="relative group">
                   <textarea
-                    className="w-full bg-zinc-50 border border-gray-200 rounded-lg px-5 py-3 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all min-h-[120px] resize-y"
+                    className="w-full bg-zinc-50 border border-gray-200 rounded-lg px-5 py-3 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all min-h-[120px] resize-y"
                     placeholder="Describe tu producto detalladamente. Puedes añadir características usando viñetas o guiones."
                     value={form.description}
                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -145,7 +145,7 @@ export function ProductFormModal({
                     <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                     <input
                       type="number"
-                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all tabular-nums"
+                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all tabular-nums"
                       placeholder="0"
                       value={form.price}
                       onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
@@ -162,7 +162,7 @@ export function ProductFormModal({
                     <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-500 transition-colors" />
                     <input
                       type="number"
-                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-955 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all tabular-nums"
+                      className="w-full bg-zinc-50 border border-gray-200 rounded-lg pl-14 pr-8 py-3.5 text-base font-normal text-zinc-950 placeholder:text-zinc-300 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all tabular-nums"
                       placeholder="0"
                       value={form.stock}
                       onChange={e => {

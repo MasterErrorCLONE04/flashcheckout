@@ -51,7 +51,7 @@ export function PagosFilters({
         <select
           value={filterEstado}
           onChange={e => onEstadoChange(e.target.value)}
-          className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2 text-xs xl:text-sm font-semibold text-zinc-700 focus:outline-none focus:border-zinc-955 appearance-none cursor-pointer"
+          className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2 text-xs xl:text-sm font-semibold text-zinc-700 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
         >
           <option value="Todos">Estado: Todos</option>
           <option value="Exitoso">Exitosos</option>
@@ -66,7 +66,7 @@ export function PagosFilters({
         <select
           value={filterMetodo}
           onChange={e => onMetodoChange(e.target.value)}
-          className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2 text-xs xl:text-sm font-semibold text-zinc-700 focus:outline-none focus:border-zinc-955 appearance-none cursor-pointer"
+          className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-2 text-xs xl:text-sm font-semibold text-zinc-700 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
         >
           <option value="Todos">Método: Todos</option>
           <option value="Mercado Pago">Mercado Pago</option>

@@ -1,6 +1,8 @@
 import { Building, Sliders, Terminal, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PageHeader } from '@/components/ui/page-header'
+import { Button } from '@/components/ui/button'
 import { OfficeState } from './useOfficeState'
 import { BASE_AGENTS } from './types'
 
@@ -15,7 +17,7 @@ export function OfficeHeader({
   office,
   storeName,
   productsCount,
-  ordersCount
+  ordersCount,
 }: OfficeHeaderProps) {
   const {
     isEditingLayout,
@@ -23,83 +25,74 @@ export function OfficeHeader({
     setSelectedItemId,
     setLogsModalOpen,
     setHiringModalOpen,
-    customAgents
+    customAgents,
   } = office
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 bg-zinc-950 text-white rounded-xl flex items-center justify-center">
-            <Building className="w-5.5 h-5.5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-zinc-950">The Office</h1>
-            <p className="text-xs text-zinc-400 font-semibold tracking-wider uppercase mt-0.5">
-              Centro Agéntico de Operaciones de {storeName}
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Header Actions & Stats */}
-      <div className="flex items-center gap-4">
-        <button 
-          type="button"
-          onClick={() => {
-            setIsEditingLayout(!isEditingLayout)
-            setSelectedItemId(null)
-            toast.info(isEditingLayout ? 'Personalización cerrada.' : '¡Modo de maquetación activo! Utiliza la cuadrícula para reordenar tu oficina.')
-          }}
-          className={cn(
-            "text-xs font-bold rounded-xl px-4 py-2.5 flex items-center gap-1.5 shadow-sm active:scale-98 transition-all select-none cursor-pointer border",
-            isEditingLayout
-              ? "border-purple-700 hover:bg-purple-700 text-white"
-              : "bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-800"
-          )}
-          style={isEditingLayout ? { backgroundColor: '#7c3aed', color: '#ffffff', borderColor: '#6d28d9' } : {}}
-        >
-          <Sliders className="w-4 h-4" />
-          <span>{isEditingLayout ? 'Salir de Edición' : 'Personalizar oficina'}</span>
-        </button>
+    <PageHeader
+      title="The Office"
+      icon={<Building className="w-5 h-5" />}
+      statusDot="emerald"
+      subtitle={`Centro agéntico de operaciones de ${storeName}`}
+      actions={
+        <>
+          <Button
+            type="button"
+            variant={isEditingLayout ? 'default' : 'outline'}
+            onClick={() => {
+              setIsEditingLayout(!isEditingLayout)
+              setSelectedItemId(null)
+              toast.info(
+                isEditingLayout
+                  ? 'Personalización cerrada.'
+                  : '¡Modo de maquetación activo! Utiliza la cuadrícula para reordenar tu oficina.'
+              )
+            }}
+            className={cn(
+              isEditingLayout && 'bg-purple-600 border-purple-600 hover:bg-purple-700 text-white'
+            )}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>{isEditingLayout ? 'Salir de edición' : 'Personalizar oficina'}</span>
+          </Button>
 
-        <button 
-          type="button"
-          onClick={() => setLogsModalOpen(true)}
-          className="bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs font-bold rounded-xl px-4 py-2.5 flex items-center gap-1.5 shadow-sm active:scale-98 transition-all select-none cursor-pointer"
-        >
-          <Terminal className="w-4 h-4 text-zinc-650" />
-          <span>Ver Logs</span>
-        </button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setLogsModalOpen(true)}
+          >
+            <Terminal className="w-3.5 h-3.5 text-zinc-500" />
+            <span>Ver Logs</span>
+          </Button>
 
-        <button 
-          type="button"
-          onClick={() => setHiringModalOpen(true)}
-          className="bg-zinc-950 hover:bg-zinc-900 border border-zinc-200/20 text-white text-xs font-bold rounded-xl px-4 py-2.5 flex items-center gap-1.5 shadow-md active:scale-98 transition-all select-none cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Contratar Agente</span>
-        </button>
+          <Button
+            type="button"
+            onClick={() => setHiringModalOpen(true)}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Contratar Agente</span>
+          </Button>
 
-        <div className="flex items-center gap-6 bg-white border border-zinc-200/80 px-4 py-2 rounded-xl shadow-sm">
-          <div className="text-left">
-            <span className="text-[10px] text-zinc-400 font-bold uppercase block leading-none">Productos</span>
-            <span className="text-base font-black text-zinc-900 mt-1 block leading-none">{productsCount}</span>
+          <div className="flex items-center gap-5 bg-white border border-zinc-200 px-3.5 h-9 rounded-lg">
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-zinc-400 font-medium">Productos</span>
+              <span className="font-semibold text-zinc-900 tabular-nums">{productsCount}</span>
+            </div>
+            <div className="w-px h-4 bg-zinc-200" />
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-zinc-400 font-medium">Pedidos</span>
+              <span className="font-semibold text-zinc-900 tabular-nums">{ordersCount}</span>
+            </div>
+            <div className="w-px h-4 bg-zinc-200" />
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-zinc-400 font-medium">Agentes</span>
+              <span className="font-semibold text-emerald-600 tabular-nums">
+                {BASE_AGENTS.length + customAgents.length}/8
+              </span>
+            </div>
           </div>
-          <div className="w-px h-6 bg-zinc-200" />
-          <div className="text-left">
-            <span className="text-[10px] text-zinc-400 font-bold uppercase block leading-none">Pedidos</span>
-            <span className="text-base font-black text-zinc-900 mt-1 block leading-none">{ordersCount}</span>
-          </div>
-          <div className="w-px h-6 bg-zinc-200" />
-          <div className="text-left">
-            <span className="text-[10px] text-zinc-400 font-bold uppercase block leading-none">Agentes Activos</span>
-            <span className="text-base font-black text-emerald-600 mt-1 block leading-none animate-pulse">
-              {BASE_AGENTS.length + customAgents.length} / 8
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   )
 }

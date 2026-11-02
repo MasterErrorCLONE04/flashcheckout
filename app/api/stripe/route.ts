@@ -1,13 +1,9 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { stripe } from '@/lib/stripe'
 import { getErrorMessage } from '@/lib/api/route-utils'
-
-type StripeStore = {
-  id: string
-  stripeCustomerId: string | null
-}
 
 export async function GET() {
   try {
@@ -16,13 +12,14 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const store = (await prisma.store.findFirst({
-      where: { userId },
-      select: {
-        id: true,
-        stripeCustomerId: true,
-      },
-    })) as StripeStore | null
+    // Prefer any store of the user that already owns the account-level Stripe subscription customer
+    const subscribedStore = await prisma.store.findFirst({
+      where: { userId, stripeCustomerId: { not: null } },
+      select: { id: true, stripeCustomerId: true },
+    })
+
+    const activeStore = await getActiveStore(userId)
+    const store = subscribedStore || activeStore
 
     if (!store) {
       return new NextResponse('Store not found', { status: 404 })

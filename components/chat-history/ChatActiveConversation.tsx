@@ -52,7 +52,7 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
     return (
       <div className="lg:col-span-8 xl:col-span-6 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col justify-between h-[680px] relative">
         <div className="flex-grow flex flex-col items-center justify-center p-8 text-center text-zinc-400">
-          <MessageCircle className="w-12 h-12 text-zinc-250 mb-2" />
+          <MessageCircle className="w-12 h-12 text-zinc-200 mb-2" />
           <p className="font-bold text-xs tracking-wider">Selecciona un chat para ver el historial</p>
         </div>
       </div>
@@ -72,7 +72,7 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
                 className="w-8.5 h-8.5 rounded-full object-cover shrink-0 border border-zinc-200"
               />
             ) : (
-              <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-650 flex items-center justify-center uppercase">
+              <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-600 flex items-center justify-center uppercase">
                 {activeSession.customerName.slice(0, 2)}
               </div>
             )}
@@ -93,7 +93,7 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
               <select
                 value={activeSession.assignedTo}
                 onChange={(e) => handleAssigneeChange(activeSession.id, e.target.value)}
-                className="bg-transparent border-none text-[10px] font-bold text-zinc-700 cursor-pointer focus:outline-none hover:text-zinc-955 transition-colors p-0 leading-none"
+                className="bg-transparent border-none text-[10px] font-bold text-zinc-700 cursor-pointer focus:outline-none hover:text-zinc-950 transition-colors p-0 leading-none"
               >
                 <option value="Tú">Tú</option>
                 <option value="Bot de IA">Bot de IA</option>
@@ -178,7 +178,7 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
             value={newTagText}
             onChange={e => setNewTagText(e.target.value)}
             placeholder="Escribe el nombre de la etiqueta..."
-            className="flex-1 bg-zinc-550/5 border border-zinc-250 rounded-lg px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-zinc-355 font-semibold"
+            className="flex-1 bg-zinc-500/5 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-zinc-300 font-semibold"
             required
           />
           <button
@@ -207,7 +207,7 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
       </div>
 
       {/* Message Composer Footer Input area */}
-      <div className="p-4 bg-white border-t border-zinc-150 shrink-0 space-y-3">
+      <div className="p-4 bg-white border-t border-zinc-200 shrink-0 space-y-3">
         {/* Tabs Responder / Nota Interna */}
         <div className="flex gap-4 border-b border-zinc-100 text-[10px] font-bold text-zinc-500 pb-1.5">
           <button
@@ -295,7 +295,7 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
               value={newNoteText}
               onChange={e => setNewNoteText(e.target.value)}
               placeholder="Escribe una nota interna..."
-              className="w-full bg-amber-50/30 border border-amber-200/50 hover:border-amber-250 focus:border-amber-350 focus:bg-white rounded-lg px-4 py-2.5 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
+              className="w-full bg-amber-50/30 border border-amber-200/50 hover:border-amber-200 focus:border-amber-300 focus:bg-white rounded-lg px-4 py-2.5 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()

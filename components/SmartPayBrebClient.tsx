@@ -320,7 +320,7 @@ function OrderItems({ items }: { items: SmartPayBrebClientProps['items'] }) {
   return (
     <div className="space-y-3">
       <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Resumen del pedido</span>
-      <div className="border border-zinc-150 rounded-xl overflow-hidden divide-y divide-zinc-150">
+      <div className="border border-zinc-200 rounded-xl overflow-hidden divide-y divide-zinc-200">
         {items.map((item, idx) => (
           <div key={`${item.productId}-${idx}`} className="p-3.5 flex items-center justify-between text-xs font-semibold bg-white">
             <div className="min-w-0 pr-4">
@@ -549,7 +549,7 @@ function ResultState({ icon, tone, title, description, whatsapp }: { icon: React
       </div>
 
       {whatsapp && (
-        <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-zinc-250 hover:bg-white text-zinc-800 text-xs font-bold rounded-lg transition-all">
+        <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-zinc-200 hover:bg-white text-zinc-800 text-xs font-bold rounded-lg transition-all">
           <MessageSquare className="w-3.5 h-3.5" />
           <span>Contactar comercio</span>
         </a>

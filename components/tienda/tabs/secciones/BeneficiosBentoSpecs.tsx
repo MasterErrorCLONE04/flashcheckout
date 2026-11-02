@@ -29,7 +29,7 @@ export function BeneficiosBentoSpecs({ form }: BeneficiosBentoSpecsProps) {
 
         <div className="space-y-4 pt-1 text-left">
           {benefits.items.map((item: any, idx: number) => (
-            <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5">
+            <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2.5">
               <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Beneficio #{idx + 1}</span>
               
               <div className="grid grid-cols-12 gap-2">
@@ -122,7 +122,7 @@ export function BeneficiosBentoSpecs({ form }: BeneficiosBentoSpecsProps) {
 
             <div className="space-y-3.5 border-t border-zinc-100 pt-3">
               {bentoHighlights.items.map((item: any, idx: number) => (
-                <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+                <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2">
                   <span className="text-[10px] font-bold text-zinc-400 tracking-wider block">Elemento #{idx + 1}</span>
                   
                   <div className="grid grid-cols-12 gap-2">
@@ -196,7 +196,7 @@ export function BeneficiosBentoSpecs({ form }: BeneficiosBentoSpecsProps) {
         {sections.accordionSpecs && (
           <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
             {accordionSpecs.map((tab, idx) => (
-              <div key={idx} className="p-3.5 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5 relative">
+              <div key={idx} className="p-3.5 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2.5 relative">
                 <button
                   type="button"
                   onClick={() => {

@@ -49,7 +49,7 @@ export function ProductImageGalleryField({
             )}
 
             {/* Hover Actions Panel */}
-            <div className="absolute inset-0 bg-zinc-955/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-10">
+            <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-10">
               {/* Top Row: Delete */}
               <div className="flex justify-end">
                 <button 
@@ -108,10 +108,10 @@ export function ProductImageGalleryField({
               multiple
               onChange={handleImageSelect} 
             />
-            <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-zinc-100 group-hover:text-zinc-805 transition-all shadow-sm">
-              <Plus className="w-5 h-5 text-zinc-400 group-hover:text-zinc-805" />
+            <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-zinc-100 group-hover:text-zinc-800 transition-all shadow-sm">
+              <Plus className="w-5 h-5 text-zinc-400 group-hover:text-zinc-800" />
             </div>
-            <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-650 transition-colors text-center px-2">
+            <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors text-center px-2">
               Añadir imagen
             </span>
           </label>

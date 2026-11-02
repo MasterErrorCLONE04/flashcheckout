@@ -45,7 +45,7 @@ export function AutomatizacionesList({
               </div>
               <div className="space-y-1.5 min-w-0">
                 <div className="flex items-center flex-wrap gap-2">
-                  <h3 className="font-bold text-zinc-955 text-sm leading-none">{item.name}</h3>
+                  <h3 className="font-bold text-zinc-950 text-sm leading-none">{item.name}</h3>
                   <span
                     className={cn(
                       'px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide leading-none border scale-95',
@@ -117,7 +117,7 @@ export function AutomatizacionesList({
                   <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block select-none">
                     Enviados hoy
                   </span>
-                  <span className="text-sm font-bold text-zinc-955 tabular-nums">
+                  <span className="text-sm font-bold text-zinc-950 tabular-nums">
                     {item.sentToday}
                   </span>
                 </div>
@@ -129,7 +129,7 @@ export function AutomatizacionesList({
                   <span
                     className={cn(
                       'text-sm font-bold tabular-nums',
-                      item.active && parseInt(item.rate) > 0 ? 'text-zinc-900' : 'text-zinc-650'
+                      item.active && parseInt(item.rate) > 0 ? 'text-zinc-900' : 'text-zinc-600'
                     )}
                   >
                     {item.rate}
@@ -140,7 +140,7 @@ export function AutomatizacionesList({
               {/* Action Menu: Configurar */}
               <button
                 onClick={() => onConfigure(item)}
-                className="h-8 px-2.5 border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-950 text-[10px] font-bold text-zinc-650 rounded-lg shrink-0 cursor-pointer select-none transition-all active:scale-95 flex items-center justify-center gap-1"
+                className="h-8 px-2.5 border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-950 text-[10px] font-bold text-zinc-600 rounded-lg shrink-0 cursor-pointer select-none transition-all active:scale-95 flex items-center justify-center gap-1"
               >
                 <span>Configurar</span>
               </button>
