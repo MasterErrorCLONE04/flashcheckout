@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 import { Store, Product } from '../types'
 import type { CatalogResolvedSettings } from '../hooks/useCatalogSettings'
 import { MobileHeader } from './MobileHeader'
@@ -63,14 +63,16 @@ export function CatalogMobileView({
   changeQtyByKey,
   setSelectedProduct,
   device,
-  activeMobileTab
+  activeMobileTab,
 }: CatalogMobileViewProps) {
   const {
     formattedStoreName,
     announcement,
     schedule,
     heroType,
+    heroStyle,
     bannerUrls,
+    heroPanels,
     heroVideoUrl,
     bannerTitle,
     bannerSubtitle,
@@ -78,13 +80,10 @@ export function CatalogMobileView({
     colors,
     heroBadge,
     sections,
-    socialsShowInCatalog,
-    aiSettings
   } = settings
 
   return (
-    <div className={cn("flex flex-col min-h-screen pb-20 w-full", showMobile ? "flex" : "hidden")}>
-      {/* Mobile Top Header & Announcement */}
+    <div className={cn('flex flex-col min-h-screen pb-20 w-full', showMobile ? 'flex' : 'hidden')}>
       <MobileHeader
         store={store}
         formattedStoreName={formattedStoreName}
@@ -95,13 +94,13 @@ export function CatalogMobileView({
         handleMobileTabClick={handleMobileTabClick}
       />
 
-      {/* Mobile Main Body */}
-      <main className="flex-1 px-4 py-4 space-y-6">
-        {/* Banner principal (Mobile) */}
+      <main className="flex-1 px-4 py-4 space-y-7">
         {activeNavTab === 'Inicio' && sections.banner !== false && (
           <MobileHero
             heroType={heroType}
+            heroStyle={heroStyle}
             bannerUrls={bannerUrls}
+            heroPanels={heroPanels}
             heroVideoUrl={heroVideoUrl}
             currentBannerIdx={currentBannerIdx}
             setCurrentBannerIdx={setCurrentBannerIdx}
@@ -115,8 +114,8 @@ export function CatalogMobileView({
           />
         )}
 
-        {/* Mobile Product Feed with Search, Filter & Switcher */}
         <MobileProductFeed
+          allProducts={store.products}
           settings={settings}
           total={total}
           activeNavTab={activeNavTab}
@@ -134,18 +133,12 @@ export function CatalogMobileView({
           setSelectedProduct={setSelectedProduct}
         />
 
-        {/* Extra sections on Inicio & Historia */}
-        <MobileSections
-          settings={settings}
-          activeNavTab={activeNavTab}
-        />
+        <MobileSections settings={settings} activeNavTab={activeNavTab} />
 
-        {/* Footer */}
         <MobileFooter
           activeNavTab={activeNavTab}
           formattedStoreName={formattedStoreName}
-          socialsShowInCatalog={socialsShowInCatalog}
-          aiSettings={aiSettings}
+          settings={settings}
           device={device}
           activeMobileTab={activeMobileTab}
           handleMobileTabClick={handleMobileTabClick}

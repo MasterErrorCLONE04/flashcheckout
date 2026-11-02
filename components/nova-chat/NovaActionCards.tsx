@@ -60,7 +60,7 @@ export function ProductCreatedCard({ message }: ActionCardProps) {
           />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h5 className="font-bold text-zinc-955 text-sm">{message.productDetail.name}</h5>
+              <h5 className="font-bold text-zinc-950 text-sm">{message.productDetail.name}</h5>
               <span className="px-2 py-0.5 bg-zinc-100 text-zinc-800 border border-zinc-200 rounded-full text-[9px] font-black uppercase tracking-wider">
                 {message.productDetail.status}
               </span>
@@ -70,8 +70,8 @@ export function ProductCreatedCard({ message }: ActionCardProps) {
           </div>
         </div>
         <div className="flex flex-col items-end shrink-0 text-right">
-          <span className="font-black text-zinc-955 text-sm xl:text-base">{message.productDetail.price}</span>
-          <span className="text-[11px] font-semibold text-zinc-405 mt-1.5">{message.productDetail.stock}</span>
+          <span className="font-black text-zinc-950 text-sm xl:text-base">{message.productDetail.price}</span>
+          <span className="text-[11px] font-semibold text-zinc-400 mt-1.5">{message.productDetail.stock}</span>
         </div>
       </div>
     </div>
@@ -83,7 +83,7 @@ export function DiscountCard({ message }: ActionCardProps) {
 
   return (
     <div className="mt-4 space-y-2">
-      <div className="bg-zinc-50 border border-zinc-250 rounded-lg p-3 flex items-center justify-between gap-3 text-left">
+      <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 flex items-center justify-between gap-3 text-left">
         <div className="flex items-center gap-3 min-w-0">
           <span className="px-2 py-1 bg-zinc-100 border border-zinc-200 rounded-lg text-zinc-800 font-black text-xs shrink-0">
             {message.coupon.code}
@@ -126,9 +126,9 @@ export function ProductUpdatedCard({ message }: ActionCardProps) {
         </div>
         
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="bg-white border border-zinc-150 p-2.5 rounded-lg flex flex-col shadow-sm">
+          <div className="bg-white border border-zinc-200 p-2.5 rounded-lg flex flex-col shadow-sm">
             <span className="text-[10px] text-zinc-400 font-bold uppercase leading-none">Precio</span>
-            <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
+            <span className="font-bold text-zinc-800 mt-1.5 flex items-center gap-1.5">
               {prod.oldPrice !== prod.newPrice ? (
                 <>
                   <span className="line-through text-zinc-400 font-semibold">${prod.oldPrice?.toLocaleString('es-CO') ?? '0'}</span>
@@ -140,9 +140,9 @@ export function ProductUpdatedCard({ message }: ActionCardProps) {
               )}
             </span>
           </div>
-          <div className="bg-white border border-zinc-150 p-2.5 rounded-lg flex flex-col shadow-sm">
+          <div className="bg-white border border-zinc-200 p-2.5 rounded-lg flex flex-col shadow-sm">
             <span className="text-[10px] text-zinc-400 font-bold uppercase leading-none">Inventario</span>
-            <span className="font-bold text-zinc-850 mt-1.5 flex items-center gap-1.5">
+            <span className="font-bold text-zinc-800 mt-1.5 flex items-center gap-1.5">
               {prod.oldStock !== prod.newStock ? (
                 <>
                   <span className="line-through text-zinc-400 font-semibold">{prod.oldStock ?? '0'}</span>
@@ -160,7 +160,7 @@ export function ProductUpdatedCard({ message }: ActionCardProps) {
           <span>Estado en la tienda:</span>
           <span className={cn(
             "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-            prod.newActive ? "bg-zinc-100 text-zinc-800 border border-zinc-250" : "bg-zinc-100 text-zinc-500 border border-zinc-200"
+            prod.newActive ? "bg-zinc-100 text-zinc-800 border border-zinc-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"
           )}>
             {prod.newActive ? 'Activo' : 'Inactivo'}
           </span>
@@ -200,12 +200,12 @@ export function OrderStatusUpdatedCard({ message }: ActionCardProps) {
         <p className="text-xs text-zinc-600">
           Cliente: <span className="font-bold text-zinc-800">{order.customerName}</span>
         </p>
-        <p className="text-xs text-zinc-650 mt-1 leading-none font-semibold">
+        <p className="text-xs text-zinc-600 mt-1 leading-none font-semibold">
           Total: <span className="font-bold text-zinc-900">${order.total.toLocaleString('es-CO')}</span>
         </p>
         
         {order.adminComment && (
-          <div className="bg-white border border-zinc-150 p-2.5 rounded-lg text-xs italic text-zinc-500">
+          <div className="bg-white border border-zinc-200 p-2.5 rounded-lg text-xs italic text-zinc-500">
             Nota: "{order.adminComment}"
           </div>
         )}
@@ -237,7 +237,7 @@ export function OrdersListCard({ message }: ActionCardProps) {
               </span>
             </div>
             <div className="flex flex-col items-end shrink-0 text-right">
-              <span className="font-bold text-zinc-850 text-xs">${order.total.toLocaleString('es-CO')}</span>
+              <span className="font-bold text-zinc-800 text-xs">${order.total.toLocaleString('es-CO')}</span>
               <span className={cn(
                 "px-1.5 py-0.5 rounded text-[8px] font-black uppercase mt-1",
                 order.status === 'delivered' ? 'bg-zinc-100 text-zinc-800' :
@@ -274,19 +274,19 @@ export function SalesMetricsCard({ message }: ActionCardProps) {
         </div>
         
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white border border-zinc-150 p-2 rounded-lg flex flex-col text-center shadow-sm">
+          <div className="bg-white border border-zinc-200 p-2 rounded-lg flex flex-col text-center shadow-sm">
             <span className="text-[9px] text-zinc-400 font-bold uppercase leading-none">Ventas</span>
             <span className="font-black text-zinc-800 text-[11px] xl:text-xs mt-1.5 leading-none">
               ${metrics.totalSales.toLocaleString('es-CO')}
             </span>
           </div>
-          <div className="bg-white border border-zinc-150 p-2 rounded-lg flex flex-col text-center shadow-sm">
+          <div className="bg-white border border-zinc-200 p-2 rounded-lg flex flex-col text-center shadow-sm">
             <span className="text-[9px] text-zinc-400 font-bold uppercase leading-none">Pedidos</span>
-            <span className="font-black text-zinc-850 text-[11px] xl:text-xs mt-1.5 leading-none">
+            <span className="font-black text-zinc-800 text-[11px] xl:text-xs mt-1.5 leading-none">
               {metrics.totalOrders}
             </span>
           </div>
-          <div className="bg-white border border-zinc-150 p-2 rounded-lg flex flex-col text-center shadow-sm">
+          <div className="bg-white border border-zinc-200 p-2 rounded-lg flex flex-col text-center shadow-sm">
             <span className="text-[9px] text-zinc-400 font-bold uppercase leading-none">Ticket Prom.</span>
             <span className="font-black text-blue-700 text-[11px] xl:text-xs mt-1.5 leading-none">
               ${metrics.avgTicket.toLocaleString('es-CO')}
@@ -326,7 +326,7 @@ export function CustomerChatCard({ message }: ActionCardProps) {
           <h5 className="font-bold text-zinc-900 text-xs xl:text-sm">
             Chat con {payload.customerName}
           </h5>
-          <span className="text-[9px] font-black text-zinc-405 uppercase tracking-wider select-none">
+          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider select-none">
             Paso: {payload.step}
           </span>
         </div>
@@ -342,7 +342,7 @@ export function CustomerChatCard({ message }: ActionCardProps) {
                 <div key={idx} className={cn(
                   "p-2 rounded-lg max-w-[85%] text-left",
                   isCustomer 
-                    ? "bg-zinc-150 text-zinc-855 mr-auto" 
+                    ? "bg-zinc-100 text-zinc-900 mr-auto" 
                     : "bg-zinc-100 text-zinc-800 ml-auto border border-zinc-200"
                 )}>
                   <p className="font-black text-[8px] uppercase opacity-65 mb-0.5 leading-none select-none">

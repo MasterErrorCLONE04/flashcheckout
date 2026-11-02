@@ -37,7 +37,7 @@ export function NovaMessageBubble({ message, selectedAgent }: NovaMessageBubbleP
         <div className={cn(
           "text-sm leading-relaxed font-medium",
           isBot 
-            ? "text-zinc-805 bg-white py-1 px-1" 
+            ? "text-zinc-800 bg-white py-1 px-1" 
             : "bg-[#F4F4F4] text-zinc-800 rounded-3xl px-5 py-3 ml-auto inline-block border border-zinc-200/40"
         )}>
           <p className="whitespace-pre-line">{message.text}</p>
@@ -59,21 +59,21 @@ export function NovaMessageBubble({ message, selectedAgent }: NovaMessageBubbleP
                 navigator.clipboard.writeText(message.text)
                 toast.success('Mensaje copiado al portapapeles')
               }} 
-              className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" 
+              className="text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer" 
               title="Copiar mensaje"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
             <button 
               onClick={() => toast.success('Gracias por tu feedback')} 
-              className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" 
+              className="text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer" 
               title="Me gusta"
             >
               <ThumbsUp className="w-3.5 h-3.5" />
             </button>
             <button 
               onClick={() => toast.success('Gracias por tu feedback')} 
-              className="text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer" 
+              className="text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer" 
               title="No me gusta"
             >
               <ThumbsDown className="w-3.5 h-3.5" />

@@ -47,11 +47,12 @@ const PLANS: Plan[] = [
     icon: ShoppingBag,
     iconClassName: 'bg-zinc-100 border-zinc-200/50 text-zinc-800',
     features: [
+      { label: '1 negocio con su página online' },
       { label: 'Hasta 10 productos activos' },
-      { label: 'Página de checkout rápido' },
+      { label: 'Página autogenerada según tu giro' },
       { label: 'Integración Stripe & MercadoPago' },
+      { label: 'Múltiples negocios independientes', disabled: true },
       { label: 'Agente de WhatsApp Inteligente', disabled: true },
-      { label: 'Recuperación de carritos por chat', disabled: true },
     ],
   },
   {
@@ -67,10 +68,11 @@ const PLANS: Plan[] = [
     iconClassName: 'bg-emerald-50 border-emerald-100 text-emerald-600',
     popular: true,
     features: [
+      { label: 'Múltiples negocios independientes (hasta 10)' },
+      { label: 'Páginas autogeneradas con IA por negocio' },
       { label: 'Productos Activos Ilimitados' },
       { label: 'Agente de WhatsApp Personalizado' },
-      { label: 'Recuperación de carritos abandonados' },
-      { label: 'Automatizaciones por eventos' },
+      { label: 'Recuperación de carritos y automatizaciones' },
       { label: 'Soporte prioritario por chat' },
     ],
   },
@@ -86,6 +88,7 @@ const PLANS: Plan[] = [
     iconClassName: 'bg-zinc-900 border-zinc-800 text-white',
     cardClassName: 'bg-zinc-950 border-zinc-900 text-white',
     features: [
+      { label: 'Negocios y sedes ilimitados' },
       { label: 'Productos Activos Ilimitados' },
       { label: 'Integración directa con ERPs/CRMs' },
       { label: 'Múltiples canales (Insta, Messenger, WA)' },
@@ -96,6 +99,10 @@ const PLANS: Plan[] = [
 ]
 
 const FAQS = [
+  {
+    q: '¿Cuántos negocios y páginas puedo crear en cada plan?',
+    a: 'En el plan Gratuito puedes crear 1 negocio con su propia página online autogenerada. Al activar el Plan Pro puedes crear hasta 10 negocios independientes desde tu selector de tiendas, cada uno con su propia página, catálogo, WhatsApp y diseño adaptado al giro que especifiques.',
+  },
   {
     q: '¿Cómo funciona el límite de 10 productos en el plan Gratuito?',
     a: 'Puedes crear tu tienda y agregar hasta 10 productos activos sin ningún costo ni necesidad de tarjeta de crédito. Si deseas ofrecer un catálogo más grande, puedes actualizar al plan Pro en cualquier momento desde tu panel de configuración.',

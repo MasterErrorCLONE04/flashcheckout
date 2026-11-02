@@ -39,7 +39,7 @@ export function TabRespuestas({ agent }: TabRespuestasProps) {
               placeholder="Ej: Metodos de pago"
               value={newQuestion}
               onChange={e => setNewQuestion(e.target.value)}
-              className="w-full bg-zinc-50 border border-zinc-250 rounded-lg px-3 py-2 text-xs font-semibold outline-none focus:bg-white focus:border-emerald-500/35 text-zinc-950 placeholder:text-zinc-300"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-xs font-semibold outline-none focus:bg-white focus:border-emerald-500/35 text-zinc-950 placeholder:text-zinc-300"
             />
           </div>
 
@@ -51,7 +51,7 @@ export function TabRespuestas({ agent }: TabRespuestasProps) {
               placeholder="Aceptamos Nequi, Daviplata, Mercado Pago y Contra entrega en Bogota..."
               value={newAnswer}
               onChange={e => setNewAnswer(e.target.value)}
-              className="w-full bg-zinc-50 border border-zinc-250 rounded-lg p-3 text-xs font-semibold outline-none focus:bg-white focus:border-emerald-500/35 text-zinc-950 placeholder:text-zinc-300 resize-none"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg p-3 text-xs font-semibold outline-none focus:bg-white focus:border-emerald-500/35 text-zinc-950 placeholder:text-zinc-300 resize-none"
             />
           </div>
 
@@ -81,7 +81,7 @@ export function TabRespuestas({ agent }: TabRespuestasProps) {
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                     <span>{faq.question}</span>
                   </h4>
-                  <p className="text-[10px] text-zinc-450 leading-relaxed font-semibold pr-2 pl-3">{faq.answer}</p>
+                  <p className="text-[10px] text-zinc-500 leading-relaxed font-semibold pr-2 pl-3">{faq.answer}</p>
                 </div>
 
                 <button

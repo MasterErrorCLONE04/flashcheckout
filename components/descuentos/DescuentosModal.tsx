@@ -54,17 +54,17 @@ export function DescuentosModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white border border-zinc-150 rounded-lg p-6 w-full max-w-md space-y-5 shadow-none relative animate-in fade-in zoom-in-95 slide-from-bottom-4 duration-350 ease-out">
+      <div className="bg-white border border-zinc-200 rounded-lg p-6 w-full max-w-md space-y-5 shadow-none relative animate-in fade-in zoom-in-95 slide-from-bottom-4 duration-350 ease-out">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-base font-black text-zinc-955 leading-tight">
+            <h3 className="text-base font-black text-zinc-950 leading-tight">
               {editingId ? 'Editar Descuento' : 'Crear Nuevo Descuento'}
             </h3>
             <p className="text-[11px] font-semibold text-zinc-400">Completa los campos para generar un código o regla.</p>
           </div>
           <button 
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 hover:bg-zinc-50 border-none bg-transparent cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 border-none bg-transparent cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

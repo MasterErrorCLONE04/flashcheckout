@@ -1,6 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { stripe } from '@/lib/stripe'
 import { ensureConnectAccount } from '@/lib/stripe-connect-account'
 import { getErrorMessage } from '@/lib/api/route-utils'
@@ -28,14 +29,7 @@ export async function GET() {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-      select: {
-        id: true,
-        stripeConnectAccountId: true,
-        stripeConnectChargesEnabled: true,
-      },
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 })
@@ -91,13 +85,7 @@ export async function POST(req: Request) {
     const user = await currentUser()
     const email = user?.emailAddresses?.[0]?.emailAddress ?? undefined
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-      select: {
-        id: true,
-        stripeConnectAccountId: true,
-      },
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 })

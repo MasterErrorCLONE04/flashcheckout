@@ -119,7 +119,7 @@ const SoundwaveIcon = () => (
 
 const VerticalPaperclipIcon = () => (
   <div style={{ transform: 'rotate(45deg)' }} className="flex items-center justify-center">
-    <Paperclip className="w-4.5 h-4.5 text-zinc-400 hover:text-zinc-650 transition-colors" />
+    <Paperclip className="w-4.5 h-4.5 text-zinc-400 hover:text-zinc-600 transition-colors" />
   </div>
 )
 
@@ -330,7 +330,7 @@ export default function LandingChatbot() {
                 <div className="flex justify-start">
                   <div className="bg-zinc-100 rounded-[18px] rounded-tl-xs px-4 py-3 flex items-center gap-1.5">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
-                    <span className="text-[11px] text-zinc-450 font-bold uppercase tracking-wider">Flashy is typing...</span>
+                    <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider">Flashy is typing...</span>
                   </div>
                 </div>
               )}
@@ -374,7 +374,7 @@ export default function LandingChatbot() {
                 <div className="flex items-center justify-between text-[11.5px] font-normal text-zinc-500 leading-none px-0.5">
                   <span>
                     Al chatear, aceptas nuestra{' '}
-                    <Link href="/solutions/privacidad" className="underline text-zinc-650 hover:text-zinc-900 font-medium">
+                    <Link href="/solutions/privacidad" className="underline text-zinc-600 hover:text-zinc-900 font-medium">
                       política de privacidad
                     </Link>
                     .
@@ -424,7 +424,7 @@ export default function LandingChatbot() {
                       description: 'El reconocimiento de voz está desactivado para la demo de Flashy.'
                     })
                   }}
-                  className="text-zinc-400 hover:text-zinc-650 cursor-pointer p-0.5"
+                  className="text-zinc-400 hover:text-zinc-600 cursor-pointer p-0.5"
                 >
                   <Mic className="w-[18px] h-[18px]" />
                 </div>

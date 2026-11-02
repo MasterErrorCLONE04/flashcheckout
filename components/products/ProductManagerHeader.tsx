@@ -2,6 +2,9 @@
 
 import { Plus, Lock } from 'lucide-react'
 import Link from 'next/link'
+import { PageHeader } from '@/components/ui/page-header'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface ProductManagerHeaderProps {
   productsCount: number
@@ -17,48 +20,45 @@ export function ProductManagerHeader({
   onAddProduct,
 }: ProductManagerHeaderProps) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Suministros y Activos</h1>
-          <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Inventario operativo — <span className="text-zinc-900 font-bold">{productsCount} módulos activos</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 justify-end">
+    <PageHeader
+      title="Suministros y Activos"
+      statusDot="emerald"
+      subtitle={
+        <>
+          Inventario operativo —{' '}
+          <span className="text-zinc-900 font-semibold">{productsCount} módulos activos</span>
+        </>
+      }
+      actions={
+        <>
           {!isPro && (
-            <div className="bg-zinc-50 border border-zinc-200 text-zinc-600 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap shadow-sm">
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <Badge variant="neutral" className="h-9 px-3 text-xs font-medium rounded-lg gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
               <span>{productsCount} / 10 espacios usados</span>
-            </div>
+            </Badge>
           )}
-          
+
           {canAddProduct ? (
-            <button
-              onClick={onAddProduct}
-              className="flex items-center justify-center gap-2 h-9 px-3.5 bg-zinc-950 text-white hover:bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer"
-            >
+            <Button onClick={onAddProduct}>
               <Plus className="w-3.5 h-3.5" />
               <span>Añadir Producto</span>
-            </button>
+            </Button>
           ) : (
-            <div className="flex items-center gap-2.5 bg-amber-50/50 border border-amber-200/60 rounded-lg px-3.5 py-1.5 text-xs font-medium text-amber-800 shadow-sm">
+            <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-lg px-3.5 py-1.5 text-xs font-medium text-amber-800">
               <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
               <div className="flex flex-col text-left">
-                <span className="font-bold text-amber-900 leading-none">Límite alcanzado</span>
-                <Link 
+                <span className="font-semibold text-amber-900 leading-none">Límite alcanzado</span>
+                <Link
                   href="/configuracion"
-                  className="text-amber-600 hover:text-amber-700 underline underline-offset-2 text-[10px] font-semibold mt-1"
+                  className="text-amber-700 hover:text-amber-800 underline underline-offset-2 text-[11px] font-semibold mt-1"
                 >
                   Actualizar a Pro
                 </Link>
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   )
 }

@@ -28,7 +28,7 @@ export function DashboardRecentActivity({ activities }: DashboardRecentActivityP
           <div className="w-9 h-9 rounded-full bg-zinc-50 text-zinc-400 flex items-center justify-center mb-2.5">
             <Inbox className="w-5 h-5" />
           </div>
-          <p className="text-xs font-bold text-zinc-955">Sin actividad reciente</p>
+          <p className="text-xs font-bold text-zinc-950">Sin actividad reciente</p>
           <p className="text-[10px] text-zinc-400 mt-1 max-w-[200px] leading-relaxed">Las actividades y pedidos de tu tienda aparecerán listados aquí.</p>
         </div>
       ) : (
@@ -50,7 +50,7 @@ export function DashboardRecentActivity({ activities }: DashboardRecentActivityP
               </div>
               <div className="text-right shrink-0">
                 {activity.amount !== undefined && (
-                  <p className="text-xs font-bold text-zinc-650">${activity.amount.toLocaleString('es-CO')}</p>
+                  <p className="text-xs font-bold text-zinc-600">${activity.amount.toLocaleString('es-CO')}</p>
                 )}
                 <p className="text-[8px] font-semibold text-zinc-400 mt-0.5">{activity.timeText}</p>
               </div>
@@ -59,7 +59,7 @@ export function DashboardRecentActivity({ activities }: DashboardRecentActivityP
         </div>
       )}
 
-      <Link href="/pedidos" className="w-full h-9 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-650 flex items-center justify-center bg-white shadow-sm active:scale-95 transition-all mt-4">
+      <Link href="/pedidos" className="w-full h-9 border border-zinc-200 hover:bg-zinc-50 rounded-lg text-xs font-bold text-zinc-600 flex items-center justify-center bg-white shadow-sm active:scale-95 transition-all mt-4">
         <span>Ver toda la actividad</span>
       </Link>
     </div>

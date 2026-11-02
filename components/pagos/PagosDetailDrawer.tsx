@@ -40,7 +40,7 @@ export function PagosDetailDrawer({
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop overlay */}
       <div 
-        className="absolute inset-0 bg-zinc-955/20 backdrop-blur-xs transition-opacity duration-300" 
+        className="absolute inset-0 bg-zinc-950/20 backdrop-blur-xs transition-opacity duration-300" 
         onClick={onClose}
       />
 
@@ -64,12 +64,12 @@ export function PagosDetailDrawer({
                   </span>
                   <span className="text-[10px] font-bold text-zinc-400 select-none">{selectedPayment.fecha}</span>
                 </div>
-                <h2 className="text-xl font-bold text-zinc-955 tracking-tight">{selectedPayment.id}</h2>
-                <p className="text-xs text-zinc-450">Referencia de transacción del checkout</p>
+                <h2 className="text-xl font-bold text-zinc-950 tracking-tight">{selectedPayment.id}</h2>
+                <p className="text-xs text-zinc-500">Referencia de transacción del checkout</p>
               </div>
               <button 
                 onClick={onClose}
-                className="p-1 rounded-lg border border-zinc-200 hover:bg-zinc-55 text-zinc-500 transition-colors cursor-pointer"
+                className="p-1 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-zinc-500 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -135,7 +135,7 @@ export function PagosDetailDrawer({
                     className="inline-flex items-center gap-1.5 font-bold text-[#6F42C1] hover:underline cursor-pointer"
                   >
                     <span>{selectedPayment.ref}</span>
-                    {copiedRef ? <Check className="w-3.5 h-3.5 text-zinc-850" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+                    {copiedRef ? <Check className="w-3.5 h-3.5 text-zinc-800" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
                   </button>
                 </div>
                 <div className="flex justify-between p-3">
@@ -148,7 +148,7 @@ export function PagosDetailDrawer({
             {/* Order Details */}
             <div className="space-y-3 text-left">
               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Pedido Asociado</h3>
-              <div className="flex items-center justify-between bg-white border border-zinc-200/80 rounded-lg p-3 text-xs font-semibold text-zinc-650">
+              <div className="flex items-center justify-between bg-white border border-zinc-200/80 rounded-lg p-3 text-xs font-semibold text-zinc-600">
                 <div className="space-y-0.5">
                   <span className="font-bold text-[#6F42C1] block text-sm">{selectedPayment.pedido}</span>
                   <span className="text-[10px] text-zinc-400 block">{selectedPayment.prodCount} productos comprados</span>
@@ -172,7 +172,7 @@ export function PagosDetailDrawer({
                 <div className="flex gap-2">
                   <button 
                     onClick={() => onRefund(selectedPayment.id)}
-                    className="flex-1 py-1.5 bg-red-650 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                    className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
                   >
                     Confirmar Reembolso
                   </button>
@@ -189,7 +189,7 @@ export function PagosDetailDrawer({
                 {selectedPayment.estado === 'Exitoso' && (
                   <button 
                     onClick={() => setConfirmingRefund(true)}
-                    className="w-full py-2 bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 text-red-650 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 text-red-600 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5 animate-spin-hover" />
                     Reembolsar Transacción

@@ -348,7 +348,7 @@ export default async function SolutionPage(props: { params: Promise<{ slug: stri
                     <FeatIcon className="w-5 h-5 text-zinc-950" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-zinc-955 tracking-tight mb-2">
+                    <h3 className="font-semibold text-lg text-zinc-950 tracking-tight mb-2">
                       {feat.title}
                     </h3>
                     <p className="text-sm text-zinc-500 leading-relaxed font-normal">

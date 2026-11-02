@@ -37,13 +37,13 @@ export function CustomerDetailPanel({
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h4 className="text-xs font-bold text-zinc-955 leading-none">{customer.name}</h4>
+              <h4 className="text-xs font-bold text-zinc-950 leading-none">{customer.name}</h4>
               <span
                 className={cn(
                   'px-1.5 py-0.5 rounded text-[8px] font-black  tracking-wider',
                   customer.status === 'Activo'
                     ? 'text-emerald-600 bg-emerald-50 border border-emerald-100'
-                    : 'text-zinc-550 bg-zinc-100 border border-zinc-200'
+                    : 'text-zinc-500 bg-zinc-100 border border-zinc-200'
                 )}
               >
                 {customer.status}
@@ -81,13 +81,13 @@ export function CustomerDetailPanel({
       <div className="grid grid-cols-3 gap-2">
         <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
           <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Pedidos</p>
-          <p className="text-xs font-black text-zinc-850 tabular-nums">{customer.totalOrders}</p>
+          <p className="text-xs font-black text-zinc-800 tabular-nums">{customer.totalOrders}</p>
           <p className="text-[8px] font-extrabold text-zinc-400 leading-none pt-1">Historial real</p>
         </div>
 
         <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
           <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Total gastado</p>
-          <p className="text-xs font-black text-zinc-850 truncate max-w-full tabular-nums">
+          <p className="text-xs font-black text-zinc-800 truncate max-w-full tabular-nums">
             ${customer.totalSpent.toLocaleString('es-CO')}
           </p>
           <p className="text-[8px] font-extrabold text-zinc-400 leading-none pt-1">Pedidos sumados</p>
@@ -95,7 +95,7 @@ export function CustomerDetailPanel({
 
         <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
           <p className="text-[9px] font-extrabold text-zinc-400  tracking-wider">Ticket prom.</p>
-          <p className="text-xs font-black text-zinc-850 tabular-nums">
+          <p className="text-xs font-black text-zinc-800 tabular-nums">
             ${activeAverageTicket.toLocaleString('es-CO')}
           </p>
           <p className="text-[8px] font-extrabold text-zinc-400 leading-none pt-1">Promedio real</p>
@@ -105,7 +105,7 @@ export function CustomerDetailPanel({
       {/* Personal Information */}
       <div className="space-y-3">
         <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
-          <h5 className="text-[10px] font-extrabold text-zinc-450  tracking-wider">Información personal</h5>
+          <h5 className="text-[10px] font-extrabold text-zinc-500  tracking-wider">Información personal</h5>
           <button
             onClick={onStartEdit}
             className="text-[9px] font-bold text-zinc-500 hover:text-zinc-950 px-2 py-0.5 border border-zinc-200 rounded-md hover:bg-zinc-50 transition-colors cursor-pointer"
@@ -114,7 +114,7 @@ export function CustomerDetailPanel({
           </button>
         </div>
 
-        <div className="space-y-3.5 text-[11px] font-semibold text-zinc-850">
+        <div className="space-y-3.5 text-[11px] font-semibold text-zinc-800">
           <div className="grid grid-cols-2 py-1">
             <span className="text-zinc-400 font-medium">Fecha de nacimiento</span>
             <span className="text-right">{customer.birthDate || 'Sin registrar'}</span>
@@ -125,7 +125,7 @@ export function CustomerDetailPanel({
           </div>
           <div className="flex flex-col gap-1.5 py-1 border-t border-zinc-50">
             <span className="text-zinc-400 font-medium">Notas de fidelidad</span>
-            <p className="text-[10px] text-zinc-650 leading-relaxed font-medium bg-zinc-50 p-2.5 border border-zinc-200/50 rounded-lg">
+            <p className="text-[10px] text-zinc-600 leading-relaxed font-medium bg-zinc-50 p-2.5 border border-zinc-200/50 rounded-lg">
               {customer.notes || 'Sin notas registradas.'}
             </p>
           </div>
@@ -135,7 +135,7 @@ export function CustomerDetailPanel({
       {/* Purchase History Timeline */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
-          <h5 className="text-[10px] font-extrabold text-zinc-450  tracking-wider">Historial de compras</h5>
+          <h5 className="text-[10px] font-extrabold text-zinc-500  tracking-wider">Historial de compras</h5>
           {totalOrdersCount > 5 && (
             <button
               onClick={onToggleShowAllHistory}
@@ -186,7 +186,7 @@ export function CustomerDetailPanel({
                     <span className="font-bold text-zinc-900 tabular-nums">
                       ${order.total.toLocaleString('es-CO')}
                     </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-zinc-350" />
+                    <ChevronRight className="w-3.5 h-3.5 text-zinc-300" />
                   </div>
                 </div>
               )

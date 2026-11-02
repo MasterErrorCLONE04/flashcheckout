@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import {
   badRequest,
   forbidden,
@@ -26,9 +27,7 @@ export async function POST(req: Request) {
       return badRequest('Missing question or answer')
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
     if (!store) return notFound('Store not found')
 
     const faq = await prisma.faq.create({
@@ -54,9 +53,7 @@ export async function DELETE(req: Request) {
     const body = (await req.json().catch(() => null)) as FaqBody | null
     if (!body?.id) return badRequest('Missing id')
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
     if (!store) return notFound('Store not found')
 
     const faq = await prisma.faq.findUnique({

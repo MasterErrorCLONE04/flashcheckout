@@ -53,7 +53,7 @@ export function DescuentosPerformanceSidebar({
         </div>
 
         <div className="space-y-4">
-          <span className="text-[10px] font-bold text-zinc-405 block tracking-wider leading-none">Usos por tipo de descuento</span>
+          <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Usos por tipo de descuento</span>
 
           {/* NATIVE INTERACTIVE SVG RING DOUGHNUT CHART */}
           <div className="flex items-center gap-6">
@@ -108,7 +108,7 @@ export function DescuentosPerformanceSidebar({
 
               {/* Central Text inside Doughnut */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-sm font-black text-zinc-955 tracking-tight leading-none">{totalUses}</span>
+                <span className="text-sm font-black text-zinc-950 tracking-tight leading-none">{totalUses}</span>
                 <span className="text-[9px] font-semibold text-zinc-400 mt-1 tracking-tight">Total</span>
               </div>
             </div>
@@ -118,9 +118,9 @@ export function DescuentosPerformanceSidebar({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#6F42C1] shrink-0" />
-                  <span className="truncate text-zinc-650">Porcentaje</span>
+                  <span className="truncate text-zinc-600">Porcentaje</span>
                 </div>
-                <span className="text-zinc-955 font-extrabold ml-2">
+                <span className="text-zinc-950 font-extrabold ml-2">
                   {pctPercent}% <span className="text-zinc-400 font-semibold">({pctCount})</span>
                 </span>
               </div>
@@ -128,9 +128,9 @@ export function DescuentosPerformanceSidebar({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#71717A] shrink-0" />
-                  <span className="truncate text-zinc-655">Envío gratis</span>
+                  <span className="truncate text-zinc-600">Envío gratis</span>
                 </div>
-                <span className="text-zinc-955 font-extrabold ml-2">
+                <span className="text-zinc-950 font-extrabold ml-2">
                   {freeShipPercent}% <span className="text-zinc-400 font-semibold">({freeShipCount})</span>
                 </span>
               </div>
@@ -138,9 +138,9 @@ export function DescuentosPerformanceSidebar({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#FF7A00] shrink-0" />
-                  <span className="truncate text-zinc-650">Monto fijo</span>
+                  <span className="truncate text-zinc-600">Monto fijo</span>
                 </div>
-                <span className="text-zinc-955 font-extrabold ml-2">
+                <span className="text-zinc-950 font-extrabold ml-2">
                   {fixedPercent}% <span className="text-zinc-400 font-semibold">({fixedCount})</span>
                 </span>
               </div>
@@ -152,7 +152,7 @@ export function DescuentosPerformanceSidebar({
 
         {/* Descuento más usado widget */}
         <div className="space-y-3">
-          <span className="text-[10px] font-bold text-zinc-405 block tracking-wider leading-none">Descuento más usado</span>
+          <span className="text-[10px] font-bold text-zinc-400 block tracking-wider leading-none">Descuento más usado</span>
           {mostUsedCoupon ? (
             <div className="space-y-2">
               <div className="flex justify-between items-start">
@@ -161,8 +161,8 @@ export function DescuentosPerformanceSidebar({
                   <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">{mostUsedCoupon.tipoDesc}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-black text-zinc-955 block leading-none">{mostUsedCoupon.usos} usos</span>
-                  <span className="text-[10px] font-semibold text-zinc-405 mt-1 block">{mostUsedPercent}% del total</span>
+                  <span className="text-xs font-black text-zinc-950 block leading-none">{mostUsedCoupon.usos} usos</span>
+                  <span className="text-[10px] font-semibold text-zinc-400 mt-1 block">{mostUsedPercent}% del total</span>
                 </div>
               </div>
               {/* Custom Progress Bar */}
@@ -215,7 +215,7 @@ export function DescuentosPerformanceSidebar({
       <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none relative overflow-hidden flex flex-col justify-between min-h-[160px]">
         <div className="flex gap-4">
           <div className="flex-1 space-y-1.5">
-            <h4 className="text-xs xl:text-sm font-black text-zinc-955 tracking-tight leading-tight">¿Necesitas ayuda con descuentos?</h4>
+            <h4 className="text-xs xl:text-sm font-black text-zinc-950 tracking-tight leading-tight">¿Necesitas ayuda con descuentos?</h4>
             <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 leading-relaxed">Nova puede ayudarte a crear estrategias de descuentos efectivas.</p>
           </div>
           <div className="shrink-0 select-none">

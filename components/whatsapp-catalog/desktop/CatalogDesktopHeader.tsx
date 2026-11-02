@@ -1,10 +1,9 @@
 'use client'
 
-import React from 'react'
-import { ShoppingCart, Search } from 'lucide-react'
-import { cn } from "@/lib/utils"
+import React, { useEffect, useMemo, useState } from 'react'
+import { ShoppingBag, Search, X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Store, NavLink, CatalogSettings } from '../types'
-import { InstagramIcon, FacebookIcon, TwitterIcon, TikTokIcon } from '../common/SocialIcons'
 
 export interface CatalogDesktopHeaderProps {
   store: Store
@@ -47,194 +46,288 @@ export function CatalogDesktopHeader({
   formattedStoreName,
   colors,
   headerStyle,
-  radiusBadge,
   schedule,
   announcement,
   navbarLinks,
   activeNavTab,
   setActiveNavTab,
   handleNavbarLinkClick,
-  socialsShowInCatalog,
-  aiSettings,
   searchQuery,
   setSearchQuery,
   setIsCartOpen,
   itemsInCart,
-  total
 }: CatalogDesktopHeaderProps) {
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [promoIdx, setPromoIdx] = useState(0)
+
+  const promoMessages = useMemo(() => {
+    const raw = announcement?.text || ''
+    return raw
+      .split('|')
+      .map(s => s.trim())
+      .filter(Boolean)
+  }, [announcement?.text])
+
+  useEffect(() => {
+    if (promoMessages.length <= 1) return
+    const timer = setInterval(() => {
+      setPromoIdx(prev => (prev + 1) % promoMessages.length)
+    }, 4500)
+    return () => clearInterval(timer)
+  }, [promoMessages.length])
+
+  const isDarkCanvas =
+    colors.fondo.toLowerCase() === '#0b0f19' || colors.fondo.toLowerCase() === '#09090b'
+
   return (
     <>
-      {/* Barra de anuncios (Desktop) */}
-      {announcement?.enabled && announcement?.text && (
-        <div 
-          className="w-full text-center py-2 px-4 text-xs font-bold leading-tight select-none shrink-0"
-          style={{ backgroundColor: announcement.bgColor, color: announcement.textColor }}
+      {/* Waterdrop Architectural Top Promo Strip */}
+      {announcement?.enabled && promoMessages.length > 0 && (
+        <div
+          className="w-full h-[34px] text-[11.5px] font-semibold tracking-[-0.01em] select-none shrink-0 flex items-center"
+          style={{
+            backgroundColor: announcement.bgColor || colors.acento || '#8CE5A7',
+            color: announcement.textColor || '#111111',
+          }}
         >
-          {announcement.text}
+          <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 flex items-center justify-between">
+            {promoMessages.length > 1 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setPromoIdx(prev => (prev === 0 ? promoMessages.length - 1 : prev - 1))
+                }
+                className="p-1 opacity-60 hover:opacity-100 transition-opacity cursor-pointer bg-transparent border-0"
+                style={{ color: announcement.textColor || '#111111' }}
+                aria-label="Promoción anterior"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 stroke-[2]" />
+              </button>
+            ) : (
+              <span className="w-5" />
+            )}
+
+            <span className="text-center truncate px-3">
+              {promoMessages[promoIdx % promoMessages.length]}
+            </span>
+
+            {promoMessages.length > 1 ? (
+              <button
+                type="button"
+                onClick={() => setPromoIdx(prev => (prev + 1) % promoMessages.length)}
+                className="p-1 opacity-60 hover:opacity-100 transition-opacity cursor-pointer bg-transparent border-0"
+                style={{ color: announcement.textColor || '#111111' }}
+                aria-label="Siguiente promoción"
+              >
+                <ChevronRight className="w-3.5 h-3.5 stroke-[2]" />
+              </button>
+            ) : (
+              <span className="w-5" />
+            )}
+          </div>
         </div>
       )}
 
-      {/* Cabecera Premium Rediseñada según headerStyle */}
-      <header className={cn(
-        "transition-all duration-300 z-50 select-none shrink-0 w-full",
-        headerStyle === 'floating-glass' 
-          ? "sticky top-3.5 max-w-[1300px] mx-auto px-6 h-[72px] bg-white/85 backdrop-blur-xl border border-zinc-200/80 rounded-2xl shadow-sm mb-2" 
-          : headerStyle === 'editorial-centered'
-            ? "sticky top-0 bg-white/95 backdrop-blur-md border-b border-zinc-200 py-3 shadow-none"
-            : "sticky top-0 bg-white/95 backdrop-blur-md border-b border-zinc-150 h-[76px] shadow-none"
-      )}>
-        <div className={cn(
-          "max-w-[1300px] mx-auto w-full h-full flex items-center justify-between gap-6",
-          headerStyle === 'floating-glass' ? "px-0" : "px-6"
-        )}>
-          
-          {/* Logo o Nombre de la Tienda */}
-          <div className="flex items-center gap-3">
-            {store.logoUrl ? (
-              <div className="flex items-center gap-3">
-                <img src={store.logoUrl} alt={formattedStoreName} className="h-8 max-w-[120px] object-contain shrink-0 rounded-md" />
-                <span className="font-black text-sm uppercase tracking-tight" style={{ color: colors.texto }}>{formattedStoreName}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px]"
-                  style={{ backgroundColor: `${colors.primario}15`, color: colors.primario, border: `1px solid ${colors.primario}30` }}
+      {/* Gallery-White Flagship Waterdrop Navbar */}
+      <header
+        className={cn(
+          'transition-all duration-300 z-50 select-none shrink-0 w-full',
+          headerStyle === 'floating-glass'
+            ? 'sticky top-3 max-w-[1380px] mx-auto px-6 h-[68px] bg-white/92 backdrop-blur-xl border border-zinc-200/80 rounded-full shadow-xs my-2'
+            : cn(
+                'sticky top-0 backdrop-blur-md border-b h-[68px]',
+                isDarkCanvas
+                  ? 'bg-zinc-950/92 border-zinc-800'
+                  : 'bg-white/96 border-zinc-200/60'
+              )
+        )}
+      >
+        <div
+          className={cn(
+            'max-w-[1440px] mx-auto w-full h-full flex items-center justify-between gap-8',
+            headerStyle === 'floating-glass' ? 'px-2' : 'px-6 lg:px-12'
+          )}
+        >
+          {/* Left Group: Iconic Wordmark + Inline Navigation */}
+          <div className="flex items-center gap-10 min-w-0">
+            <button
+              type="button"
+              onClick={() => setActiveNavTab('Inicio')}
+              className="flex items-center gap-2.5 cursor-pointer bg-transparent border-0 p-0 text-left shrink-0 group"
+            >
+              {store.logoUrl ? (
+                <img
+                  src={store.logoUrl}
+                  alt={formattedStoreName}
+                  className="h-7 max-w-[140px] object-contain shrink-0"
+                />
+              ) : (
+                <span
+                  className="font-black text-[23px] tracking-[-0.05em] lowercase leading-none"
+                  style={{ color: colors.texto }}
                 >
-                  ☕
-                </div>
-                <span className="font-black text-sm uppercase tracking-tight" style={{ color: colors.texto }}>{formattedStoreName}</span>
-              </div>
-            )}
-
-            {/* Schedule Badge (Desktop) */}
-            {schedule?.enabled && (
-              <div className="relative group shrink-0 select-none">
-                <span 
-                  className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-bold cursor-pointer", radiusBadge)}
-                  style={{ backgroundColor: `${colors.primario}14`, color: colors.primario }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: colors.acento || colors.primario }} />
-                  <span>{schedule.alwaysOpen ? 'Abierto 24/7' : 'Abierto'}</span>
+                  {store.name.trim().toLowerCase()}
+                  <sup className="text-[9px] font-bold ml-0.5 opacity-70">®</sup>
                 </span>
-                
-                {!schedule.alwaysOpen && (
-                  <div className="absolute left-0 mt-1.5 hidden group-hover:block bg-zinc-900 text-white text-[9px] font-bold rounded px-2.5 py-1.5 whitespace-nowrap shadow-lg z-50 animate-in fade-in duration-200">
-                    Horario: {schedule.text}
-                  </div>
-                )}
-              </div>
+              )}
+            </button>
+
+            {headerStyle !== 'editorial-centered' && (
+              <nav className="hidden lg:flex items-center gap-8 text-[13.5px] tracking-[-0.01em]">
+                {navbarLinks.map((item, idx) => {
+                  const isActive = activeNavTab === item.label
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setActiveNavTab(item.label)
+                        handleNavbarLinkClick(item)
+                      }}
+                      className={cn(
+                        'cursor-pointer transition-all py-1.5 bg-transparent border-0 relative',
+                        isActive
+                          ? 'font-bold opacity-100'
+                          : 'font-medium opacity-75 hover:opacity-100'
+                      )}
+                      style={{ color: colors.texto }}
+                    >
+                      {item.label}
+                      <span
+                        className={cn(
+                          'absolute bottom-0 left-0 right-0 h-[1.5px] transition-transform duration-300 origin-left',
+                          isActive ? 'scale-x-100' : 'scale-x-0 hover:scale-x-100'
+                        )}
+                        style={{ backgroundColor: colors.texto }}
+                      />
+                    </button>
+                  )
+                })}
+              </nav>
             )}
           </div>
 
-          {/* Enlaces de Navegación del Rediseño */}
-          <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-zinc-500">
-            {navbarLinks.map((item, idx: number) => {
-              const isActive = activeNavTab === item.label;
-              return (
-                <span
+          {/* Optional Editorial Centered Nav */}
+          {headerStyle === 'editorial-centered' && (
+            <nav className="hidden lg:flex items-center gap-8 text-[13.5px]">
+              {navbarLinks.map((item, idx) => (
+                <button
                   key={idx}
+                  type="button"
                   onClick={() => {
                     setActiveNavTab(item.label)
                     handleNavbarLinkClick(item)
                   }}
                   className={cn(
-                    "cursor-pointer hover:text-zinc-900 transition-all pb-1 relative",
-                    isActive ? "text-zinc-950 border-b-2 border-emerald-600 font-extrabold" : "text-zinc-500"
+                    'cursor-pointer bg-transparent border-0 transition-opacity',
+                    activeNavTab === item.label
+                      ? 'font-bold opacity-100'
+                      : 'font-medium opacity-70 hover:opacity-100'
                   )}
+                  style={{ color: colors.texto }}
                 >
                   {item.label}
-                </span>
-              )
-            })}
-          </nav>
+                </button>
+              ))}
+            </nav>
+          )}
 
-          {/* Buscador y Carrito */}
-          <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
-            
-            {/* Redes Sociales en cabecera (Desktop) */}
-            {socialsShowInCatalog && (
-              <div className="flex items-center gap-1.5 shrink-0">
-                {aiSettings.socials?.instagram && (
-                  <a 
-                    href={aiSettings.socials.instagram} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
-                    title="Instagram"
-                  >
-                    <InstagramIcon />
-                  </a>
-                )}
-                {aiSettings.socials?.facebook && (
-                  <a 
-                    href={aiSettings.socials.facebook} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
-                    title="Facebook"
-                  >
-                    <FacebookIcon />
-                  </a>
-                )}
-                {aiSettings.socials?.twitter && (
-                  <a 
-                    href={aiSettings.socials.twitter} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
-                    title="Twitter / X"
-                  >
-                    <TwitterIcon />
-                  </a>
-                )}
-                {aiSettings.socials?.tiktok && (
-                  <a 
-                    href={aiSettings.socials.tiktok} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="w-8 h-8 rounded-full border border-zinc-200 hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90"
-                    title="TikTok"
-                  >
-                    <TikTokIcon />
-                  </a>
-                )}
-              </div>
+          {/* Right Group: Fine-Stroke Minimalist Icons */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {schedule?.enabled && (
+              <span
+                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border border-zinc-200/80 mr-1"
+                style={{ color: colors.texto }}
+                title={schedule.alwaysOpen ? 'Abierto 24/7' : schedule.text}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>{schedule.alwaysOpen ? '24/7' : 'En línea'}</span>
+              </span>
             )}
 
-            {/* Buscador Compacto */}
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-              <input 
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 pl-10 pr-4 text-xs font-semibold text-zinc-900 outline-none focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
-              />
-            </div>
+            {/* Expandable Inline Search */}
+            {searchOpen || searchQuery ? (
+              <div className="relative flex items-center w-48 sm:w-64 animate-in fade-in duration-200">
+                <Search className="absolute left-3.5 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Buscar en la colección..."
+                  value={searchQuery}
+                  onChange={e => {
+                    setSearchQuery(e.target.value)
+                    if (e.target.value && activeNavTab !== 'Productos') {
+                      setActiveNavTab('Productos')
+                    }
+                  }}
+                  className="w-full bg-[#F6F6F4] border border-transparent rounded-full py-2 pl-9 pr-8 text-xs font-medium text-zinc-900 outline-none focus:bg-white focus:border-zinc-950 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('')
+                    setSearchOpen(false)
+                  }}
+                  className="absolute right-3 text-zinc-400 hover:text-zinc-900 cursor-pointer bg-transparent border-0 p-0"
+                  aria-label="Cerrar búsqueda"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="w-9 h-9 rounded-full hover:bg-zinc-100/80 flex items-center justify-center transition-colors cursor-pointer bg-transparent border-0"
+                style={{ color: colors.texto }}
+                aria-label="Buscar"
+                title="Buscar productos"
+              >
+                <Search className="w-[19px] h-[19px] stroke-[1.6]" />
+              </button>
+            )}
 
-            {/* Botón Carrito */}
-            <button 
+            {/* Direct WhatsApp Concierge Icon */}
+            {store.whatsapp && (
+              <a
+                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${store.name}, me gustaría recibir asesoría.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full hover:bg-zinc-100/80 flex items-center justify-center transition-colors no-underline"
+                style={{ color: colors.texto }}
+                title="Atención por WhatsApp"
+                aria-label="WhatsApp"
+              >
+                <MessageCircle className="w-[19px] h-[19px] stroke-[1.6]" />
+              </a>
+            )}
+
+            {/* Minimalist Shopping Bag Button */}
+            <button
+              type="button"
               onClick={() => setIsCartOpen(true)}
-              className="flex items-center gap-2.5 h-9.5 px-3 bg-white border border-zinc-200 hover:bg-zinc-50 rounded-lg transition-all active:scale-95 shrink-0 relative border-0 cursor-pointer"
+              className="relative h-9 px-2 rounded-full hover:bg-zinc-100/80 flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent border-0"
+              style={{ color: colors.texto }}
+              aria-label="Abrir bolsa de compras"
             >
-              <div className="relative">
-                <ShoppingCart className="w-4 h-4 text-zinc-700" />
-                <span className="absolute -top-2.5 -right-2.5 bg-[#10B981] text-white text-[8px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border border-white">
-                  {itemsInCart}
-                </span>
-              </div>
-              <div className="hidden sm:flex flex-col items-start leading-none text-left">
-                <span className="text-[10px] font-bold text-zinc-800">Carrito</span>
-                <span className="text-[9px] text-zinc-500 font-bold mt-0.5" suppressHydrationWarning={true}>
-                  ${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
-                </span>
-              </div>
+              <ShoppingBag className="w-[19px] h-[19px] stroke-[1.6]" />
+              <span
+                className={cn(
+                  'text-[11px] font-bold tabular-nums',
+                  itemsInCart > 0
+                    ? 'min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[10px] font-black'
+                    : 'opacity-70'
+                )}
+                style={
+                  itemsInCart > 0
+                    ? { backgroundColor: colors.primario, color: '#FFFFFF' }
+                    : undefined
+                }
+              >
+                {itemsInCart}
+              </span>
             </button>
-
           </div>
-
         </div>
       </header>
     </>

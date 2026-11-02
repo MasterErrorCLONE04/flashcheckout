@@ -252,7 +252,7 @@ export function CartModal({
               <button
                 onClick={handlePayWithCard}
                 disabled={loading || !formValid}
-                className="group relative w-full h-14 bg-zinc-900 text-white rounded-[20px] font-black text-[15px] tracking-tight flex items-center justify-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-zinc-800 active:scale-[0.98] overflow-hidden"
+                className="webview-cta group relative w-full h-14 bg-zinc-900 text-white rounded-[20px] font-black text-[15px] tracking-tight flex items-center justify-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-zinc-800 active:scale-[0.98] overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 {loadingAction === 'card' ? (
@@ -273,7 +273,7 @@ export function CartModal({
             <button
               onClick={handleSubmit}
               disabled={loading || !formValid}
-              className="w-full h-14 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-[20px] font-black text-[15px] tracking-tight flex items-center justify-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98] shadow-lg shadow-green-500/10"
+              className="webview-cta w-full h-14 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-[20px] font-black text-[15px] tracking-tight flex items-center justify-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98] shadow-lg shadow-green-500/10"
             >
               {loadingAction === 'whatsapp' ? (
                 <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />

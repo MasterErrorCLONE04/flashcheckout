@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getActiveStore } from '@/lib/store-context'
 import CustomerCRM from '@/components/CustomerCRM'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
+import { PageHeader } from '@/components/ui/page-header'
 
 export const dynamic = 'force-dynamic'
 
@@ -178,18 +179,17 @@ export default async function ClientesPage() {
   }))
 
   return (
-    <div className="space-y-4 pb-2 animate-in">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Directorio de Clientes</h1>
-            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Gestión de relación (CRM) — <span className="text-zinc-900 font-bold">Clientes y ventas históricas</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6 pb-2 animate-in">
+      <PageHeader
+        title="Directorio de Clientes"
+        statusDot="emerald"
+        subtitle={
+          <>
+            Gestión de relación (CRM) —{' '}
+            <span className="text-zinc-900 font-semibold">Clientes y ventas históricas</span>
+          </>
+        }
+      />
 
       <CustomerCRM initialCustomers={customersList} initialOrders={serializedOrders} />
     </div>

@@ -1,11 +1,23 @@
 import { cn } from "@/lib/utils"
-import { Sparkles, CheckCircle2, Palette, Type, Check } from 'lucide-react'
+import { Sparkles, CheckCircle2, Palette, Type, Check, Wand2, Loader2 } from 'lucide-react'
 import { PRESETS } from '../types'
 import { TiendaFormState } from '../useTiendaForm'
 
 interface EstiloTabProps {
   form: TiendaFormState
 }
+
+const QUICK_CATEGORIES = [
+  'Moda',
+  'Comida',
+  'Belleza',
+  'Tecnología',
+  'Hogar',
+  'Joyería',
+  'Deportes',
+  'Mascotas',
+  'Otros',
+]
 
 export function EstiloTab({ form }: EstiloTabProps) {
   const {
@@ -18,11 +30,75 @@ export function EstiloTab({ form }: EstiloTabProps) {
     shadowStyle,
     setShadowStyle,
     typography,
-    setTypography
+    setTypography,
+    storeInfo,
+    setStoreInfo,
+    isGeneratingPage,
+    handleAutogeneratePage,
   } = form
 
   return (
     <div className="space-y-6">
+      {/* Autogenerate Page by Business Type & Description */}
+      <div className="bg-zinc-950 text-white border border-zinc-800 rounded-xl p-5 space-y-3.5 text-left">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <Wand2 className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-bold text-white leading-none">
+                Autogenerar según mi negocio
+              </h3>
+            </div>
+            <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              IA + Giro
+            </span>
+          </div>
+          <p className="text-[11px] font-medium text-zinc-400 leading-snug">
+            Indica el giro y una breve descripción de tu negocio para adaptar paleta, portada, secciones y textos automáticamente.
+          </p>
+        </div>
+
+        <div className="space-y-2.5">
+          <select
+            value={QUICK_CATEGORIES.includes(storeInfo.category) ? storeInfo.category : 'Otros'}
+            onChange={e => setStoreInfo(prev => ({ ...prev, category: e.target.value }))}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-semibold text-white outline-none focus:border-zinc-600 cursor-pointer"
+          >
+            {QUICK_CATEGORIES.map(cat => (
+              <option key={cat} value={cat}>
+                Giro: {cat}
+              </option>
+            ))}
+          </select>
+
+          <textarea
+            rows={2}
+            value={storeInfo.desc}
+            onChange={e => setStoreInfo(prev => ({ ...prev, desc: e.target.value }))}
+            placeholder="Describe qué vendes, tu diferencial y tu público..."
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs font-medium text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-zinc-600 resize-none leading-relaxed"
+          />
+
+          <button
+            type="button"
+            onClick={handleAutogeneratePage}
+            disabled={isGeneratingPage}
+            className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+          >
+            {isGeneratingPage ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Generando página...</span>
+              </>
+            ) : (
+              <>
+                <Wand2 className="w-3.5 h-3.5" />
+                <span>Generar diseño y textos ahora</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
       {/* Presets 1-Clic Card */}
       <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none">
         <div className="flex items-center justify-between text-left">

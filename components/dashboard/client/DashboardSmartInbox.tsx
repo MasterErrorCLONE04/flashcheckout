@@ -56,14 +56,14 @@ export function AlertItem({
       {alert.type === 'whatsapp_disconnected' ? (
         <button
           onClick={onOpenWhatsAppModal}
-          className="w-full h-7 border border-rose-250 hover:bg-rose-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+          className="w-full h-7 border border-rose-200 hover:bg-rose-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all cursor-pointer"
         >
           {alert.actionText || 'Reconectar'}
         </button>
       ) : (
         <Link 
           href={alert.href || '#'} 
-          className="w-full h-7 border border-zinc-250 hover:bg-zinc-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-zinc-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all"
+          className="w-full h-7 border border-zinc-200 hover:bg-zinc-50 rounded-md text-[10px] font-bold uppercase tracking-wider text-zinc-700 flex items-center justify-center bg-white shadow-sm active:scale-[0.98] transition-all"
         >
           {alert.actionText || 'Ver'}
         </Link>

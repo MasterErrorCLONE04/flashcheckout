@@ -54,7 +54,7 @@ export function NovaHeader({ chat }: NovaHeaderProps) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-xs xl:text-sm text-zinc-905">{agent.name}</span>
+                      <span className="font-bold text-xs xl:text-sm text-zinc-900">{agent.name}</span>
                       <span className="text-[10px] text-zinc-400 font-bold font-sans">({agent.role})</span>
                     </div>
                     <p className="text-[10px] xl:text-[11px] font-semibold text-zinc-400 mt-1 leading-normal">{agent.description}</p>
@@ -74,7 +74,7 @@ export function NovaHeader({ chat }: NovaHeaderProps) {
       <div className="flex items-center gap-2">
         <button 
           onClick={() => setShowMemoryModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-zinc-50 text-zinc-650 text-xs font-semibold rounded-lg border border-zinc-200 transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-zinc-50 text-zinc-600 text-xs font-semibold rounded-lg border border-zinc-200 transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <Brain className="w-3.5 h-3.5 text-zinc-500" />
           <span>Mostrar memoria</span>

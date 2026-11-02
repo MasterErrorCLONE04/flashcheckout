@@ -23,7 +23,7 @@ export function PrintedTicketsModal({
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 hover:bg-zinc-150 text-zinc-400 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -37,7 +37,7 @@ export function PrintedTicketsModal({
           Registro físico simulado de las operaciones de base de datos exitosas realizadas por el equipo de agentes.
         </p>
 
-        <div className="bg-zinc-50 p-4 border border-zinc-200 rounded-xl max-h-80 overflow-y-auto space-y-3.5 font-mono text-[10px] text-zinc-650">
+        <div className="bg-zinc-50 p-4 border border-zinc-200 rounded-xl max-h-80 overflow-y-auto space-y-3.5 font-mono text-[10px] text-zinc-600">
           {printedTickets.length === 0 ? (
             <div className="text-center py-8 text-zinc-500 font-semibold">
               No hay tickets impresos en esta sesión. Envía comandos con herramientas para generar recibos.

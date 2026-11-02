@@ -65,7 +65,7 @@ export function AgentInspectorDrawer({
             <div className="text-left">
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-zinc-900 text-sm xl:text-base">{selectedAgent.name}</h3>
-                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-250 rounded-full text-[9px] font-black uppercase tracking-wider animate-pulse">
+                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-[9px] font-black uppercase tracking-wider animate-pulse">
                   En línea
                 </span>
               </div>
@@ -107,8 +107,8 @@ export function AgentInspectorDrawer({
         <div className="flex-1 overflow-y-auto p-4 pt-1.5 select-text">
           {activeTab === 'console' ? (
             /* Monospace console logs */
-            <div className="w-full h-full bg-zinc-95 border border-zinc-200 rounded-xl p-3 flex flex-col justify-between overflow-hidden shadow-sm min-h-[300px]">
-              <div className="flex-1 overflow-y-auto font-mono text-[10px] text-zinc-650 space-y-2 pr-1 scrollbar-thin scrollbar-thumb-zinc-200 scrollbar-track-transparent">
+            <div className="w-full h-full bg-zinc-100 border border-zinc-200 rounded-xl p-3 flex flex-col justify-between overflow-hidden shadow-sm min-h-[300px]">
+              <div className="flex-1 overflow-y-auto font-mono text-[10px] text-zinc-600 space-y-2 pr-1 scrollbar-thin scrollbar-thumb-zinc-200 scrollbar-track-transparent">
                 {terminalLogs[selectedAgent.id]?.map((log, index) => {
                   const isOrder = log.includes('> ORDEN')
                   const isError = log.includes('[ERROR]')
@@ -191,7 +191,7 @@ export function AgentInspectorDrawer({
                 <h4 className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Herramientas Autorizadas</h4>
                 <div className="flex flex-wrap gap-1.5 mb-5">
                   {selectedAgent.tools.map((t, idx) => (
-                    <span key={idx} className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-zinc-650 font-mono text-[10px] rounded-lg">
+                    <span key={idx} className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-zinc-600 font-mono text-[10px] rounded-lg">
                       🔧 {t}
                     </span>
                   ))}

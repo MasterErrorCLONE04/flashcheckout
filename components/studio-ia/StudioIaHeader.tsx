@@ -10,6 +10,9 @@ import {
   FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/ui/page-header'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { StudioMainTab, Product } from './types'
 
 interface StudioIaHeaderProps {
@@ -44,48 +47,36 @@ export function StudioIaHeader({
   return (
     <>
       {/* ── HEADER ACTIONS MATCHING /dashboard ─────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Studio IA</h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-purple-50 text-purple-700 border-purple-200">
-              Generativo
-            </span>
-          </div>
-          <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Motor de Contenido Multimedia — Gestionando <span className="text-zinc-900 font-bold">{store.name}</span>
-          </div>
-        </div>
+      <PageHeader
+        title="Studio IA"
+        badge={<Badge variant="purple">Generativo</Badge>}
+        statusDot="emerald"
+        subtitle={
+          <>
+            Motor de contenido multimedia — Gestionando{' '}
+            <span className="text-zinc-900 font-semibold">{store.name}</span>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant={mainTab === 'video' ? 'default' : 'outline'}
+              onClick={() => onTabChange('video')}
+            >
+              <Video className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Crear Video Reel</span>
+            </Button>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => onTabChange('video')}
-            className={cn(
-              "flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer",
-              mainTab === 'video'
-                ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                : "bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300"
-            )}
-          >
-            <Video className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Crear Video Reel</span>
-          </button>
-          
-          <button
-            onClick={() => onTabChange('creaciones')}
-            className={cn(
-              "flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg text-xs font-medium transition-all cursor-pointer shadow-sm active:scale-95",
-              mainTab === 'creaciones'
-                ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                : "bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300"
-            )}
-          >
-            <Film className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Biblioteca ({savedCreationsCount})</span>
-          </button>
-        </div>
-      </div>
+            <Button
+              variant={mainTab === 'creaciones' ? 'default' : 'outline'}
+              onClick={() => onTabChange('creaciones')}
+            >
+              <Film className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Biblioteca ({savedCreationsCount})</span>
+            </Button>
+          </>
+        }
+      />
 
       {/* ── BENTO GRID ROW 1: KPI CARDS MATCHING /dashboard ──────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

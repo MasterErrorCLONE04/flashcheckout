@@ -1,13 +1,17 @@
 'use client'
 
 import React from 'react'
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 import { Store, Product, NavLink, CatalogSort } from '../types'
 import type { CatalogResolvedSettings } from '../hooks/useCatalogSettings'
 import { CatalogDesktopHeader } from './CatalogDesktopHeader'
 import { CatalogDesktopHero } from './CatalogDesktopHero'
-import { CatalogDesktopHomeSections, CatalogDesktopHomeBottomSections } from './CatalogDesktopHomeSections'
+import {
+  CatalogDesktopHomeSections,
+  CatalogDesktopHomeBottomSections,
+} from './CatalogDesktopHomeSections'
 import { CatalogDesktopHomeProducts } from './CatalogDesktopHomeProducts'
+import { CatalogWaterdropEditorialBlocks } from './CatalogWaterdropEditorialBlocks'
 import { CatalogDesktopShop } from './CatalogDesktopShop'
 import { CatalogDesktopAbout } from './CatalogDesktopAbout'
 import { CatalogDesktopProductDetail } from './CatalogDesktopProductDetail'
@@ -92,7 +96,7 @@ export function CatalogDesktopView({
   onlyInStock,
   setOnlyInStock,
   sortBy,
-  setSortBy
+  setSortBy,
 }: CatalogDesktopViewProps) {
   const {
     colors,
@@ -106,6 +110,7 @@ export function CatalogDesktopView({
     formattedStoreName,
     heroType,
     bannerUrls,
+    heroPanels,
     heroStyle,
     radiusCard,
     radiusButton,
@@ -116,12 +121,12 @@ export function CatalogDesktopView({
     bannerButton,
     heroVideoUrl,
     sections,
-    brandStoryPage
+    brandStoryPage,
   } = settings
 
   return (
-    <div className={cn("flex flex-col min-h-screen w-full", showMobile ? "hidden" : "flex")}>
-      {/* Header and announcement */}
+    <div className={cn('flex flex-col min-h-screen w-full', showMobile ? 'hidden' : 'flex')}>
+      {/* Header and rotating promo bar */}
       <CatalogDesktopHeader
         store={store}
         formattedStoreName={formattedStoreName}
@@ -143,7 +148,7 @@ export function CatalogDesktopView({
         total={total}
       />
 
-      {/* SINGLE PRODUCT DETAIL VIEW (When product is selected) */}
+      {/* SINGLE PRODUCT DETAIL VIEW */}
       {selectedProduct && (
         <CatalogDesktopProductDetail
           selectedProduct={selectedProduct}
@@ -159,17 +164,21 @@ export function CatalogDesktopView({
           qtyInCart={qtyInCart}
           selectedCartKey={selectedCartKey}
           changeQtyByKey={changeQtyByKey}
+          cart={cart}
+          settings={settings}
           store={store}
+          onOpenCart={() => setIsCartOpen(true)}
         />
       )}
 
-      {/* INICIO TAB VIEW */}
+      {/* WATERDROP EDITORIAL LANDING FLOW (INICIO) */}
       {!selectedProduct && activeNavTab === 'Inicio' && (
         <>
           {sections.banner !== false && (
             <CatalogDesktopHero
               heroType={heroType}
               bannerUrls={bannerUrls}
+              heroPanels={heroPanels}
               heroStyle={heroStyle}
               radiusCard={radiusCard}
               radiusBadge={radiusBadge}
@@ -188,33 +197,48 @@ export function CatalogDesktopView({
             />
           )}
 
-          <CatalogDesktopHomeSections
-            settings={settings}
-            total={total}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-          />
-
+          {/* Section 1: Explore our Bestsellers Tabbed Carousel */}
           <CatalogDesktopHomeProducts
-            filteredProducts={filteredProducts}
-            selectedCategory={selectedCategory}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
+            allProducts={store.products}
             settings={settings}
             cart={cart}
             changeQtyByKey={changeQtyByKey}
             setSelectedProduct={setSelectedProduct}
-            selectedProduct={selectedProduct}
+            onViewAllProducts={cat => {
+              if (cat) setSelectedCategory(cat)
+              setActiveNavTab('Productos')
+            }}
           />
 
-          <CatalogDesktopHomeBottomSections settings={settings} />
+          {/* Optional extra modules (Visual Categories, Bento, Ingredients) */}
+          <CatalogDesktopHomeSections
+            settings={settings}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={cat => {
+              setSelectedCategory(cat)
+              setActiveNavTab('Productos')
+            }}
+          />
+
+          {/* Sections 2, 3, 4, 5: 3-Photo Ritual + 4x2 Mixed Editorial Grids + Press Logos + Ambassadors */}
+          <CatalogWaterdropEditorialBlocks
+            allProducts={store.products}
+            settings={settings}
+            cart={cart}
+            changeQtyByKey={changeQtyByKey}
+            setSelectedProduct={setSelectedProduct}
+          />
+
+          {/* Sections 6, 7, 8, 9: Centered Stars & Staggered UGC Wall + Retailers + FAQ + 3-Col Pre-Footer Strip */}
+          <CatalogDesktopHomeBottomSections settings={settings} store={store} />
         </>
       )}
 
-      {/* PRODUCTOS TAB VIEW */}
+      {/* FULL SHOP CATALOG VIEW */}
       {!selectedProduct && activeNavTab === 'Productos' && (
         <CatalogDesktopShop
           store={store}
+          settings={settings}
           categories={categories}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
@@ -227,21 +251,20 @@ export function CatalogDesktopView({
           viewMode={viewMode}
           setViewMode={setViewMode}
           cart={cart}
+          changeQtyByKey={changeQtyByKey}
           setSelectedProduct={setSelectedProduct}
         />
       )}
 
-      {/* HISTORIA TAB VIEW */}
+      {/* BRAND STORY ABOUT VIEW */}
       {!selectedProduct && activeNavTab === 'Historia' && (
         <CatalogDesktopAbout brandStoryPage={brandStoryPage} />
       )}
 
-      {/* Footer */}
+      {/* WATERDROP CLEAN WHITE EDITORIAL FOOTER */}
       <CatalogDesktopFooter
         store={store}
-        formattedStoreName={formattedStoreName}
-        socialsShowInCatalog={socialsShowInCatalog}
-        aiSettings={aiSettings}
+        settings={settings}
         setSelectedProduct={setSelectedProduct}
         setActiveNavTab={setActiveNavTab}
       />

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { cartStateToLines } from '@/lib/whatsapp/session-state'
 import { badRequest, getErrorMessage, internalServerError, notFound, unauthorized, forbidden } from '@/lib/api/route-utils'
 
@@ -15,9 +16,7 @@ export async function GET(req: Request) {
 
     if (!sessionId) return badRequest('Missing sessionId')
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    })
+    const store = await getActiveStore(userId)
     console.log('[API WhatsApp Session GET] userId:', userId, 'Store found:', store?.id)
 
     if (!store) return notFound('Store not found')
@@ -90,9 +89,7 @@ export async function PATCH(req: Request) {
     if (!sessionId) return badRequest('Missing sessionId')
 
     // 1. Buscar la tienda del usuario
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) return notFound('Store not found')
 

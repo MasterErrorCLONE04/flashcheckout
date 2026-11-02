@@ -46,7 +46,7 @@ export function VisualCategoriesTimelineGallery({ form }: VisualCategoriesTimeli
         {sections.visualCategories && (
           <div className="space-y-3.5 pt-1.5 text-left animate-in fade-in duration-300">
             {visualCategories.map((catItem, idx) => (
-              <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2 relative">
+              <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2 relative">
                 <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Categoría #{idx + 1}</span>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
@@ -82,12 +82,12 @@ export function VisualCategoriesTimelineGallery({ form }: VisualCategoriesTimeli
         )}
       </div>
 
-      {/* Proceso Timeline Card */}
+      {/* Proceso Timeline / Ritual Fotográfico Waterdrop Card */}
       <div className="bg-white border border-zinc-200 rounded-lg p-5 space-y-4 shadow-none">
         <div className="flex justify-between items-center text-left">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-black text-zinc-900 leading-none">Línea de Proceso (Paso a Paso)</h3>
-            <p className="text-[11px] font-semibold text-zinc-400">Muestra los pasos de compra o elaboración de tu producto.</p>
+            <h3 className="text-sm font-black text-zinc-900 leading-none">Ritual Fotográfico en 3 Pasos</h3>
+            <p className="text-[11px] font-semibold text-zinc-400">Declaración editorial + 3 tarjetas verticales 4:5 (estilo Water · Drop · Enjoy).</p>
           </div>
           <button
             type="button"
@@ -104,18 +104,18 @@ export function VisualCategoriesTimelineGallery({ form }: VisualCategoriesTimeli
         {sections.processTimeline && (
           <div className="space-y-4 pt-1 text-left animate-in fade-in duration-300">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Título de la sección</label>
-              <input 
-                type="text"
-                value={processTimeline.title}
-                onChange={e => setProcessTimeline(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none"
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Declaración Editorial Principal (2 líneas)</label>
+              <textarea 
+                value={processTimeline.headline || ''}
+                onChange={e => setProcessTimeline(prev => ({ ...prev, headline: e.target.value }))}
+                rows={2}
+                className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2 text-xs font-bold text-zinc-800 focus:outline-none resize-none"
               />
             </div>
 
             <div className="space-y-3.5 border-t border-zinc-100 pt-3">
               {processTimeline.items.map((stepItem: any, idx: number) => (
-                <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2">
+                <div key={idx} className="p-3 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2">
                   <span className="text-[10px] font-bold text-zinc-400 tracking-wider block select-none">Paso #{idx + 1}</span>
                   
                   <div className="grid grid-cols-12 gap-2">
@@ -157,6 +157,21 @@ export function VisualCategoriesTimelineGallery({ form }: VisualCategoriesTimeli
                         newItems[idx] = { ...stepItem, desc: e.target.value }
                         setProcessTimeline(prev => ({ ...prev, items: newItems }))
                       }}
+                      className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-zinc-400 uppercase block">Foto Retrato 4:5 (URL)</label>
+                    <input 
+                      type="text"
+                      value={stepItem.imageUrl || ''}
+                      onChange={e => {
+                        const newItems = [...processTimeline.items]
+                        newItems[idx] = { ...stepItem, imageUrl: e.target.value }
+                        setProcessTimeline(prev => ({ ...prev, items: newItems }))
+                      }}
+                      placeholder="https://images.unsplash.com/..."
                       className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 focus:outline-none"
                     />
                   </div>
@@ -282,7 +297,7 @@ export function VisualCategoriesTimelineGallery({ form }: VisualCategoriesTimeli
 
         <div className="space-y-4 pt-1 text-left">
           {navbarLinks.map((item, idx) => (
-            <div key={idx} className="p-3.5 bg-zinc-50/50 border border-zinc-150 rounded-lg space-y-2.5 relative">
+            <div key={idx} className="p-3.5 bg-zinc-50/50 border border-zinc-200 rounded-lg space-y-2.5 relative">
               <button
                 type="button"
                 onClick={() => {

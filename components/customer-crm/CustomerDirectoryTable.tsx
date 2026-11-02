@@ -122,10 +122,10 @@ export function CustomerDirectoryTable({
       </div>
 
       {/* Customer CRM Table */}
-      <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
+      <div className="overflow-x-auto border border-zinc-200 rounded-lg bg-white">
         <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm">
           <thead>
-            <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
+            <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
               <th className="py-3 px-2.5 xl:px-4">Cliente</th>
               <th className="py-3 px-2.5 xl:px-4">Contacto</th>
               <th className="py-3 px-2.5 xl:px-4">Última interacción</th>
@@ -160,7 +160,7 @@ export function CustomerDirectoryTable({
                     {/* Name & Avatar */}
                     <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-extrabold text-zinc-650 flex items-center justify-center shrink-0 select-none">
+                        <div className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-extrabold text-zinc-600 flex items-center justify-center shrink-0 select-none">
                           {c.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -173,17 +173,17 @@ export function CustomerDirectoryTable({
                     {/* WhatsApp Phone */}
                     <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
                       {c.phone ? (
-                        <div className="flex items-center gap-1.5 text-zinc-850">
+                        <div className="flex items-center gap-1.5 text-zinc-800">
                           <MessageCircle className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500/10" />
                           <span className="tabular-nums">+{c.phone}</span>
                         </div>
                       ) : (
-                        <span className="text-[10px] font-bold text-zinc-350 italic">Sin teléfono</span>
+                        <span className="text-[10px] font-bold text-zinc-300 italic">Sin teléfono</span>
                       )}
                     </td>
 
                     {/* Last order date */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-650">
+                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-600">
                       {new Date(c.lastOrderDate).toLocaleDateString('es-CO', {
                         day: '2-digit',
                         month: 'short',
@@ -209,7 +209,7 @@ export function CustomerDirectoryTable({
                           'px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none border',
                           c.status === 'Activo'
                             ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                            : 'bg-zinc-50 border-zinc-200 text-zinc-650'
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-600'
                         )}
                       >
                         {c.status}
@@ -227,7 +227,7 @@ export function CustomerDirectoryTable({
 
       {/* CRM Directory Pagination Footer */}
       {filteredCount > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-100 text-xs font-semibold text-zinc-450">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-100 text-xs font-semibold text-zinc-500">
           <span>
             Mostrando {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredCount)} de {filteredCount} clientes
           </span>
@@ -248,7 +248,7 @@ export function CustomerDirectoryTable({
               if (totalPages > 4 && pageNum > 3 && pageNum < totalPages) {
                 if (pageNum === 4) {
                   return (
-                    <span key="ellipsis" className="px-2 select-none text-zinc-350">
+                    <span key="ellipsis" className="px-2 select-none text-zinc-300">
                       ...
                     </span>
                   )
@@ -264,7 +264,7 @@ export function CustomerDirectoryTable({
                     'w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer',
                     currentPage === pageNum
                       ? 'bg-zinc-800 hover:bg-zinc-900 text-white'
-                      : 'bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-650'
+                      : 'bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-600'
                   )}
                 >
                   {pageNum}

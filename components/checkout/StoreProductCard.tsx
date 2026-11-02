@@ -3,6 +3,7 @@
 import { ShoppingBag, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { ProductCard } from '@/components/product-card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { CheckoutProduct } from './types'
 
 interface StoreProductCardProps {
@@ -12,77 +13,80 @@ interface StoreProductCardProps {
 }
 
 export function StoreProductCard({ product: p, qty, onChangeQty }: StoreProductCardProps) {
-  const originalPrice = Math.floor(p.price * 1.15)
+  const isOutOfStock = p.stock <= 0
+  const isLowStock = p.stock > 0 && p.stock <= 5
 
   return (
     <ProductCard
       layout="vertical"
       size="md"
-      className="group bg-transparent border border-transparent rounded-none transition-all duration-500 flex flex-col h-full hover:bg-white hover:border-zinc-100/80"
+      className="group bg-white border border-zinc-200/90 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col h-full hover:border-zinc-300 hover:shadow-sm"
     >
-      {/* Contenedor de Imagen con cobertura total */}
-      <div className="bg-zinc-100/50 aspect-square relative flex items-center justify-center overflow-hidden shrink-0">
-        <div className="absolute top-2.5 left-2.5 z-10">
-          <span className="bg-[#FF5000] text-white text-[9px] font-black px-2 py-0.5 rounded-none tracking-tight">
-            New
-          </span>
-        </div>
+      {/* Imagen del producto */}
+      <div className="bg-zinc-100/70 aspect-square relative flex items-center justify-center overflow-hidden shrink-0">
+        {isOutOfStock ? (
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <Badge variant="neutral">Agotado</Badge>
+          </div>
+        ) : isLowStock ? (
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <Badge variant="warning">Últimas {p.stock} uds</Badge>
+          </div>
+        ) : null}
 
         {p.imageUrl ? (
           <img
             src={p.imageUrl.split(',')[0]}
             alt={p.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         ) : (
-          <ShoppingBag className="w-12 h-12 text-zinc-300" />
+          <ShoppingBag className="w-10 h-10 text-zinc-300" />
         )}
       </div>
 
-      <div className="p-4 flex flex-col space-y-3">
+      <div className="p-4 flex flex-col justify-between flex-1 gap-3">
         <div className="space-y-1">
-          <p className="text-[10px] font-bold text-zinc-400">Electrónica</p>
-
-          <h3 className="text-base font-bold text-[#111111] leading-tight line-clamp-2">
+          <p className="text-[11px] font-medium text-zinc-500">
+            {isOutOfStock ? 'Sin stock' : 'Disponible'}
+          </p>
+          <h3 className="text-sm md:text-base font-semibold text-zinc-950 leading-snug line-clamp-2">
             {p.name}
           </h3>
         </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col min-w-0">
-            <span className="text-xl font-black text-[#FF5000] leading-none tabular-nums truncate tracking-tighter">
-              ${p.price.toLocaleString('en-US')}
-            </span>
-            <span className="text-[11px] text-zinc-400 font-bold line-through mt-1 tracking-tight">
-              ${originalPrice.toLocaleString('en-US')}
-            </span>
-          </div>
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <span className="text-lg font-bold text-zinc-950 leading-none tabular-nums truncate tracking-tight">
+            ${p.price.toLocaleString('es-CO')}
+          </span>
 
           <div className="shrink-0 flex items-center">
             {qty > 0 ? (
-              <div className="flex items-center gap-1 bg-[#FF5000] text-white p-1 rounded-none h-9">
+              <div className="flex items-center gap-1 bg-zinc-950 text-white p-1 rounded-xl h-9">
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 rounded-none hover:bg-white/20 text-white"
-                  onClick={e => {
+                  size="icon-xs"
+                  className="h-7 w-7 rounded-lg hover:bg-white/15 text-white hover:text-white"
+                  onClick={(e) => {
                     e.stopPropagation()
                     onChangeQty(p.id, -1)
                   }}
+                  aria-label="Disminuir cantidad"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </Button>
-                <span className="text-xs font-bold w-3 text-center tabular-nums">{qty}</span>
+                <span className="text-xs font-semibold w-4 text-center tabular-nums">{qty}</span>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 rounded-none hover:bg-white/20 text-white"
-                  onClick={e => {
+                  size="icon-xs"
+                  className="h-7 w-7 rounded-lg hover:bg-white/15 text-white hover:text-white"
+                  onClick={(e) => {
                     e.stopPropagation()
                     onChangeQty(p.id, +1)
                   }}
                   disabled={qty >= p.stock}
+                  aria-label="Aumentar cantidad"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </Button>
@@ -90,11 +94,12 @@ export function StoreProductCard({ product: p, qty, onChangeQty }: StoreProductC
             ) : (
               <Button
                 size="icon"
-                className="bg-[#FF5000] hover:bg-[#E64500] text-white rounded-none transition-all active:scale-95"
+                className="rounded-xl"
                 onClick={() => onChangeQty(p.id, +1)}
-                disabled={p.stock <= 0}
+                disabled={isOutOfStock}
+                aria-label={`Agregar ${p.name} al carrito`}
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-4 h-4" />
               </Button>
             )}
           </div>
@@ -103,4 +108,3 @@ export function StoreProductCard({ product: p, qty, onChangeQty }: StoreProductC
     </ProductCard>
   )
 }
-

@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { waClient } from '@/lib/whatsapp/cloud-api'
 import {
   cartStateToLines,
@@ -78,16 +79,7 @@ function extractPaymentLines(cart: unknown): CartLine[] {
 }
 
 async function getStoreForUser(userId: string) {
-  return prisma.store.findFirst({
-    where: { userId },
-    select: {
-      id: true,
-      slug: true,
-      mpAccessToken: true,
-      whatsappConnected: true,
-      whatsappInstanceName: true,
-    },
-  })
+  return getActiveStore(userId)
 }
 
 export async function POST(req: Request) {

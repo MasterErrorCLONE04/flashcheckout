@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import { LayoutItem, Agent, DEFAULT_LAYOUT_ITEMS } from './types'
 
@@ -28,7 +28,7 @@ export function useOfficeLayout(initialLayout?: LayoutItem[]) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const gridRef = useRef<HTMLDivElement>(null)
 
-  const getAgentDeskPosition = (agentId: string, customAgents: Agent[] = []) => {
+  const getAgentDeskPosition = useCallback((agentId: string, customAgents: Agent[] = []) => {
     const desk = layoutItems?.find(it => it.type === 'desk' && it.agentId === agentId)
     if (desk) {
       const left = desk.col * 4.166 + (desk.w / 2) * 4.166
@@ -52,9 +52,9 @@ export function useOfficeLayout(initialLayout?: LayoutItem[]) {
       return slots[customIdx % slots.length]
     }
     return { top: '50%', left: '50%' }
-  }
+  }, [layoutItems])
 
-  const getStationCoordinates = (type: 'whiteboard' | 'printer' | 'coffee' | 'water' | 'lounge' | 'meeting') => {
+  const getStationCoordinates = useCallback((type: 'whiteboard' | 'printer' | 'coffee' | 'water' | 'lounge' | 'meeting') => {
     const station = layoutItems?.find(it => it.type === type)
     if (station) {
       const left = station.col * 4.166 + (station.w / 2) * 4.166
@@ -67,7 +67,7 @@ export function useOfficeLayout(initialLayout?: LayoutItem[]) {
     if (type === 'coffee') return { top: '20%', left: '80%' }
     if (type === 'water') return { top: '55%', left: '12%' }
     return { top: '50%', left: '50%' }
-  }
+  }, [layoutItems])
 
   const handleItemMouseDown = (e: React.MouseEvent, itemId: string) => {
     if (!isEditingLayout || editMode !== 'move') return

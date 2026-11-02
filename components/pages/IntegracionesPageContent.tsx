@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 import IntegrationsClient from '@/components/IntegrationsClient'
 
@@ -10,13 +10,12 @@ export default async function IntegracionesPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  // 1. Obtener la tienda del usuario
-  const store = await prisma.store.findFirst({
-    where: { userId },
-    include: {
-      brebConfig: true
-    }
-  })
+  // 1. Obtener el negocio activo del usuario
+  const store = (await getActiveStore(userId, {
+    brebConfig: true
+  })) as (Awaited<ReturnType<typeof getActiveStore>> & {
+    brebConfig?: { enabled: boolean; keyValue: string | null } | null
+  }) | null
 
   if (!store) return <StoreCreationWizard />
 

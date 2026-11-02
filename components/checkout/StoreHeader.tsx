@@ -16,7 +16,7 @@ export function StoreHeader({
   onCartOpen,
 }: StoreHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 glass-premium px-6 md:px-12 py-5 flex items-center justify-center shadow-lg">
+    <header className="webview-keep sticky top-0 z-40 glass-premium px-6 md:px-12 py-5 flex items-center justify-center shadow-lg">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-primary flex items-center justify-center shrink-0 border border-border/10">
           {logoUrl ? (

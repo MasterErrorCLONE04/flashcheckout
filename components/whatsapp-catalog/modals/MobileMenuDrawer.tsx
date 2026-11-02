@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { X, Sprout, ChevronRight, MessageCircle } from 'lucide-react'
-import { cn } from "@/lib/utils"
-import { Store, NavLink, CatalogSettings, getCategoryIcon } from '../types'
+import { X, ChevronRight, MessageCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Store, NavLink, CatalogSettings } from '../types'
 import { InstagramIcon, FacebookIcon, TwitterIcon, TikTokIcon } from '../common/SocialIcons'
 
 export interface MobileMenuDrawerProps {
@@ -39,149 +39,208 @@ export function MobileMenuDrawer({
   initialPhone,
   schedule,
   socialsShowInCatalog,
-  aiSettings
+  aiSettings,
 }: MobileMenuDrawerProps) {
   if (!isOpen) return null
 
+  const cleanPhone = (initialPhone || store.whatsapp || '').replace(/\D/g, '')
+
   return (
-    <div className={cn("inset-0 z-50 flex lg:hidden", !!device ? "absolute" : "fixed")}>
+    <div className={cn('inset-0 z-50 flex lg:hidden', device ? 'absolute' : 'fixed')}>
       {/* Backdrop */}
-      <div 
+      <div
         onClick={onClose}
-        className={cn("inset-0 bg-black/40 backdrop-blur-sm transition-opacity", !!device ? "absolute" : "fixed")}
+        className={cn(
+          'inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity',
+          device ? 'absolute' : 'fixed'
+        )}
       />
+
       {/* Menu Panel */}
-      <div className="relative flex w-full max-w-[280px] flex-col bg-white h-full shadow-2xl animate-in slide-in-from-left duration-200">
-        {/* Header */}
-        <div className="p-4 border-b border-zinc-150 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 overflow-hidden">
-              {store.logoUrl ? (
-                <img src={store.logoUrl} alt={formattedStoreName} className="w-full h-full object-cover" />
-              ) : (
-                <Sprout className="w-4.5 h-4.5" />
-              )}
-            </div>
-            <span className="font-bold text-xs text-zinc-900 tracking-tight">{formattedStoreName}</span>
+      <div className="relative flex w-full max-w-[290px] flex-col bg-white h-full shadow-2xl animate-in slide-in-from-left duration-200">
+        {/* Clean Editorial Header */}
+        <div className="px-5 py-4 border-b border-[#EAEAE8] flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {store.logoUrl ? (
+              <img
+                src={store.logoUrl}
+                alt={formattedStoreName}
+                className="h-6 max-w-[110px] object-contain shrink-0"
+              />
+            ) : (
+              <span className="font-black text-[18px] text-[#111111] tracking-[-0.045em] lowercase leading-none truncate">
+                {formattedStoreName.toLowerCase()}
+                <sup className="text-[9px] font-bold ml-0.5">®</sup>
+              </span>
+            )}
           </div>
-          <button 
+          <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-650 cursor-pointer border-none bg-transparent"
+            aria-label="Cerrar menú"
+            className="w-8 h-8 rounded-full hover:bg-[#F6F6F4] flex items-center justify-center text-[#111111] cursor-pointer border-0 bg-transparent"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 stroke-[1.8]" />
           </button>
         </div>
 
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 text-left">
-          <div className="space-y-3">
-            <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Categorías</h4>
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6 text-left">
+          <div className="space-y-2.5">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#71717A]">
+              Colecciones
+            </h4>
             <div className="space-y-1">
               {categories.map(cat => {
-                const Icon = getCategoryIcon(cat)
                 const isActive = selectedCategory === cat
-                const count = cat === 'Todos' ? store.products.length : categoryCounts[cat] || 0
+                const count =
+                  cat === 'Todos' ? store.products.length : categoryCounts[cat] || 0
 
                 return (
                   <button
                     key={cat}
+                    type="button"
                     onClick={() => {
                       setSelectedCategory(cat)
                       onClose()
-                      document.getElementById('mobile-categories-row')?.scrollIntoView({ behavior: 'smooth' })
+                      document
+                        .getElementById('mobile-categories-row')
+                        ?.scrollIntoView({ behavior: 'smooth' })
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-left cursor-pointer",
+                      'w-full flex items-center justify-between py-2.5 px-3 rounded-[4px] text-[12.5px] transition-all text-left cursor-pointer border-0',
                       isActive
-                        ? "text-emerald-700 bg-emerald-50/50 font-bold border-l-2 border-emerald-500 rounded-l-none"
-                        : "text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent hover:bg-zinc-50/50"
+                        ? 'text-[#111111] bg-[#F6F6F4] font-bold'
+                        : 'text-[#52525B] hover:text-[#111111] bg-transparent hover:bg-[#F6F6F4]/60 font-medium'
                     )}
                   >
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
-                      <span>{cat === 'Todos' ? 'Todos los productos' : cat}</span>
-                    </div>
-                    <span className={cn(
-                      "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
-                      isActive ? "bg-emerald-100 text-emerald-800" : "text-zinc-400 bg-zinc-100"
-                    )}>{count}</span>
+                    <span>{cat === 'Todos' ? 'Todos los productos' : cat}</span>
+                    <span
+                      className={cn(
+                        'text-[10px] font-bold px-1.5 py-0.5 rounded-[3px] tabular-nums',
+                        isActive
+                          ? 'bg-[#111111] text-white'
+                          : 'text-[#71717A] bg-[#F6F6F4]'
+                      )}
+                    >
+                      {count}
+                    </span>
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* Dynamic Navbar Links (Mobile menu) */}
-          <div className="space-y-3 pt-4 border-t border-zinc-100">
-            <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Navegación</h4>
-            <div className="space-y-1">
+          {/* Dynamic Navbar Links */}
+          <div className="space-y-2.5 pt-4 border-t border-[#EAEAE8]">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#71717A]">
+              Explorar
+            </h4>
+            <div className="space-y-0.5">
               {navbarLinks.map((item, idx: number) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => {
                     onClose()
                     handleNavbarLinkClick(item)
                   }}
-                  className="w-full flex items-center gap-2 py-2 px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-50 rounded-lg text-left cursor-pointer border-0 bg-transparent"
+                  className="w-full flex items-center justify-between py-2 px-2 text-[13px] font-semibold text-[#111111] hover:bg-[#F6F6F4] rounded-[4px] text-left cursor-pointer border-0 bg-transparent"
                 >
-                  <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
                   <span>{item.label}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-[#A1A1AA]" />
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="space-y-3 pt-4 border-t border-zinc-100">
-            <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Contacto</h4>
-            <a 
-              href={`https://wa.me/${initialPhone}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 py-2 px-3 text-xs font-semibold text-emerald-600 hover:bg-emerald-50/50 rounded-lg"
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-500 fill-current" />
-              <span>Comprar por WhatsApp</span>
-            </a>
-          </div>
+          {cleanPhone && (
+            <div className="space-y-2.5 pt-4 border-t border-[#EAEAE8]">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#71717A]">
+                Atención directa
+              </h4>
+              <a
+                href={`https://wa.me/${cleanPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 h-10 px-4 rounded-full bg-[#111111] text-white text-[11px] font-bold uppercase tracking-[0.06em] no-underline"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-[#25D366] fill-current" />
+                <span>Escribir por WhatsApp</span>
+              </a>
+            </div>
+          )}
 
-          {/* Schedule Info (Mobile menu) */}
+          {/* Schedule Info */}
           {schedule?.enabled && (
-            <div className="space-y-2 pt-4 border-t border-zinc-100 text-left">
-              <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Horario de atención</h4>
-              <div className="px-3 py-1.5 bg-zinc-50 border border-zinc-150 rounded-lg text-zinc-700 text-[11px] font-semibold">
-                {schedule.alwaysOpen ? 'Abierto las 24 horas (Siempre abierto)' : schedule.text}
+            <div className="space-y-2 pt-4 border-t border-[#EAEAE8] text-left">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#71717A]">
+                Horario
+              </h4>
+              <div className="px-3 py-2 bg-[#F6F6F4] rounded-[4px] text-[#111111] text-[11.5px] font-medium">
+                {schedule.alwaysOpen ? 'Tienda abierta 24/7' : schedule.text}
               </div>
             </div>
           )}
 
-          {/* Socials Links (Mobile menu) */}
-          {socialsShowInCatalog && (aiSettings.socials?.instagram || aiSettings.socials?.facebook || aiSettings.socials?.twitter || aiSettings.socials?.tiktok) && (
-            <div className="space-y-2 pt-4 border-t border-zinc-100 text-left">
-              <h4 className="text-[10px] font-bold text-zinc-400 tracking-wider">Redes sociales</h4>
-              <div className="flex gap-2 px-1">
-                {aiSettings.socials?.instagram && (
-                  <a href={aiSettings.socials.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Instagram">
-                    <InstagramIcon />
-                  </a>
-                )}
-                {aiSettings.socials?.facebook && (
-                  <a href={aiSettings.socials.facebook} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Facebook">
-                    <FacebookIcon />
-                  </a>
-                )}
-                {aiSettings.socials?.twitter && (
-                  <a href={aiSettings.socials.twitter} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="Twitter / X">
-                    <TwitterIcon />
-                  </a>
-                )}
-                {aiSettings.socials?.tiktok && (
-                  <a href={aiSettings.socials.tiktok} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-all active:scale-90" title="TikTok">
-                    <TikTokIcon />
-                  </a>
-                )}
+          {/* Socials Links */}
+          {socialsShowInCatalog &&
+            (aiSettings.socials?.instagram ||
+              aiSettings.socials?.facebook ||
+              aiSettings.socials?.twitter ||
+              aiSettings.socials?.tiktok) && (
+              <div className="space-y-2.5 pt-4 border-t border-[#EAEAE8] text-left">
+                <h4 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#71717A]">
+                  Comunidad
+                </h4>
+                <div className="flex gap-2">
+                  {aiSettings.socials?.instagram && (
+                    <a
+                      href={aiSettings.socials.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-full border border-[#E5E5E3] bg-white hover:border-[#111111] flex items-center justify-center text-[#111111] transition-all"
+                      title="Instagram"
+                    >
+                      <InstagramIcon />
+                    </a>
+                  )}
+                  {aiSettings.socials?.facebook && (
+                    <a
+                      href={aiSettings.socials.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-full border border-[#E5E5E3] bg-white hover:border-[#111111] flex items-center justify-center text-[#111111] transition-all"
+                      title="Facebook"
+                    >
+                      <FacebookIcon />
+                    </a>
+                  )}
+                  {aiSettings.socials?.twitter && (
+                    <a
+                      href={aiSettings.socials.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-full border border-[#E5E5E3] bg-white hover:border-[#111111] flex items-center justify-center text-[#111111] transition-all"
+                      title="Twitter / X"
+                    >
+                      <TwitterIcon />
+                    </a>
+                  )}
+                  {aiSettings.socials?.tiktok && (
+                    <a
+                      href={aiSettings.socials.tiktok}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-full border border-[#E5E5E3] bg-white hover:border-[#111111] flex items-center justify-center text-[#111111] transition-all"
+                      title="TikTok"
+                    >
+                      <TikTokIcon />
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>

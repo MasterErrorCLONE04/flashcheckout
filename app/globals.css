@@ -12,7 +12,7 @@
   --card-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  --primary-hover: #e64500;
+  --primary-hover: oklch(0.269 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -20,12 +20,15 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #3b82f6;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --radius: 0.5rem;
-  --font-sans: "Circular", "Circular Std", var(--font-plus-jakarta), var(--font-geist), system-ui, sans-serif;
-  --font-display: "Circular", "Circular Std", var(--font-plus-jakarta), var(--font-geist), system-ui, sans-serif;
+  --font-sans: var(--font-plus-jakarta), var(--font-geist), var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-plus-jakarta), var(--font-geist), var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
 @theme {
@@ -41,12 +44,15 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius-lg: var(--radius);
-  --font-sans: "Circular", "Circular Std", var(--font-plus-jakarta), var(--font-geist), system-ui, -apple-system, sans-serif;
-  --font-display: "Circular", "Circular Std", var(--font-plus-jakarta), var(--font-geist), system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-plus-jakarta), var(--font-geist), var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-plus-jakarta), var(--font-geist), var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-geist: var(--font-geist), system-ui, -apple-system, sans-serif;
   --font-inter: var(--font-inter), system-ui, -apple-system, sans-serif;
   --animate-marquee: marquee 35s linear infinite;
@@ -59,22 +65,18 @@
 
 @layer base {
   * {
-    @apply border-gray-200 outline-ring/50;
+    @apply border-zinc-200 outline-ring/50;
   }
-  body, button, input, select, textarea {
-    @apply bg-background text-foreground;
-    font-family: var(--font-sans) !important;
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  button, input, select, textarea {
+    font-family: inherit;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight text-zinc-950;
   }
-  
-  /* Reset Styles (No Cursiva / No Mayúscula Sostenida) */
-  * {
-    font-style: normal !important;
-    text-transform: none;
-  }
-  
+
   /* Custom Slim Scrollbar */
   ::-webkit-scrollbar {
     width: 5px;
@@ -93,11 +95,11 @@
 
 @layer components {
   .premium-card {
-    @apply bg-white border border-gray-200 rounded-lg transition-all duration-300;
+    @apply bg-white border border-zinc-200 rounded-lg transition-all duration-200;
   }
 
   .btn-premium {
-    @apply bg-primary text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 active:scale-95 disabled:opacity-40 text-sm;
+    @apply bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-40 text-sm;
     &:hover:not(:disabled) {
       background-color: var(--primary-hover);
     }
@@ -113,15 +115,13 @@
 }
 
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
 .animate-in {
-  animation: fade-in-up 0.4s ease-out forwards;
+  animation: fade-in-up 0.35s ease-out;
 }
-
-
 
 .pause-marquee:hover {
   animation-play-state: paused;
@@ -129,16 +129,14 @@
 
 /* 📱 WebView Optimization */
 .is-webview {
-  /* No navbar web / Sin navbar web */
-  header, 
-  nav:not(.keep), 
+  header:not(.webview-keep),
+  nav:not(.keep),
   aside,
   .hide-in-webview {
     display: none !important;
   }
 
-  /* Full Screen / Pantalla completa */
-  main, 
+  main,
   .webview-content,
   section:first-of-type {
     padding-top: 0 !important;
@@ -147,25 +145,26 @@
 
   .min-h-screen {
     min-height: 100vh !important;
-    min-height: 100dvh !important; /* Modern touch devices */
+    min-height: 100dvh !important;
   }
 
-  /* Sin footer web / No footer web */
   footer {
     display: none !important;
   }
 
-  /* Botones grandes / Large buttons */
+  /* Solo CTAs principales adoptan tamaño XL táctil en WebView */
   .btn-premium,
-  button:not(.small),
   input[type="submit"],
-  .large-touch-target {
-    @apply !min-h-[64px] !text-[17px] !font-black !tracking-tight !rounded-[1.8rem];
+  .large-touch-target,
+  .webview-cta {
+    @apply !min-h-[56px] !text-[16px] !font-bold !tracking-tight !rounded-2xl;
   }
 
-  /* Inputs más grandes para móvil */
-  input, select, textarea {
-    @apply !text-[16px] !p-5 !rounded-[1.5rem];
+  /* Evita auto-zoom en iOS WebView sin deformar inputs compactos */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 

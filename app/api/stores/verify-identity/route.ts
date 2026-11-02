@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { getErrorMessage } from '@/lib/api/route-utils'
 
 export const dynamic = 'force-dynamic'
@@ -23,9 +24,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'La URL del comprobante de identidad es requerida' }, { status: 400 })
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 })

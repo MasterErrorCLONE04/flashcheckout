@@ -184,7 +184,7 @@ export default function LogisticsManager({
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-zinc-500 uppercase text-[9px] tracking-wider">Modo de pago</span>
-                <span className="font-bold text-zinc-650">Descuento automático de saldo</span>
+                <span className="font-bold text-zinc-600">Descuento automático de saldo</span>
               </div>
               <p className="text-[9px] text-zinc-400 leading-relaxed mt-1 font-medium">
                 La tarifa del repartidor oficial es fija y se descuenta directamente de la liquidación final del pedido. El vendedor no necesita pagar en efectivo al recolectar.
@@ -192,7 +192,7 @@ export default function LogisticsManager({
             </div>
 
             {/* Auto Dispatch Toggle */}
-            <div className="flex items-center justify-between bg-zinc-50/60 p-3 rounded-lg border border-zinc-150">
+            <div className="flex items-center justify-between bg-zinc-50/60 p-3 rounded-lg border border-zinc-200">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5" />
@@ -219,15 +219,15 @@ export default function LogisticsManager({
             {/* Delivery KPIs for Store */}
             <div className="grid grid-cols-3 gap-3 pt-1">
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
-                <p className="text-[9px] font-extrabold text-zinc-450 uppercase tracking-wider">Entregados</p>
+                <p className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider">Entregados</p>
                 <p className="text-sm font-black text-zinc-800 tabular-nums">{countDelivered}</p>
               </div>
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
-                <p className="text-[9px] font-extrabold text-zinc-450 uppercase tracking-wider">En Tránsito</p>
+                <p className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider">En Tránsito</p>
                 <p className="text-sm font-black text-blue-600 tabular-nums">{countInTransit}</p>
               </div>
               <div className="p-3 bg-zinc-50/40 border border-zinc-200/50 rounded-lg text-center space-y-1">
-                <p className="text-[9px] font-extrabold text-zinc-450 uppercase tracking-wider">Gasto total</p>
+                <p className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider">Gasto total</p>
                 <p className="text-[11px] font-black text-zinc-800 tabular-nums">${totalLogisticExpenses.toLocaleString('es-CO')}</p>
               </div>
             </div>
@@ -236,7 +236,7 @@ export default function LogisticsManager({
           <button
             onClick={handleSaveConfig}
             disabled={saving}
-            className="w-full h-10 border border-zinc-955 hover:bg-zinc-955 hover:text-white text-zinc-955 bg-white font-bold rounded-lg text-xs tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 mt-5 cursor-pointer"
+            className="w-full h-10 border border-zinc-950 hover:bg-zinc-950 hover:text-white text-zinc-950 bg-white font-bold rounded-lg text-xs tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 mt-5 cursor-pointer"
           >
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             <span>Guardar Configuración de Asignación</span>
@@ -271,7 +271,7 @@ export default function LogisticsManager({
               <form onSubmit={handleRegisterDriver} className="p-3 bg-zinc-50 border border-zinc-200/60 rounded-lg space-y-3 animate-in duration-200 slide-in-from-top-2">
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-extrabold text-zinc-450 tracking-wider">Nombre del conductor</label>
+                    <label className="text-[9px] font-extrabold text-zinc-500 tracking-wider">Nombre del conductor</label>
                     <input 
                       type="text"
                       placeholder="Ej: Carlos Gómez"
@@ -281,7 +281,7 @@ export default function LogisticsManager({
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-extrabold text-zinc-450 tracking-wider">Teléfono de contacto</label>
+                    <label className="text-[9px] font-extrabold text-zinc-500 tracking-wider">Teléfono de contacto</label>
                     <input 
                       type="tel"
                       placeholder="Ej: +57 312 456 7890"
@@ -314,7 +314,7 @@ export default function LogisticsManager({
             {/* Drivers list scroll */}
             <div className="divide-y divide-zinc-100 max-h-[170px] overflow-y-auto mt-2 pr-1 custom-scrollbar flex-1">
               {drivers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-zinc-450 text-[11px] font-bold tracking-wide">
+                <div className="flex flex-col items-center justify-center py-8 text-zinc-500 text-[11px] font-bold tracking-wide">
                   <User className="w-6 h-6 mb-1.5 text-zinc-200" />
                   <span>No hay repartidores registrados</span>
                 </div>
@@ -328,7 +328,7 @@ export default function LogisticsManager({
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-bold text-zinc-850 leading-none">{driver.name}</span>
+                          <span className="text-[11px] font-bold text-zinc-800 leading-none">{driver.name}</span>
                           <span className="text-[10px] font-extrabold text-amber-500 flex items-center gap-0.5 leading-none">
                             <Star className="w-2.5 h-2.5 fill-current" />
                             {driver.rating.toFixed(1)}
@@ -337,7 +337,7 @@ export default function LogisticsManager({
                         <p className="text-[9px] text-zinc-400 mt-1 flex items-center gap-1">
                           <span className="tabular-nums">+{driver.phoneNumber}</span>
                           <span>·</span>
-                          <span className="font-extrabold text-zinc-505 uppercase tracking-wide">{driver.ordersDelivered} despachos</span>
+                          <span className="font-extrabold text-zinc-500 uppercase tracking-wide">{driver.ordersDelivered} despachos</span>
                         </p>
                       </div>
                     </div>
@@ -360,7 +360,7 @@ export default function LogisticsManager({
                       <button
                         type="button"
                         onClick={() => handleDeleteDriver(driver.id, driver.name)}
-                        className="w-7 h-7 rounded-lg text-zinc-350 hover:text-rose-600 hover:bg-rose-50/50 flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover/driver:opacity-100 active:scale-95"
+                        className="w-7 h-7 rounded-lg text-zinc-300 hover:text-rose-600 hover:bg-rose-50/50 flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover/driver:opacity-100 active:scale-95"
                         title="Eliminar repartidor"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -418,7 +418,7 @@ export default function LogisticsManager({
               </div>
 
               <div className="p-3.5 bg-white border border-zinc-200/60 rounded-lg flex flex-col items-center text-center">
-                <div className="w-6.5 h-6.5 rounded-full bg-zinc-150 text-zinc-650 flex items-center justify-center text-[10px] font-black">4</div>
+                <div className="w-6.5 h-6.5 rounded-full bg-zinc-100 text-zinc-600 flex items-center justify-center text-[10px] font-black">4</div>
                 <h5 className="text-[10px] font-bold text-zinc-800 mt-2">Entrega en Curso</h5>
                 <p className="text-[9px] text-zinc-400 mt-1 font-medium leading-relaxed">El cliente recibe su pedido y tú monitoreas el estado.</p>
               </div>
@@ -428,7 +428,7 @@ export default function LogisticsManager({
           <div className="overflow-x-auto w-full">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-zinc-150 text-[10px] font-black tracking-wider text-zinc-400 bg-[#FAFAFA]">
+                <tr className="border-b border-zinc-200 text-[10px] font-black tracking-wider text-zinc-400 bg-[#FAFAFA]">
                   <th className="py-3.5 px-4">Pedido ID</th>
                   <th className="py-3.5 px-3">Cliente</th>
                   <th className="py-3.5 px-3">Dirección de Entrega</th>
@@ -451,7 +451,7 @@ export default function LogisticsManager({
 
                   return (
                     <tr key={item.id} className="hover:bg-zinc-50/50 transition-colors">
-                      <td className="py-4 px-4 font-bold text-zinc-955 tabular-nums select-all">
+                      <td className="py-4 px-4 font-bold text-zinc-950 tabular-nums select-all">
                         #PAY-{item.id.slice(-4).toUpperCase()}
                       </td>
                       <td className="py-4 px-3">
@@ -479,7 +479,7 @@ export default function LogisticsManager({
                             href={`https://maps.google.com/maps?q=${encodeURIComponent(item.address + ', ' + item.city)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-5 h-5 rounded-md hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-650 transition-colors border border-zinc-150"
+                            className="w-5 h-5 rounded-md hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-600 transition-colors border border-zinc-200"
                             title="Abrir mapa"
                           >
                             <ExternalLink className="w-3 h-3" />
@@ -526,11 +526,11 @@ export default function LogisticsManager({
                             )}>
                               {activeStep >= 1 ? '✓' : '1'}
                             </div>
-                            <span className="text-[8px] text-zinc-450 font-bold uppercase tracking-wider mt-1">Asignado</span>
+                            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider mt-1">Asignado</span>
                           </div>
 
                           {/* Connector 1 */}
-                          <div className={cn("h-[2px] flex-1 -mt-3.5", activeStep >= 2 ? "bg-blue-500" : "bg-zinc-150")} />
+                          <div className={cn("h-[2px] flex-1 -mt-3.5", activeStep >= 2 ? "bg-blue-500" : "bg-zinc-100")} />
 
                           {/* Step 2: En Camino */}
                           <div className="flex flex-col items-center flex-1">
@@ -541,11 +541,11 @@ export default function LogisticsManager({
                             )}>
                               {activeStep >= 2 ? '✓' : '2'}
                             </div>
-                            <span className="text-[8px] text-zinc-455 font-bold uppercase tracking-wider mt-1">En ruta</span>
+                            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider mt-1">En ruta</span>
                           </div>
 
                           {/* Connector 2 */}
-                          <div className={cn("h-[2px] flex-1 -mt-3.5", activeStep >= 3 ? "bg-blue-500" : "bg-zinc-150")} />
+                          <div className={cn("h-[2px] flex-1 -mt-3.5", activeStep >= 3 ? "bg-blue-500" : "bg-zinc-100")} />
 
                           {/* Step 3: Entregado */}
                           <div className="flex flex-col items-center flex-1">
@@ -555,7 +555,7 @@ export default function LogisticsManager({
                             )}>
                               {activeStep >= 3 ? '✓' : '3'}
                             </div>
-                            <span className="text-[8px] text-zinc-450 font-bold uppercase tracking-wider mt-1">Recibido</span>
+                            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider mt-1">Recibido</span>
                           </div>
                         </div>
                       </td>

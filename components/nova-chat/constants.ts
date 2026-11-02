@@ -100,17 +100,17 @@ export const AGENTS: AgentItem[] = [
     name: 'Atlas',
     role: 'Analista de Operaciones',
     description: 'Monitorea tus pedidos, despachos, conductores y stock. Genera reportes de inventario y te alerta sobre productos agotados o críticos.',
-    colorClass: 'bg-blue-50 border-blue-100 text-blue-650',
+    colorClass: 'bg-blue-50 border-blue-100 text-blue-600',
     avatarBg: 'bg-blue-500',
-    iconColor: 'text-blue-505'
+    iconColor: 'text-blue-500'
   },
   {
     id: 'orion',
     name: 'Orion',
     role: 'Ingeniero de Integraciones',
     description: 'Te ayuda con la conexión de tu bot de WhatsApp, pasarelas de pago (Mercado Pago, Stripe), dominios y configuraciones técnicas.',
-    colorClass: 'bg-purple-50 border-purple-100 text-purple-650',
+    colorClass: 'bg-purple-50 border-purple-100 text-purple-600',
     avatarBg: 'bg-purple-500',
-    iconColor: 'text-purple-505'
+    iconColor: 'text-purple-500'
   }
 ]

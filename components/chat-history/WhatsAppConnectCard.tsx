@@ -87,7 +87,7 @@ export function WhatsAppConnectCard({
                     </div>
                     <div className="space-y-0.5">
                       <h4 className="text-xs font-extrabold text-zinc-800 leading-snug">{feat.title}</h4>
-                      <p className="text-[11px] font-bold text-zinc-450 leading-relaxed">{feat.desc}</p>
+                      <p className="text-[11px] font-bold text-zinc-500 leading-relaxed">{feat.desc}</p>
                     </div>
                   </div>
                 )
@@ -99,7 +99,7 @@ export function WhatsAppConnectCard({
           <div className="xl:col-span-4 flex justify-center items-center relative py-4">
             <div className="relative">
               {/* Floating WhatsApp badge outside top-right */}
-              <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border border-zinc-150 shadow-md flex items-center justify-center z-30 animate-bounce">
+              <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border border-zinc-200 shadow-md flex items-center justify-center z-30 animate-bounce">
                 <svg className="w-5 h-5 text-[#25D366] fill-current" viewBox="0 0 24 24">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.03-5.115-2.905-6.99C16.488 1.878 14.01 1.847 12.008 1.847c-5.437 0-9.863 4.421-9.867 9.865-.001 1.76.476 3.477 1.38 5.026l-.995 3.637 3.73-.979L6.648 19.16zM17.47 14.4c-.3-.149-1.772-.874-2.047-.975-.276-.101-.476-.149-.676.15-.2.3-.777.975-.951 1.174-.176.2-.351.224-.651.075-.3-.149-1.267-.467-2.414-1.492-.893-.797-1.496-1.78-1.672-2.079-.176-.3-.019-.462.13-.61.135-.133.3-.349.45-.523.15-.174.2-.299.3-.499.1-.2.05-.375-.025-.524-.075-.15-.676-1.624-.926-2.224-.244-.587-.491-.507-.676-.516-.175-.008-.375-.01-.575-.01-.2 0-.525.075-.8.374-.275.3-1.05 1.024-1.05 2.5 0 1.475 1.075 2.897 1.225 3.1 1.625 2.15 3.4 3.15 5.525 3.975 1.05.4 1.875.525 2.525.425.75-.125 2.275-.925 2.575-1.825.3-.9 3-1.825 3-1.825.3-.9.15-1.675-.075-1.825z"/>
                 </svg>
@@ -149,7 +149,7 @@ export function WhatsAppConnectCard({
                     { name: "Miguel Torres", time: "Ayer", text: "Dale, seguimos en contacto" }
                   ].map((chat, idx) => (
                     <div key={idx} className="flex gap-2.5 items-center p-1.5 border-b border-zinc-50 last:border-none">
-                      <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-550 shrink-0 uppercase">
+                      <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500 shrink-0 uppercase">
                         {chat.name.slice(0, 2)}
                       </div>
                       <div className="min-w-0 flex-1 space-y-0.5 text-left">
@@ -174,7 +174,7 @@ export function WhatsAppConnectCard({
           {/* Right side: Instructions and QR Container */}
           <div className="xl:col-span-3 space-y-5 flex flex-col items-center xl:items-start text-left">
             {/* How to Connect instructions card */}
-            <div className="w-full bg-zinc-50/65 border border-zinc-150 rounded-2xl p-4.5 space-y-4">
+            <div className="w-full bg-zinc-50/65 border border-zinc-200 rounded-2xl p-4.5 space-y-4">
               <h4 className="text-xs font-bold text-zinc-800 tracking-wider">Cómo conectar</h4>
               
               <div className="space-y-3.5">
@@ -184,10 +184,10 @@ export function WhatsAppConnectCard({
                   { step: "3", text: "Escanea este código QR" }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-3.5 items-start">
-                    <div className="w-6 h-6 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-extrabold text-zinc-700 shrink-0 border border-zinc-205 shadow-2xs">
+                    <div className="w-6 h-6 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-extrabold text-zinc-700 shrink-0 border border-zinc-200 shadow-2xs">
                       {item.step}
                     </div>
-                    <p className="text-[11px] font-bold text-zinc-650 pt-0.5 leading-normal">{item.text}</p>
+                    <p className="text-[11px] font-bold text-zinc-600 pt-0.5 leading-normal">{item.text}</p>
                   </div>
                 ))}
               </div>
@@ -219,7 +219,7 @@ export function WhatsAppConnectCard({
               )}
               {!loadingQr && !qrCodeBase64 && (
                 <div className="flex flex-col items-center gap-2.5">
-                  <Wifi className="w-8 h-8 text-zinc-350 animate-pulse" />
+                  <Wifi className="w-8 h-8 text-zinc-300 animate-pulse" />
                   <span className="text-[10px] text-zinc-400 font-extrabold uppercase tracking-wider leading-relaxed">Sin señal de QR</span>
                   <button 
                     onClick={onRegenerateQr} 

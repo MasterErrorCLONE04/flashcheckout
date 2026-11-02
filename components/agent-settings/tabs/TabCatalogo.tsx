@@ -29,7 +29,7 @@ export function TabCatalogo({ agent }: TabCatalogoProps) {
           </p>
         </div>
 
-        <div className="divide-y divide-zinc-150 border-t border-zinc-100">
+        <div className="divide-y divide-zinc-200 border-t border-zinc-100">
           {products.length === 0 ? (
             <p className="text-center py-8 text-zinc-400 text-xs font-semibold">No hay productos registrados en el catálogo.</p>
           ) : (
@@ -53,7 +53,7 @@ export function TabCatalogo({ agent }: TabCatalogoProps) {
                           type="checkbox"
                           checked={p.aiRecommendation}
                           onChange={e => handleSaveProductAI(p.id, e.target.checked, p.aiDescription)}
-                          className="w-3.5 h-3.5 rounded border-zinc-350 text-emerald-600 focus:ring-emerald-500/20"
+                          className="w-3.5 h-3.5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500/20"
                         />
                       </div>
 

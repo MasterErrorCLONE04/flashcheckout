@@ -216,7 +216,7 @@ function ChatBubble({
           'max-w-full rounded-2xl border p-4 text-sm leading-6 shadow-sm',
           isUser
             ? 'border-zinc-900 bg-zinc-950 text-white dark:border-white/20'
-            : 'border-zinc-200 bg-white text-zinc-650 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-200'
+            : 'border-zinc-200 bg-white text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-200'
         )}
       >
         {!isUser && (

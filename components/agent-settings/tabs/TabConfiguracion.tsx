@@ -207,7 +207,7 @@ export function TabConfiguracion({ agent }: TabConfiguracionProps) {
             placeholder="Ej: Eres un asistente de ventas de una tienda de tecnología. Sé amable, responde de forma concisa..."
             className="w-full bg-white border border-zinc-200 rounded-lg p-4 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all leading-relaxed resize-none"
           />
-          <div className="absolute bottom-3.5 right-4 text-[10px] font-bold text-zinc-450">
+          <div className="absolute bottom-3.5 right-4 text-[10px] font-bold text-zinc-500">
             {settings.systemPrompt.length} / 2000
           </div>
         </div>
@@ -230,7 +230,7 @@ export function TabConfiguracion({ agent }: TabConfiguracionProps) {
             placeholder="Ej: ¡Hola! Bienvenido a nuestra tienda..."
             className="w-full bg-white border border-zinc-200 rounded-lg p-4 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-500 transition-all leading-relaxed resize-none"
           />
-          <div className="absolute bottom-3.5 right-4 text-[10px] font-bold text-zinc-450">
+          <div className="absolute bottom-3.5 right-4 text-[10px] font-bold text-zinc-500">
             {settings.welcomeMessage.length} / 500
           </div>
         </div>

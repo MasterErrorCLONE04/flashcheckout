@@ -22,7 +22,7 @@ export function AutomatizacionesSidebar({
     <div className="lg:col-span-4 space-y-5">
       {/* Card 1: Plantillas disponibles */}
       <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
-        <h4 className="text-xs font-bold text-zinc-955 tracking-wider select-none">
+        <h4 className="text-xs font-bold text-zinc-950 tracking-wider select-none">
           Plantillas disponibles
         </h4>
 
@@ -47,7 +47,7 @@ export function AutomatizacionesSidebar({
               </div>
               <button
                 onClick={() => onUseTemplate(temp.name, temp.desc, temp.icon, temp.channels)}
-                className="h-7.5 px-3 border border-zinc-250 hover:bg-zinc-50 text-[10px] font-bold text-zinc-800 rounded-lg shrink-0 cursor-pointer select-none transition-all active:scale-95"
+                className="h-7.5 px-3 border border-zinc-200 hover:bg-zinc-50 text-[10px] font-bold text-zinc-800 rounded-lg shrink-0 cursor-pointer select-none transition-all active:scale-95"
               >
                 Usar
               </button>
@@ -67,7 +67,7 @@ export function AutomatizacionesSidebar({
       {/* Card 2: Resumen de automatizaciones */}
       <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
         <div className="flex justify-between items-baseline select-none">
-          <h4 className="text-xs font-bold text-zinc-955 tracking-wider">
+          <h4 className="text-xs font-bold text-zinc-950 tracking-wider">
             Resumen de automatizaciones
           </h4>
           <select className="bg-transparent border-none text-[9px] font-bold text-zinc-500 cursor-pointer focus:outline-none hover:text-zinc-950 transition-colors p-0">
@@ -83,7 +83,7 @@ export function AutomatizacionesSidebar({
             <span className="text-[10px] font-semibold text-zinc-400 block select-none">
               Mensajes enviados
             </span>
-            <span className="text-2xl font-bold text-zinc-955 block leading-none tabular-nums">
+            <span className="text-2xl font-bold text-zinc-950 block leading-none tabular-nums">
               {totalSentToday + 28}
             </span>
             <div className="flex items-center gap-1 text-[9px] font-bold text-zinc-500 select-none">
@@ -100,7 +100,7 @@ export function AutomatizacionesSidebar({
               <span className="text-[9px] font-semibold text-zinc-400 block select-none">
                 Tasa prom. apertura
               </span>
-              <span className="text-lg font-bold text-zinc-955 block leading-none tabular-nums">
+              <span className="text-lg font-bold text-zinc-950 block leading-none tabular-nums">
                 {averageRate > 0 ? `${averageRate}%` : '94%'}
               </span>
               <div className="flex items-center gap-0.5 text-[8px] font-bold text-zinc-500 select-none">
@@ -115,7 +115,7 @@ export function AutomatizacionesSidebar({
               <span className="text-[9px] font-semibold text-zinc-400 block select-none">
                 Tasa prom. conversión
               </span>
-              <span className="text-lg font-bold text-zinc-955 block leading-none tabular-nums">
+              <span className="text-lg font-bold text-zinc-950 block leading-none tabular-nums">
                 23%
               </span>
               <div className="flex items-center gap-0.5 text-[8px] font-bold text-zinc-500 select-none">
@@ -132,7 +132,7 @@ export function AutomatizacionesSidebar({
       {/* Card 3: ¿Necesitas ayuda? */}
       <div className="bg-white border border-zinc-200 p-5 rounded-lg flex items-center justify-between gap-4">
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-zinc-955 tracking-wider select-none">
+          <h4 className="text-xs font-bold text-zinc-950 tracking-wider select-none">
             ¿Necesitas ayuda?
           </h4>
           <p className="text-[10px] text-zinc-400 font-semibold leading-normal max-w-[150px]">

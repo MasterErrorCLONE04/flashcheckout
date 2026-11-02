@@ -27,7 +27,7 @@ export function ConsolidatedLogsModal({
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 hover:bg-zinc-150 text-zinc-400 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -37,7 +37,7 @@ export function ConsolidatedLogsModal({
             <Terminal className="w-5 h-5 text-zinc-800" />
             <h2 className="text-base font-extrabold tracking-tight text-zinc-900">Visor de Actividades Generales (The Office Logs)</h2>
           </div>
-          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded-full shrink-0">
+          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[8px] font-black text-emerald-600 tracking-wider uppercase">Stream Consolidado</span>
           </div>
@@ -47,7 +47,7 @@ export function ConsolidatedLogsModal({
           Registro de acciones en tiempo real ejecutadas por los agentes en el espacio modular.
         </p>
 
-        <div className="bg-zinc-50 p-4 border border-zinc-200 rounded-xl max-h-96 overflow-y-auto space-y-2 font-mono text-[10.5px] text-zinc-650">
+        <div className="bg-zinc-50 p-4 border border-zinc-200 rounded-xl max-h-96 overflow-y-auto space-y-2 font-mono text-[10.5px] text-zinc-600">
           {consolidatedLogs.length === 0 ? (
             <div className="text-center py-8 text-zinc-400 font-semibold">
               No hay actividades registradas aún.
@@ -57,13 +57,13 @@ export function ConsolidatedLogsModal({
               let colorClass = 'text-zinc-600'
               agents.forEach(a => {
                 if (log.includes(`[${a.name}]`)) {
-                  if (a.color === 'emerald') colorClass = 'text-emerald-650 font-semibold'
-                  else if (a.color === 'teal') colorClass = 'text-teal-650 font-semibold'
-                  else if (a.color === 'blue') colorClass = 'text-blue-650 font-semibold'
-                  else if (a.color === 'amber') colorClass = 'text-amber-650 font-semibold'
+                  if (a.color === 'emerald') colorClass = 'text-emerald-600 font-semibold'
+                  else if (a.color === 'teal') colorClass = 'text-teal-600 font-semibold'
+                  else if (a.color === 'blue') colorClass = 'text-blue-600 font-semibold'
+                  else if (a.color === 'amber') colorClass = 'text-amber-600 font-semibold'
                 }
               })
-              if (log.includes('ORDEN RECIBIDA')) colorClass = 'text-purple-650 font-bold border-b border-dashed border-zinc-200/85 pb-0.5 mb-0.5'
+              if (log.includes('ORDEN RECIBIDA')) colorClass = 'text-purple-600 font-bold border-b border-dashed border-zinc-200/85 pb-0.5 mb-0.5'
               
               return (
                 <div key={idx} className={colorClass}>

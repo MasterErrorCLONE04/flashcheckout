@@ -27,7 +27,7 @@ export function TabIntegraciones({ storeId }: TabIntegracionesProps) {
             Conexión nativa de mensajería bidireccional de alto rendimiento.
           </p>
           
-          <div className="p-2.5 bg-zinc-50 border border-zinc-150 rounded-lg text-[9px] font-bold text-zinc-500 space-y-1">
+          <div className="p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[9px] font-bold text-zinc-500 space-y-1">
             <div>Instancia: <span className="text-zinc-800 font-bold">store_{storeId.slice(0, 8)}</span></div>
             <div>Token de conexión: <span className="text-zinc-800 font-bold font-mono">45d55ad587...</span></div>
           </div>

@@ -73,7 +73,7 @@ export default function ReportButton({
             <button
               onClick={handleReport}
               disabled={loading}
-              className="px-3 py-1.5 text-xs font-semibold text-white bg-red-650 rounded-lg cursor-pointer hover:bg-red-700 flex items-center gap-1"
+              className="px-3 py-1.5 text-xs font-semibold text-white bg-red-600 rounded-lg cursor-pointer hover:bg-red-700 flex items-center gap-1"
             >
               {loading ? (
                 <>

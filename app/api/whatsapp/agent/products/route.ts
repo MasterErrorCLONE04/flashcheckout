@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 import { badRequest, forbidden, getErrorMessage, internalServerError, notFound, unauthorized } from '@/lib/api/route-utils'
 
 type ToggleAgentProductBody = {
@@ -17,9 +18,7 @@ export async function PATCH(req: Request) {
     const body = (await req.json().catch(() => null)) as ToggleAgentProductBody | null
     if (!body?.productId) return badRequest('Missing productId')
 
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
     if (!store) return notFound('Store not found')
 
     const product = await prisma.product.findUnique({

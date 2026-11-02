@@ -9,10 +9,12 @@ export function buildTiendaAiSettings(state: {
   headerStyle: string
   heroStyle: string
   heroBadge: string
+  heroPanels: string[]
   cardStyle: string
   cardAspectRatio: string
   badgeStyle: string
   catalogColumns: string
+  showVariantSwatches: boolean
   sections: any
   bannerUrl: string
   bannerTitle: string
@@ -32,6 +34,10 @@ export function buildTiendaAiSettings(state: {
   brandStoryPage: any
   visualCategories: any[]
   processTimeline: any
+  ambassadors: any
+  pressLogos: any[]
+  retailers: any
+  ugcGallery: string[]
   lifestyleGallery: string[]
   newsletterWidget: any
   navbarLinks: any[]
@@ -55,10 +61,12 @@ export function buildTiendaAiSettings(state: {
     headerStyle: state.headerStyle,
     heroStyle: state.heroStyle,
     heroBadge: state.heroBadge,
+    heroPanels: state.heroPanels,
     cardStyle: state.cardStyle,
     cardAspectRatio: state.cardAspectRatio,
     badgeStyle: state.badgeStyle,
     catalogColumns: state.catalogColumns,
+    showVariantSwatches: state.showVariantSwatches,
     sections: state.sections,
     bannerUrl: state.bannerUrl,
     bannerTitle: state.bannerTitle,
@@ -80,6 +88,10 @@ export function buildTiendaAiSettings(state: {
     brandStoryPage: state.brandStoryPage,
     visualCategories: state.visualCategories,
     processTimeline: state.processTimeline,
+    ambassadors: state.ambassadors,
+    pressLogos: state.pressLogos,
+    retailers: state.retailers,
+    ugcGallery: state.ugcGallery,
     lifestyleGallery: state.lifestyleGallery,
     newsletterWidget: state.newsletterWidget,
     navbarLinks: state.navbarLinks,
@@ -90,19 +102,19 @@ export function buildTiendaAiSettings(state: {
     paymentMethods: state.paymentMethods,
     testimonials: state.testimonials,
     faqs: state.faqs,
-    floatingWhatsApp: state.floatingWhatsApp
+    floatingWhatsApp: state.floatingWhatsApp,
   }
 }
 
 export async function uploadStoreImage(file: File, type: 'logo' | 'banner'): Promise<string> {
-  const toastId = toast.loading(`Subiendo ${type === 'logo' ? 'logotipo' : 'banner'}...`)
+  const toastId = toast.loading(`Subiendo ${type === 'logo' ? 'logotipo' : 'imagen'}...`)
   try {
     const formData = new FormData()
     formData.append('file', file)
 
     const res = await fetch('/api/upload', {
       method: 'POST',
-      body: formData
+      body: formData,
     })
 
     if (!res.ok) {
@@ -110,7 +122,7 @@ export async function uploadStoreImage(file: File, type: 'logo' | 'banner'): Pro
     }
 
     const data = await res.json()
-    toast.success(`${type === 'logo' ? 'Logotipo' : 'Banner'} subido correctamente`, { id: toastId })
+    toast.success(`${type === 'logo' ? 'Logotipo' : 'Imagen'} subida correctamente`, { id: toastId })
     return data.url
   } catch (err: any) {
     console.error(err)
@@ -120,6 +132,7 @@ export async function uploadStoreImage(file: File, type: 'logo' | 'banner'): Pro
 }
 
 export async function persistStoreSettings(payload: {
+  storeId?: string
   name: string
   whatsapp: string
   bio: string | null
@@ -132,7 +145,7 @@ export async function persistStoreSettings(payload: {
   const res = await fetch('/api/stores', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   })
 
   if (!res.ok) {
@@ -141,6 +154,6 @@ export async function persistStoreSettings(payload: {
   }
 
   toast.success('¡Cambios guardados con éxito!', {
-    description: 'La configuración y diseño de tu tienda online han sido guardados.'
+    description: 'La configuración y diseño de tu tienda online han sido guardados.',
   })
 }

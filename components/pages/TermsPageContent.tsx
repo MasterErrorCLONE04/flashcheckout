@@ -6,7 +6,7 @@ import { Zap, ChevronLeft } from 'lucide-react'
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen bg-white text-zinc-800 font-sans selection:bg-zinc-150">
+    <div className="min-h-screen bg-white text-zinc-800 font-sans selection:bg-zinc-100">
       {/* Mini navbar header */}
       <header className="border-b border-zinc-100 py-4.5 px-6 sticky top-0 bg-white/85 backdrop-blur-md z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -40,7 +40,7 @@ export default function TermsOfService() {
         </div>
 
         {/* Terms text content */}
-        <div className="space-y-8 text-[14px] leading-relaxed text-zinc-650 font-normal">
+        <div className="space-y-8 text-[14px] leading-relaxed text-zinc-600 font-normal">
           <p className="font-semibold text-zinc-700 tracking-wide uppercase leading-loose border-l-2 border-zinc-900 pl-4 py-1.5 bg-zinc-50/50 rounded-r-lg pr-4">
             THESE TERMS OF SERVICE (THE &quot;AGREEMENT&quot;) GOVERN YOUR RECEIPT, ACCESS TO, AND USE OF THE SERVICES PROVIDED BY FLASHCHECKOUT INC. (&quot;FLASHCHECKOUT&quot;). BY (A) PURCHASING ACCESS TO THE SERVICE THROUGH AN ONLINE ORDERING PROCESS THAT REFERENCES THIS AGREEMENT, (B) SIGNING UP FOR A FREE OR PAID ACCESS PLAN FOR THE SERVICE VIA A PLATFORM THAT REFERENCES THIS AGREEMENT, OR (C) CLICKING A BOX INDICATING ACCEPTANCE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT. THE INDIVIDUAL ACCEPTING THIS AGREEMENT DOES SO ON BEHALF OF A COMPANY OR OTHER LEGAL ENTITY (&quot;CUSTOMER&quot;); SUCH INDIVIDUAL REPRESENTS AND WARRANTS THAT THEY HAVE THE AUTHORITY TO BIND SUCH ENTITY AND ITS AFFILIATES TO THIS AGREEMENT. IF THE INDIVIDUAL ACCEPTING THIS AGREEMENT DOES NOT HAVE SUCH AUTHORITY, OR IF THE ENTITY DOES NOT AGREE WITH THESE TERMS AND CONDITIONS, SUCH INDIVIDUAL MUST NOT ACCEPT THIS AGREEMENT AND MAY NOT USE THE SERVICES. CAPITALIZED TERMS HAVE THE MEANINGS SET FORTH HEREIN. THE PARTIES AGREE AS FOLLOWS:
           </p>
@@ -97,7 +97,7 @@ export default function TermsOfService() {
         {/* Footer footer */}
         <div className="border-t border-zinc-100 mt-16 pt-8 flex items-center justify-between text-xs font-medium text-zinc-400 select-none">
           <span>© {new Date().getFullYear()} Flashcheckouts Inc.</span>
-          <Link href="/solutions/privacidad" className="hover:text-zinc-650 transition-colors">
+          <Link href="/solutions/privacidad" className="hover:text-zinc-600 transition-colors">
             Privacy Policy
           </Link>
         </div>

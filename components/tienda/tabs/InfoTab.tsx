@@ -139,7 +139,7 @@ export function InfoTab({ form }: InfoTabProps) {
             />
           </div>
 
-          <div className="p-3 bg-zinc-50 border border-zinc-150 rounded-lg">
+          <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-lg">
             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider block">Variables soportadas:</span>
             <div className="grid grid-cols-2 gap-1.5 mt-2 text-[9px] font-semibold text-zinc-500">
               <div><code className="bg-zinc-200 px-1 rounded text-zinc-700 font-bold">{'{cliente_nombre}'}</code> - Nombre</div>

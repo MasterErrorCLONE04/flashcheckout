@@ -53,7 +53,7 @@ export function HireAgentModal({
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 hover:bg-zinc-150 text-zinc-400 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 rounded-lg transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -146,7 +146,7 @@ export function HireAgentModal({
           {/* Tool checkboxes */}
           <div>
             <label className="text-[9px] text-zinc-500 uppercase font-black block mb-2">Herramientas Autorizadas (Funcionalidades)</label>
-            <div className="grid grid-cols-2 gap-2 bg-zinc-55 border border-zinc-200 p-3 rounded-xl max-h-32 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2 bg-zinc-50 border border-zinc-200 p-3 rounded-xl max-h-32 overflow-y-auto">
               {AVAILABLE_TOOLS.map(t => {
                 const checked = newTools.includes(t.name)
                 return (

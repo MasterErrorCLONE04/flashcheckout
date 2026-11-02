@@ -79,7 +79,7 @@ export function PagosStatsCards({
           <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">
             {countPendientes}
           </span>
-          <div className="flex items-center gap-1 text-[10px] font-bold text-red-650 mt-1 select-none">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1 select-none">
             <TrendingDown className="w-3.5 h-3.5" />
             <span>8% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
           </div>
@@ -99,7 +99,7 @@ export function PagosStatsCards({
           <span className="text-xl xl:text-2xl font-bold text-zinc-900 tracking-tight block leading-none">
             {countFallidos}
           </span>
-          <div className="flex items-center gap-1 text-[10px] font-bold text-red-650 mt-1 select-none">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1 select-none">
             <TrendingDown className="w-3.5 h-3.5" />
             <span>25% <span className="text-zinc-400 font-semibold">vs el mes pasado</span></span>
           </div>

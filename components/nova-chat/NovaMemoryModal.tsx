@@ -31,11 +31,11 @@ export function NovaMemoryModal({
         <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
           <div>
             <h3 className="text-sm font-bold text-zinc-900 leading-none">Memoria de Nova</h3>
-            <p className="text-[10px] font-medium text-zinc-405 mt-1.5 leading-none">Contexto operativo y base de conocimientos activa</p>
+            <p className="text-[10px] font-medium text-zinc-400 mt-1.5 leading-none">Contexto operativo y base de conocimientos activa</p>
           </div>
           <button 
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-zinc-100 text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -49,17 +49,17 @@ export function NovaMemoryModal({
           <div className="space-y-3">
             <h4 className="text-xs font-black text-zinc-800 uppercase tracking-wider select-none">Contexto de la Tienda</h4>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+              <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg flex flex-col justify-center">
                 <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">Tienda</span>
                 <span className="text-xs font-bold text-zinc-800 mt-1 block truncate leading-none">{store.name}</span>
               </div>
-              <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+              <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg flex flex-col justify-center">
                 <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">Plan Actual</span>
                 <span className="text-xs font-bold text-zinc-800 mt-1 block truncate leading-none">
                   {store.verificationLevel === 0 ? 'Básico' : 'Pro'}
                 </span>
               </div>
-              <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+              <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg flex flex-col justify-center">
                 <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">WhatsApp</span>
                 <span className={cn(
                   "text-xs font-bold mt-1 block leading-none",
@@ -68,7 +68,7 @@ export function NovaMemoryModal({
                   {store.whatsappConnected ? 'Conectado' : 'Desconectado'}
                 </span>
               </div>
-              <div className="bg-zinc-50 border border-zinc-150 p-3 rounded-lg flex flex-col justify-center">
+              <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-lg flex flex-col justify-center">
                 <span className="text-[9px] font-bold text-zinc-400 tracking-wider uppercase leading-none">Pagos MP</span>
                 <span className={cn(
                   "text-xs font-bold mt-1 block leading-none",
@@ -120,7 +120,7 @@ export function NovaMemoryModal({
                 <Link 
                   key={idx}
                   href={tool.href}
-                  className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-955 transition-colors group text-xs font-bold"
+                  className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-950 transition-colors group text-xs font-bold"
                 >
                   <span>{tool.label}</span>
                   <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />

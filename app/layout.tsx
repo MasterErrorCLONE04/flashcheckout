@@ -124,18 +124,18 @@ export default function RootLayout({
         <ClerkProvider
           appearance={{
             variables: {
-              colorPrimary: "#0066cc",
+              colorPrimary: "#09090b",
               colorBackground: "#ffffff",
-              colorInput: "#f5f5f7",
-              colorInputForeground: "#1d1d1f",
-              borderRadius: "0.75rem",
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+              colorInput: "#f4f4f5",
+              colorInputForeground: "#09090b",
+              borderRadius: "0.5rem",
+              fontFamily: "var(--font-sans)",
             },
             elements: {
-              card: "border border-black/5 premium-card",
+              card: "border border-zinc-200 premium-card shadow-sm",
               navbar: "hidden",
-              headerTitle: "font-semibold tracking-tight text-2xl text-black",
-              formButtonPrimary: "bg-[#0066cc] text-white hover:bg-[#0077ed] transition-all duration-300 font-semibold rounded-full py-4",
+              headerTitle: "font-semibold tracking-tight text-2xl text-zinc-950",
+              formButtonPrimary: "bg-zinc-950 text-white hover:bg-zinc-800 transition-all duration-200 font-semibold rounded-lg py-3",
             }
           }}
         >
@@ -151,7 +151,7 @@ export default function RootLayout({
             closeButton
             theme="light"
             toastOptions={{
-              className: "premium-card border-zinc-200/60 font-geist text-sm",
+              className: "premium-card border-zinc-200 font-sans text-sm",
             }}
           />
         </ClerkProvider>

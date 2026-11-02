@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { getActiveStore } from '@/lib/store-context';
 import { evolutionClient } from '@/lib/whatsapp/evolution';
 import { getErrorMessage } from '@/lib/api/route-utils';
 
@@ -35,9 +36,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    });
+    const store = await getActiveStore(userId);
 
     if (!store) {
       console.log('[Instance GET] Store not found for user');
@@ -112,9 +111,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    });
+    const store = await getActiveStore(userId);
 
     if (!store) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
@@ -175,9 +172,7 @@ export async function DELETE() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const store = await prisma.store.findFirst({
-      where: { userId }
-    });
+    const store = await getActiveStore(userId);
 
     if (!store) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });

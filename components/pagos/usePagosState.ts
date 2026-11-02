@@ -42,12 +42,12 @@ export function usePagosState() {
         const data = await res.json()
 
         const colors = [
-          'bg-purple-100 text-purple-750', 
-          'bg-blue-100 text-blue-750', 
+          'bg-purple-100 text-purple-700', 
+          'bg-blue-100 text-blue-700', 
           'bg-pink-100 text-pink-750', 
           'bg-zinc-100 text-zinc-700', 
-          'bg-amber-100 text-amber-750', 
-          'bg-rose-100 text-rose-750'
+          'bg-amber-100 text-amber-700', 
+          'bg-rose-100 text-rose-700'
         ]
 
         const mapped: Payment[] = (data as PaymentOrder[]).map((order) => {
@@ -66,23 +66,23 @@ export function usePagosState() {
           let metodoLabel = 'Contra Entrega'
           let MetodoIcon = Wallet
           let iconBg = 'bg-zinc-50 border-zinc-100'
-          let iconColor = 'text-zinc-650'
+          let iconColor = 'text-zinc-600'
 
           if (order.stripeCheckoutSessionId) {
             metodoLabel = 'Tarjeta Stripe'
             MetodoIcon = CreditCard
             iconBg = 'bg-indigo-50 border-indigo-100'
-            iconColor = 'text-indigo-650'
+            iconColor = 'text-indigo-600'
           } else if (order.mpPaymentId || order.mpPreferenceId) {
             metodoLabel = 'Mercado Pago'
             MetodoIcon = Handshake
             iconBg = 'bg-sky-50 border-sky-100'
-            iconColor = 'text-sky-655'
+            iconColor = 'text-sky-600'
           } else if (order.proofImageUrl) {
             metodoLabel = 'Transferencia'
             MetodoIcon = Landmark
             iconBg = 'bg-zinc-100 border-zinc-200'
-            iconColor = 'text-zinc-650'
+            iconColor = 'text-zinc-600'
           }
 
           let prodCount = 1

@@ -48,6 +48,8 @@ export default function StoreCreationWizard({
       <WizardHeader
         currentStep={wizard.currentStep}
         currentStepData={wizard.currentStepData}
+        canCancelNewStore={Boolean(isNewStore && hasExistingStores)}
+        onCancelNewStore={wizard.handleCancelNewStore}
       />
 
       {/* 2. SPLIT-SCREEN MAIN WORKSPACE */}

@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getActiveStore } from '@/lib/store-context'
 
 type MercadoPagoTokenResponse = {
   access_token?: string
@@ -31,9 +32,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const store = await prisma.store.findFirst({
-      where: { userId },
-    })
+    const store = await getActiveStore(userId)
 
     if (!store) {
       console.error('[Mercado Pago OAuth Error] Store not found for user:', userId)

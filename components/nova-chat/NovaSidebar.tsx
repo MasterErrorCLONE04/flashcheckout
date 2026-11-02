@@ -38,7 +38,7 @@ export function NovaSidebar({ chat }: NovaSidebarProps) {
             <div className="text-center py-8 text-zinc-400 text-xs font-semibold select-none leading-relaxed">
               No hay chats guardados.
               <br />
-              <span className="text-[10px] text-zinc-350">¡Escribe algo para comenzar!</span>
+              <span className="text-[10px] text-zinc-300">¡Escribe algo para comenzar!</span>
             </div>
           ) : (
             sessions.map((s) => {
@@ -51,8 +51,8 @@ export function NovaSidebar({ chat }: NovaSidebarProps) {
                   className={cn(
                     "group w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-xs transition-all relative border cursor-pointer select-none",
                     isActive 
-                      ? "bg-zinc-100 text-zinc-900 font-bold border-zinc-250" 
-                      : "border-transparent text-zinc-650 hover:bg-zinc-100/50 hover:text-zinc-900"
+                      ? "bg-zinc-100 text-zinc-900 font-bold border-zinc-200" 
+                      : "border-transparent text-zinc-600 hover:bg-zinc-100/50 hover:text-zinc-900"
                   )}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -60,14 +60,14 @@ export function NovaSidebar({ chat }: NovaSidebarProps) {
                       "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors",
                       isActive 
                         ? "bg-zinc-200 border-zinc-300 text-zinc-800" 
-                        : "bg-white border-zinc-200 text-zinc-400 group-hover:border-zinc-300 group-hover:text-zinc-650"
+                        : "bg-white border-zinc-200 text-zinc-400 group-hover:border-zinc-300 group-hover:text-zinc-600"
                     )}>
                       <MessageSquare className="w-4 h-4 stroke-[2px]" />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <span className={cn(
                         "block truncate font-bold text-xs leading-none",
-                        isActive ? "text-zinc-900" : "text-zinc-805"
+                        isActive ? "text-zinc-900" : "text-zinc-800"
                       )}>
                         {s.title}
                       </span>
@@ -80,10 +80,10 @@ export function NovaSidebar({ chat }: NovaSidebarProps) {
                   </div>
                   <button 
                     onClick={(e) => handleDeleteSession(e, s.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-200/50 text-zinc-400 hover:text-red-650 rounded transition-all shrink-0 cursor-pointer absolute right-2.5 bg-transparent"
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-200/50 text-zinc-400 hover:text-red-600 rounded transition-all shrink-0 cursor-pointer absolute right-2.5 bg-transparent"
                     title="Eliminar conversación"
                   >
-                    <MoreVertical className="w-3.5 h-3.5 text-zinc-450" />
+                    <MoreVertical className="w-3.5 h-3.5 text-zinc-500" />
                   </button>
                 </div>
               )

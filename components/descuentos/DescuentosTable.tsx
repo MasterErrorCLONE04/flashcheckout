@@ -142,7 +142,7 @@ export function DescuentosTable({
               setFilterTipoDesc('Todos')
               setSearchQuery('')
             }}
-            className="p-2 border border-zinc-200 hover:bg-zinc-50 rounded-lg shrink-0 flex items-center justify-center text-zinc-650 cursor-pointer select-none"
+            className="p-2 border border-zinc-200 hover:bg-zinc-50 rounded-lg shrink-0 flex items-center justify-center text-zinc-600 cursor-pointer select-none"
             title="Limpiar filtros"
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -151,10 +151,10 @@ export function DescuentosTable({
       </div>
 
       {/* TABLE CONTAINER */}
-      <div className="overflow-x-auto border border-zinc-150 rounded-lg bg-white">
+      <div className="overflow-x-auto border border-zinc-200 rounded-lg bg-white">
         <table className="w-full text-left border-collapse text-xs xl:text-sm">
           <thead>
-            <tr className="bg-zinc-50 border-b border-zinc-150 text-[10px] xl:text-xs font-black text-zinc-500 select-none">
+            <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] xl:text-xs font-black text-zinc-500 select-none">
               <th className="py-3 px-4">Descuento</th>
               <th className="py-3 px-4">Tipo</th>
               <th className="py-3 px-4">Tipo de descuento</th>
@@ -205,14 +205,14 @@ export function DescuentosTable({
                     <td className="py-3.5 px-4 font-extrabold text-zinc-900 leading-none">
                       <div className="flex flex-col">
                         <span>{c.valor.split(' ')[0]}</span>
-                        <span className="text-[9px] font-semibold text-zinc-405 mt-0.5 tracking-tight">{c.valor.split(' ')[1]}</span>
+                        <span className="text-[9px] font-semibold text-zinc-400 mt-0.5 tracking-tight">{c.valor.split(' ')[1]}</span>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4 tabular-nums">
                       <div className="flex flex-col">
                         <span className="font-extrabold text-zinc-900">{c.usos}</span>
-                        <span className="text-[9px] font-semibold text-zinc-405 mt-0.5">usos</span>
+                        <span className="text-[9px] font-semibold text-zinc-400 mt-0.5">usos</span>
                       </div>
                     </td>
 
@@ -306,7 +306,7 @@ export function DescuentosTable({
                 setRowsPerPage(Number(e.target.value))
                 setCurrentPage(1)
               }}
-              className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-1.5 font-bold text-zinc-750 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
+              className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-1.5 font-bold text-zinc-700 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
             >
               <option value={8}>8</option>
               <option value={15}>15</option>

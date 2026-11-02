@@ -156,8 +156,8 @@ export default function ManualVerificationPanel({
                 className={cn(
                   "w-full text-left p-4 rounded-lg border transition-all flex flex-col gap-3 group relative overflow-hidden",
                   isSelected 
-                    ? "bg-zinc-955 border-zinc-955 text-white"
-                    : "bg-white border-zinc-200 text-zinc-955 hover:border-zinc-300 hover:bg-zinc-50/30"
+                    ? "bg-zinc-950 border-zinc-950 text-white"
+                    : "bg-white border-zinc-200 text-zinc-950 hover:border-zinc-300 hover:bg-zinc-50/30"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -256,7 +256,7 @@ export default function ManualVerificationPanel({
                   </div>
                   <div className="mt-3 pt-3 flex justify-between border-t border-zinc-100">
                     <span className="text-[10px] font-bold text-zinc-400 tracking-widest">Total</span>
-                    <span className="text-base font-extrabold text-zinc-955 tabular-nums">
+                    <span className="text-base font-extrabold text-zinc-950 tabular-nums">
                       ${activeOrder.total.toLocaleString('es-CO')}
                     </span>
                   </div>
@@ -308,7 +308,7 @@ export default function ManualVerificationPanel({
                       onChange={(e) => setRejectReason(e.target.value)}
                       placeholder="Ej. El valor transferido no coincide con el total / Comprobante de pago borroso."
                       rows={3}
-                      className="w-full text-xs bg-white border border-zinc-200 rounded-lg p-3 focus:outline-none focus:border-zinc-950 placeholder:text-zinc-450 text-zinc-950 transition-colors resize-none font-medium"
+                      className="w-full text-xs bg-white border border-zinc-200 rounded-lg p-3 focus:outline-none focus:border-zinc-950 placeholder:text-zinc-500 text-zinc-950 transition-colors resize-none font-medium"
                     />
                   </div>
                   <div className="flex justify-end gap-3">
@@ -349,7 +349,7 @@ export default function ManualVerificationPanel({
                     <button
                       onClick={() => handleAction(activeOrder.id, 'APPROVE')}
                       disabled={loading === activeOrder.id}
-                      className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-bold tracking-wider bg-zinc-955 hover:bg-zinc-900 text-white rounded-lg flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+                      className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-bold tracking-wider bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
                     >
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
                       Aprobar pago
@@ -365,7 +365,7 @@ export default function ManualVerificationPanel({
             <div className="w-16 h-16 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-5 text-zinc-300">
               <ShoppingBag className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-bold text-zinc-955 tracking-tight font-display">Ningún pedido seleccionado</h4>
+            <h4 className="text-sm font-bold text-zinc-950 tracking-tight font-display">Ningún pedido seleccionado</h4>
             <p className="text-zinc-400 text-xs font-semibold max-w-xs mt-1.5 leading-relaxed uppercase tracking-wider">
               Elige una orden del listado izquierdo para revisar su comprobante de pago.
             </p>
