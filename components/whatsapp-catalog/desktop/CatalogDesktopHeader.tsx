@@ -84,7 +84,9 @@ export function CatalogDesktopHeader({
       {/* Waterdrop Architectural Top Promo Strip */}
       {announcement?.enabled && promoMessages.length > 0 && (
         <div
-          className="w-full h-[34px] text-[11.5px] font-semibold tracking-[-0.01em] select-none shrink-0 flex items-center"
+          data-maker-section="hero"
+          data-maker-title="Barra de Anuncios"
+          className="w-full h-[34px] text-[11.5px] font-semibold tracking-[-0.01em] select-none shrink-0 flex items-center cursor-pointer"
           style={{
             backgroundColor: announcement.bgColor || colors.acento || '#8CE5A7',
             color: announcement.textColor || '#111111',
@@ -130,8 +132,10 @@ export function CatalogDesktopHeader({
 
       {/* Gallery-White Flagship Waterdrop Navbar */}
       <header
+        data-maker-section="hero"
+        data-maker-title="Encabezado & Logo"
         className={cn(
-          'transition-all duration-300 z-50 select-none shrink-0 w-full',
+          'transition-all duration-300 z-50 select-none shrink-0 w-full cursor-pointer',
           headerStyle === 'floating-glass'
             ? 'sticky top-3 max-w-[1380px] mx-auto px-6 h-[68px] bg-white/92 backdrop-blur-xl border border-zinc-200/80 rounded-full shadow-xs my-2'
             : cn(

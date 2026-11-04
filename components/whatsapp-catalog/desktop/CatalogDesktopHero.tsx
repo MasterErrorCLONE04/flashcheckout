@@ -77,7 +77,12 @@ export function CatalogDesktopHero({
   // 1. FLAGSHIP FULL-BLEED WATERDROP 4-PANEL EDITORIAL COLLAGE
   if (heroStyle === 'waterdrop-collage') {
     return (
-      <section id="catalog-banner" className="w-full shrink-0 select-none bg-white">
+      <section
+        id="catalog-banner"
+        data-maker-section="hero"
+        data-maker-title="Portada & Hero Collage"
+        className="w-full shrink-0 select-none bg-white cursor-pointer"
+      >
         <div className="relative w-full h-[460px] lg:h-[550px] xl:h-[610px] overflow-hidden bg-white">
           {heroType === 'video' && heroVideoUrl ? (
             <video
@@ -203,7 +208,9 @@ export function CatalogDesktopHero({
     return (
       <section
         id="catalog-banner"
-        className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-6 pb-2 shrink-0"
+        data-maker-section="hero"
+        data-maker-title="Portada & Hero Collage"
+        className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-6 pb-2 shrink-0 cursor-pointer"
       >
         <div
           className={cn(
@@ -274,7 +281,9 @@ export function CatalogDesktopHero({
   return (
     <section
       id="catalog-banner"
-      className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-5 pb-2 shrink-0"
+      data-maker-section="hero"
+      data-maker-title="Portada & Hero Collage"
+      className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-5 pb-2 shrink-0 cursor-pointer"
     >
       <div
         className={cn(

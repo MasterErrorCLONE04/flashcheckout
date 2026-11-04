@@ -270,7 +270,7 @@ export default function WhatsAppCatalog({
 
   return (
     <div 
-      className="flex flex-col min-h-screen text-zinc-900 selection:bg-zinc-100 transition-colors duration-300"
+      className="catalog-root flex flex-col min-h-screen text-zinc-900 selection:bg-zinc-100 transition-colors duration-300"
       style={{ 
         fontFamily: resolvedFontFamily,
         backgroundColor: colors.fondo,
@@ -278,9 +278,55 @@ export default function WhatsAppCatalog({
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400..900;1,9..40,400..900&family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@600;700;800&display=swap');
+
+        /* Aplicar la fuente tipográfica seleccionada a todos los elementos del catálogo */
+        .catalog-root, .catalog-root * {
+          font-family: ${resolvedFontFamily} !important;
+        }
+
+        /* Modo Editor: Indicadores hover y marcos visuales interactivos de alta gama */
+        .maker-edit-mode [data-maker-section],
+        .maker-edit-mode [data-maker-tab] {
+          position: relative;
+          transition: outline 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .maker-edit-mode [data-maker-section]:hover,
+        .maker-edit-mode [data-maker-tab]:hover {
+          outline: 2px dashed #0284c7 !important;
+          outline-offset: -2px;
+          cursor: pointer !important;
+        }
+        .maker-edit-mode [data-maker-section]::after,
+        .maker-edit-mode [data-maker-tab]::after {
+          content: '✏️ ' attr(data-maker-title);
+          position: absolute;
+          top: 10px;
+          right: 14px;
+          z-index: 50;
+          background-color: #0f172a;
+          color: #ffffff;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 6px;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+          transform: translateY(2px);
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .maker-edit-mode [data-maker-section]:hover::after,
+        .maker-edit-mode [data-maker-tab]:hover::after {
+          opacity: 1;
+          transform: translateY(0);
+        }
 
         /* Overrides para emular la paleta elegida del comercio */
+        .bg-emerald-600, .bg-emerald-700 {
+          background-color: ${colors.primario} !important;
+        }
         .bg-emerald-600, .bg-emerald-700 {
           background-color: ${colors.primario} !important;
         }
@@ -447,6 +493,7 @@ export default function WhatsAppCatalog({
         whatsapp={store.whatsapp}
         storeName={store.name}
         showSection={sections.floatingWhatsApp !== false}
+        device={device}
       />
     </div>
   )

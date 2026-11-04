@@ -28,7 +28,30 @@ interface AiStoreCopyPayload {
   niche?: string
   targetAudience?: string
   brandTone?: string
+  typography?: string
+  colors?: {
+    primario?: string
+    secundario?: string
+    acento?: string
+    fondo?: string
+    texto?: string
+  }
 }
+
+const ALLOWED_FONTS = [
+  'Plus Jakarta Sans',
+  'Outfit',
+  'Inter',
+  'Sora',
+  'DM Sans',
+  'Manrope',
+  'Space Grotesk',
+  'Syne',
+  'Playfair Display',
+  'Cormorant Garamond',
+  'Cinzel',
+  'Montserrat',
+]
 
 function extractJsonObject(raw: string): AiStoreCopyPayload | null {
   try {
@@ -55,69 +78,95 @@ export async function generateStorefrontPackage(params: {
   name: string
   category?: string | null
   description?: string | null
+  prompt?: string | null
+  scope?: 'all' | 'copy' | 'style'
 }): Promise<GeneratedStorePackage> {
-  const base = buildIndustryStoreBlueprint(params)
+  // Combine description with specific prompt for base blueprint determination
+  const combinedDesc = [params.description?.trim(), params.prompt?.trim()]
+    .filter(Boolean)
+    .join('. ')
 
-  const apiKey = process.env.OPENROUTER_API_KEY?.trim()
+  const base = buildIndustryStoreBlueprint({
+    name: params.name,
+    category: params.category,
+    description: combinedDesc,
+  })
+
+  const apiKey = (process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY)?.trim()
   const hasRealKey = Boolean(apiKey && !apiKey.includes('placeholder'))
-  const hasRichInput = Boolean(params.description?.trim() || params.name.trim())
+  const hasRichInput = Boolean(params.prompt?.trim() || params.description?.trim() || params.name.trim())
 
   if (!hasRealKey || !hasRichInput) {
     return base
   }
 
-  const apiUrl = process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1'
-  const model = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3-8b-instruct:free'
+  const isDeepSeek = !process.env.OPENROUTER_API_KEY && Boolean(process.env.DEEPSEEK_API_KEY)
+  const apiUrl = isDeepSeek
+    ? 'https://api.deepseek.com/v1'
+    : process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1'
+  const model = isDeepSeek
+    ? 'deepseek-chat'
+    : 'nvidia/nemotron-3.5-lightning:free'
 
   const systemPrompt = [
-    'Eres un director creativo de e-commerce en Latinoamérica.',
-    'Responde ÚNICAMENTE con un objeto JSON válido, sin markdown ni texto adicional, todo en español neutro/colombiano.',
-    'Presets permitidos para presetId: "luxe" | "midnight" | "artisan" | "streetwear" | "pastel".',
-    'brandTone debe ser uno de: "Sofisticado y elegante" | "Amigable y cercano" | "Profesional y directo" | "Divertido e informal".',
+    'Eres un director de arte y estratega de e-commerce de ultra lujo en Latinoamérica.',
+    'Responde ÚNICAMENTE con un objeto JSON válido, sin markdown ni explicaciones, todo en español persuasivo.',
+    'Presets válidos: "waterdrop-editorial" | "minimalist-luxe" | "artisan-warm" | "botanical-beauty" | "street-bold" | "midnight-monochrome" | "coastal-breeze" | "terracotta-earth" | "emerald-fine" | "cyber-tech".',
+    `Tipografías válidas: ${ALLOWED_FONTS.map(f => `"${f}"`).join(', ')}.`,
   ].join(' ')
 
-  const userPrompt = `Genera los textos y estilo para la tienda online:
+  const userPrompt = `Diseña y redacta la tienda online siguiendo estas especificaciones exactas:
 - Nombre comercial: "${params.name.trim()}"
-- Categoría: "${params.category || 'Otros'}"
-- Descripción del negocio: "${params.description?.trim() || 'Tienda online con ventas por WhatsApp'}"
+- Giro / Categoría: "${params.category || 'Otros'}"
+${params.prompt?.trim() ? `- DESEOS ESPECÍFICOS DEL USUARIO: "${params.prompt.trim()}"` : ''}
+${params.description?.trim() ? `- Descripción base: "${params.description.trim()}"` : ''}
+- Alcance solicitado: "${params.scope || 'all'}"
 
-Devuelve exactamente este esquema JSON:
+Devuelve exactamente este esquema JSON (colores en formato hex válido #RRGGBB):
 {
-  "presetId": "luxe",
-  "bio": "Resumen atractivo de 1 frase (máx 140 caracteres)",
-  "heroBadge": "INSIGNIA CORTA CON 1 EMOJI EN MAYÚSCULAS",
-  "bannerTitle": "Titular principal persuasivo (máx 65 caracteres)",
-  "bannerSubtitle": "Subtítulo claro con propuesta de valor (máx 160 caracteres)",
-  "announcementText": "Barra superior corta con 1 emoji",
-  "bentoTitle": "Título corto de diferenciales",
+  "presetId": "waterdrop-editorial",
+  "typography": "Plus Jakarta Sans",
+  "colors": {
+    "primario": "#111111",
+    "secundario": "#27272A",
+    "acento": "#8CE5A7",
+    "fondo": "#FFFFFF",
+    "texto": "#111111"
+  },
+  "bio": "Propuesta de valor en 1 frase memorable (máx 140 caracteres)",
+  "heroBadge": "INSIGNIA PERSUASIVA EN MAYÚSCULAS",
+  "bannerTitle": "Titular principal de alto impacto para portada (máx 60 caracteres)",
+  "bannerSubtitle": "Subtítulo claro con diferencial y beneficios (máx 150 caracteres)",
+  "announcementText": "Texto para la barra superior de promociones y envíos",
+  "bentoTitle": "Título de diferenciales clave",
   "bentoItems": [
-    { "emoji": "✨", "title": "Diferencial 1", "desc": "Descripción breve" },
-    { "emoji": "🚀", "title": "Diferencial 2", "desc": "Descripción breve" },
-    { "emoji": "🛡️", "title": "Diferencial 3", "desc": "Descripción breve" }
+    { "emoji": "✨", "title": "Diferencial 1", "desc": "Detalle breve" },
+    { "emoji": "🚀", "title": "Diferencial 2", "desc": "Detalle breve" },
+    { "emoji": "🛡️", "title": "Diferencial 3", "desc": "Detalle breve" }
   ],
-  "brandStoryTitle": "Título de la sección historia",
-  "brandStoryDesc": "Párrafo corto sobre la esencia del negocio",
-  "narrativeP1": "Primer párrafo de historia de la marca",
-  "narrativeP2": "Segundo párrafo de compromiso con el cliente",
-  "pillar1Icon": "🌟",
+  "brandStoryTitle": "Título de historia de marca",
+  "brandStoryDesc": "Párrafo emotivo sobre la pasión o misión del negocio",
+  "narrativeP1": "Párrafo 1 de historia",
+  "narrativeP2": "Párrafo 2 de compromiso",
+  "pillar1Icon": "🌿",
   "pillar1Title": "Pilar 1",
   "pillar1Desc": "Detalle del pilar 1",
   "pillar2Icon": "🤝",
   "pillar2Title": "Pilar 2",
   "pillar2Desc": "Detalle del pilar 2",
   "faqs": [
-    { "q": "Pregunta frecuente 1 del giro", "a": "Respuesta clara" },
-    { "q": "Pregunta frecuente 2 del giro", "a": "Respuesta clara" },
-    { "q": "Pregunta frecuente 3 del giro", "a": "Respuesta clara" }
+    { "q": "Pregunta frecuente 1 del giro", "a": "Respuesta clara sobre despacho o garantía" },
+    { "q": "Pregunta frecuente 2 del giro", "a": "Respuesta clara sobre medios de pago y seguridad" },
+    { "q": "Pregunta frecuente 3 del giro", "a": "Respuesta clara sobre envíos o cambios" }
   ],
-  "welcomeMessage": "Saludo cálido de WhatsApp para recibir clientes",
-  "niche": "Giro específico resumido",
-  "targetAudience": "Público ideal en 1 frase",
+  "welcomeMessage": "Saludo cálido por WhatsApp para recibir clientes que compran",
+  "niche": "Giro específico",
+  "targetAudience": "Público objetivo",
   "brandTone": "Sofisticado y elegante"
 }`
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 6500)
+  const timeout = setTimeout(() => controller.abort(), 12000)
 
   try {
     const res = await fetch(`${apiUrl}/chat/completions`, {
@@ -127,12 +176,13 @@ Devuelve exactamente este esquema JSON:
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://flashcheckout.co',
-        'X-Title': 'Flashcheckouts',
+        'X-Title': 'Flashcheckout Store Studio',
       },
       body: JSON.stringify({
         model,
-        temperature: 0.55,
-        max_tokens: 1200,
+        temperature: 0.65,
+        max_tokens: 1500,
+        reasoning: { max_tokens: 0 },
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -143,8 +193,12 @@ Devuelve exactamente este esquema JSON:
     if (!res.ok) return base
 
     const data = await res.json()
-    const rawContent = data?.choices?.[0]?.message?.content
-    if (typeof rawContent !== 'string') return base
+    const msg = data?.choices?.[0]?.message
+    const rawContent =
+      (typeof msg?.content === 'string' ? msg.content : '') ||
+      (typeof msg?.reasoning === 'string' ? msg.reasoning : '')
+
+    if (!rawContent) return base
 
     const ai = extractJsonObject(rawContent)
     if (!ai) return base
@@ -172,22 +226,38 @@ Devuelve exactamente este esquema JSON:
         : base.aiSettings.faqs?.items
 
     const finalBio = ai.bio?.trim() || base.bio
-    const validTones = [
-      'Sofisticado y elegante',
-      'Amigable y cercano',
-      'Profesional y directo',
-      'Divertido e informal',
-    ]
-    const finalTone =
-      ai.brandTone && validTones.includes(ai.brandTone)
-        ? ai.brandTone
-        : base.businessProfile.brandTone
     const finalNiche = ai.niche?.trim() || base.businessProfile.niche
+    const finalTone = ai.brandTone || base.businessProfile.brandTone
+
+    // Colors: Use custom AI colors if provided and valid, otherwise fallback to preset
+    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+    const customColors = {
+      primario: hexRegex.test(ai.colors?.primario || '')
+        ? ai.colors!.primario!
+        : chosenPreset?.colors.primario || base.aiSettings.colors?.primario || '#111111',
+      secundario: hexRegex.test(ai.colors?.secundario || '')
+        ? ai.colors!.secundario!
+        : chosenPreset?.colors.secundario || base.aiSettings.colors?.secundario || '#27272A',
+      acento: hexRegex.test(ai.colors?.acento || '')
+        ? ai.colors!.acento!
+        : chosenPreset?.colors.acento || base.aiSettings.colors?.acento || '#8CE5A7',
+      fondo: hexRegex.test(ai.colors?.fondo || '')
+        ? ai.colors!.fondo!
+        : chosenPreset?.colors.fondo || base.aiSettings.colors?.fondo || '#FFFFFF',
+      texto: hexRegex.test(ai.colors?.texto || '')
+        ? ai.colors!.texto!
+        : chosenPreset?.colors.texto || base.aiSettings.colors?.texto || '#111111',
+    }
+
+    const finalTypography =
+      ai.typography && ALLOWED_FONTS.includes(ai.typography)
+        ? ai.typography
+        : chosenPreset?.typography || base.aiSettings.typography || 'Plus Jakarta Sans'
 
     return {
       bio: finalBio,
       welcomeMessage: ai.welcomeMessage?.trim() || base.welcomeMessage,
-      systemPrompt: `Eres Nova, el asesor comercial oficial de ${params.name.trim()} (${finalNiche}). Tu tono de marca es "${finalTone}". Ayuda al cliente a resolver dudas sobre el catálogo, recomienda opciones ideales según lo que busca y guíalo de forma amable y concisa a completar su pedido.`,
+      systemPrompt: `Eres Nova, asesor comercial oficial de ${params.name.trim()} (${finalNiche}). Tu tono es "${finalTone}". Ayuda a los compradores con recomendaciones directas y catálogo en línea.`,
       businessProfile: {
         niche: finalNiche,
         targetAudience: ai.targetAudience?.trim() || base.businessProfile.targetAudience,
@@ -196,20 +266,16 @@ Devuelve exactamente este esquema JSON:
       },
       aiSettings: {
         ...base.aiSettings,
-        ...(chosenPreset
-          ? {
-              themePreset: chosenPreset.id,
-              colors: { ...chosenPreset.colors },
-              typography: chosenPreset.typography,
-              borderRadius: chosenPreset.borderRadius,
-              shadowStyle: chosenPreset.shadowStyle,
-              headerStyle: chosenPreset.headerStyle,
-              heroStyle: chosenPreset.heroStyle,
-              cardStyle: chosenPreset.cardStyle,
-              cardAspectRatio: chosenPreset.cardAspectRatio,
-              badgeStyle: chosenPreset.badgeStyle,
-            }
-          : {}),
+        heroPanels: base.aiSettings.heroPanels,
+        bannerUrl: base.aiSettings.bannerUrl,
+        themePreset: chosenPreset?.id || base.aiSettings.themePreset || 'waterdrop-editorial',
+        colors: customColors,
+        typography: finalTypography,
+        borderRadius: chosenPreset?.borderRadius || base.aiSettings.borderRadius || 'smooth',
+        shadowStyle: chosenPreset?.shadowStyle || base.aiSettings.shadowStyle || 'flat',
+        headerStyle: chosenPreset?.headerStyle || base.aiSettings.headerStyle || 'clean-border',
+        heroStyle: chosenPreset?.heroStyle || base.aiSettings.heroStyle || 'waterdrop-collage',
+        cardStyle: chosenPreset?.cardStyle || base.aiSettings.cardStyle || 'waterdrop-studio',
         heroBadge: ai.heroBadge?.trim() || base.aiSettings.heroBadge,
         bannerTitle: ai.bannerTitle?.trim() || base.aiSettings.bannerTitle,
         bannerSubtitle: ai.bannerSubtitle?.trim() || base.aiSettings.bannerSubtitle,
@@ -217,7 +283,7 @@ Devuelve exactamente este esquema JSON:
           ...base.aiSettings.announcement,
           enabled: true,
           text: ai.announcementText?.trim() || base.aiSettings.announcement?.text,
-          bgColor: chosenPreset?.colors.primario || base.aiSettings.colors?.primario || '#18181B',
+          bgColor: customColors.primario,
           textColor: '#FFFFFF',
         },
         bentoHighlights: {
@@ -246,7 +312,7 @@ Devuelve exactamente este esquema JSON:
           items: validFaqs,
         },
         seo: {
-          title: `${params.name.trim()} | Tienda Oficial Online`,
+          title: `${params.name.trim()} | Tienda Oficial`,
           desc: finalBio,
         },
       },
@@ -257,4 +323,3 @@ Devuelve exactamente este esquema JSON:
     clearTimeout(timeout)
   }
 }
-

@@ -1,12 +1,24 @@
+'use client'
+
+import React from 'react'
+import {
+  Globe,
+  Sparkles,
+  Edit3,
+  Eye,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Globe, Monitor, Tablet, Smartphone } from 'lucide-react'
 import WhatsAppCatalog from '@/components/WhatsAppCatalog'
 import type { PublicCheckoutStore } from '@/lib/checkout/types'
-import { DeviceType } from './types'
+import { DeviceType, ActiveTab } from './types'
+import { SectionId } from './SectionsOverview'
+import { AiProposalBanner } from './AiProposalBanner'
 
 interface TiendaPreviewPanelProps {
   device: DeviceType
-  setDevice: (device: DeviceType) => void
+  setDevice?: (device: DeviceType) => void
   typography: string
   colors: {
     primario: string
@@ -16,87 +28,113 @@ interface TiendaPreviewPanelProps {
     texto: string
   }
   previewStore: PublicCheckoutStore
-}
-
-const DEVICES: Array<{ id: DeviceType; icon: typeof Monitor; label: string }> = [
-  { id: 'escritorio', icon: Monitor, label: 'Escritorio' },
-  { id: 'tablet', icon: Tablet, label: 'Tablet' },
-  { id: 'movil', icon: Smartphone, label: 'Móvil' },
-]
-
-function resolvePreviewFont(typography: string): string {
-  switch (typography) {
-    case 'Outfit':
-      return "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif"
-    case 'Plus Jakarta Sans':
-      return "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif"
-    case 'Playfair Display':
-      return "'Playfair Display', Georgia, serif"
-    case 'Space Grotesk':
-      return "'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
-    case 'Inter':
-    default:
-      return "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-  }
+  activeSectionTitle?: string
+  previewMode: 'edit' | 'preview'
+  setPreviewMode?: (mode: 'edit' | 'preview') => void
+  zoomLevel: number
+  setZoomLevel?: React.Dispatch<React.SetStateAction<number>>
+  onSelectSection?: (sectionId: SectionId) => void
+  onSelectTab?: (tab: ActiveTab) => void
+  isZenMode?: boolean
+  onToggleZenMode?: () => void
+  aiProposalActive?: boolean
+  onAcceptAiProposal?: () => void
+  onUndoAiProposal?: () => void
+  onRefineAiProposal?: () => void
 }
 
 export function TiendaPreviewPanel({
   device,
-  setDevice,
-  typography,
   colors,
   previewStore,
+  activeSectionTitle,
+  previewMode,
+  zoomLevel,
+  onSelectSection,
+  onSelectTab,
+  isZenMode = false,
+  onToggleZenMode,
+  aiProposalActive = false,
+  onAcceptAiProposal,
+  onUndoAiProposal,
+  onRefineAiProposal,
 }: TiendaPreviewPanelProps) {
-  const hasDemoProducts = previewStore.products.some(p => p.id.startsWith('demo-'))
+  const handlePreviewClick = (e: React.MouseEvent) => {
+    if (previewMode !== 'edit') return
+
+    const target = (e.target as HTMLElement).closest(
+      '[data-maker-section], [data-maker-tab]'
+    ) as HTMLElement | null
+
+    if (!target) return
+
+    e.stopPropagation()
+
+    if (target.dataset.makerSection && onSelectSection) {
+      onSelectSection(target.dataset.makerSection as SectionId)
+    } else if (target.dataset.makerTab && onSelectTab) {
+      onSelectTab(target.dataset.makerTab as ActiveTab)
+    }
+  }
 
   return (
-    <div className="lg:col-span-8 h-full flex flex-col overflow-hidden">
-      <div className="bg-white border border-zinc-200 rounded-xl p-4 flex-1 flex flex-col items-center shadow-none min-h-0 overflow-hidden">
-        <div className="flex items-center justify-between w-full border-b border-zinc-100 pb-3 select-none shrink-0 gap-2">
+    <div
+      className={cn(
+        'h-full flex flex-col overflow-hidden transition-all duration-300',
+        isZenMode ? 'col-span-12' : 'col-span-12 lg:col-span-8 xl:col-span-8.5'
+      )}
+    >
+      <div className="bg-white border border-zinc-200 rounded-xl p-2.5 sm:p-3 flex-1 flex flex-col items-center shadow-none min-h-0 overflow-hidden">
+        {/* Canvas Status & Breadcrumb Bar */}
+        <div className="flex items-center justify-between w-full border-b border-zinc-100 pb-2 px-1 select-none shrink-0 gap-2">
+          {/* Breadcrumb / Mode indicator */}
           <div className="flex items-center gap-2 min-w-0">
-            <h3 className="text-xs xl:text-sm font-bold text-zinc-900 flex items-center gap-1.5 truncate">
-              <Globe className="w-4 h-4 text-zinc-400 shrink-0" />
-              <span>Vista previa en vivo</span>
-            </h3>
-            {hasDemoProducts && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 border border-zinc-200/80">
-                Productos de muestra
-              </span>
+            {previewMode === 'edit' ? (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 text-[11px] font-bold border border-zinc-200/80 truncate">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="truncate">
+                  {activeSectionTitle ? `Editando: ${activeSectionTitle}` : 'Modo Editor: Clic en cualquier bloque'}
+                </span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200/80 truncate">
+                <Eye className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>Modo Vista: Experiencia real del cliente</span>
+              </div>
             )}
           </div>
 
-          <div className="flex items-center border border-zinc-200 rounded-lg p-0.5 bg-zinc-50/50 shrink-0">
-            {DEVICES.map(dev => {
-              const Icon = dev.icon
-              return (
-                <button
-                  key={dev.id}
-                  type="button"
-                  onClick={() => setDevice(dev.id)}
-                  className={`px-2 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 text-[10px] xl:text-xs font-bold ${
-                    device === dev.id
-                      ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200/60'
-                      : 'text-zinc-400 hover:text-zinc-700'
-                  }`}
-                  title={dev.label}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{dev.label}</span>
-                </button>
-              )
-            })}
+          {/* Quick Domain Pill */}
+          <div className="hidden sm:flex items-center gap-2 text-[10.5px] font-semibold text-zinc-400">
+            <span className="flex items-center gap-1">
+              <Globe className="w-3 h-3 text-zinc-400" />
+              <span>{previewStore.slug}.flashcheckout.co</span>
+            </span>
           </div>
         </div>
 
+        {/* Viewport Canvas Frame */}
         <div
           className={cn(
-            'w-full flex-1 flex justify-center overflow-hidden relative select-none min-h-0 bg-zinc-50 border border-zinc-200/80 rounded-lg mt-3',
-            device === 'escritorio' ? 'bg-white p-0 items-stretch' : 'p-4 items-center'
+            'w-full flex-1 flex justify-center overflow-hidden relative select-none min-h-0 bg-zinc-50/70 border border-zinc-200/80 rounded-lg mt-2',
+            device === 'escritorio' ? 'bg-white p-0 items-stretch' : 'p-3 sm:p-4 items-center'
           )}
         >
+          {/* Floating AI Proposal Confirmation Banner */}
+          {aiProposalActive && onAcceptAiProposal && onUndoAiProposal && (
+            <AiProposalBanner
+              isVisible={aiProposalActive}
+              onAccept={onAcceptAiProposal}
+              onUndo={onUndoAiProposal}
+              onRefine={onRefineAiProposal || (() => {})}
+            />
+          )}
+
           <div
+            onClick={handlePreviewClick}
             className={cn(
               'bg-white flex flex-col text-left overflow-y-auto select-none relative transition-all duration-300',
+              previewMode === 'edit' && 'maker-edit-mode',
               device === 'escritorio' ? 'w-full h-full' : 'border border-zinc-200 shadow-xl rounded-lg',
               device === 'tablet' ? 'w-[460px] h-[94%] max-h-[620px]' : '',
               device === 'movil'
@@ -104,12 +142,19 @@ export function TiendaPreviewPanel({
                 : ''
             )}
             style={{
-              fontFamily: resolvePreviewFont(typography),
               backgroundColor: colors.fondo,
+              ...(device === 'escritorio' && zoomLevel !== 100
+                ? {
+                    transform: `scale(${zoomLevel / 100})`,
+                    transformOrigin: 'top center',
+                    width: `${100 / (zoomLevel / 100)}%`,
+                    height: `${100 / (zoomLevel / 100)}%`,
+                  }
+                : {}),
             }}
           >
             {device === 'movil' && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-zinc-900 h-4 w-24 rounded-b-xl z-30 flex items-center justify-center">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-zinc-900 h-4 w-24 rounded-b-xl z-30 flex items-center justify-center pointer-events-none">
                 <div className="w-2 h-2 bg-zinc-800 rounded-full" />
               </div>
             )}

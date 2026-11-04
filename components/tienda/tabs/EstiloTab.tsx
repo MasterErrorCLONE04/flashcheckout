@@ -2,6 +2,8 @@ import { cn } from "@/lib/utils"
 import { Sparkles, CheckCircle2, Palette, Type, Check, Wand2, Loader2 } from 'lucide-react'
 import { PRESETS } from '../types'
 import { TiendaFormState } from '../useTiendaForm'
+import { VisualPalettePicker, PalettePreset } from '../VisualPalettePicker'
+import { toast } from 'sonner'
 
 interface EstiloTabProps {
   form: TiendaFormState
@@ -35,69 +37,25 @@ export function EstiloTab({ form }: EstiloTabProps) {
     setStoreInfo,
     isGeneratingPage,
     handleAutogeneratePage,
+    setColors,
+    setThemePreset,
   } = form
+
+  const handleSelectPalette = (p: PalettePreset) => {
+    setColors({ ...p.colors })
+    setTypography(p.typography)
+    setThemePreset(p.id)
+    toast.success(`Paleta aplicada: ${p.name}`)
+  }
 
   return (
     <div className="space-y-6">
-      {/* Autogenerate Page by Business Type & Description */}
-      <div className="bg-zinc-950 text-white border border-zinc-800 rounded-xl p-5 space-y-3.5 text-left">
-        <div className="space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <Wand2 className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-sm font-bold text-white leading-none">
-                Autogenerar según mi negocio
-              </h3>
-            </div>
-            <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              IA + Giro
-            </span>
-          </div>
-          <p className="text-[11px] font-medium text-zinc-400 leading-snug">
-            Indica el giro y una breve descripción de tu negocio para adaptar paleta, portada, secciones y textos automáticamente.
-          </p>
-        </div>
-
-        <div className="space-y-2.5">
-          <select
-            value={QUICK_CATEGORIES.includes(storeInfo.category) ? storeInfo.category : 'Otros'}
-            onChange={e => setStoreInfo(prev => ({ ...prev, category: e.target.value }))}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-semibold text-white outline-none focus:border-zinc-600 cursor-pointer"
-          >
-            {QUICK_CATEGORIES.map(cat => (
-              <option key={cat} value={cat}>
-                Giro: {cat}
-              </option>
-            ))}
-          </select>
-
-          <textarea
-            rows={2}
-            value={storeInfo.desc}
-            onChange={e => setStoreInfo(prev => ({ ...prev, desc: e.target.value }))}
-            placeholder="Describe qué vendes, tu diferencial y tu público..."
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs font-medium text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-zinc-600 resize-none leading-relaxed"
-          />
-
-          <button
-            type="button"
-            onClick={handleAutogeneratePage}
-            disabled={isGeneratingPage}
-            className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
-          >
-            {isGeneratingPage ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Generando página...</span>
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-3.5 h-3.5" />
-                <span>Generar diseño y textos ahora</span>
-              </>
-            )}
-          </button>
-        </div>
+      {/* Visual Designer Palette Picker 1-Click */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-none">
+        <VisualPalettePicker
+          currentColors={colors}
+          onSelectPalette={handleSelectPalette}
+        />
       </div>
       {/* Presets 1-Clic Card */}
       <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none">
@@ -267,18 +225,99 @@ export function EstiloTab({ form }: EstiloTabProps) {
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
             <Type className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-sm font-black text-zinc-900 leading-none">Tipografía de Autor</h3>
+            <h3 className="text-sm font-black text-zinc-900 leading-none">Tipografía de la Página</h3>
           </div>
-          <p className="text-[11px] font-semibold text-zinc-400">Tipografías Google Fonts calibradas para alta legibilidad.</p>
+          <p className="text-[11px] font-semibold text-zinc-400">
+            Elige la fuente de letra para los títulos, precios, botones y textos de tu tienda online.
+          </p>
         </div>
 
         <div className="space-y-2 pt-1">
           {[
-            { id: 'Outfit', name: 'Outfit', desc: 'Geométrica, moderna y limpia (Recomendada)' },
-            { id: 'Plus Jakarta Sans', name: 'Plus Jakarta Sans', desc: 'Tech, moderna y altamente legible' },
-            { id: 'Playfair Display', name: 'Playfair Display', desc: 'Serif de lujo, gourmet y editorial' },
-            { id: 'Space Grotesk', name: 'Space Grotesk', desc: 'Vanguardista, streetwear y urbana' },
-            { id: 'Inter', name: 'Inter', desc: 'Precisión suiza y balance neutral clásico' },
+            {
+              id: 'Plus Jakarta Sans',
+              name: 'Plus Jakarta Sans',
+              category: 'DTC Flagship',
+              desc: 'Moderna, técnica y ultra legible (Estilo oficial Waterdrop)',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            },
+            {
+              id: 'Outfit',
+              name: 'Outfit',
+              category: 'Moderna & Minimal',
+              desc: 'Limpia, geométrica y balanceada para marcas contemporáneas',
+              fontFamily: "'Outfit', sans-serif",
+            },
+            {
+              id: 'Inter',
+              name: 'Inter',
+              category: 'Suiza Neutral',
+              desc: 'Estilo clásico, sobrio y con máxima fidelidad visual',
+              fontFamily: "'Inter', sans-serif",
+            },
+            {
+              id: 'Sora',
+              name: 'Sora',
+              category: 'Futurista & Tech',
+              desc: 'Curvas nítidas y estética de producto digital premium',
+              fontFamily: "'Sora', sans-serif",
+            },
+            {
+              id: 'DM Sans',
+              name: 'DM Sans',
+              category: 'Geométrica Suave',
+              desc: 'Amigable, redondeada y perfecta para moda o estilo de vida',
+              fontFamily: "'DM Sans', sans-serif",
+            },
+            {
+              id: 'Manrope',
+              name: 'Manrope',
+              category: 'Grotesk Dinámica',
+              desc: 'Cuerpo robusto, líneas abiertas y gran impacto en títulos',
+              fontFamily: "'Manrope', sans-serif",
+            },
+            {
+              id: 'Montserrat',
+              name: 'Montserrat',
+              category: 'Urbana & Mayúsculas',
+              desc: 'Inspirada en cartelería urbana; potente en cabeceras',
+              fontFamily: "'Montserrat', sans-serif",
+            },
+            {
+              id: 'Space Grotesk',
+              name: 'Space Grotesk',
+              category: 'Streetwear & Brutalism',
+              desc: 'Vanguardista, alternativa y audaz con estética moderna',
+              fontFamily: "'Space Grotesk', monospace, sans-serif",
+            },
+            {
+              id: 'Syne',
+              name: 'Syne',
+              category: 'Editorial de Arte',
+              desc: 'Contraste visual marcado y personalidad de boutique',
+              fontFamily: "'Syne', sans-serif",
+            },
+            {
+              id: 'Playfair Display',
+              name: 'Playfair Display',
+              category: 'Serif de Lujo',
+              desc: 'Elegancia clásica, alta costura, joyería y gourmet',
+              fontFamily: "'Playfair Display', serif",
+            },
+            {
+              id: 'Cinzel',
+              name: 'Cinzel',
+              category: 'Romana Imperial',
+              desc: 'Inspirada en inscripciones clásicas; máxima exclusividad',
+              fontFamily: "'Cinzel', serif",
+            },
+            {
+              id: 'Cormorant Garamond',
+              name: 'Cormorant Garamond',
+              category: 'Editorial Clásico',
+              desc: 'Serif tradicional, poética y artesanal para marcas con historia',
+              fontFamily: "'Cormorant Garamond', serif",
+            },
           ].map((font) => {
             const isSelected = typography === font.id
             return (
@@ -286,17 +325,33 @@ export function EstiloTab({ form }: EstiloTabProps) {
                 key={font.id}
                 onClick={() => setTypography(font.id)}
                 className={cn(
-                  "p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
+                  "p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group",
                   isSelected
                     ? "border-zinc-950 bg-zinc-50 shadow-xs ring-1 ring-zinc-950"
                     : "border-zinc-200 hover:border-zinc-300 bg-white"
                 )}
               >
-                <div className="space-y-0.5">
-                  <span className="font-black text-xs text-zinc-900 block">{font.name}</span>
-                  <span className="text-[10px] font-medium text-zinc-500">{font.desc}</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className="font-extrabold text-sm text-zinc-900 block"
+                      style={{ fontFamily: font.fontFamily }}
+                    >
+                      {font.name}
+                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">
+                      {font.category}
+                    </span>
+                  </div>
+                  <span className="text-[10.5px] font-medium text-zinc-500 block leading-snug">
+                    {font.desc}
+                  </span>
                 </div>
-                {isSelected && <Check className="w-4 h-4 text-zinc-950 shrink-0" />}
+                {isSelected ? (
+                  <Check className="w-4 h-4 text-zinc-950 shrink-0 ml-2" />
+                ) : (
+                  <div className="w-4 h-4 rounded-full border border-zinc-300 shrink-0 ml-2 group-hover:border-zinc-400" />
+                )}
               </div>
             )
           })}

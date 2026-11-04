@@ -19,22 +19,23 @@ export function resolveBusinessCategory(
   rawCategory?: string | null,
   description?: string | null
 ): BusinessCategoryId {
+  const text = `${description || ''}`.toLowerCase()
+  // Si la descripción o prompt tiene palabras clave explícitas, tienen prioridad sobre la categoría guardada
+  if (/(comida|restaurante|cafe|café|coffee|pastel|postre|panader|hamburgues|pizza|sushi|gourmet|bebida|chocolate|snack|grano|tostado)/.test(text)) return 'Comida'
+  if (/(belleza|skincare|maquillaje|cosmet|cosmét|perfume|capilar|spa|uñas|barber|facial|crema|suero)/.test(text)) return 'Belleza'
+  if (/(tecno|celular|iphone|comput|laptop|audio|audifono|audífono|gadget|gamer|electr|auricular|smartwatch)/.test(text)) return 'Tecnología'
+  if (/(joya|joyer|anillo|collar|reloj|accesorio|plata|oro|bisuter|diamante|aretes|pulsera)/.test(text)) return 'Joyería'
+  if (/(hogar|mueble|decora|cocina|sabana|sábana|colchon|colchón|lampara|lámpara|planta|vajilla)/.test(text)) return 'Hogar'
+  if (/(deporte|fitness|gym|gimnasio|suplemento|proteina|proteína|ciclismo|running|entrenam|pesa)/.test(text)) return 'Deportes'
+  if (/(mascota|perro|gato|veterinar|pet|concentrado|cachorro)/.test(text)) return 'Mascotas'
+  if (/(ropa|moda|vestido|camis|calzado|zapato|tenis|boutique|streetwear|jean|hoodie|textil)/.test(text)) return 'Moda'
+
   const cat = (rawCategory || '').trim()
   if (cat in TEMPLATES && cat !== 'Otros') {
     return cat as BusinessCategoryId
   }
 
-  const text = `${cat} ${description || ''}`.toLowerCase()
-  if (/(ropa|moda|vestido|camis|calzado|zapato|tenis|boutique|streetwear|jean|hoodie)/.test(text)) return 'Moda'
-  if (/(comida|restaurante|cafe|café|pastel|postre|panader|hamburgues|pizza|sushi|gourmet|bebida|chocolate|snack)/.test(text)) return 'Comida'
-  if (/(belleza|skincare|maquillaje|cosmet|cosmét|perfume|capilar|spa|uñas|barber)/.test(text)) return 'Belleza'
-  if (/(tecno|celular|iphone|comput|laptop|audio|audifono|audífono|gadget|gamer|electr)/.test(text)) return 'Tecnología'
-  if (/(joya|joyer|anillo|collar|reloj|accesorio|plata|oro|bisuter)/.test(text)) return 'Joyería'
-  if (/(hogar|mueble|decora|cocina|sabana|sábana|colchon|colchón|lampara|lámpara|planta)/.test(text)) return 'Hogar'
-  if (/(deporte|fitness|gym|gimnasio|suplemento|proteina|proteína|ciclismo|running)/.test(text)) return 'Deportes'
-  if (/(mascota|perro|gato|veterinar|pet|concentrado)/.test(text)) return 'Mascotas'
-
-  return cat in TEMPLATES ? (cat as BusinessCategoryId) : 'Otros'
+  return 'Otros'
 }
 
 export function buildIndustryStoreBlueprint(params: {
@@ -73,6 +74,72 @@ export function buildIndustryStoreBlueprint(params: {
     tpl.heritageImg,
     tpl.bannerUrl,
   ].filter(Boolean)
+
+  const pressLogosByCategory: Record<BusinessCategoryId, Array<{ name: string; subtitle: string }>> = {
+    Moda: [
+      { name: 'VOGUE', subtitle: 'Selección Editorial' },
+      { name: 'FORBES', subtitle: 'Comercio Digital' },
+      { name: 'GQ', subtitle: 'Diseño & Calidad' },
+      { name: 'ELLE', subtitle: 'Tendencia Local' },
+      { name: 'TRUSTED', subtitle: '4.9★ Verificado' },
+    ],
+    Comida: [
+      { name: 'SPECIALTY COFFEE', subtitle: 'Origen Certificado' },
+      { name: 'MICHELIN GUIDE', subtitle: 'Recomendación' },
+      { name: 'TASTE ATLAS', subtitle: 'Sabor Auténtico' },
+      { name: 'FORBES GOURMET', subtitle: 'Selección Premium' },
+      { name: '5★ FRESH', subtitle: 'Receta del Día' },
+    ],
+    Belleza: [
+      { name: 'VOGUE BEAUTY', subtitle: 'Fórmula Limpia' },
+      { name: 'GLAMOUR', subtitle: 'Eficacia Clínica' },
+      { name: 'ELLE', subtitle: 'Rutina Diaria' },
+      { name: 'DERMA TEST', subtitle: '100% Seguro' },
+      { name: 'CRUELTY FREE', subtitle: 'Ética Certificada' },
+    ],
+    Joyería: [
+      { name: 'VOGUE JEWELS', subtitle: 'Alta Joyería' },
+      { name: 'HARPER’S BAZAAR', subtitle: 'Diseño Exclusivo' },
+      { name: 'ELLE LUXE', subtitle: 'Piezas Eternas' },
+      { name: 'GOLD STANDARD', subtitle: 'Oro & Ley Verificada' },
+      { name: 'EDITORIAL 5★', subtitle: 'Garantía Total' },
+    ],
+    Tecnología: [
+      { name: 'WIRED', subtitle: 'Tecnología Top' },
+      { name: 'TECHCRUNCH', subtitle: 'Innovación 2026' },
+      { name: 'THE VERGE', subtitle: 'Rendimiento Pro' },
+      { name: 'XATAKA', subtitle: 'Compra Inteligente' },
+      { name: 'GARANTÍA 12M', subtitle: 'Soporte Directo' },
+    ],
+    Hogar: [
+      { name: 'ARCHITECTURAL DIGEST', subtitle: 'Interiorismo' },
+      { name: 'ELLE DECOR', subtitle: 'Espacios Vivos' },
+      { name: 'DWELL', subtitle: 'Diseño Moderno' },
+      { name: 'CASAS & DISEÑO', subtitle: 'Ambientes Cálidos' },
+      { name: 'GARANTÍA HOGAR', subtitle: 'Materiales Nobles' },
+    ],
+    Deportes: [
+      { name: 'MEN’S HEALTH', subtitle: 'Nutrición Limpia' },
+      { name: 'WOMEN’S HEALTH', subtitle: 'Bienestar Diario' },
+      { name: 'FITNESS LAB', subtitle: 'Rendimiento Puro' },
+      { name: 'BIO CERTIFIED', subtitle: '0% Aditivos' },
+      { name: 'TRUSTED 4.9★', subtitle: 'Comunidad Activa' },
+    ],
+    Mascotas: [
+      { name: 'PET HEALTH', subtitle: 'Nutrición Vet' },
+      { name: 'DOG MAGAZINE', subtitle: 'Bienestar Animal' },
+      { name: 'CAT LIFE', subtitle: 'Confort Premium' },
+      { name: '100% SEGURO', subtitle: 'Libre de Tóxicos' },
+      { name: 'HAPPY PETS', subtitle: '5★ Aprobado' },
+    ],
+    Otros: [
+      { name: 'FORBES', subtitle: 'Comercio Digital' },
+      { name: 'VOGUE', subtitle: 'Selección Editorial' },
+      { name: 'GQ', subtitle: 'Diseño & Calidad' },
+      { name: 'TRUSTED', subtitle: '4.9★ Verificado' },
+      { name: 'CALIDAD TOTAL', subtitle: 'Compra Segura' },
+    ],
+  }
 
   const aiSettings: TiendaSettings = {
     themePreset: preset.id,
@@ -157,13 +224,7 @@ export function buildIndustryStoreBlueprint(params: {
         },
       ],
     },
-    pressLogos: [
-      { name: 'VOGUE', subtitle: 'Selección Editorial' },
-      { name: 'FORBES', subtitle: 'Comercio Digital' },
-      { name: 'GQ', subtitle: 'Diseño & Calidad' },
-      { name: 'ELLE', subtitle: 'Tendencia Local' },
-      { name: 'TRUSTED', subtitle: '4.9★ Verificado' },
-    ],
+    pressLogos: pressLogosByCategory[resolvedCategory] || pressLogosByCategory.Moda,
     ambassadors: {
       title: 'Recomendado por nuestra comunidad',
       subtitle: 'Personas reales y especialistas que eligen nuestra marca todos los días',

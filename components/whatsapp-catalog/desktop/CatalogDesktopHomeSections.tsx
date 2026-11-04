@@ -157,7 +157,11 @@ export function CatalogDesktopHomeBottomSections({
     <div className="w-full pt-24 space-y-24">
       {/* 1. WATERDROP MASSIVE SOCIAL PROOF + 6-COLUMN STAGGERED UGC WAVE WALL */}
       {(sections.testimonials || sections.ugcGallery) && (
-        <section className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none">
+        <section
+          data-maker-section="ugc"
+          data-maker-title="Mural Social UGC & Reseñas"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none cursor-pointer"
+        >
           {sections.testimonials && testimonials.enabled && (
             <div className="max-w-[560px] mx-auto text-center space-y-3.5 mb-12">
               <div
@@ -272,7 +276,11 @@ export function CatalogDesktopHomeBottomSections({
 
       {/* 2. WATERDROP "OUR RETAILERS" / COVERAGE & OFFICIAL CHANNELS */}
       {sections.retailers && retailers.items.length > 0 && (
-        <section className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none">
+        <section
+          data-maker-section="ugc"
+          data-maker-title="Canales & Puntos de Venta"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none cursor-pointer"
+        >
           <div className="space-y-1 mb-7">
             <h2
               className="text-[22px] sm:text-[28px] font-extrabold tracking-[-0.03em]"
@@ -329,7 +337,11 @@ export function CatalogDesktopHomeBottomSections({
 
       {/* Optional Brand Story Banner */}
       {sections.brandStory && brandStory && (
-        <section className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none">
+        <section
+          data-maker-section="story"
+          data-maker-title="Historia de Marca"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none cursor-pointer"
+        >
           <div className="relative h-[320px] w-full bg-zinc-950 rounded-[4px] flex items-center justify-center text-center p-8 overflow-hidden">
             {brandStory.bgUrl && (
               <img
@@ -371,7 +383,9 @@ export function CatalogDesktopHomeBottomSections({
       {sections.faqs && faqs.enabled && faqs.items.length > 0 && (
         <section
           id="catalog-faqs"
-          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none"
+          data-maker-section="faqs"
+          data-maker-title="Preguntas Frecuentes"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none cursor-pointer"
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-4 space-y-2">
@@ -404,8 +418,12 @@ export function CatalogDesktopHomeBottomSections({
 
       {/* 4. WATERDROP PRE-FOOTER 3-COLUMN ARCHITECTURAL GUARANTEE STRIP */}
       {sections.beneficios && (benefits.items?.length ?? 0) > 0 && (
-        <section className="w-full bg-[#F4F4F3] border-t border-zinc-200/80 select-none">
-          <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-300/70">
+        <section
+          data-maker-section="garantias"
+          data-maker-title="Garantías Pre-Footer"
+          className="w-full bg-[#F4F4F3] border-t border-[#EAEAE8] select-none cursor-pointer"
+        >
+          <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E5E5E3]">
             {(benefits.items || [])
               .slice(0, 3)
               .map((item: { icon: CatalogIconName; label: string; desc: string }, idx: number) => {
@@ -415,13 +433,17 @@ export function CatalogDesktopHomeBottomSections({
                     ? `Envío sin costo adicional en pedidos desde $${freeShipping.threshold.toLocaleString('es-CO')}`
                     : item.desc
                 return (
-                  <div key={idx} className="px-6 lg:px-12 py-10 text-left space-y-2.5">
-                    <ItemIcon className="w-[22px] h-[22px] text-zinc-950 stroke-[1.5]" />
-                    <div className="space-y-0.5">
-                      <h4 className="text-[13.5px] font-bold text-zinc-950 tracking-[-0.01em]">
+                  <div key={idx} className="px-8 lg:px-14 py-9 text-left flex items-start gap-4 group">
+                    <div className="w-10 h-10 rounded-full bg-white border border-[#E5E5E3] flex items-center justify-center shrink-0 shadow-2xs group-hover:border-[#111111] transition-colors">
+                      <ItemIcon className="w-[18px] h-[18px] text-[#111111] stroke-[1.6]" />
+                    </div>
+                    <div className="space-y-1 pt-0.5">
+                      <h4 className="text-[13.5px] font-extrabold text-[#111111] tracking-[-0.015em] leading-snug">
                         {item.label}
                       </h4>
-                      <p className="text-xs font-normal text-zinc-600 leading-relaxed">{desc}</p>
+                      <p className="text-[12px] font-normal text-[#52525B] leading-relaxed max-w-[280px]">
+                        {desc}
+                      </p>
                     </div>
                   </div>
                 )

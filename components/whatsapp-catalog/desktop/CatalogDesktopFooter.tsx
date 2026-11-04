@@ -2,7 +2,14 @@
 
 import React, { useState } from 'react'
 import { X, ChevronDown } from 'lucide-react'
-import { SiVisa, SiMastercard } from 'react-icons/si'
+import {
+  SiVisa,
+  SiMastercard,
+  SiAmericanexpress,
+  SiApplepay,
+  SiGooglepay,
+  SiPaypal,
+} from 'react-icons/si'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Store, Product } from '../types'
@@ -58,8 +65,10 @@ export function CatalogDesktopFooter({
   return (
     <>
       <footer
+        data-maker-section="footer"
+        data-maker-title="Pie de Página & Newsletter"
         className={cn(
-          'w-full border-t select-none mt-auto',
+          'w-full border-t select-none mt-auto cursor-pointer',
           isDarkCanvas
             ? 'bg-zinc-950 text-zinc-200 border-zinc-800'
             : 'bg-white text-zinc-900 border-zinc-200/80'
@@ -355,56 +364,67 @@ export function CatalogDesktopFooter({
         {/* Bottom Locale Selector & Uniform Fintech Payment Marks Bar */}
         <div
           className={cn(
-            'w-full border-t py-5 px-6 lg:px-12',
+            'w-full border-t py-4 px-6 lg:px-12',
             isDarkCanvas
               ? 'bg-zinc-900/60 border-zinc-800'
-              : 'bg-[#F4F4F3] border-zinc-200/80'
+              : 'bg-[#F4F4F3] border-[#E5E5E3]'
           )}
         >
-          <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="inline-flex items-center justify-between gap-6 px-3.5 py-2 rounded-[4px] bg-white border border-zinc-300 text-xs font-semibold text-zinc-900 min-w-[210px]">
+          <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Country Selector & Dynamic Copyright */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3.5">
+              <div className="inline-flex items-center justify-between gap-5 px-3 py-1.5 rounded-[4px] bg-white border border-[#D4D4D2] text-[12px] font-medium text-[#111111] hover:border-[#111111] transition-colors cursor-pointer select-none">
                 <span className="inline-flex items-center gap-2">
-                  <span>🇨🇴</span>
+                  <span className="text-[14px]">🇨🇴</span>
                   <span>Colombia (COP $)</span>
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#71717A]" />
               </div>
-              <span className="text-[11px] font-normal text-zinc-500">
+              <span className="text-[11.5px] font-normal text-[#71717A]">
                 © {new Date().getFullYear()} {formattedStoreName}. Todos los derechos reservados.
               </span>
             </div>
 
+            {/* Premium Waterdrop Editorial Fintech Payment Chips */}
             {sections.paymentMethods !== false && paymentMethods.enabled && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {paymentMethods.tarjetas && (
                   <>
-                    <span className="h-7 px-2.5 bg-white border border-zinc-200/90 rounded-[4px] flex items-center justify-center shadow-2xs">
-                      <SiVisa className="h-3.5 w-auto text-[#1A1F71]" />
+                    <span className="h-6 w-9 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center p-1" title="Visa">
+                      <SiVisa className="h-2.5 w-auto text-[#1A1F71]" />
                     </span>
-                    <span className="h-7 px-2.5 bg-white border border-zinc-200/90 rounded-[4px] flex items-center justify-center shadow-2xs">
-                      <SiMastercard className="h-3.5 w-auto text-[#EB001B]" />
+                    <span className="h-6 w-9 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center p-1" title="Mastercard">
+                      <SiMastercard className="h-3 w-auto text-[#EB001B]" />
+                    </span>
+                    <span className="h-6 w-9 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center p-1" title="American Express">
+                      <SiAmericanexpress className="h-3 w-auto text-[#006FCF]" />
+                    </span>
+                    <span className="h-6 w-9 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center p-1" title="Apple Pay">
+                      <SiApplepay className="h-3 w-auto text-[#111111]" />
+                    </span>
+                    <span className="h-6 w-9 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center p-1" title="Google Pay">
+                      <SiGooglepay className="h-3 w-auto text-[#111111]" />
                     </span>
                   </>
                 )}
                 {paymentMethods.pse && (
-                  <span className="h-7 px-2.5 bg-white border border-zinc-200/90 rounded-[4px] flex items-center justify-center text-[10px] font-black tracking-tight text-[#0F2C67] shadow-2xs">
+                  <span className="h-6 px-2 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center text-[9px] font-black tracking-tight text-[#0033A0]" title="PSE">
                     PSE
                   </span>
                 )}
                 {paymentMethods.nequi && (
-                  <span className="h-7 px-2.5 bg-white border border-zinc-200/90 rounded-[4px] flex items-center justify-center text-[10px] font-black tracking-tight text-[#200020] shadow-2xs">
+                  <span className="h-6 px-2 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center text-[9px] font-black tracking-tight text-[#210049]" title="Nequi">
                     Nequi
                   </span>
                 )}
                 {paymentMethods.bancolombia && (
-                  <span className="h-7 px-2.5 bg-white border border-zinc-200/90 rounded-[4px] flex items-center justify-center text-[10px] font-black tracking-tight text-zinc-900 shadow-2xs">
+                  <span className="h-6 px-2 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center text-[9px] font-black tracking-tight text-[#FDDA24] bg-black" title="Bancolombia">
                     Bancolombia
                   </span>
                 )}
                 {paymentMethods.contraEntrega && (
-                  <span className="h-7 px-2.5 bg-white border border-zinc-200/90 rounded-[4px] flex items-center justify-center text-[10px] font-bold tracking-tight text-zinc-800 shadow-2xs">
-                    Contra Entrega
+                  <span className="h-6 px-2 bg-white border border-[#E5E5E3] rounded-[3px] flex items-center justify-center text-[9px] font-bold tracking-tight text-[#111111]" title="Contra entrega">
+                    Contra entrega
                   </span>
                 )}
               </div>

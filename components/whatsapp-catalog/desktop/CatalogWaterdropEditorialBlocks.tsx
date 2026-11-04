@@ -106,7 +106,11 @@ export function CatalogWaterdropEditorialBlocks({
     <div className="w-full space-y-24 pt-14">
       {/* 1. WATERDROP EDITORIAL VALUE STATEMENT + 3-PHOTO RITUAL ("Water · Drop · Enjoy") */}
       {sections.processTimeline && processTimeline.items.length > 0 && (
-        <section className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none">
+        <section
+          data-maker-section="ritual"
+          data-maker-title="Ritual Editorial (3 Pasos)"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none cursor-pointer"
+        >
           <div className="max-w-[820px] mb-10">
             <h2
               className="text-[26px] sm:text-[34px] xl:text-[40px] font-extrabold tracking-[-0.036em] leading-[1.12]"
@@ -198,7 +202,9 @@ export function CatalogWaterdropEditorialBlocks({
           return (
             <section
               key={showcase.id}
-              className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none"
+              data-maker-section="bestsellers"
+              data-maker-title="Cuadrícula Mixta Editorial"
+              className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none cursor-pointer"
             >
               {/* Seamless Baseline Sub-category Tabs */}
               <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-7">
@@ -296,7 +302,11 @@ export function CatalogWaterdropEditorialBlocks({
 
       {/* 3. MONOCHROME PRESS & OFFICIAL EMBLEM BAR */}
       {sections.pressLogos && pressLogos.length > 0 && (
-        <section className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none">
+        <section
+          data-maker-section="ugc"
+          data-maker-title="Mural de Prensa & Avales"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none cursor-pointer"
+        >
           <div className="py-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 items-center justify-items-center">
             {pressLogos.slice(0, 5).map((logo, idx) => {
               // Varied typographic emblem styling so monochrome marks look like distinct editorial mastheads
@@ -344,7 +354,11 @@ export function CatalogWaterdropEditorialBlocks({
 
       {/* 4. RECOMMENDED BY TOP PERFORMERS / AMBASSADORS CAROUSEL */}
       {sections.ambassadors && ambassadors.items.length > 0 && (
-        <section className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none">
+        <section
+          data-maker-section="ugc"
+          data-maker-title="Embajadores & Atletas"
+          className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 text-left select-none cursor-pointer"
+        >
           <div className="mb-7 space-y-1">
             <h2
               className="text-[22px] sm:text-[28px] font-extrabold tracking-[-0.03em]"

@@ -70,7 +70,9 @@ export function CatalogDesktopHomeProducts({
   return (
     <section
       id="catalog-products"
-      className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-14 pb-6"
+      data-maker-section="bestsellers"
+      data-maker-title="Colección Bestsellers & Tarjetas"
+      className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-14 pb-6 cursor-pointer"
     >
       {/* Waterdrop Seamless Baseline Collection Tabs */}
       <div className="flex flex-wrap items-baseline gap-x-7 gap-y-2 mb-7 select-none">

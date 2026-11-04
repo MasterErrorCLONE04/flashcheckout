@@ -112,9 +112,9 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
       )}
 
       {/* 2. Monochrome Press & Seals Strip */}
-      {sections.pressLogos !== false && pressLogos?.enabled && pressLogos.items.length > 0 && (
+      {sections.pressLogos !== false && pressLogos.length > 0 && (
         <section className="py-5 border-y border-[#EAEAE8] flex items-center justify-around gap-5 overflow-x-auto scrollbar-none">
-          {pressLogos.items.map((logo, idx) => {
+          {pressLogos.map((logo: { name: string; subtitle?: string }, idx: number) => {
             const styleVariant = idx % 4
             return (
               <div key={idx} className="text-center shrink-0 px-1 text-[#111111]">
@@ -150,13 +150,13 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
       )}
 
       {/* 3. Recommended by Top Performers / Ambassadors */}
-      {sections.ambassadors !== false && ambassadors?.enabled && ambassadors.items.length > 0 && (
+      {sections.ambassadors !== false && ambassadors.items.length > 0 && (
         <section className="space-y-3.5">
           <h3 className="text-[18px] font-extrabold text-[#111111] tracking-[-0.02em]">
             {ambassadors.title}
           </h3>
           <div className="grid grid-cols-2 gap-3">
-            {ambassadors.items.slice(0, 4).map((person, idx) => (
+            {ambassadors.items.slice(0, 4).map((person: { name: string; role: string; imageUrl: string }, idx: number) => (
               <div key={idx} className="space-y-1.5">
                 <div className="aspect-[3/4] w-full rounded-[4px] overflow-hidden bg-[#F6F6F4]">
                   <img
@@ -186,9 +186,9 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
               <h3 className="text-[19px] font-extrabold text-[#111111] tracking-[-0.02em]">
                 {testimonials.title || 'Clientes felices en todo el país'}
               </h3>
-              {ugcGallery?.subtitle && (
+              {testimonials.subtitle && (
                 <p className="text-[11.5px] text-[#52525B] leading-relaxed">
-                  {ugcGallery.subtitle}
+                  {testimonials.subtitle}
                 </p>
               )}
               {testimonials.items.length > 0 && (
@@ -202,7 +202,7 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
               )}
               {showReviews && (
                 <div className="space-y-2.5 pt-2 text-left">
-                  {testimonials.items.slice(0, 3).map((t, idx) => (
+                  {testimonials.items.slice(0, 3).map((t: { name: string; city: string; comment: string }, idx: number) => (
                     <div key={idx} className="p-3.5 bg-[#F6F6F4] rounded-[4px] space-y-1.5">
                       <p className="text-[11.5px] text-[#3F3F46] leading-relaxed">
                         &ldquo;{t.comment}&rdquo;
@@ -222,9 +222,9 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
             </div>
           )}
 
-          {sections.ugcGallery !== false && ugcGallery?.enabled && ugcGallery.images.length > 0 && (
+          {sections.ugcGallery !== false && ugcGallery.length > 0 && (
             <div className="grid grid-cols-3 gap-2 pb-2">
-              {ugcGallery.images.slice(0, 6).map((img, idx) => (
+              {ugcGallery.slice(0, 6).map((img: string, idx: number) => (
                 <div
                   key={idx}
                   className={cn(
@@ -241,7 +241,7 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
       )}
 
       {/* 5. Official Retailers / Coverage */}
-      {sections.retailers !== false && retailers?.enabled && retailers.items.length > 0 && (
+      {sections.retailers !== false && retailers.items.length > 0 && (
         <section className="space-y-3 pt-2">
           <div>
             <h3 className="text-[16px] font-extrabold text-[#111111] tracking-[-0.02em]">
@@ -252,7 +252,7 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {retailers.items.map((item, idx) => (
+            {retailers.items.map((item: { name: string }, idx: number) => (
               <span
                 key={idx}
                 className="h-10 px-4 bg-white border border-[#E6E6E4] rounded-[4px] inline-flex items-center justify-center text-[10.5px] font-black uppercase tracking-[0.06em] text-[#111111]"
@@ -271,7 +271,7 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
             {faqs.title || 'Preguntas frecuentes'}
           </h3>
           <div className="divide-y divide-[#EAEAE8] border-y border-[#EAEAE8]">
-            {faqs.items.map((faq, idx) => (
+            {faqs.items.map((faq: { q: string; a: string }, idx: number) => (
               <details key={idx} className="group py-3">
                 <summary className="w-full flex items-center justify-between font-semibold text-xs cursor-pointer text-[#111111] list-none [&::-webkit-details-marker]:hidden">
                   <span className="pr-3">{faq.q}</span>
@@ -285,9 +285,9 @@ export function MobileSections({ settings, activeNavTab }: MobileSectionsProps) 
       )}
 
       {/* 7. Pre-Footer 3-Row Guarantee Strip */}
-      {sections.beneficios !== false && benefits?.items?.length > 0 && (
+      {sections.beneficios !== false && (benefits.items?.length ?? 0) > 0 && (
         <section className="bg-[#F4F4F3] rounded-[4px] p-4 divide-y divide-[#E4E4E2]">
-          {benefits.items
+          {(benefits.items || [])
             .slice(0, 3)
             .map((item: { icon: CatalogIconName; label: string; desc: string }, idx: number) => {
               const ItemIcon = IconMap[item.icon] || Award

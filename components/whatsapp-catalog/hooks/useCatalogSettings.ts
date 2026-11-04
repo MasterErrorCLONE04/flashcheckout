@@ -55,6 +55,20 @@ export function useCatalogSettings(store: Store) {
         return "'Playfair Display', Georgia, serif"
       case 'Space Grotesk':
         return "'Space Grotesk', -apple-system, BlinkMacSystemFont, monospace, sans-serif"
+      case 'Sora':
+        return "'Sora', -apple-system, BlinkMacSystemFont, sans-serif"
+      case 'Cinzel':
+        return "'Cinzel', Georgia, serif"
+      case 'DM Sans':
+        return "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif"
+      case 'Manrope':
+        return "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif"
+      case 'Syne':
+        return "'Syne', -apple-system, BlinkMacSystemFont, sans-serif"
+      case 'Cormorant Garamond':
+        return "'Cormorant Garamond', Georgia, serif"
+      case 'Montserrat':
+        return "'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif"
       case 'Inter':
       default:
         return "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
