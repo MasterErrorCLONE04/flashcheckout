@@ -10,16 +10,38 @@ import {
   ShieldCheck,
   BookOpen,
   PanelBottom,
+  Grid,
+  Award,
+  Users,
+  MapPin,
+  HeartHandshake,
+  LayoutGrid,
 } from 'lucide-react'
 import { TiendaFormState } from './useTiendaForm'
 import { SectionDetailHeader } from './SectionDetailHeader'
-import { SectionId } from './SectionsOverview'
+import { SectionId } from './types'
 import { EncabezadoTab } from './tabs/EncabezadoTab'
 import { ProductosTab } from './tabs/ProductosTab'
-import { VisualCategoriesTimelineGallery } from './tabs/secciones/VisualCategoriesTimelineGallery'
-import { WaterdropCommunityModules } from './tabs/secciones/WaterdropCommunityModules'
-import { IngredientsTrustFaqs } from './tabs/secciones/IngredientsTrustFaqs'
-import { BeneficiosBentoSpecs } from './tabs/secciones/BeneficiosBentoSpecs'
+import {
+  VisualCategoriesEditor,
+  ProcessTimelineEditor,
+  LifestyleGalleryEditor,
+  NewsletterFooterEditor,
+} from './tabs/secciones/VisualCategoriesTimelineGallery'
+import {
+  UgcGalleryEditor,
+  PressLogosEditor,
+  AmbassadorsEditor,
+  RetailersEditor,
+} from './tabs/secciones/WaterdropCommunityModules'
+import {
+  IngredientsEditor,
+  FaqsEditor,
+} from './tabs/secciones/IngredientsTrustFaqs'
+import {
+  BenefitsEditor,
+  BentoHighlightsEditor,
+} from './tabs/secciones/BeneficiosBentoSpecs'
 import { BrandStorySection } from './tabs/secciones/BrandStorySection'
 
 interface SectionEditorRouterProps {
@@ -57,17 +79,59 @@ export function SectionEditorRouter({
       icon: ShoppingBag,
       sectionKey: 'destacados',
     },
+    visualCategories: {
+      title: 'Categorías Visuales (PDP Grid)',
+      subtitle: 'Navegación circular con fotos de cada colección',
+      icon: LayoutGrid,
+      sectionKey: 'visualCategories',
+    },
+    bentoHighlights: {
+      title: 'Bento Grid de Destacados',
+      subtitle: 'Tarjetas visuales con emojis y pilares de marca',
+      icon: Grid,
+      sectionKey: 'bentoHighlights',
+    },
     ritual: {
       title: 'Ritual Editorial (3 Pasos)',
       subtitle: 'Fotografías de proceso y valor de marca',
       icon: Layers,
       sectionKey: 'processTimeline',
     },
+    lifestyleGallery: {
+      title: 'Galería de Estilo de Vida',
+      subtitle: 'Fotografías reales intercaladas en el catálogo',
+      icon: ImageIcon,
+      sectionKey: 'lifestyleGallery',
+    },
+    ingredientsSection: {
+      title: 'Ficha de Ingredientes y Pureza',
+      subtitle: 'Layout simétrico explicativo de 3 columnas',
+      icon: HeartHandshake,
+      sectionKey: 'ingredientsSection',
+    },
     ugc: {
       title: 'Mural Social UGC & Reseñas',
       subtitle: 'Fotos de clientes, estrellas y testimonios',
       icon: Sparkles,
       sectionKey: 'ugcGallery',
+    },
+    pressLogos: {
+      title: 'Mural de Prensa & Sellos Oficiales',
+      subtitle: 'Franja monocromática con menciones y premios',
+      icon: Award,
+      sectionKey: 'pressLogos',
+    },
+    ambassadors: {
+      title: 'Embajadores & Creadores',
+      subtitle: 'Retratos editoriales de atletas y voceros',
+      icon: Users,
+      sectionKey: 'ambassadors',
+    },
+    retailers: {
+      title: 'Puntos de Entrega & Cobertura',
+      subtitle: 'Canales oficiales y tiempos express de entrega',
+      icon: MapPin,
+      sectionKey: 'retailers',
     },
     faqs: {
       title: 'Preguntas Frecuentes & Confianza',
@@ -76,7 +140,7 @@ export function SectionEditorRouter({
       sectionKey: 'faqs',
     },
     garantias: {
-      title: 'Garantías Pre-Footer & Bento',
+      title: 'Garantías Pre-Footer',
       subtitle: 'Tira de 3 beneficios de confianza del comprador',
       icon: ShieldCheck,
       sectionKey: 'beneficios',
@@ -96,7 +160,7 @@ export function SectionEditorRouter({
     },
   }
 
-  const meta = sectionMetadata[sectionId]
+  const meta = sectionMetadata[sectionId] || sectionMetadata.hero
   const isEnabled = meta.alwaysOn ? true : Boolean(sections[meta.sectionKey])
 
   return (
@@ -116,14 +180,20 @@ export function SectionEditorRouter({
       <div className="space-y-6">
         {sectionId === 'hero' && <EncabezadoTab form={form} />}
         {sectionId === 'bestsellers' && <ProductosTab form={form} />}
-        {sectionId === 'ritual' && <VisualCategoriesTimelineGallery form={form} />}
-        {sectionId === 'ugc' && <WaterdropCommunityModules form={form} />}
-        {sectionId === 'faqs' && <IngredientsTrustFaqs form={form} />}
-        {sectionId === 'garantias' && <BeneficiosBentoSpecs form={form} />}
+        {sectionId === 'visualCategories' && <VisualCategoriesEditor form={form} />}
+        {sectionId === 'bentoHighlights' && <BentoHighlightsEditor form={form} />}
+        {sectionId === 'ritual' && <ProcessTimelineEditor form={form} />}
+        {sectionId === 'lifestyleGallery' && <LifestyleGalleryEditor form={form} />}
+        {sectionId === 'ingredientsSection' && <IngredientsEditor form={form} />}
+        {sectionId === 'ugc' && <UgcGalleryEditor form={form} />}
+        {sectionId === 'pressLogos' && <PressLogosEditor form={form} />}
+        {sectionId === 'ambassadors' && <AmbassadorsEditor form={form} />}
+        {sectionId === 'retailers' && <RetailersEditor form={form} />}
+        {sectionId === 'faqs' && <FaqsEditor form={form} />}
+        {sectionId === 'garantias' && <BenefitsEditor form={form} />}
         {sectionId === 'story' && <BrandStorySection form={form} />}
-        {sectionId === 'footer' && <VisualCategoriesTimelineGallery form={form} />}
+        {sectionId === 'footer' && <NewsletterFooterEditor form={form} />}
       </div>
     </div>
   )
 }
-

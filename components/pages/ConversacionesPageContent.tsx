@@ -57,30 +57,11 @@ export default async function ConversacionesPage() {
       ]
     }
 
-    const avatarUrl = s.avatarUrl
-
-    // Try to fetch profile picture in background if connected to Evolution and not stored yet
-    if (!avatarUrl && store.whatsappConnected && store.whatsappInstanceName) {
-      import('@/lib/whatsapp/evolution').then(async ({ evolutionClient }) => {
-        try {
-          const fetchedUrl = await evolutionClient.fetchProfilePictureUrl(store.whatsappInstanceName!, s.phoneNumber)
-          if (fetchedUrl) {
-            await prisma.whatsAppSession.update({
-              where: { id: s.id },
-              data: { avatarUrl: fetchedUrl }
-            })
-          }
-        } catch (err) {
-          console.error('Error fetching profile picture in background:', err)
-        }
-      }).catch(err => console.error(err))
-    }
-
     return {
       id: s.id,
       phoneNumber: s.phoneNumber,
       customerName: name,
-      avatarUrl: avatarUrl || null,
+      avatarUrl: s.avatarUrl || null,
       lastInteraction: s.lastInteraction.toISOString(),
       step: s.step,
       messages,
@@ -91,6 +72,35 @@ export default async function ConversacionesPage() {
       status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed'
     }
   })
+
+  if (formattedSessions.length === 0) {
+    formattedSessions.push({
+      id: 'demo-session',
+      phoneNumber: '573001234567',
+      customerName: 'Carolina Gómez (Demo)',
+      avatarUrl: null,
+      lastInteraction: new Date().toISOString(),
+      step: 'AWAITING_PAYMENT',
+      messages: [
+        { sender: 'user', text: '¡Hola! Vi los productos en el catálogo, ¿tienen envío a Medellín?', time: '10:30' },
+        { sender: 'bot', text: '¡Hola Carolina! 👋 Sí, hacemos envíos a Medellín con entrega de 1 a 2 días hábiles. ¿Qué producto te gustaría pedir hoy?', time: '10:30' },
+        { sender: 'user', text: 'Me interesa pedir 1 unidad para pagar por Bre-B o link de pago', time: '10:32' },
+        { sender: 'bot', text: '¡Excelente elección! Ya armé tu carrito y dejé listo tu enlace de pago seguro. ¿Deseas confirmar la dirección de entrega?', time: '10:32' }
+      ],
+      tags: ['Cliente VIP', 'Medellín'],
+      notes: [
+        {
+          id: 'demo-note-1',
+          text: 'Cliente interesada en pago inmediato. Conversación de demostración para probar etiquetas, notas y respuestas rápidas.',
+          createdAt: 'Hoy, 10:33',
+          author: 'Sistema'
+        }
+      ],
+      assignedTo: 'Agente IA',
+      isFavorite: true,
+      status: 'active'
+    })
+  }
 
   return (
     <ChatHistoryViewer 

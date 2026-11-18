@@ -28,6 +28,9 @@ interface StudioPhoneMockupProps {
   selectedProduct: Product | null
   selectedAvatar: AiAvatar
   avatarLayout: AvatarLayout
+  avatarVideoUrl?: string | null
+  generatedVideoUrl?: string | null
+  galleryImages?: string[]
   mode: CreativeMode
   store: {
     name: string
@@ -55,6 +58,9 @@ export function StudioPhoneMockup({
   selectedProduct,
   selectedAvatar,
   avatarLayout,
+  avatarVideoUrl,
+  generatedVideoUrl,
+  galleryImages = [],
   mode,
   store,
   selectedCoupon,
@@ -73,6 +79,18 @@ export function StudioPhoneMockup({
   renderProgress,
   onDownloadVideo
 }: StudioPhoneMockupProps) {
+  const allSlides = Array.from(
+    new Set(
+      [
+        ...galleryImages,
+        ...(selectedProduct?.imageUrl ? selectedProduct.imageUrl.split(',').map(s => s.trim()) : []),
+      ].filter(Boolean)
+    )
+  )
+  const activeSlideUrl =
+    allSlides.length > 0
+      ? allSlides[Math.floor((previewSecond / Math.max(1, maxSeconds)) * allSlides.length) % allSlides.length]
+      : selectedProduct?.imageUrl || null
   return (
     <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-4">
       {/* MARCO SMARTPHONE */}
@@ -112,21 +130,41 @@ export function StudioPhoneMockup({
           {avatarLayout === 'SPLIT_UGC' ? (
             <div className="absolute inset-0 flex flex-col">
               <div className="relative h-1/2 w-full overflow-hidden bg-zinc-950">
-                <img 
-                  src={selectedAvatar.imageUrl} 
-                  alt={selectedAvatar.name} 
-                  className={cn("w-full h-full object-cover transition-transform duration-1000", isPlaying ? "scale-105" : "scale-100")} 
-                />
+                {avatarVideoUrl ? (
+                  <video
+                    src={avatarVideoUrl}
+                    autoPlay
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img 
+                    src={selectedAvatar.imageUrl} 
+                    alt={selectedAvatar.name} 
+                    className={cn("w-full h-full object-cover transition-transform duration-1000", isPlaying ? "scale-105" : "scale-100")} 
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" />
                 <div className="absolute bottom-2 left-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 text-[9px] font-bold text-white flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{selectedAvatar.name} • Creador UGC</span>
+                  <span>{selectedAvatar.name} • {avatarVideoUrl ? 'Lip-Sync IA Activo' : 'Creador UGC'}</span>
                 </div>
               </div>
               <div className="relative h-1/2 w-full overflow-hidden bg-zinc-900">
-                {selectedProduct?.imageUrl ? (
+                {generatedVideoUrl ? (
+                  <video
+                    src={generatedVideoUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : activeSlideUrl ? (
                   <img 
-                    src={selectedProduct.imageUrl} 
+                    src={activeSlideUrl} 
                     alt="" 
                     className={cn("w-full h-full object-cover transition-transform duration-1000", isPlaying ? "scale-110" : "scale-100")} 
                   />
@@ -134,13 +172,25 @@ export function StudioPhoneMockup({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
               </div>
             </div>
-          ) : selectedProduct?.imageUrl ? (
+          ) : generatedVideoUrl ? (
+            <div className="absolute inset-0 overflow-hidden bg-zinc-950">
+              <video
+                src={generatedVideoUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+            </div>
+          ) : activeSlideUrl ? (
             <div 
               className={cn(
-                "absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out",
+                "absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out",
                 isPlaying ? "scale-110" : "scale-100"
               )}
-              style={{ backgroundImage: `url(${selectedProduct.imageUrl})` }}
+              style={{ backgroundImage: `url(${activeSlideUrl})` }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
             </div>
@@ -152,16 +202,32 @@ export function StudioPhoneMockup({
 
           {/* Burbuja Flotante PIP del Avatar */}
           {avatarLayout === 'BUBBLE_PIP' && (
-            <div className="absolute bottom-24 left-3 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md p-1.5 pr-2.5 rounded-full border border-white/20 shadow-xl">
+            <div className="absolute bottom-24 left-3 z-20 flex items-center gap-2 bg-black/75 backdrop-blur-md p-1.5 pr-3 rounded-full border border-white/25 shadow-xl">
               <div className="relative">
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white ring-1 ring-zinc-700 shadow-sm">
-                  <img src={selectedAvatar.imageUrl} alt="" className="w-full h-full object-cover" />
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-400 ring-1 ring-zinc-700 shadow-sm bg-zinc-900">
+                  {avatarVideoUrl ? (
+                    <video
+                      src={avatarVideoUrl}
+                      autoPlay
+                      loop
+                      muted={isMuted}
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img src={selectedAvatar.imageUrl} alt="" className="w-full h-full object-cover" />
+                  )}
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-black animate-ping" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black animate-ping" />
               </div>
-              <span className="text-[10px] font-bold text-white tracking-tight">
-                {selectedAvatar.name} (IA)
-              </span>
+              <div className="text-left">
+                <span className="text-[10px] font-bold text-white tracking-tight block leading-none">
+                  {selectedAvatar.name}
+                </span>
+                <span className="text-[8px] font-semibold text-emerald-400 block mt-0.5">
+                  {avatarVideoUrl ? 'Hablando (Lip-Sync)' : 'Vocero IA'}
+                </span>
+              </div>
             </div>
           )}
 

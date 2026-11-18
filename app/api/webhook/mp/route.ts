@@ -195,6 +195,7 @@ export async function POST(req: Request) {
         total: true,
         address: true,
         city: true,
+        items: true,
       },
     })
 
@@ -207,7 +208,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
-    if (currentOrder.mpPaymentId === String(dataId) && currentOrder.paymentStatus === newStatus) {
+    if (
+      (currentOrder.mpPaymentId === String(dataId) && currentOrder.paymentStatus === newStatus) ||
+      (newStatus === 'PAID' && currentOrder.paymentStatus === 'PAID')
+    ) {
       logWebhookEvent('mercadopago', 'duplicate', {
         requestId: xRequestId,
         dataId,
@@ -218,13 +222,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true, duplicate: true }, { status: 200 })
     }
 
-    const order = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: newStatus,
-        status: legacyStatus,
-        mpPaymentId: String(dataId),
-      },
+    const order = await prisma.$transaction(async tx => {
+      if (newStatus === 'PAID' && Array.isArray(currentOrder.items)) {
+        for (const rawItem of currentOrder.items) {
+          if (!rawItem || typeof rawItem !== 'object') continue
+          const line = rawItem as { productId?: string; qty?: number }
+          const qty = Math.max(0, Math.floor(Number(line.qty || 0)))
+          if (line.productId && qty > 0) {
+            await tx.product.updateMany({
+              where: { id: line.productId, storeId: currentOrder.storeId },
+              data: { stock: { decrement: qty } },
+            })
+          }
+        }
+      }
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: newStatus,
+          status: legacyStatus,
+          mpPaymentId: String(dataId),
+        },
+      })
     })
 
     logWebhookEvent('mercadopago', 'order_updated', {

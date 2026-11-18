@@ -80,10 +80,19 @@ export function CatalogMobileView({
     colors,
     heroBadge,
     sections,
+    sectionOrder,
   } = settings
 
+  const isTablet = device === 'tablet'
+
   return (
-    <div className={cn('flex flex-col min-h-screen pb-20 w-full', showMobile ? 'flex' : 'hidden')}>
+    <div
+      className={cn(
+        'flex flex-col w-full',
+        device ? 'min-h-full pb-2' : 'min-h-screen pb-20',
+        showMobile ? 'flex' : 'hidden'
+      )}
+    >
       <MobileHeader
         store={store}
         formattedStoreName={formattedStoreName}
@@ -92,59 +101,110 @@ export function CatalogMobileView({
         itemsInCart={itemsInCart}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         handleMobileTabClick={handleMobileTabClick}
+        colors={colors}
       />
 
-      <main className="flex-1 px-4 py-4 space-y-7">
-        {activeNavTab === 'Inicio' && sections.banner !== false && (
-          <MobileHero
-            heroType={heroType}
-            heroStyle={heroStyle}
-            bannerUrls={bannerUrls}
-            heroPanels={heroPanels}
-            heroVideoUrl={heroVideoUrl}
-            currentBannerIdx={currentBannerIdx}
-            setCurrentBannerIdx={setCurrentBannerIdx}
-            bannerTitle={bannerTitle}
-            bannerSubtitle={bannerSubtitle}
-            bannerButton={bannerButton}
-            handleBannerButtonClick={handleBannerButtonClick}
-            colors={colors}
-            heroBadge={heroBadge}
-            store={store}
+      <main className={cn('flex-1 py-4 space-y-8', isTablet ? 'px-6' : 'px-4')}>
+        {activeNavTab === 'Inicio' ? (
+          sectionOrder.map(secId => {
+            if (secId === 'hero') {
+              if (sections.banner === false) return null
+              return (
+                <MobileHero
+                  key="hero"
+                  heroType={heroType}
+                  heroStyle={heroStyle}
+                  bannerUrls={bannerUrls}
+                  heroPanels={heroPanels}
+                  heroVideoUrl={heroVideoUrl}
+                  currentBannerIdx={currentBannerIdx}
+                  setCurrentBannerIdx={setCurrentBannerIdx}
+                  bannerTitle={bannerTitle}
+                  bannerSubtitle={bannerSubtitle}
+                  bannerButton={bannerButton}
+                  handleBannerButtonClick={handleBannerButtonClick}
+                  colors={colors}
+                  heroBadge={heroBadge}
+                  store={store}
+                  device={device}
+                />
+              )
+            }
+            if (secId === 'bestsellers') {
+              if (sections.destacados === false) return null
+              return (
+                <MobileProductFeed
+                  key="bestsellers"
+                  allProducts={store.products}
+                  settings={settings}
+                  total={total}
+                  activeNavTab={activeNavTab}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  searchInputRef={searchInputRef}
+                  setIsFilterOpen={setIsFilterOpen}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  filteredProducts={filteredProducts}
+                  cart={cart}
+                  changeQtyByKey={changeQtyByKey}
+                  setSelectedProduct={setSelectedProduct}
+                  device={device}
+                />
+              )
+            }
+            return (
+              <MobileSections
+                key={secId}
+                sectionId={secId}
+                settings={settings}
+                activeNavTab={activeNavTab}
+                device={device}
+                setSelectedCategory={setSelectedCategory}
+              />
+            )
+          })
+        ) : activeNavTab === 'Productos' ? (
+          <MobileProductFeed
+            allProducts={store.products}
+            settings={settings}
+            total={total}
+            activeNavTab={activeNavTab}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            searchInputRef={searchInputRef}
+            setIsFilterOpen={setIsFilterOpen}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            filteredProducts={filteredProducts}
+            cart={cart}
+            changeQtyByKey={changeQtyByKey}
+            setSelectedProduct={setSelectedProduct}
+            device={device}
+          />
+        ) : (
+          <MobileSections
+            settings={settings}
+            activeNavTab={activeNavTab}
+            device={device}
+            setSelectedCategory={setSelectedCategory}
           />
         )}
-
-        <MobileProductFeed
-          allProducts={store.products}
-          settings={settings}
-          total={total}
-          activeNavTab={activeNavTab}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          searchInputRef={searchInputRef}
-          setIsFilterOpen={setIsFilterOpen}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          filteredProducts={filteredProducts}
-          cart={cart}
-          changeQtyByKey={changeQtyByKey}
-          setSelectedProduct={setSelectedProduct}
-        />
-
-        <MobileSections settings={settings} activeNavTab={activeNavTab} />
-
-        <MobileFooter
-          activeNavTab={activeNavTab}
-          formattedStoreName={formattedStoreName}
-          settings={settings}
-          device={device}
-          activeMobileTab={activeMobileTab}
-          handleMobileTabClick={handleMobileTabClick}
-          itemsInCart={itemsInCart}
-        />
       </main>
+
+      <MobileFooter
+        activeNavTab={activeNavTab}
+        formattedStoreName={formattedStoreName}
+        settings={settings}
+        device={device}
+        activeMobileTab={activeMobileTab}
+        handleMobileTabClick={handleMobileTabClick}
+        itemsInCart={itemsInCart}
+      />
     </div>
   )
 }

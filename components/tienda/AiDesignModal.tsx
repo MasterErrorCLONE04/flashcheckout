@@ -72,19 +72,19 @@ export function AiDesignModal({
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Top Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-linear-to-r from-zinc-50 via-white to-emerald-50/40">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-white">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-xs">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 text-white flex items-center justify-center shadow-xs">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
               <h2 className="text-sm font-extrabold text-zinc-950 flex items-center gap-2">
                 <span>Copiloto de Diseño con IA</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                  Magic Studio
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200">
+                  Studio AI
                 </span>
               </h2>
-              <p className="text-[11px] text-zinc-400 font-medium leading-none mt-0.5">
+              <p className="text-[11px] text-zinc-500 font-medium leading-none mt-0.5">
                 Especifica en lenguaje natural cómo quieres tu tienda y la transformaremos en vivo.
               </p>
             </div>
@@ -115,7 +115,7 @@ export function AiDesignModal({
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
               placeholder="Ej: Quiero una tienda para vender café especial colombiano de origen. Tonos tierra y verde bosque, tipografía elegante, hero collage llamativo y preguntas frecuentes sobre envíos contra entrega..."
-              className="w-full text-xs font-medium text-zinc-800 bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-zinc-400 leading-relaxed resize-none shadow-2xs"
+              className="w-full text-xs font-medium text-zinc-800 bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 focus:outline-hidden focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 placeholder:text-zinc-400 leading-relaxed resize-none shadow-2xs"
               disabled={isGenerating}
               autoFocus
             />
@@ -124,7 +124,7 @@ export function AiDesignModal({
           {/* Quick Inspiration Chips */}
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+              <Lightbulb className="w-3.5 h-3.5 text-zinc-700" />
               <span>O elige una idea con 1 clic:</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -155,16 +155,16 @@ export function AiDesignModal({
                 className={cn(
                   'p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1',
                   scope === 'all'
-                    ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 shadow-xs'
+                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
                     : 'border-zinc-200 bg-white hover:border-zinc-300 text-zinc-600'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <Zap className="w-3.5 h-3.5 text-emerald-600" />
-                  {scope === 'all' && <Check className="w-3 h-3 text-emerald-600" />}
+                  <Zap className={cn('w-3.5 h-3.5', scope === 'all' ? 'text-zinc-100' : 'text-zinc-700')} />
+                  {scope === 'all' && <Check className="w-3 h-3 text-white" />}
                 </div>
                 <span className="text-[11.5px] font-extrabold leading-none mt-0.5">Tienda Completa</span>
-                <span className="text-[10px] text-zinc-400 font-medium leading-tight">
+                <span className={cn('text-[10px] font-medium leading-tight', scope === 'all' ? 'text-zinc-300' : 'text-zinc-400')}>
                   Diseño, paleta y textos persuasivos
                 </span>
               </button>
@@ -176,16 +176,16 @@ export function AiDesignModal({
                 className={cn(
                   'p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1',
                   scope === 'style'
-                    ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 shadow-xs'
+                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
                     : 'border-zinc-200 bg-white hover:border-zinc-300 text-zinc-600'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <Palette className="w-3.5 h-3.5 text-emerald-600" />
-                  {scope === 'style' && <Check className="w-3 h-3 text-emerald-600" />}
+                  <Palette className={cn('w-3.5 h-3.5', scope === 'style' ? 'text-zinc-100' : 'text-zinc-700')} />
+                  {scope === 'style' && <Check className="w-3 h-3 text-white" />}
                 </div>
                 <span className="text-[11.5px] font-extrabold leading-none mt-0.5">Solo Estética</span>
-                <span className="text-[10px] text-zinc-400 font-medium leading-tight">
+                <span className={cn('text-[10px] font-medium leading-tight', scope === 'style' ? 'text-zinc-300' : 'text-zinc-400')}>
                   Colores, tipografía y estilo visual
                 </span>
               </button>
@@ -197,16 +197,16 @@ export function AiDesignModal({
                 className={cn(
                   'p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1',
                   scope === 'copy'
-                    ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 shadow-xs'
+                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
                     : 'border-zinc-200 bg-white hover:border-zinc-300 text-zinc-600'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                  {scope === 'copy' && <Check className="w-3 h-3 text-emerald-600" />}
+                  <FileText className={cn('w-3.5 h-3.5', scope === 'copy' ? 'text-zinc-100' : 'text-zinc-700')} />
+                  {scope === 'copy' && <Check className="w-3 h-3 text-white" />}
                 </div>
                 <span className="text-[11.5px] font-extrabold leading-none mt-0.5">Solo Copys</span>
-                <span className="text-[10px] text-zinc-400 font-medium leading-tight">
+                <span className={cn('text-[10px] font-medium leading-tight', scope === 'copy' ? 'text-zinc-300' : 'text-zinc-400')}>
                   Hero, historias y preguntas frecuentes
                 </span>
               </button>
@@ -231,7 +231,7 @@ export function AiDesignModal({
                 'flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-0 text-white shadow-xs',
                 !prompt.trim() || isGenerating
                   ? 'bg-zinc-300 text-zinc-500 cursor-not-allowed shadow-none'
-                  : 'bg-linear-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600'
+                  : 'bg-zinc-950 hover:bg-zinc-800'
               )}
             >
               {isGenerating ? (

@@ -46,7 +46,7 @@ export function MobileMenuDrawer({
   const cleanPhone = (initialPhone || store.whatsapp || '').replace(/\D/g, '')
 
   return (
-    <div className={cn('inset-0 z-50 flex lg:hidden', device ? 'absolute' : 'fixed')}>
+    <div className={cn('inset-0 z-50 flex', !device && 'lg:hidden', device ? 'absolute' : 'fixed')}>
       {/* Backdrop */}
       <div
         onClick={onClose}

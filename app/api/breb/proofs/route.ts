@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { badRequest, getErrorMessage, internalServerError, notFound } from '@/lib/api/route-utils'
+import { PUBLIC_STORAGE_BUCKET, supabaseAdmin, uploadProofImage } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +47,34 @@ export async function POST(req: Request) {
       return badRequest('La tienda no tiene Bre-B activo')
     }
 
+    let storedProofUrl: string | null = null
+    try {
+      const arrayBuffer = await proof.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      const ext = (proof.name.split('.').pop() || 'png').replace(/[^a-zA-Z0-9]/g, '')
+      const safeFilename = `breb-${order.id}.${ext}`
+
+      try {
+        storedProofUrl = await uploadProofImage(buffer, safeFilename)
+      } catch {
+        const fallbackPath = `proofs/breb-${order.id}-${Date.now()}.${ext}`
+        const { error: uploadErr } = await supabaseAdmin.storage
+          .from(PUBLIC_STORAGE_BUCKET)
+          .upload(fallbackPath, buffer, {
+            contentType: proof.type || 'image/jpeg',
+            upsert: true,
+          })
+        if (!uploadErr) {
+          const {
+            data: { publicUrl },
+          } = supabaseAdmin.storage.from(PUBLIC_STORAGE_BUCKET).getPublicUrl(fallbackPath)
+          storedProofUrl = publicUrl
+        }
+      }
+    } catch (storageError) {
+      console.warn('[Bre-B Proof Storage Warning] No se pudo subir a storage:', storageError)
+    }
+
     const reviewPayload = {
       type: 'BREB_PROOF_REVIEW',
       mode: 'MANUAL_REVIEW_SAFE_MODE',
@@ -55,7 +84,9 @@ export async function POST(req: Request) {
       expectedAmount: order.total,
       expectedDestinationKey: brebConfig.keyValue,
       receivedAt: new Date().toISOString(),
-      note: 'La captura fue validada en formato/tamano y queda pendiente de revision. No se envio a OCR ni almacenamiento externo.',
+      note: storedProofUrl
+        ? 'Comprobante almacenado y pendiente de revisión del comercio.'
+        : 'La captura fue validada en formato/tamaño y queda pendiente de revisión.',
     }
 
     await prisma.order.update({
@@ -63,6 +94,7 @@ export async function POST(req: Request) {
       data: {
         paymentStatus: 'UPLOADED',
         status: 'pending_payment',
+        ...(storedProofUrl && { proofImageUrl: storedProofUrl }),
         adminComment: JSON.stringify(reviewPayload),
       },
     })

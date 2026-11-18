@@ -1,4 +1,32 @@
-import { TiendaSettings } from './types'
+import { TiendaSettings, SectionId } from './types'
+
+export const DEFAULT_SECTION_ORDER: SectionId[] = [
+  'hero',
+  'bestsellers',
+  'visualCategories',
+  'bentoHighlights',
+  'ritual',
+  'lifestyleGallery',
+  'ingredientsSection',
+  'ugc',
+  'pressLogos',
+  'ambassadors',
+  'retailers',
+  'faqs',
+  'garantias',
+  'story',
+  'footer',
+]
+
+export function getInitialSectionOrder(parsedSettings: TiendaSettings, fallback?: TiendaSettings): SectionId[] {
+  const candidate = (parsedSettings.sectionOrder || fallback?.sectionOrder) as SectionId[] | undefined
+  if (Array.isArray(candidate) && candidate.length > 0) {
+    const valid = candidate.filter((id): id is SectionId => DEFAULT_SECTION_ORDER.includes(id))
+    const missing = DEFAULT_SECTION_ORDER.filter(id => !valid.includes(id))
+    return [...valid, ...missing]
+  }
+  return [...DEFAULT_SECTION_ORDER]
+}
 
 export function getInitialSections(parsedSettings: TiendaSettings, fallback?: TiendaSettings) {
   const src = parsedSettings.sections || fallback?.sections || {}

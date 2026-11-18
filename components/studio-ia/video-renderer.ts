@@ -19,6 +19,9 @@ export interface RenderVideoParams {
   musicTrack: MusicTrack
   tone: CreativeTone
   selectedCoupon?: Coupon
+  avatarVideoUrl?: string | null
+  productVideoUrl?: string | null
+  galleryImages?: string[]
   store: {
     name: string
     slug: string
@@ -33,6 +36,43 @@ export interface RenderVideoResult {
   sanitizedName: string
 }
 
+async function loadCorsImage(url: string): Promise<HTMLImageElement | null> {
+  return new Promise(resolve => {
+    if (!url) {
+      resolve(null)
+      return
+    }
+    const img = new window.Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = url
+  })
+}
+
+async function loadCorsVideo(url: string | null | undefined): Promise<HTMLVideoElement | null> {
+  if (!url) return null
+  return new Promise(resolve => {
+    const vid = document.createElement('video')
+    vid.crossOrigin = 'anonymous'
+    vid.muted = true
+    vid.loop = true
+    vid.playsInline = true
+    vid.preload = 'auto'
+    const timeout = setTimeout(() => resolve(null), 8000)
+    vid.onloadeddata = () => {
+      clearTimeout(timeout)
+      vid.play().catch(() => {})
+      resolve(vid)
+    }
+    vid.onerror = () => {
+      clearTimeout(timeout)
+      resolve(null)
+    }
+    vid.src = url
+  })
+}
+
 export async function renderStudioVideo(params: RenderVideoParams): Promise<RenderVideoResult> {
   const {
     selectedProduct,
@@ -43,6 +83,9 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
     musicTrack,
     tone,
     selectedCoupon,
+    avatarVideoUrl,
+    productVideoUrl,
+    galleryImages = [],
     store,
     onProgress
   } = params
@@ -55,42 +98,29 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('No se pudo inicializar el motor de render')
 
-  // Pre-cargar la imagen del producto con soporte CORS y fallback seguro
-  let imageLoadFailed = false
-  const img = new (window as any).Image()
-  img.crossOrigin = 'anonymous'
+  // Construir lista de imágenes de galería del producto/catálogo
+  const rawUrls = Array.from(
+    new Set([
+      ...(galleryImages || []),
+      ...(selectedProduct.imageUrl ? selectedProduct.imageUrl.split(',').map(s => s.trim()) : []),
+    ].filter(Boolean))
+  )
 
-  await new Promise((resolve) => {
-    if (!selectedProduct.imageUrl) {
-      imageLoadFailed = true
-      resolve(true)
-      return
-    }
-    img.onload = () => resolve(true)
-    img.onerror = () => {
-      console.warn('[Studio IA] Imagen externa con CORS no habilitado. Usando renderizado cinemático vector.')
-      imageLoadFailed = true
-      resolve(true)
-    }
-    img.src = selectedProduct.imageUrl
-  })
+  const loadedProductImages = (await Promise.all(rawUrls.map(u => loadCorsImage(u)))).filter(
+    (im): im is HTMLImageElement => im !== null
+  )
+  const img = loadedProductImages[0] || null
+  let imageLoadFailed = loadedProductImages.length === 0
 
-  // Pre-cargar la imagen del avatar seleccionado si no está en 'NONE'
-  let avatarLoadFailed = false
-  const avatarImg = new (window as any).Image()
-  avatarImg.crossOrigin = 'anonymous'
+  // Pre-cargar imagen y/o video del avatar y video 3D del producto
+  const [avatarImgLoaded, avatarVideoEl, productVideoEl] = await Promise.all([
+    avatarLayout !== 'NONE' && selectedAvatar?.imageUrl ? loadCorsImage(selectedAvatar.imageUrl) : Promise.resolve(null),
+    avatarLayout !== 'NONE' && avatarVideoUrl ? loadCorsVideo(avatarVideoUrl) : Promise.resolve(null),
+    productVideoUrl ? loadCorsVideo(productVideoUrl) : Promise.resolve(null),
+  ])
 
-  if (avatarLayout !== 'NONE' && selectedAvatar?.imageUrl) {
-    await new Promise((resolve) => {
-      avatarImg.onload = () => resolve(true)
-      avatarImg.onerror = () => {
-        console.warn('[Studio IA] Imagen de avatar no disponible vía CORS.')
-        avatarLoadFailed = true
-        resolve(true)
-      }
-      avatarImg.src = selectedAvatar.imageUrl
-    })
-  }
+  const avatarImg = avatarImgLoaded || new window.Image()
+  let avatarLoadFailed = !avatarImgLoaded && !avatarVideoEl
 
   onProgress?.(15)
 
@@ -240,11 +270,23 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
       ctx.fillStyle = '#0a0a0c'
       ctx.fillRect(0, 0, 1080, 1920)
 
+      // Seleccionar la imagen activa según la escena si hay múltiples fotos en galería
+      const activeProductImg =
+        loadedProductImages.length > 0
+          ? loadedProductImages[Math.floor((t / totalSeconds) * loadedProductImages.length) % loadedProductImages.length]
+          : img
+
       // 2. DIBUJADO SEGÚN EL MODO DE AVATAR (SPLIT_UGC | BUBBLE_PIP | NONE)
       if (avatarLayout === 'SPLIT_UGC') {
         // --- MODO PANTALLA DIVIDIDA 50/50 ---
-        // MITAD SUPERIOR: AVATAR UGC (y: 0 a 860)
-        if (!avatarLoadFailed && avatarImg.complete && avatarImg.naturalWidth > 0) {
+        // MITAD SUPERIOR: AVATAR UGC (Video Lip-Sync real o Imagen) (y: 0 a 860)
+        if (avatarVideoEl && avatarVideoEl.readyState >= 2) {
+          try {
+            ctx.drawImage(avatarVideoEl, 0, 0, 1080, 860)
+          } catch {
+            avatarLoadFailed = true
+          }
+        } else if (!avatarLoadFailed && avatarImg.complete && avatarImg.naturalWidth > 0) {
           try {
             const avZoom = 1.0 + Math.sin(t * 3) * 0.02
             const avW = 1080 * avZoom
@@ -252,11 +294,11 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
             const avOx = (1080 - avW) / 2
             const avOy = (860 - avH) / 2
             ctx.drawImage(avatarImg, avOx, avOy, avW, avH)
-          } catch (e) {
+          } catch {
             avatarLoadFailed = true
           }
         }
-        if (avatarLoadFailed || !avatarImg.complete || avatarImg.naturalWidth === 0) {
+        if (avatarLoadFailed && !avatarVideoEl) {
           const avGrad = ctx.createLinearGradient(0, 0, 0, 860)
           avGrad.addColorStop(0, '#2e1065')
           avGrad.addColorStop(1, '#09090b')
@@ -284,20 +326,26 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
         ctx.textAlign = 'left'
         ctx.fillText(`🎙️ ${selectedAvatar.name} • Creador UGC`, 110, 800)
 
-        // MITAD INFERIOR: PRODUCTO (y: 860 a 1920)
-        if (!imageLoadFailed && img.complete && img.naturalWidth > 0) {
+        // MITAD INFERIOR: PRODUCTO (Video 3D I2V o Galería Multicapa) (y: 860 a 1920)
+        if (productVideoEl && productVideoEl.readyState >= 2) {
           try {
-            const pZoom = 1.0 + (t / totalSeconds) * 0.15
+            ctx.drawImage(productVideoEl, 0, 860, 1080, 1060)
+          } catch {
+            imageLoadFailed = true
+          }
+        } else if (!imageLoadFailed && activeProductImg && activeProductImg.complete && activeProductImg.naturalWidth > 0) {
+          try {
+            const pZoom = 1.0 + ((t % 3.5) / 3.5) * 0.14
             const pW = 1080 * pZoom
             const pH = 1060 * pZoom
             const pOx = (1080 - pW) / 2
             const pOy = 860 + (1060 - pH) / 2
-            ctx.drawImage(img, pOx, pOy, pW, pH)
-          } catch (e) {
+            ctx.drawImage(activeProductImg, pOx, pOy, pW, pH)
+          } catch {
             imageLoadFailed = true
           }
         }
-        if (imageLoadFailed || !img.complete || img.naturalWidth === 0) {
+        if (imageLoadFailed && !productVideoEl) {
           const pGrad = ctx.createLinearGradient(0, 860, 0, 1920)
           pGrad.addColorStop(0, '#1e1b4b')
           pGrad.addColorStop(1, '#09090b')
@@ -305,20 +353,26 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
           ctx.fillRect(0, 860, 1080, 1060)
         }
       } else {
-        // --- MODO PANTALLA COMPLETA DEL PRODUCTO ---
-        if (!imageLoadFailed && img.complete && img.naturalWidth > 0) {
+        // --- MODO PANTALLA COMPLETA DEL PRODUCTO (Video 3D I2V o Galería Multicapa) ---
+        if (productVideoEl && productVideoEl.readyState >= 2) {
           try {
-            const zoom = 1.0 + (t / totalSeconds) * 0.18
+            ctx.drawImage(productVideoEl, 0, 0, 1080, 1920)
+          } catch {
+            imageLoadFailed = true
+          }
+        } else if (!imageLoadFailed && activeProductImg && activeProductImg.complete && activeProductImg.naturalWidth > 0) {
+          try {
+            const zoom = 1.0 + ((t % 3.5) / 3.5) * 0.16
             const w = 1080 * zoom
             const h = 1920 * zoom
             const ox = (1080 - w) / 2
             const oy = (1920 - h) / 2
-            ctx.drawImage(img, ox, oy, w, h)
-          } catch (corsErr) {
+            ctx.drawImage(activeProductImg, ox, oy, w, h)
+          } catch {
             imageLoadFailed = true
           }
         }
-        if (imageLoadFailed || !img.complete || img.naturalWidth === 0) {
+        if (imageLoadFailed && !productVideoEl) {
           const grad = ctx.createLinearGradient(0, 0, 1080, 1920)
           grad.addColorStop(0, '#1e1b4b')
           grad.addColorStop(0.5, '#2e1065')
@@ -454,14 +508,20 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
         ctx.arc(bubbleX, bubbleY, bubbleRadius, 0, Math.PI * 2)
         ctx.clip()
 
-        if (!avatarLoadFailed && avatarImg.complete && avatarImg.naturalWidth > 0) {
+        if (avatarVideoEl && avatarVideoEl.readyState >= 2) {
+          try {
+            ctx.drawImage(avatarVideoEl, bubbleX - bubbleRadius, bubbleY - bubbleRadius, bubbleRadius * 2, bubbleRadius * 2)
+          } catch {
+            avatarLoadFailed = true
+          }
+        } else if (!avatarLoadFailed && avatarImg.complete && avatarImg.naturalWidth > 0) {
           try {
             ctx.drawImage(avatarImg, bubbleX - bubbleRadius, bubbleY - bubbleRadius, bubbleRadius * 2, bubbleRadius * 2)
-          } catch (e) {
+          } catch {
             avatarLoadFailed = true
           }
         }
-        if (avatarLoadFailed || !avatarImg.complete || avatarImg.naturalWidth === 0) {
+        if (avatarLoadFailed && !avatarVideoEl) {
           ctx.fillStyle = '#7c3aed'
           ctx.fillRect(bubbleX - bubbleRadius, bubbleY - bubbleRadius, bubbleRadius * 2, bubbleRadius * 2)
           ctx.fillStyle = '#ffffff'
@@ -539,8 +599,10 @@ export async function renderStudioVideo(params: RenderVideoParams): Promise<Rend
     }
 
     recorder.onstop = () => {
+      if (avatarVideoEl) avatarVideoEl.pause()
+      if (productVideoEl) productVideoEl.pause()
       if (audioCtx) {
-        try { audioCtx.close() } catch (e) {}
+        try { audioCtx.close() } catch {}
       }
       const blob = new Blob(chunks, { type: selectedMime })
       const sanitized = selectedProduct.name.replace(/[^a-zA-Z0-9]/g, '_')

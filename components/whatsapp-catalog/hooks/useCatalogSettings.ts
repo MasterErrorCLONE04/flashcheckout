@@ -343,6 +343,28 @@ export function useCatalogSettings(store: Store) {
     ingredientsSection: rawSec.ingredientsSection === true,
   }
 
+  const defaultSectionOrder: string[] = [
+    'hero',
+    'bestsellers',
+    'visualCategories',
+    'bentoHighlights',
+    'ritual',
+    'lifestyleGallery',
+    'ingredientsSection',
+    'ugc',
+    'pressLogos',
+    'ambassadors',
+    'retailers',
+    'faqs',
+    'garantias',
+    'story',
+  ]
+
+  const sectionOrder: string[] =
+    Array.isArray((aiSettings as any).sectionOrder) && (aiSettings as any).sectionOrder.length > 0
+      ? (aiSettings as any).sectionOrder
+      : defaultSectionOrder
+
   const formattedStoreName = store.name
     .split(' ')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
@@ -401,6 +423,7 @@ export function useCatalogSettings(store: Store) {
     policies,
     navbarLinks,
     sections,
+    sectionOrder,
     formattedStoreName,
   }
 }

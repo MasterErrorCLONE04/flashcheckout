@@ -27,31 +27,55 @@ export function MobileFooter({
   handleMobileTabClick,
   itemsInCart,
 }: MobileFooterProps) {
-  const { socialsShowInCatalog, aiSettings, newsletterWidget, sections, policies, paymentMethods } =
-    settings
+  const {
+    socialsShowInCatalog,
+    aiSettings,
+    newsletterWidget,
+    sections,
+    policies,
+    paymentMethods,
+    colors,
+  } = settings
 
   const [openPolicy, setOpenPolicy] = useState<'refunds' | 'terms' | null>(null)
   const [email, setEmail] = useState('')
+  const isTablet = device === 'tablet'
+  const textHex = colors?.texto || '#111111'
+  const bgHex = colors?.fondo || '#FFFFFF'
 
   return (
     <>
       {(activeNavTab === 'Inicio' || activeNavTab === 'Productos') && (
-        <footer className="pt-8 border-t border-zinc-200 shrink-0 text-left pb-16 select-none space-y-7">
+        <footer
+          data-maker-section="footer"
+          data-maker-title="Pie de Página & Newsletter"
+          className={cn(
+            'pt-8 border-t border-black/10 shrink-0 text-left select-none space-y-7',
+            isTablet ? 'px-6' : 'px-4',
+            device ? 'pb-6' : 'pb-16'
+          )}
+          style={{ color: textHex }}
+        >
           {/* Centered Giant Wordmark + Socials */}
           <div className="text-center space-y-3">
-            <div className="text-3xl font-black text-zinc-950 tracking-[-0.04em] lowercase">
+            <div
+              data-maker-field="storeInfo.name"
+              data-maker-label="Marca en Pie de Página"
+              className="text-3xl font-black tracking-[-0.04em] lowercase"
+            >
               {formattedStoreName.toLowerCase()}
               <sup className="text-xs font-bold ml-0.5">®</sup>
             </div>
 
             {socialsShowInCatalog && (
-              <div className="flex items-center justify-center gap-4 text-zinc-700">
+              <div className="flex items-center justify-center gap-4 opacity-75">
                 {aiSettings.socials?.instagram && (
                   <a
                     href={aiSettings.socials.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-zinc-950"
+                    className="hover:opacity-100"
+                    style={{ color: textHex }}
                   >
                     <InstagramIcon />
                   </a>
@@ -61,7 +85,8 @@ export function MobileFooter({
                     href={aiSettings.socials.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-zinc-950"
+                    className="hover:opacity-100"
+                    style={{ color: textHex }}
                   >
                     <FacebookIcon />
                   </a>
@@ -71,7 +96,8 @@ export function MobileFooter({
                     href={aiSettings.socials.tiktok}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-zinc-950"
+                    className="hover:opacity-100"
+                    style={{ color: textHex }}
                   >
                     <TikTokIcon />
                   </a>
@@ -81,7 +107,8 @@ export function MobileFooter({
                     href={aiSettings.socials.twitter}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-zinc-950"
+                    className="hover:opacity-100"
+                    style={{ color: textHex }}
                   >
                     <TwitterIcon />
                   </a>
@@ -90,13 +117,24 @@ export function MobileFooter({
             )}
           </div>
 
-          {/* Bordered Architectural Newsletter Card (Mobile) */}
+          {/* Bordered Architectural Newsletter Card (Mobile/Tablet) */}
           {sections.newsletterWidget !== false && (
-            <div className="border border-[#111111] rounded-[4px] p-5 space-y-3 bg-white">
-              <h4 className="text-[14px] font-extrabold text-[#111111] leading-snug tracking-[-0.015em]">
+            <div
+              className="border rounded-[4px] p-5 space-y-3 bg-white text-[#111111]"
+              style={{ borderColor: textHex }}
+            >
+              <h4
+                data-maker-field="newsletterWidget.title"
+                data-maker-label="Título Newsletter"
+                className="text-[14px] font-extrabold text-[#111111] leading-snug tracking-[-0.015em]"
+              >
                 {newsletterWidget.title}
               </h4>
-              <p className="text-[11.5px] text-[#52525B] leading-relaxed">
+              <p
+                data-maker-field="newsletterWidget.subtitle"
+                data-maker-label="Subtítulo Newsletter"
+                className="text-[11.5px] text-[#52525B] leading-relaxed"
+              >
                 {newsletterWidget.subtitle}
               </p>
               <form
@@ -105,7 +143,7 @@ export function MobileFooter({
                   toast.success('¡Suscripción confirmada! Recibirás nuestras novedades.')
                   setEmail('')
                 }}
-                className="space-y-2.5"
+                className={cn(isTablet ? 'flex gap-2' : 'space-y-2.5')}
               >
                 <input
                   type="email"
@@ -113,11 +151,16 @@ export function MobileFooter({
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder={newsletterWidget.placeholder || 'Correo electrónico'}
-                  className="w-full border border-[#D4D4D2] rounded-[4px] px-3.5 py-2.5 text-xs text-[#111111] outline-none focus:border-[#111111]"
+                  className="flex-1 w-full border border-[#D4D4D2] rounded-[4px] px-3.5 py-2.5 text-xs text-[#111111] outline-none focus:border-[#111111]"
                 />
                 <button
                   type="submit"
-                  className="w-full h-10 rounded-full bg-[#111111] text-white font-bold text-[10.5px] uppercase tracking-[0.08em] border-0 cursor-pointer"
+                  data-maker-field="newsletterWidget.btnText"
+                  data-maker-label="Botón Newsletter"
+                  className={cn(
+                    'h-10 rounded-full bg-[#111111] text-white font-bold text-[10.5px] uppercase tracking-[0.08em] border-0 cursor-pointer',
+                    isTablet ? 'px-5 shrink-0' : 'w-full'
+                  )}
                 >
                   {newsletterWidget.btnText || 'Suscribirme'}
                 </button>
@@ -220,25 +263,27 @@ export function MobileFooter({
       {/* Bottom Mobile App Navigation Bar */}
       <div
         className={cn(
-          device === 'tablet' || device === 'movil' ? 'absolute' : 'fixed',
-          'bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-zinc-200 h-15 flex items-center justify-around px-4 select-none'
+          device === 'tablet' || device === 'movil' ? 'sticky' : 'fixed',
+          'bottom-0 left-0 right-0 z-40 backdrop-blur-md border-t border-black/10 h-15 flex items-center justify-around px-4 select-none shrink-0'
         )}
+        style={{ backgroundColor: bgHex, color: textHex }}
       >
         <button
           type="button"
           onClick={() => handleMobileTabClick('inicio')}
           className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
+          style={{ color: textHex }}
         >
           <Home
             className={cn(
               'w-4.5 h-4.5',
-              activeMobileTab === 'inicio' ? 'text-zinc-950 stroke-[2.2]' : 'text-zinc-400'
+              activeMobileTab === 'inicio' ? 'stroke-[2.2]' : 'opacity-45'
             )}
           />
           <span
             className={cn(
               'text-[9px]',
-              activeMobileTab === 'inicio' ? 'text-zinc-950 font-bold' : 'text-zinc-400 font-medium'
+              activeMobileTab === 'inicio' ? 'font-bold' : 'opacity-50 font-medium'
             )}
           >
             Inicio
@@ -249,19 +294,18 @@ export function MobileFooter({
           type="button"
           onClick={() => handleMobileTabClick('categorias')}
           className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
+          style={{ color: textHex }}
         >
           <LayoutGrid
             className={cn(
               'w-4.5 h-4.5',
-              activeMobileTab === 'categorias' ? 'text-zinc-950 stroke-[2.2]' : 'text-zinc-400'
+              activeMobileTab === 'categorias' ? 'stroke-[2.2]' : 'opacity-45'
             )}
           />
           <span
             className={cn(
               'text-[9px]',
-              activeMobileTab === 'categorias'
-                ? 'text-zinc-950 font-bold'
-                : 'text-zinc-400 font-medium'
+              activeMobileTab === 'categorias' ? 'font-bold' : 'opacity-50 font-medium'
             )}
           >
             Colecciones
@@ -272,17 +316,18 @@ export function MobileFooter({
           type="button"
           onClick={() => handleMobileTabClick('buscar')}
           className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
+          style={{ color: textHex }}
         >
           <Search
             className={cn(
               'w-4.5 h-4.5',
-              activeMobileTab === 'buscar' ? 'text-zinc-950 stroke-[2.2]' : 'text-zinc-400'
+              activeMobileTab === 'buscar' ? 'stroke-[2.2]' : 'opacity-45'
             )}
           />
           <span
             className={cn(
               'text-[9px]',
-              activeMobileTab === 'buscar' ? 'text-zinc-950 font-bold' : 'text-zinc-400 font-medium'
+              activeMobileTab === 'buscar' ? 'font-bold' : 'opacity-50 font-medium'
             )}
           >
             Buscar
@@ -293,16 +338,20 @@ export function MobileFooter({
           type="button"
           onClick={() => handleMobileTabClick('carrito')}
           className="flex flex-col items-center gap-1 cursor-pointer relative bg-transparent border-0 outline-none"
+          style={{ color: textHex }}
         >
           <div className="relative">
             <ShoppingBag
               className={cn(
                 'w-4.5 h-4.5',
-                activeMobileTab === 'carrito' ? 'text-zinc-950 stroke-[2.2]' : 'text-zinc-400'
+                activeMobileTab === 'carrito' ? 'stroke-[2.2]' : 'opacity-45'
               )}
             />
             {itemsInCart > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-zinc-950 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+              <span
+                className="absolute -top-1.5 -right-2 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
+                style={{ backgroundColor: colors?.primario || '#111111' }}
+              >
                 {itemsInCart}
               </span>
             )}
@@ -310,7 +359,7 @@ export function MobileFooter({
           <span
             className={cn(
               'text-[9px]',
-              activeMobileTab === 'carrito' ? 'text-zinc-950 font-bold' : 'text-zinc-400 font-medium'
+              activeMobileTab === 'carrito' ? 'font-bold' : 'opacity-50 font-medium'
             )}
           >
             Bolsa

@@ -57,6 +57,9 @@ model Store {
   brebConfig                  BrebPaymentConfig?
   brebPaymentIntents          BrebPaymentIntent[]
   aiMediaContents             AiMediaContent[]
+
+  @@index([userId])
+  @@index([active, category])
 }
 
 model Customer {
@@ -91,6 +94,8 @@ model Product {
   options   Json?
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   mediaContents AiMediaContent[]
+
+  @@index([storeId, active])
 }
 
 model Faq {
@@ -133,6 +138,9 @@ model Order {
   driver                  Driver?       @relation(fields: [driverId], references: [id])
   brebPaymentIntent       BrebPaymentIntent?
   driverOffers            DriverOffer[]
+
+  @@index([storeId, createdAt])
+  @@index([storeId, paymentStatus])
 }
 
 model BrebPaymentConfig {

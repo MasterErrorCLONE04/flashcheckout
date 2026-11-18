@@ -308,12 +308,18 @@ export function CatalogDesktopFooter({
                 >
                   <div className="space-y-1.5">
                     <h4
+                      data-maker-field="newsletterWidget.title"
+                      data-maker-label="Título Newsletter"
                       className="font-extrabold text-[15px] leading-snug tracking-[-0.02em]"
                       style={{ color: colors.texto }}
                     >
                       {newsletterWidget.title}
                     </h4>
-                    <p className="text-xs font-normal text-zinc-600 leading-relaxed">
+                    <p
+                      data-maker-field="newsletterWidget.subtitle"
+                      data-maker-label="Subtítulo Newsletter"
+                      className="text-xs font-normal text-zinc-600 leading-relaxed"
+                    >
                       {newsletterWidget.subtitle}
                     </p>
                   </div>
@@ -346,6 +352,8 @@ export function CatalogDesktopFooter({
                     </div>
                     <button
                       type="submit"
+                      data-maker-field="newsletterWidget.btnText"
+                      data-maker-label="Botón Newsletter"
                       className="w-full py-3 px-6 rounded-full font-extrabold text-[11px] uppercase tracking-[0.08em] text-white transition-opacity hover:opacity-90 cursor-pointer border-0 mt-1"
                       style={{ backgroundColor: colors.primario }}
                     >

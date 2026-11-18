@@ -16,24 +16,30 @@ const isPublicRoute = createRouteMatcher([
   '/robots.txt',
   '/api/whatsapp/webhook(.*)',
   '/api/whatsapp/flows(.*)',
+  '/api/whatsapp/sync-cart(.*)',
   '/api/webhook(.*)',
   '/api/webhooks(.*)',
   '/api/checkout/(.*)',
+  '/api/orders/status(.*)',
+  '/api/orders/invoice/(.*)',
+  '/api/orders/(.*)/report',
   '/api/cron/(.*)',
   '/api/agent/flashy(.*)',
   '/api/explore/assistant(.*)',
   '/api/breb/payment-intents(.*)',
+  '/api/breb/proofs(.*)',
   '/pay(.*)',
   '/api/qr(.*)',
   '/legal(.*)'
 ]);
 
 export const proxy = clerkMiddleware(async (auth, request) => {
-  console.log("=== CLERK PROXY CALLED FOR ===", request.nextUrl.pathname);
   const url = new URL(request.url);
   const ref = url.searchParams.get("ref");
+  const isPublicOrderCreation =
+    request.nextUrl.pathname === '/api/orders' && request.method === 'POST';
 
-  if (!isPublicRoute(request)) {
+  if (!isPublicRoute(request) && !isPublicOrderCreation) {
     const { userId } = await auth();
     if (!userId) {
       if (request.nextUrl.pathname.startsWith('/api/')) {

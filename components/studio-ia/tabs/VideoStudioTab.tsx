@@ -47,6 +47,14 @@ interface VideoStudioTabProps {
   isGeneratingI2V: boolean
   generatedVideoUrl: string | null
   onGenerateI2V: () => void
+  isGeneratingAvatarVideo?: boolean
+  avatarVideoUrl?: string | null
+  onGenerateTalkingAvatar?: () => void
+  onUploadCustomAvatar?: (file: File) => void
+  isUploadingCustomAvatar?: boolean
+  galleryImages?: string[]
+  onToggleGalleryImage?: (url: string) => void
+  onUpdateGeneratedData?: (patch: Partial<GeneratedData>) => void
   avatarLayout: AvatarLayout
   onAvatarLayoutChange: (l: AvatarLayout) => void
   selectedAvatar: AiAvatar
@@ -98,6 +106,14 @@ export function VideoStudioTab({
   isGeneratingI2V,
   generatedVideoUrl,
   onGenerateI2V,
+  isGeneratingAvatarVideo = false,
+  avatarVideoUrl = null,
+  onGenerateTalkingAvatar,
+  onUploadCustomAvatar,
+  isUploadingCustomAvatar = false,
+  galleryImages = [],
+  onToggleGalleryImage,
+  onUpdateGeneratedData,
   avatarLayout,
   onAvatarLayoutChange,
   selectedAvatar,
@@ -487,50 +503,215 @@ export function VideoStudioTab({
           </div>
 
           {avatarLayout !== 'NONE' && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {AI_AVATARS.map((avatar) => {
-                const isSelected = selectedAvatar.id === avatar.id
-                return (
-                  <button
-                    key={avatar.id}
-                    onClick={() => onSelectAvatar(avatar)}
-                    className={cn(
-                      "relative p-2.5 rounded-lg border text-left transition-all cursor-pointer group flex flex-col justify-between overflow-hidden",
-                      isSelected
-                        ? "border-zinc-900 bg-zinc-50/70 ring-1 ring-zinc-900 shadow-none"
-                        : "border-zinc-200/80 bg-white hover:border-zinc-300"
-                    )}
-                  >
-                    <div className="relative w-full aspect-square rounded-md overflow-hidden mb-2 bg-zinc-100 border border-zinc-200/50">
-                      <img
-                        src={avatar.imageUrl}
-                        alt={avatar.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[8px] font-bold bg-black/70 backdrop-blur-md text-white">
-                        {avatar.badge}
-                      </span>
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-zinc-900 truncate">
-                          {avatar.name}
-                        </span>
-                        <span className="text-[9px] font-bold text-zinc-500">
-                          IA
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {AI_AVATARS.map((avatar) => {
+                  const isSelected = selectedAvatar.id === avatar.id
+                  return (
+                    <button
+                      key={avatar.id}
+                      onClick={() => onSelectAvatar(avatar)}
+                      className={cn(
+                        "relative p-2.5 rounded-lg border text-left transition-all cursor-pointer group flex flex-col justify-between overflow-hidden",
+                        isSelected
+                          ? "border-zinc-900 bg-zinc-50/70 ring-1 ring-zinc-900 shadow-none"
+                          : "border-zinc-200/80 bg-white hover:border-zinc-300"
+                      )}
+                    >
+                      <div className="relative w-full aspect-square rounded-md overflow-hidden mb-2 bg-zinc-100 border border-zinc-200/50">
+                        <img
+                          src={avatar.imageUrl}
+                          alt={avatar.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[8px] font-bold bg-black/70 backdrop-blur-md text-white">
+                          {avatar.badge}
                         </span>
                       </div>
-                      <p className="text-[10px] text-zinc-500 font-medium truncate mt-0.5">
-                        {avatar.niche}
-                      </p>
-                      <span className="text-[9px] text-zinc-400 font-medium block mt-1">
-                        {avatar.tone}
+
+                      <div className="min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-zinc-900 truncate">
+                            {avatar.name}
+                          </span>
+                          <span className="text-[9px] font-bold text-zinc-500">
+                            IA
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 font-medium truncate mt-0.5">
+                          {avatar.niche}
+                        </p>
+                        <span className="text-[9px] text-zinc-400 font-medium block mt-1">
+                          {avatar.tone}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Generación de Avatar Hablando Real (Lip-Sync IA) + Subida de Avatar Propio */}
+              <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-lg space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <span className="text-xs font-bold text-zinc-900 block">
+                      🎙️ Sincronización de Labios Real (Lip-Sync IA en Español)
+                    </span>
+                    <p className="text-[11px] text-zinc-500 font-medium">
+                      Anima el rostro de {selectedAvatar.name} (o sube tu propia foto) hablando el guion de tu producto.
+                    </p>
+                  </div>
+
+                  {onUploadCustomAvatar && (
+                    <label className="h-8 px-3 bg-white border border-zinc-200 hover:bg-zinc-100 text-zinc-700 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all">
+                      <span>{isUploadingCustomAvatar ? 'Subiendo...' : '📸 Subir mi foto como Avatar'}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        disabled={isUploadingCustomAvatar}
+                        onChange={e => {
+                          const f = e.target.files?.[0]
+                          if (f) onUploadCustomAvatar(f)
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {onGenerateTalkingAvatar && (
+                    <button
+                      type="button"
+                      onClick={onGenerateTalkingAvatar}
+                      disabled={isGeneratingAvatarVideo || !generatedData?.script}
+                      className="h-9 px-4 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition-all cursor-pointer active:scale-95"
+                    >
+                      <Sparkles className={cn("w-3.5 h-3.5", isGeneratingAvatarVideo && "animate-spin")} />
+                      <span>
+                        {isGeneratingAvatarVideo
+                          ? 'Animando rostro y voz del Avatar (~40s)...'
+                          : `Generar Video de ${selectedAvatar.name} Hablando (Lip-Sync)`}
                       </span>
-                    </div>
-                  </button>
-                )
-              })}
+                    </button>
+                  )}
+
+                  {avatarVideoUrl && (
+                    <a
+                      href={avatarVideoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download="avatar_ugc_lipsync.mp4"
+                      className="h-9 px-3.5 bg-white border border-zinc-200 hover:bg-zinc-100 text-zinc-700 rounded-lg text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-all"
+                    >
+                      <Download className="w-3.5 h-3.5 text-zinc-500" />
+                      <span>Descargar Clip Avatar MP4</span>
+                    </a>
+                  )}
+                </div>
+
+                {avatarVideoUrl && (
+                  <div className="rounded-lg overflow-hidden border border-zinc-200 bg-black max-h-48 flex items-center justify-center">
+                    <video src={avatarVideoUrl} controls className="max-h-48 w-auto object-contain" />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 3.5 EDITOR INTERACTIVO DE ESCENAS Y FOTOS DEL REEL */}
+        <div className="bg-white border border-zinc-200/80 rounded-lg p-5 shadow-none space-y-4">
+          <div className="border-b border-zinc-100 pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                Paso 4: Editor de Escenas, Textos y Fotos del Catálogo
+              </h2>
+              <p className="text-[11px] text-zinc-500 font-medium">
+                Personaliza los textos que aparecen en el video y selecciona varias fotos de tu catálogo para hacer transiciones.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Edición en Vivo
+            </span>
+          </div>
+
+          {onToggleGalleryImage && filteredProducts.length > 1 && (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-zinc-700 block">
+                Fotos del Catálogo en la Secuencia del Video ({galleryImages.length || 1} activas)
+              </label>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {filteredProducts
+                  .filter(p => Boolean(p.imageUrl))
+                  .map(p => {
+                    const firstUrl = p.imageUrl!.split(',')[0].trim()
+                    const isIncluded =
+                      galleryImages.includes(firstUrl) || selectedProduct?.id === p.id
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => onToggleGalleryImage(firstUrl)}
+                        className={cn(
+                          "relative w-14 h-14 rounded-md overflow-hidden border-2 shrink-0 cursor-pointer transition-all",
+                          isIncluded
+                            ? "border-zinc-900 ring-1 ring-zinc-900"
+                            : "border-zinc-200 opacity-60 hover:opacity-100"
+                        )}
+                        title={`Incluir ${p.name} en las transiciones del video`}
+                      >
+                        <img src={firstUrl} alt={p.name} className="w-full h-full object-cover" />
+                        {isIncluded && (
+                          <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-zinc-900 text-white flex items-center justify-center">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
+
+          {generatedData && onUpdateGeneratedData && (
+            <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-zinc-700 block mb-1">
+                    Escena 1: Gancho Inicial (0s – 3s)
+                  </label>
+                  <input
+                    type="text"
+                    value={generatedData.hook}
+                    onChange={e => onUpdateGeneratedData({ hook: e.target.value })}
+                    className="w-full h-9 px-3 text-xs font-medium bg-white border border-zinc-200 rounded-lg text-zinc-900 focus:outline-none focus:border-zinc-900"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-zinc-700 block mb-1">
+                    Escena Final: Botón Call-To-Action
+                  </label>
+                  <input
+                    type="text"
+                    value={generatedData.callToAction}
+                    onChange={e => onUpdateGeneratedData({ callToAction: e.target.value })}
+                    className="w-full h-9 px-3 text-xs font-medium bg-white border border-zinc-200 rounded-lg text-zinc-900 focus:outline-none focus:border-zinc-900"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-zinc-700 block mb-1">
+                  Guion de Locución IA y Subtítulos Dinámicos (Editable palabra por palabra)
+                </label>
+                <textarea
+                  rows={3}
+                  value={generatedData.script}
+                  onChange={e => onUpdateGeneratedData({ script: e.target.value })}
+                  className="w-full p-2.5 text-xs font-medium bg-white border border-zinc-200 rounded-lg text-zinc-900 focus:outline-none focus:border-zinc-900 resize-none"
+                />
+              </div>
             </div>
           )}
         </div>
@@ -553,6 +734,9 @@ export function VideoStudioTab({
         selectedProduct={selectedProduct}
         selectedAvatar={selectedAvatar}
         avatarLayout={avatarLayout}
+        avatarVideoUrl={avatarVideoUrl}
+        generatedVideoUrl={generatedVideoUrl}
+        galleryImages={galleryImages}
         mode={mode}
         store={store}
         selectedCoupon={selectedCoupon}

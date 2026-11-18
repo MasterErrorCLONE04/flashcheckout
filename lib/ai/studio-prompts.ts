@@ -41,7 +41,8 @@ Pautas de redacción:
 - Tono: ${toneDescriptions[tone]}
 - La moneda es pesos colombianos (COP). Muestra el precio formateado amigablemente.
 - El texto debe atrapar la atención en los primeros 3 segundos.
-- Devuelve SIEMPRE y ÚNICAMENTE una respuesta en formato JSON estrictamente válido, sin texto adicional ni bloques markdown externos.
+- Devuelve SIEMPRE y ÚNICAMENTE una respuesta en formato JSON estrictamente válido (RFC 8259), sin texto adicional ni bloques markdown externos.
+- IMPORTANTE: Dentro de los valores de texto del JSON (como copyInstagram o copyWhatsApp), escapa los saltos de línea como \\n y nunca uses comillas dobles sin escapar.
 
 El JSON debe tener la siguiente estructura exacta:
 {

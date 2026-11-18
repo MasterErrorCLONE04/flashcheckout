@@ -42,7 +42,7 @@ export function AjustesTab({ form, initialSubTab = 'info' }: AjustesTabProps) {
   return (
     <div className="space-y-5 text-left">
       {/* Sub-tabs segment bar */}
-      <div className="bg-zinc-100 p-1 rounded-xl flex items-center gap-1 border border-zinc-200/70 select-none overflow-x-auto">
+      <div className="bg-zinc-100 p-1 rounded-xl flex items-center gap-1 border border-zinc-200/70 select-none overflow-x-auto scrollbar-none">
         {SUB_TABS.map(tab => {
           const Icon = tab.icon
           const isActive = subTab === tab.id
@@ -53,13 +53,13 @@ export function AjustesTab({ form, initialSubTab = 'info' }: AjustesTabProps) {
               type="button"
               onClick={() => setSubTab(tab.id)}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-0 whitespace-nowrap',
+                'flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 sm:px-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer border-0 whitespace-nowrap shrink-0 sm:shrink',
                 isActive
                   ? 'bg-white text-zinc-950 shadow-xs'
                   : 'text-zinc-500 hover:text-zinc-900 bg-transparent'
               )}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3.5 h-3.5 shrink-0" />
               <span>{tab.label}</span>
             </button>
           )

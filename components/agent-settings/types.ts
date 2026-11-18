@@ -31,6 +31,7 @@ export type AgentTabType =
   | 'modo-cierre' 
   | 'catalogo' 
   | 'respuestas' 
+  | 'automatizaciones'
   | 'comportamiento' 
   | 'integraciones'
 
@@ -47,6 +48,10 @@ export interface AgentSettingsManagerProps {
   storeName: string
   storeSlug: string
   storeId: string
+  storeWhatsapp?: string
+  whatsappConnected?: boolean
+  mpConnected?: boolean
+  stripeConnected?: boolean
   initialProducts: ProductExtended[]
   initialFaqs: FaqItem[]
 }

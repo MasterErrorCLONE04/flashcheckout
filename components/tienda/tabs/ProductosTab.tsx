@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Layout } from 'lucide-react'
+import { Layout, Package, Pencil, Plus, Check, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { TiendaFormState } from '../useTiendaForm'
 
 interface ProductosTabProps {
@@ -18,10 +20,170 @@ export function ProductosTab({ form }: ProductosTabProps) {
     setCatalogColumns,
     showVariantSwatches,
     setShowVariantSwatches,
+    previewStore,
+    setEditingProductId,
+    addProductToStore,
   } = form
+
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newPrice, setNewPrice] = useState('')
+  const [newStock, setNewStock] = useState('15')
+  const [newCategory, setNewCategory] = useState('')
+  const [isSavingNew, setIsSavingNew] = useState(false)
+
+  const handleCreateQuickProduct = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newName.trim() || !newPrice) {
+      toast.error('Ingresa el nombre y precio del producto')
+      return
+    }
+    setIsSavingNew(true)
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newName.trim(),
+          price: Number(newPrice),
+          stock: Number(newStock) || 10,
+          category: newCategory.trim() || 'General',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'No se pudo crear el producto')
+      addProductToStore({
+        id: data.product.id,
+        name: data.product.name,
+        price: Number(data.product.price),
+        stock: Number(data.product.stock),
+        category: data.product.category,
+        description: data.product.description,
+        imageUrl: data.product.imageUrl,
+        options: data.product.options,
+      })
+      toast.success(`"${data.product.name}" añadido al catálogo y sincronizado con la IA`)
+      setNewName('')
+      setNewPrice('')
+      setNewStock('15')
+      setNewCategory('')
+      setIsCreatingProduct(false)
+    } catch (err: any) {
+      toast.error(err.message || 'Error al crear producto')
+    } finally {
+      setIsSavingNew(false)
+    }
+  }
+
+  const activeProducts = previewStore.products || []
 
   return (
     <div className="space-y-6">
+      {/* Gestión Rápida de Productos en el Lienzo */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-3.5 shadow-none text-left">
+        <div className="flex items-center justify-between gap-2">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <Package className="w-4 h-4 text-zinc-900" />
+              <h3 className="text-sm font-black text-zinc-900 leading-none">
+                Productos en Stock ({activeProducts.length})
+              </h3>
+            </div>
+            <p className="text-[10.5px] font-semibold text-zinc-400">
+              Haz clic en un producto aquí o en el lienzo para editarlo.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsCreatingProduct(v => !v)}
+            className="h-7 px-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-[10.5px] font-bold inline-flex items-center gap-1 cursor-pointer border-0 shrink-0"
+          >
+            {isCreatingProduct ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            <span>{isCreatingProduct ? 'Cerrar' : 'Nuevo'}</span>
+          </button>
+        </div>
+
+        {isCreatingProduct && (
+          <form
+            onSubmit={handleCreateQuickProduct}
+            className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2.5 animate-in fade-in duration-150"
+          >
+            <input
+              type="text"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              placeholder="Nombre del producto..."
+              className="w-full bg-white border border-zinc-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-900"
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <input
+                type="number"
+                value={newPrice}
+                onChange={e => setNewPrice(e.target.value)}
+                placeholder="Precio $"
+                className="w-full bg-white border border-zinc-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-900"
+              />
+              <input
+                type="number"
+                value={newStock}
+                onChange={e => setNewStock(e.target.value)}
+                placeholder="Stock"
+                className="w-full bg-white border border-zinc-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-900"
+              />
+              <input
+                type="text"
+                value={newCategory}
+                onChange={e => setNewCategory(e.target.value)}
+                placeholder="Categoría"
+                className="w-full bg-white border border-zinc-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-900 outline-none focus:border-zinc-900"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSavingNew}
+              className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold inline-flex items-center justify-center gap-1 cursor-pointer border-0"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>{isSavingNew ? 'Creando...' : 'Crear y Sincronizar con IA'}</span>
+            </button>
+          </form>
+        )}
+
+        <div className="max-h-52 overflow-y-auto space-y-1.5 pr-0.5">
+          {activeProducts.slice(0, 20).map((prod: any) => {
+            const thumb = (prod.imageUrl || '').split(',')[0]?.trim()
+            return (
+              <button
+                key={prod.id}
+                type="button"
+                onClick={() => setEditingProductId(prod.id)}
+                className="w-full flex items-center justify-between gap-2.5 p-2 rounded-lg border border-zinc-100 hover:border-zinc-300 bg-zinc-50/70 hover:bg-white transition-all text-left cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-md bg-zinc-200/70 overflow-hidden shrink-0 flex items-center justify-center">
+                    {thumb ? (
+                      <img src={thumb} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="w-3.5 h-3.5 text-zinc-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-zinc-900 block truncate">
+                      {prod.name}
+                    </span>
+                    <span className="text-[10px] font-medium text-zinc-500 block">
+                      ${Number(prod.price || 0).toLocaleString('es-CO')} · {prod.stock ?? 0} en stock
+                    </span>
+                  </div>
+                </div>
+                <span className="w-6 h-6 rounded-md bg-white border border-zinc-200 group-hover:border-zinc-900 flex items-center justify-center text-zinc-600 group-hover:text-zinc-950 shrink-0">
+                  <Pencil className="w-3 h-3" />
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
       {/* Estilo de Tarjeta de Producto */}
       <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none text-left">
         <div className="space-y-0.5">

@@ -11,6 +11,23 @@ export interface Product {
   options?: unknown
 }
 
+export type SectionId =
+  | 'hero'
+  | 'bestsellers'
+  | 'visualCategories'
+  | 'bentoHighlights'
+  | 'ritual'
+  | 'lifestyleGallery'
+  | 'ingredientsSection'
+  | 'ugc'
+  | 'pressLogos'
+  | 'ambassadors'
+  | 'retailers'
+  | 'faqs'
+  | 'garantias'
+  | 'story'
+  | 'footer'
+
 export type HeroStyleType = 'waterdrop-collage' | 'cinematic-overlay' | 'split-hero' | 'minimal-banner'
 export type CardStyleType = 'waterdrop-studio' | 'minimal-elevated' | 'clean-border' | 'glass-card'
 export type HeaderStyleType = 'clean-border' | 'floating-glass' | 'editorial-centered'
@@ -60,6 +77,7 @@ export type TiendaSettings = {
   badgeStyle?: 'pill' | 'solid' | 'outline'
   catalogColumns?: '3' | '4' | '5'
   showVariantSwatches?: boolean
+  sectionOrder?: SectionId[]
   sections?: Record<string, boolean | undefined>
   bentoHighlights?: {
     title?: string

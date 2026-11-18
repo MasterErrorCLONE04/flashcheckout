@@ -9,6 +9,7 @@ import { getProofImageUrl } from '@/lib/supabase'
 export const dynamic = 'force-dynamic'
 
 type OrderItemInput = {
+  productId?: string
   name: string
   price: number
   qty: number
@@ -38,6 +39,10 @@ function parseOrderItems(rawItems: unknown): OrderItemInput[] {
     if (!item || typeof item !== 'object') return []
 
     const record = item as Record<string, unknown>
+    const productId =
+      typeof record.productId === 'string' && record.productId.trim().length > 0
+        ? record.productId.trim()
+        : undefined
     const qty = Math.max(0, Math.floor(Number(record.qty)))
     const price = Number(record.price)
     const name =
@@ -45,11 +50,11 @@ function parseOrderItems(rawItems: unknown): OrderItemInput[] {
         ? record.name.trim()
         : 'Producto'
 
-    if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(price) || price <= 0) {
+    if (!Number.isFinite(qty) || qty <= 0) {
       return []
     }
 
-    return [{ name, price, qty }]
+    return [{ productId, name, price: Number.isFinite(price) && price > 0 ? price : 0, qty }]
   })
 }
 
@@ -115,7 +120,88 @@ export async function POST(req: Request) {
       )
     }
 
-    const total = items.reduce((sum, item) => sum + item.price * item.qty, 0)
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+    })
+
+    if (!store || !store.active) {
+      return NextResponse.json(
+        { error: 'Tienda no encontrada o inactiva' },
+        { status: 404 }
+      )
+    }
+
+    const productIds = Array.from(
+      new Set(items.map(item => item.productId).filter((id): id is string => Boolean(id)))
+    )
+
+    const dbProducts = productIds.length
+      ? await prisma.product.findMany({
+          where: {
+            id: { in: productIds },
+            storeId: store.id,
+            active: true,
+          },
+        })
+      : []
+
+    if (productIds.length > 0 && dbProducts.length !== productIds.length) {
+      return NextResponse.json(
+        { error: 'Uno o más productos no están disponibles en esta tienda' },
+        { status: 400 }
+      )
+    }
+
+    const productById = new Map(dbProducts.map(p => [p.id, p]))
+    const qtyByProductId = new Map<string, number>()
+
+    for (const item of items) {
+      if (item.productId) {
+        qtyByProductId.set(item.productId, (qtyByProductId.get(item.productId) ?? 0) + item.qty)
+      }
+    }
+
+    for (const [prodId, requestedQty] of qtyByProductId) {
+      const dbProd = productById.get(prodId)
+      if (!dbProd) {
+        return NextResponse.json(
+          { error: 'Producto inválido' },
+          { status: 400 }
+        )
+      }
+      if (requestedQty > dbProd.stock) {
+        return NextResponse.json(
+          { error: `Stock insuficiente para "${dbProd.name}". Disponible: ${dbProd.stock}.` },
+          { status: 400 }
+        )
+      }
+    }
+
+    const verifiedItems = items.flatMap(item => {
+      if (item.productId) {
+        const dbProd = productById.get(item.productId)
+        if (!dbProd) return []
+        return [
+          {
+            productId: dbProd.id,
+            name: item.name || dbProd.name,
+            price: dbProd.price,
+            qty: item.qty,
+          },
+        ]
+      }
+      if (item.price <= 0) return []
+      return [{ name: item.name, price: item.price, qty: item.qty }]
+    })
+
+    if (verifiedItems.length === 0) {
+      return NextResponse.json(
+        { error: 'El carrito no contiene artículos válidos' },
+        { status: 400 }
+      )
+    }
+
+    const total = verifiedItems.reduce((sum, item) => sum + item.price * item.qty, 0)
 
     const order = await prisma.order.create({
       data: {
@@ -125,26 +211,15 @@ export async function POST(req: Request) {
         customerWhatsAppId: customerPhone,
         address,
         city,
-        items,
+        items: verifiedItems,
         total,
         source: 'WHATSAPP_WEBVIEW',
       },
     })
 
-    const store = await prisma.store.findUnique({
-      where: { id: storeId },
-    })
-
-    if (!store) {
-      return NextResponse.json(
-        { error: 'Tienda no encontrada' },
-        { status: 404 }
-      )
-    }
-
     if (customerPhone) {
       try {
-        const itemCount = items.reduce((sum, item) => sum + item.qty, 0)
+        const itemCount = verifiedItems.reduce((sum, item) => sum + item.qty, 0)
         const summaryMsg = `¡Listo ${customerName}! 📝\n\nRecibimos tu pedido de *${itemCount} articulos* por un total de *$${total.toLocaleString('es-CO')}*.\n\nTu pedido ha sido procesado exitosamente. Haz clic abajo para ver el resumen o gestionar tu pago:`
 
         await waClient.sendUrlButton(
@@ -172,7 +247,7 @@ export async function POST(req: Request) {
         storeName: store.name,
         whatsapp: store.whatsapp,
         customerName,
-        items,
+        items: verifiedItems,
         total,
         address,
         city,

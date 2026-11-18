@@ -8,17 +8,26 @@ interface UsePhotoStudioParams {
 
 export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
   const [enhancedPhotoUrl, setEnhancedPhotoUrl] = useState<string | null>(null)
+  const [photoHistory, setPhotoHistory] = useState<string[]>([])
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
   const [photoActionType, setPhotoActionType] = useState<PhotoActionType | null>(null)
   const [selectedScene, setSelectedScene] = useState<PhotoScene>('marble')
   const [customScenePrompt, setCustomScenePrompt] = useState('')
   const [isGeneratingI2V, setIsGeneratingI2V] = useState(false)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
+  const [isGeneratingAvatarVideo, setIsGeneratingAvatarVideo] = useState(false)
+  const [avatarVideoUrl, setAvatarVideoUrl] = useState<string | null>(null)
 
-  // Foto Studio IA: Enhance Photo
+  // Foto Studio IA: Enhance / Edit Photo
   const handleEnhancePhoto = async (action: PhotoActionType) => {
-    if (!selectedProduct?.imageUrl) {
+    const baseImg = enhancedPhotoUrl || selectedProduct?.imageUrl?.split(',')[0]
+    if (!baseImg) {
       toast.error('El producto seleccionado no tiene una imagen base.')
+      return
+    }
+
+    if (action === 'edit-photo' && !customScenePrompt.trim()) {
+      toast.error('Escribe una instrucción para editar la foto con IA.')
       return
     }
 
@@ -28,7 +37,9 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
       action === 'remove-bg'
         ? 'Removiendo fondo del producto con IA...'
         : action === 'generate-scene'
-        ? 'Generando escenario fotográfico con IA...'
+        ? 'Colocando tu producto en escenario 3D (IC-Light)...'
+        : action === 'edit-photo'
+        ? 'Editando tu foto con instrucciones de IA...'
         : 'Mejorando resolución a 4K con IA...'
     )
 
@@ -38,8 +49,8 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action,
-          imageUrl: enhancedPhotoUrl || selectedProduct.imageUrl,
-          productId: selectedProduct.id,
+          imageUrl: baseImg,
+          productId: selectedProduct?.id,
           sceneType: selectedScene,
           customPrompt: customScenePrompt || undefined
         })
@@ -62,6 +73,7 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
       }
 
       setEnhancedPhotoUrl(data.resultUrl)
+      setPhotoHistory(prev => [data.resultUrl, ...prev.filter(u => u !== data.resultUrl)].slice(0, 8))
       toast.dismiss(toastId)
       toast.success(data.message || '¡Proceso fotográfico completado con éxito!')
     } catch (err: any) {
@@ -90,7 +102,7 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error(data.error || 'Error al actualizar producto')
 
-      selectedProduct.imageUrl = enhancedPhotoUrl
+      selectedProduct.imageUrl = data.resultUrl || enhancedPhotoUrl
       toast.dismiss(toastId)
       toast.success('¡Foto de estudio establecida como portada oficial del producto!')
     } catch (e: any) {
@@ -100,22 +112,24 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
   }
 
   // Animación 3D Image-to-Video
-  const handleGenerateI2V = async () => {
-    if (!selectedProduct?.imageUrl) {
+  const handleGenerateI2V = async (customPrompt?: string) => {
+    const baseImg = enhancedPhotoUrl || selectedProduct?.imageUrl?.split(',')[0]
+    if (!baseImg) {
       toast.error('Elige un producto con imagen para generar video.')
       return
     }
 
     setIsGeneratingI2V(true)
-    const toastId = toast.loading('Animando producto con IA (Image-to-Video)... Esto puede tomar unos segundos.')
+    const toastId = toast.loading('Animando tu producto con IA (Image-to-Video)... Esto toma ~35 segundos.')
     try {
       const res = await fetch('/api/studio-ia/generate-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'i2v',
-          imageUrl: enhancedPhotoUrl || selectedProduct.imageUrl,
-          productId: selectedProduct.id
+          imageUrl: baseImg,
+          prompt: customPrompt || undefined,
+          productId: selectedProduct?.id
         })
       })
       const data = await res.json()
@@ -136,7 +150,7 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
 
       setGeneratedVideoUrl(data.videoUrl)
       toast.dismiss(toastId)
-      toast.success('¡Video cinemático generado con éxito!')
+      toast.success('¡Video 3D del producto generado y sincronizado con el editor!')
     } catch (e: any) {
       toast.dismiss(toastId)
       toast.error(e.message || 'No se pudo generar el video')
@@ -145,9 +159,66 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
     }
   }
 
+  // Generar Avatar Hablando con Lip-Sync Real (SadTalker + Voz en Español)
+  const handleGenerateTalkingAvatar = async (params: {
+    avatarImageUrl: string
+    scriptText: string
+    voice?: string
+  }) => {
+    if (!params.avatarImageUrl) {
+      toast.error('Selecciona o sube la foto de un avatar primero.')
+      return
+    }
+    if (!params.scriptText?.trim()) {
+      toast.error('Genera o escribe un guion primero para que el avatar hable.')
+      return
+    }
+
+    setIsGeneratingAvatarVideo(true)
+    const toastId = toast.loading('Generando Avatar IA con Lip-Sync y voz en español... (~40 seg)')
+    try {
+      const res = await fetch('/api/studio-ia/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'talking-avatar',
+          avatarImageUrl: params.avatarImageUrl,
+          scriptText: params.scriptText,
+          voice: params.voice || 'nova',
+          productId: selectedProduct?.id
+        })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        if (data.isBillingError) {
+          toast.dismiss(toastId)
+          toast.error('Saldo de Replicate agotado ($0 USD). Recarga $5 USD en replicate.com/account/billing para animar avatares con IA.', {
+            duration: 10000,
+            action: {
+              label: 'Recargar Replicate',
+              onClick: () => window.open('https://replicate.com/account/billing', '_blank')
+            }
+          })
+          return
+        }
+        throw new Error(data.error || 'Error al generar el avatar con Lip-Sync')
+      }
+
+      setAvatarVideoUrl(data.videoUrl)
+      toast.dismiss(toastId)
+      toast.success('¡Avatar IA hablando generado con éxito! Ya está integrado en tu video.')
+    } catch (e: any) {
+      toast.dismiss(toastId)
+      toast.error(e.message || 'No se pudo generar el avatar hablando')
+    } finally {
+      setIsGeneratingAvatarVideo(false)
+    }
+  }
+
   return {
     enhancedPhotoUrl,
     setEnhancedPhotoUrl,
+    photoHistory,
     isProcessingPhoto,
     photoActionType,
     selectedScene,
@@ -156,8 +227,13 @@ export function usePhotoStudio({ selectedProduct }: UsePhotoStudioParams) {
     setCustomScenePrompt,
     isGeneratingI2V,
     generatedVideoUrl,
+    setGeneratedVideoUrl,
+    isGeneratingAvatarVideo,
+    avatarVideoUrl,
+    setAvatarVideoUrl,
     handleEnhancePhoto,
     handleSetPrimaryPhoto,
-    handleGenerateI2V
+    handleGenerateI2V,
+    handleGenerateTalkingAvatar
   }
 }

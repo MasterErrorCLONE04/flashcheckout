@@ -49,6 +49,7 @@ export function buildTiendaAiSettings(state: {
   testimonials: any
   faqs: any
   floatingWhatsApp: any
+  sectionOrder?: string[]
   customDomain?: string
   seo?: any
 }) {
@@ -67,6 +68,7 @@ export function buildTiendaAiSettings(state: {
     badgeStyle: state.badgeStyle,
     catalogColumns: state.catalogColumns,
     showVariantSwatches: state.showVariantSwatches,
+    sectionOrder: state.sectionOrder,
     sections: state.sections,
     bannerUrl: state.bannerUrl,
     bannerTitle: state.bannerTitle,

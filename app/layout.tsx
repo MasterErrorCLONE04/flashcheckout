@@ -95,50 +95,50 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={cn("antialiased", geist.variable, inter.variable, plusJakarta.variable)}>
-      <head>
-        <link rel="icon" href="/Flashcheckout logo.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/Flashcheckout logo.svg" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebApplication",
-              "name": "Flashcheckouts",
-              "url": "https://www.flashcheckouts.com",
-              "applicationCategory": "BusinessApplication",
-              "browserRequirements": "Requires JavaScript and HTML5",
-              "description": "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
-              "operatingSystem": "All",
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
-              }
-            })
-          }}
-        />
-      </head>
-      <body className="min-h-screen bg-secondary text-foreground font-sans">
-        <ClerkProvider
-          appearance={{
-            variables: {
-              colorPrimary: "#09090b",
-              colorBackground: "#ffffff",
-              colorInput: "#f4f4f5",
-              colorInputForeground: "#09090b",
-              borderRadius: "0.5rem",
-              fontFamily: "var(--font-sans)",
-            },
-            elements: {
-              card: "border border-zinc-200 premium-card shadow-sm",
-              navbar: "hidden",
-              headerTitle: "font-semibold tracking-tight text-2xl text-zinc-950",
-              formButtonPrimary: "bg-zinc-950 text-white hover:bg-zinc-800 transition-all duration-200 font-semibold rounded-lg py-3",
-            }
-          }}
-        >
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#09090b",
+          colorBackground: "#ffffff",
+          colorInput: "#f4f4f5",
+          colorInputForeground: "#09090b",
+          borderRadius: "0.5rem",
+          fontFamily: "var(--font-sans)",
+        },
+        elements: {
+          card: "border border-zinc-200 premium-card shadow-sm",
+          navbar: "hidden",
+          headerTitle: "font-semibold tracking-tight text-2xl text-zinc-950",
+          formButtonPrimary: "bg-zinc-950 text-white hover:bg-zinc-800 transition-all duration-200 font-semibold rounded-lg py-3",
+        }
+      }}
+    >
+      <html lang="es" className={cn("antialiased", geist.variable, inter.variable, plusJakarta.variable)}>
+        <head>
+          <link rel="icon" href="/Flashcheckout logo.svg" type="image/svg+xml" />
+          <link rel="apple-touch-icon" href="/Flashcheckout logo.svg" />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
+                "name": "Flashcheckouts",
+                "url": "https://www.flashcheckouts.com",
+                "applicationCategory": "BusinessApplication",
+                "browserRequirements": "Requires JavaScript and HTML5",
+                "description": "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
+                "operatingSystem": "All",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "USD"
+                }
+              })
+            }}
+          />
+        </head>
+        <body className="min-h-screen bg-secondary text-foreground font-sans">
           <Suspense fallback={null}>
             <WebViewProvider>
               {children}
@@ -154,8 +154,8 @@ export default function RootLayout({
               className: "premium-card border-zinc-200 font-sans text-sm",
             }}
           />
-        </ClerkProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

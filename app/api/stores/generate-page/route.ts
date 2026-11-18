@@ -23,12 +23,34 @@ export async function POST(req: Request) {
       description?: string
       prompt?: string
       scope?: 'all' | 'copy' | 'style'
+      previewOnly?: boolean
     }
 
     const store = await getActiveStore(userId, undefined, body.storeId)
     if (!store) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 })
     }
+
+    // Fetch real products and stock from database so the AI knows the exact catalog
+    const dbProducts = await prisma.product.findMany({
+      where: {
+        storeId: store.id,
+        active: true,
+      },
+      orderBy: [{ stock: 'desc' }, { createdAt: 'desc' }],
+      take: 48,
+    })
+
+    const normalizedProducts = dbProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      stock: Number(p.stock),
+      category: p.category,
+      description: p.description,
+      imageUrl: p.imageUrl,
+      options: p.options,
+    }))
 
     const storeName = body.name?.trim() || store.name
     const storeCategory = body.category?.trim() || store.category || 'Otros'
@@ -42,6 +64,7 @@ export async function POST(req: Request) {
       description: storeDescription,
       prompt: userPrompt,
       scope,
+      products: normalizedProducts,
     })
 
     const existingAiSettings =
@@ -82,7 +105,7 @@ export async function POST(req: Request) {
         bannerTitle: generated.aiSettings.bannerTitle,
         bannerSubtitle: generated.aiSettings.bannerSubtitle,
         announcement: {
-          ...(existingAiSettings.announcement as Record<string, unknown> || {}),
+          ...((existingAiSettings.announcement as Record<string, unknown>) || {}),
           text: generated.aiSettings.announcement?.text,
         },
         bentoHighlights: generated.aiSettings.bentoHighlights,
@@ -105,22 +128,37 @@ export async function POST(req: Request) {
       }
     }
 
-    const updated = await prisma.store.update({
-      where: { id: store.id },
-      data: {
-        category: storeCategory,
-        bio: scope !== 'style' ? generated.bio : store.bio,
-        welcomeMessage: scope !== 'style' ? generated.welcomeMessage : store.welcomeMessage,
-        systemPrompt: scope !== 'style' ? generated.systemPrompt : store.systemPrompt,
-        aiSettings: mergedAiSettings as Prisma.InputJsonValue,
-        settings: {
-          ...existingSettings,
-          businessProfile: generated.businessProfile,
-        } as Prisma.InputJsonValue,
-      },
-    })
+    let updated = store
+    if (!body.previewOnly) {
+      updated = await prisma.store.update({
+        where: { id: store.id },
+        data: {
+          category: storeCategory,
+          bio: scope !== 'style' ? generated.bio : store.bio,
+          welcomeMessage: scope !== 'style' ? generated.welcomeMessage : store.welcomeMessage,
+          systemPrompt: scope !== 'style' ? generated.systemPrompt : store.systemPrompt,
+          aiSettings: mergedAiSettings as Prisma.InputJsonValue,
+          settings: {
+            ...existingSettings,
+            businessProfile: generated.businessProfile,
+          } as Prisma.InputJsonValue,
+        },
+      })
+    }
 
-    const previewProducts = getDemoPreviewProducts(storeCategory, generated.bio)
+    // Only provide demo preview products if the merchant has 0 real products in DB!
+    const previewProducts =
+      normalizedProducts.length === 0
+        ? getDemoPreviewProducts(storeCategory, generated.bio, userPrompt)
+        : null
+
+    const inventoryContext = {
+      hasRealProducts: normalizedProducts.length > 0,
+      totalProducts: normalizedProducts.length,
+      totalStock: normalizedProducts.reduce((acc, p) => acc + Math.max(0, p.stock), 0),
+      categories: Array.from(new Set(normalizedProducts.map(p => (p.category || 'General').trim()))),
+      topProductNames: normalizedProducts.slice(0, 3).map(p => p.name),
+    }
 
     return NextResponse.json({
       store: updated,
@@ -129,6 +167,7 @@ export async function POST(req: Request) {
         aiSettings: mergedAiSettings,
         previewProducts,
       },
+      inventoryContext,
       scope,
     })
   } catch (error) {

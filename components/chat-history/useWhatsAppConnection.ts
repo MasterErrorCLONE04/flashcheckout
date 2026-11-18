@@ -17,43 +17,22 @@ export function useWhatsAppConnection(initialConnected: boolean) {
     if (isConnected) return
 
     async function initWhatsAppConnection() {
-      setLoadingQr(true)
       try {
         const statusRes = await fetch('/api/whatsapp/instance')
         if (statusRes.ok) {
           const data = await statusRes.json()
           if (data.status === 'CONNECTED') {
             setIsConnected(true)
-            toast.success("¡WhatsApp conectado!")
             return
           } else if (data.status === 'QRCODE') {
             setQrCodeBase64(data.base64 || null)
             setQrCodeText(data.code || null)
             setPollingStatus(true)
-            setLoadingQr(false)
             return
           }
         }
-
-        const connectRes = await fetch('/api/whatsapp/instance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'connect' })
-        })
-        if (connectRes.ok) {
-          const data = await connectRes.json()
-          if (data.status === 'CONNECTED') {
-            setIsConnected(true)
-          } else {
-            setQrCodeBase64(data.base64 || null)
-            setQrCodeText(data.code || null)
-            setPollingStatus(true)
-          }
-        }
       } catch (err) {
-        console.error("Error checking/generating WhatsApp connection QR:", err)
-      } finally {
-        setLoadingQr(false)
+        console.error("Error checking WhatsApp connection status:", err)
       }
     }
 

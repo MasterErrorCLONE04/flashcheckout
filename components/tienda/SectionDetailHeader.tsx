@@ -57,16 +57,16 @@ export function SectionDetailHeader({
             type="button"
             onClick={onToggleEnabled}
             className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border-0 shrink-0',
+              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border shrink-0',
               isEnabled
-                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                ? 'bg-zinc-100 text-zinc-900 border-zinc-250 hover:bg-zinc-200'
+                : 'bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100'
             )}
             title={isEnabled ? 'Sección visible en la tienda' : 'Sección oculta en la tienda'}
           >
             {isEnabled ? (
               <>
-                <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                <Eye className="w-3.5 h-3.5 text-zinc-900" />
                 <span>Visible</span>
               </>
             ) : (
