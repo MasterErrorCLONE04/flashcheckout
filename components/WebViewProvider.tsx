@@ -1,19 +1,20 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function WebViewProvider({ children }: { children: React.ReactNode }) {
-  const searchParams = useSearchParams()
-  const isWebView = searchParams.get('webview') === 'true'
+  const [isWebView, setIsWebView] = useState(false)
 
   useEffect(() => {
-    if (isWebView) {
+    const params = new URLSearchParams(window.location.search)
+    const webview = params.get('webview') === 'true'
+    setIsWebView(webview)
+    if (webview) {
       document.documentElement.classList.add('is-webview')
     } else {
       document.documentElement.classList.remove('is-webview')
     }
-  }, [isWebView])
+  }, [])
 
   return (
     <div className={isWebView ? 'webview-mode' : ''}>

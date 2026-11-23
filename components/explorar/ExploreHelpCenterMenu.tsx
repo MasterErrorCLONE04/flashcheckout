@@ -30,7 +30,7 @@ export default function ExploreHelpCenterMenu({
             
             {/* Col 1, Item 1 */}
             <Link
-              href="/help?topic=buyers"
+              href="/solutions/customer-support"
               className="group bg-zinc-50/80 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-200/70 dark:border-white/5 flex items-center justify-between gap-3 transition-all"
             >
               <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white">
@@ -41,7 +41,7 @@ export default function ExploreHelpCenterMenu({
 
             {/* Col 2, Item 1 */}
             <Link
-              href="/help?topic=refunds"
+              href="/legal/terms"
               className="group bg-zinc-50/80 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-200/70 dark:border-white/5 flex items-center justify-between gap-3 transition-all"
             >
               <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white">
@@ -52,44 +52,44 @@ export default function ExploreHelpCenterMenu({
 
             {/* Col 1, Item 2 */}
             <Link
-              href="/help?action=chat"
+              href="/solutions/sales-agent"
               className="group bg-zinc-50/80 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-200/70 dark:border-white/5 flex items-center justify-between gap-3 transition-all"
             >
               <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white">
-                Live chat
+                Asistencia en vivo por WhatsApp
               </span>
               <ArrowRight className="size-4 text-zinc-400 group-hover:text-black dark:group-hover:text-white transition-colors" />
             </Link>
 
             {/* Col 2, Item 2 */}
             <Link
-              href="/help?action=intellectual-property"
+              href="/legal/terms"
               className="group bg-zinc-50/80 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-200/70 dark:border-white/5 flex items-center justify-between gap-3 transition-all"
             >
               <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white">
-                Denunciar infracción de propiedad intelectual
+                Propiedad intelectual y términos
               </span>
               <ArrowRight className="size-4 text-zinc-400 group-hover:text-black dark:group-hover:text-white transition-colors" />
             </Link>
 
             {/* Col 1, Item 3 */}
             <Link
-              href="/help?action=dispute"
+              href="/enterprise"
               className="group bg-zinc-50/80 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-200/70 dark:border-white/5 flex items-center justify-between gap-3 transition-all"
             >
               <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white">
-                Presentar una disputa comercial
+                Soporte comercial y disputas
               </span>
               <ArrowRight className="size-4 text-zinc-400 group-hover:text-black dark:group-hover:text-white transition-colors" />
             </Link>
 
             {/* Col 2, Item 3 */}
             <Link
-              href="/help?action=report"
+              href="/legal/terms"
               className="group bg-zinc-50/80 hover:bg-zinc-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 px-4 py-3 rounded-xl border border-zinc-200/70 dark:border-white/5 flex items-center justify-between gap-3 transition-all"
             >
               <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-black dark:group-hover:text-white">
-                Denunciar una infracción
+                Seguridad y cumplimiento Bre-B
               </span>
               <ArrowRight className="size-4 text-zinc-400 group-hover:text-black dark:group-hover:text-white transition-colors" />
             </Link>
@@ -99,11 +99,11 @@ export default function ExploreHelpCenterMenu({
           {/* Right Area: Tiendas asociadas */}
           <div className="w-full md:w-64 shrink-0 md:border-l md:border-zinc-200/80 dark:md:border-white/10 md:pl-6 space-y-3">
             <h4 className="text-xs font-bold text-zinc-900 dark:text-white">
-              Tiendas asociadas
+              Ecosistema Ecommerce
             </h4>
 
             <Link
-              href="/integrations/wix"
+              href="/solutions/ecommerce-retail"
               className="group flex items-center gap-3 p-2.5 rounded-xl border border-zinc-200/80 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 bg-white dark:bg-zinc-800/40 transition-all shadow-xs hover:shadow-sm"
             >
               <div className="size-10 rounded-lg bg-zinc-200/80 dark:bg-zinc-700/80 text-black dark:text-white flex items-center justify-center font-black text-sm tracking-tighter shrink-0">
