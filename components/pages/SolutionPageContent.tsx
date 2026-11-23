@@ -193,11 +193,28 @@ const SOLUTIONS_MAP: Record<string, {
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params
   const solution = SOLUTIONS_MAP[slug]
-  if (!solution) return {}
-  
+  if (!solution) {
+    return {
+      title: 'Solución no encontrada',
+      robots: { index: false, follow: false },
+    }
+  }
+
+  const url = `https://www.flashcheckouts.com/solutions/${slug}`
   return {
     title: `${solution.title} — Flashcheckouts`,
     description: solution.subheadline,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: 'website',
+      locale: 'es_ES',
+      url,
+      title: `${solution.title} — Flashcheckouts`,
+      description: solution.subheadline,
+      siteName: 'Flashcheckouts',
+    },
   }
 }
 

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -25,6 +26,13 @@ type SwitcherStore = {
   name: string
   category: string | null
   welcomeMessage: string | null
+}
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default async function DashboardLayout({

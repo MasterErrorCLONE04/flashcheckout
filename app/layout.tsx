@@ -36,17 +36,16 @@ export const metadata: Metadata = {
   keywords: [
     "checkout",
     "whatsapp",
-    "ventas",
-    "instagram",
-    "tiktok",
-    "ecommerce",
-    "colombia",
+    "ventas por whatsapp",
+    "agente ia whatsapp",
+    "bre-b colombia",
+    "tienda online colombia",
+    "instagram shopping",
+    "tiktok commerce",
+    "ecommerce colombia",
     "automatizacion de ventas",
     "enlaces de pago",
   ],
-  alternates: {
-    canonical: "https://www.flashcheckouts.com/",
-  },
   robots: {
     index: true,
     follow: true,
@@ -120,21 +119,44 @@ export default function RootLayout({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebApplication",
-                "name": "Flashcheckouts",
-                "url": "https://www.flashcheckouts.com",
-                "applicationCategory": "BusinessApplication",
-                "browserRequirements": "Requires JavaScript and HTML5",
-                "description": "Convierte tus DMs de Instagram y TikTok en ventas reales con un link de checkout que automatiza el cierre por WhatsApp.",
-                "operatingSystem": "All",
-                "offers": {
-                  "@type": "Offer",
-                  "price": "0",
-                  "priceCurrency": "USD"
-                }
-              })
+              __html: JSON.stringify([
+                {
+                  "@context": "https://schema.org",
+                  "@type": "Organization",
+                  "name": "Flashcheckouts",
+                  "url": "https://www.flashcheckouts.com",
+                  "logo": "https://www.flashcheckouts.com/Flashcheckout%20logo.png",
+                  "description":
+                    "Plataforma de comercio conversacional, catálogo online con cobros Bre-B y Agente Vendedor IA en WhatsApp.",
+                },
+                {
+                  "@context": "https://schema.org",
+                  "@type": "WebSite",
+                  "name": "Flashcheckouts",
+                  "url": "https://www.flashcheckouts.com",
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target":
+                      "https://www.flashcheckouts.com/explorar?q={search_term_string}",
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+                {
+                  "@context": "https://schema.org",
+                  "@type": "SoftwareApplication",
+                  "name": "Flashcheckouts",
+                  "url": "https://www.flashcheckouts.com",
+                  "applicationCategory": "BusinessApplication",
+                  "operatingSystem": "Web",
+                  "description":
+                    "Convierte tus DMs de Instagram, Facebook y TikTok en ventas reales con tienda online, pagos Bre-B y Agente Vendedor IA en WhatsApp.",
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "COP",
+                  },
+                },
+              ]),
             }}
           />
         </head>
