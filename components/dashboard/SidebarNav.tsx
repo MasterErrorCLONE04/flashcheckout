@@ -15,9 +15,7 @@ import {
   Tag,
   Store,
   Link2,
-  Building,
   Sparkles,
-  Zap,
 } from "lucide-react"
 
 export const getDashboardNavItems = (conversationsCount: number, ordersCount: number) => [
@@ -31,7 +29,6 @@ export const getDashboardNavItems = (conversationsCount: number, ordersCount: nu
   { href: "/pagos", icon: CreditCard, label: "Pagos" },
   { href: "/descuentos", icon: Tag, label: "Descuentos" },
   { href: "/tienda", icon: Store, label: "Tienda" },
-  { href: "/dashboard/the-office", icon: Building, label: "The Office" },
   { href: "/integraciones", icon: Link2, label: "Integraciones" },
   { href: "/configuracion", icon: Settings, label: "Configuración" },
 ]

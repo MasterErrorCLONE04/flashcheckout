@@ -37,6 +37,7 @@ import {
 import {
   IngredientsEditor,
   FaqsEditor,
+  TestimonialsEditor,
 } from './tabs/secciones/IngredientsTrustFaqs'
 import {
   BenefitsEditor,
@@ -185,7 +186,12 @@ export function SectionEditorRouter({
         {sectionId === 'ritual' && <ProcessTimelineEditor form={form} />}
         {sectionId === 'lifestyleGallery' && <LifestyleGalleryEditor form={form} />}
         {sectionId === 'ingredientsSection' && <IngredientsEditor form={form} />}
-        {sectionId === 'ugc' && <UgcGalleryEditor form={form} />}
+        {sectionId === 'ugc' && (
+          <div className="space-y-5">
+            <UgcGalleryEditor form={form} />
+            <TestimonialsEditor form={form} />
+          </div>
+        )}
         {sectionId === 'pressLogos' && <PressLogosEditor form={form} />}
         {sectionId === 'ambassadors' && <AmbassadorsEditor form={form} />}
         {sectionId === 'retailers' && <RetailersEditor form={form} />}

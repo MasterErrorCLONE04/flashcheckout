@@ -307,8 +307,10 @@ export function SectionsOverview({ form, onSelectSection }: SectionsOverviewProp
           {/* Icon Badge */}
           <div
             className={cn(
-              'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-              isEnabled ? cn(item.iconBg, item.iconColor) : 'bg-zinc-200/60 text-zinc-400'
+              'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors border',
+              isEnabled
+                ? 'bg-zinc-100 text-zinc-900 border-zinc-200/80 group-hover:bg-zinc-950 group-hover:text-white group-hover:border-zinc-950'
+                : 'bg-zinc-100 text-zinc-400 border-zinc-200/50'
             )}
           >
             <Icon className="w-4 h-4" />

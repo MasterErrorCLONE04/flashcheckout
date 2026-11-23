@@ -19,24 +19,24 @@ import {
   Layers,
   Palette,
   Settings,
-  Component,
-  LayoutTemplate,
+  Sparkles,
   Undo2,
   Redo2,
   QrCode,
   CheckCircle2,
+  Store,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { DeviceType } from './types'
 
 export type StudioMainMode =
   | 'secciones'
   | 'estilo'
+  | 'copiloto'
+  | 'ajustes'
   | 'componentes'
   | 'plantillas'
   | 'capas'
-  | 'ajustes'
 
 interface TiendaStudioBarProps {
   storeName?: string
@@ -64,6 +64,7 @@ interface TiendaStudioBarProps {
   onRedo?: () => void
   onOpenQrModal?: () => void
   lastSavedAt?: Date | null
+  productsCount?: number
 }
 
 export function TiendaStudioBar({
@@ -82,10 +83,7 @@ export function TiendaStudioBar({
   isSaving,
   hasUnsavedChanges,
   onSaveChanges,
-  onOpenAiModal,
   isGeneratingAI = false,
-  isAiChatOpen = true,
-  onToggleAiChat,
   canUndo = false,
   canRedo = false,
   onUndo,
@@ -94,29 +92,47 @@ export function TiendaStudioBar({
   lastSavedAt,
 }: TiendaStudioBarProps) {
   const DEVICES: Array<{ id: DeviceType; icon: React.ElementType; label: string }> = [
-    { id: 'escritorio', icon: Monitor, label: 'Escritorio' },
+    { id: 'escritorio', icon: Monitor, label: 'Web' },
     { id: 'tablet', icon: Tablet, label: 'Tablet' },
     { id: 'movil', icon: Smartphone, label: 'Móvil' },
   ]
 
-  const MAIN_MODES: Array<{ id: StudioMainMode; label: string; icon: React.ElementType }> = [
+  const MAIN_MODES: Array<{
+    id: StudioMainMode
+    label: string
+    icon: React.ElementType
+    badge?: string
+  }> = [
     { id: 'secciones', label: 'Secciones', icon: Layers },
-    { id: 'estilo', label: 'Estilos', icon: Palette },
-    { id: 'componentes', label: 'Componentes', icon: Component },
-    { id: 'plantillas', label: 'Plantillas', icon: LayoutTemplate },
-    { id: 'capas', label: 'Capas', icon: Layers },
+    { id: 'componentes', label: '+ Componentes', icon: Edit3 },
+    { id: 'estilo', label: 'Diseño & Marca', icon: Palette },
+    { id: 'copiloto', label: 'Copiloto IA', icon: Sparkles },
     { id: 'ajustes', label: 'Ajustes', icon: Settings },
   ]
 
   return (
-    <header className="bg-white border-b border-zinc-200 px-4 py-2.5 flex items-center justify-between gap-3 select-none shrink-0 shadow-2xs">
-      {/* LEFT: Main Navigation Modes & History */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-        {/* Studio Primary Modes */}
-        <div className="flex items-center border border-zinc-200 rounded-lg p-0.5 bg-zinc-100/80">
+    <header className="h-13 bg-white border-b border-zinc-200 px-5 flex items-center justify-between gap-3 select-none shrink-0 z-20">
+      {/* LEFT: Studio Identity & Primary Mode Switcher */}
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center shrink-0">
+            <Store className="w-3.5 h-3.5 text-white" />
+          </div>
+          <h1 className="hidden sm:block text-sm font-bold text-zinc-950 tracking-tight">
+            Tienda
+          </h1>
+        </div>
+
+        <div className="h-4 w-px bg-zinc-200 hidden sm:block shrink-0" />
+
+        {/* 4 Clean Segmented Studio Tabs */}
+        <div className="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200/80">
           {MAIN_MODES.map(m => {
             const Icon = m.icon
-            const isActive = mainMode === m.id
+            const isActive =
+              mainMode === m.id ||
+              (m.id === 'estilo' && mainMode === 'plantillas') ||
+              (m.id === 'secciones' && mainMode === 'capas')
 
             return (
               <button
@@ -124,27 +140,42 @@ export function TiendaStudioBar({
                 type="button"
                 onClick={() => setMainMode(m.id)}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer border-0',
+                  'h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-bold transition-all cursor-pointer border-0 whitespace-nowrap',
                   isActive
-                    ? 'bg-white text-zinc-950 shadow-xs'
-                    : 'text-zinc-500 hover:text-zinc-950 bg-transparent'
+                    ? 'bg-white text-zinc-950 shadow-2xs'
+                    : 'text-zinc-500 hover:text-zinc-900 bg-transparent'
                 )}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon
+                  className={cn(
+                    'w-3.5 h-3.5 shrink-0',
+                    m.id === 'copiloto' && isActive
+                      ? 'text-emerald-600'
+                      : isActive
+                        ? 'text-zinc-950'
+                        : 'text-zinc-500'
+                  )}
+                />
                 <span>{m.label}</span>
+                {m.id === 'copiloto' && isGeneratingAI && (
+                  <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
+                )}
               </button>
             )
           })}
         </div>
+      </div>
 
-        {/* Undo / Redo History */}
+      {/* CENTER: Canvas Controls (Editor/Vista, Dispositivos, Zoom, Undo/Redo, Zen) */}
+      <div className="hidden lg:flex items-center gap-2">
+        {/* Undo / Redo */}
         {(onUndo || onRedo) && (
-          <div className="hidden lg:flex items-center border border-zinc-200 rounded-lg p-0.5 bg-zinc-50">
+          <div className="flex items-center bg-zinc-50 border border-zinc-200 rounded-xl p-0.5">
             <button
               type="button"
               onClick={onUndo}
               disabled={!canUndo}
-              className="p-1.5 rounded-md text-zinc-600 hover:text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-0 bg-transparent"
+              className="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer border-0 bg-transparent"
               title="Deshacer (Ctrl + Z)"
             >
               <Undo2 className="w-3.5 h-3.5" />
@@ -154,51 +185,48 @@ export function TiendaStudioBar({
               type="button"
               onClick={onRedo}
               disabled={!canRedo}
-              className="p-1.5 rounded-md text-zinc-600 hover:text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer border-0 bg-transparent"
-              title="Rehacer (Ctrl + Shift + Z / Ctrl + Y)"
+              className="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer border-0 bg-transparent"
+              title="Rehacer (Ctrl + Y)"
             >
               <Redo2 className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
-      </div>
 
-      {/* CENTER: Editor/Preview Mode, Devices & Zoom */}
-      <div className="hidden md:flex items-center gap-2 xl:gap-3">
-        {/* Editor vs Preview Mode Switcher */}
-        <div className="flex items-center border border-zinc-200 rounded-lg p-0.5 bg-zinc-50">
+        {/* Editor vs Live Buyer View */}
+        <div className="flex items-center bg-zinc-100 border border-zinc-200/80 rounded-xl p-0.5">
           <button
             type="button"
             onClick={() => setPreviewMode('edit')}
             className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer border-0',
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border-0',
               previewMode === 'edit'
-                ? 'bg-zinc-950 text-white shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-950 bg-transparent'
+                ? 'bg-zinc-950 text-white shadow-2xs'
+                : 'text-zinc-500 hover:text-zinc-900 bg-transparent'
             )}
-            title="Haz clic en cualquier sección para editarla directamente"
+            title="Haz clic sobre cualquier bloque, texto o producto para editarlo"
           >
-            <Edit3 className="w-3.5 h-3.5" />
+            <Edit3 className="w-3 h-3" />
             <span>Editor</span>
           </button>
           <button
             type="button"
             onClick={() => setPreviewMode('preview')}
             className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer border-0',
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border-0',
               previewMode === 'preview'
-                ? 'bg-zinc-950 text-white shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-950 bg-transparent'
+                ? 'bg-zinc-950 text-white shadow-2xs'
+                : 'text-zinc-500 hover:text-zinc-900 bg-transparent'
             )}
-            title="Interactúa con la tienda como un comprador real"
+            title="Probar navegación y carrito como un comprador real"
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Vista</span>
+            <Eye className="w-3 h-3" />
+            <span>Vista Cliente</span>
           </button>
         </div>
 
-        {/* Device Switcher */}
-        <div className="flex items-center border border-zinc-200 rounded-lg p-0.5 bg-zinc-50">
+        {/* Device Viewport Switcher */}
+        <div className="flex items-center bg-zinc-100 border border-zinc-200/80 rounded-xl p-0.5">
           {DEVICES.map(dev => {
             const Icon = dev.icon
             return (
@@ -207,15 +235,15 @@ export function TiendaStudioBar({
                 type="button"
                 onClick={() => setDevice(dev.id)}
                 className={cn(
-                  'px-2 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold border-0',
+                  'px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold border-0',
                   device === dev.id
-                    ? 'bg-white text-zinc-950 shadow-xs'
-                    : 'text-zinc-400 hover:text-zinc-700 bg-transparent'
+                    ? 'bg-white text-zinc-950 shadow-2xs'
+                    : 'text-zinc-500 hover:text-zinc-900 bg-transparent'
                 )}
                 title={dev.label}
               >
                 <Icon className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">{dev.label}</span>
+                <span className="hidden xl:inline">{dev.label}</span>
               </button>
             )
           })}
@@ -223,7 +251,7 @@ export function TiendaStudioBar({
 
         {/* Zoom Controls (Desktop only) */}
         {device === 'escritorio' && (
-          <div className="hidden xl:flex items-center border border-zinc-200 rounded-lg p-0.5 bg-zinc-50 text-[11px] font-bold text-zinc-600">
+          <div className="hidden 2xl:flex items-center bg-zinc-50 border border-zinc-200 rounded-xl p-0.5 text-[11px] font-bold text-zinc-600">
             <button
               type="button"
               onClick={() => setZoomLevel(prev => Math.max(65, prev - 10))}
@@ -233,7 +261,7 @@ export function TiendaStudioBar({
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="px-1.5 min-w-[38px] text-center tabular-nums text-[10px]">
+            <span className="px-1.5 min-w-[36px] text-center tabular-nums text-[10px]">
               {zoomLevel}%
             </span>
             <button
@@ -258,17 +286,17 @@ export function TiendaStudioBar({
           </div>
         )}
 
-        {/* Zen Mode Toggle */}
+        {/* Fullscreen Canvas Toggle */}
         <button
           type="button"
           onClick={onToggleZenMode}
           className={cn(
-            'p-1.5 rounded-lg border cursor-pointer transition-colors',
+            'p-1.5 rounded-xl border cursor-pointer transition-colors',
             isZenMode
               ? 'border-zinc-950 bg-zinc-950 text-white'
-              : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:text-zinc-950'
+              : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100'
           )}
-          title={isZenMode ? 'Salir de pantalla completa' : 'Vista panorámica completa'}
+          title={isZenMode ? 'Mostrar panel lateral' : 'Expandir lienzo a pantalla completa'}
         >
           {isZenMode ? (
             <Minimize2 className="w-3.5 h-3.5" />
@@ -278,76 +306,70 @@ export function TiendaStudioBar({
         </button>
       </div>
 
-      {/* RIGHT: Sync Status, QR Mobile, Preview External Link & Save Button */}
-      <div className="flex items-center gap-2">
-        {/* Sync Status Badge */}
+      {/* RIGHT: Save Status, QR Mobile, Live Store Link & Primary Save CTA */}
+      <div className="flex items-center gap-2 shrink-0">
         {isSaving ? (
-          <span className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 mr-1">
+          <span className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-600" />
             Guardando...
           </span>
         ) : hasUnsavedChanges ? (
-          <span className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full mr-1">
+          <span className="hidden xl:inline-flex items-center gap-1.5 text-[10.5px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Borrador local
+            Sin guardar
           </span>
         ) : lastSavedAt ? (
-          <span
-            className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 mr-1"
-            title="Todos los cambios están sincronizados con la nube"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5 text-zinc-700" />
-            Guardado
+          <span className="hidden xl:inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-500">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            Sincronizado
           </span>
         ) : null}
 
-        {/* Probar en Móvil Button with QR */}
         {onOpenQrModal && (
-          <Button
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={onOpenQrModal}
-            className="h-8 text-xs font-bold border-zinc-200 hover:bg-zinc-100 text-zinc-700"
-            title="Abre la tienda en tu celular escaneando un código QR"
+            className="h-8 px-3 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Probar tienda en tu celular con código QR"
           >
-            <QrCode className="w-3.5 h-3.5 mr-1 text-zinc-600" />
-            <span className="hidden sm:inline">Probar en Móvil</span>
-          </Button>
+            <QrCode className="w-3.5 h-3.5 text-zinc-600" />
+            <span className="hidden sm:inline">QR Móvil</span>
+          </button>
         )}
 
-        <Button variant="outline" size="sm" asChild className="h-8 text-xs font-bold">
-          <Link href={`/tienda/${subdomain}`} target="_blank">
-            <span>Ver tienda</span>
-            <ExternalLink className="w-3.5 h-3.5 text-zinc-400 ml-1" />
-          </Link>
-        </Button>
+        <Link
+          href={`/tienda/${subdomain}`}
+          target="_blank"
+          className="h-8 px-3 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-950 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+          title="Abrir tienda pública en una nueva pestaña"
+        >
+          <span className="hidden sm:inline">Ver tienda</span>
+          <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
+        </Link>
 
-        <Button
+        <button
           type="button"
-          size="sm"
           onClick={onSaveChanges}
           disabled={isSaving}
           className={cn(
-            'h-8 text-xs font-bold transition-all relative',
+            'h-8 px-3.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50',
             hasUnsavedChanges
-              ? 'bg-zinc-950 hover:bg-zinc-800 text-white shadow-xs ring-2 ring-zinc-900/20'
-              : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+              ? 'bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xs ring-2 ring-zinc-950/15'
+              : 'bg-zinc-950 hover:bg-zinc-800 text-white'
           )}
-          title="Presiona Ctrl+S para guardar en cualquier momento"
+          title="Guardar cambios (Ctrl + S)"
         >
           {isSaving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Save className="w-3.5 h-3.5 mr-1" />
+            <Save className="w-3.5 h-3.5" />
           )}
-          <span>{isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar *' : 'Guardar'}</span>
+          <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
           {hasUnsavedChanges && !isSaving && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-1.5" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
           )}
-        </Button>
+        </button>
       </div>
     </header>
   )
 }
-

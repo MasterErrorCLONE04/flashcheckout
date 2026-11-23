@@ -5,46 +5,59 @@ import { getActiveStore } from '@/lib/store-context'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 import AffiliateClient from '@/components/AffiliateClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AffiliatePage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
   const store = await getActiveStore(userId)
-
   if (!store) {
     return <StoreCreationWizard />
   }
 
-  // Fetch real referrals stats
+  // Real referrals from database (zero simulated click formulas)
   const referredStores = await prisma.store.findMany({
     where: { referredBySlug: store.slug },
-    select: { name: true, stripePriceId: true, createdAt: true },
-    orderBy: { createdAt: 'desc' }
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      stripePriceId: true,
+      active: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
   })
 
-  const clicks = referredStores.length * 12 + 27
-  const referred = referredStores.length
-  
-  const upgradedCount = referredStores.filter(s => s.stripePriceId).length
+  const referredCount = referredStores.length
+  const upgradedCount = referredStores.filter(s => Boolean(s.stripePriceId)).length
   const paidCommission = upgradedCount * 12000
-  const pendingCommission = (referred - upgradedCount) * 12000
+  const pendingCommission = Math.max(0, referredCount - upgradedCount) * 12000
 
   const referralsList = referredStores.map(s => ({
+    id: s.id,
     name: s.name,
-    status: s.stripePriceId ? 'Completado' : 'Pendiente',
-    date: new Date(s.createdAt).toLocaleDateString('es-CO')
+    slug: s.slug,
+    status: s.stripePriceId ? 'Suscripción Pro' : 'Registrada (Plan Gratis)',
+    isPro: Boolean(s.stripePriceId),
+    date: new Date(s.createdAt).toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }),
   }))
 
   return (
-    <AffiliateClient 
-      storeSlug={store.slug} 
-      storeName={store.name} 
+    <AffiliateClient
+      storeSlug={store.slug}
+      storeName={store.name}
       initialStats={{
-        clicks,
-        referred,
+        referred: referredCount,
+        upgradedCount,
         pendingCommission,
         paidCommission,
-        referralsList
+        referralsList,
       }}
     />
   )

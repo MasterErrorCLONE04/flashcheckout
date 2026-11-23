@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 import { checkSubscription } from '@/lib/subscription'
 import ProductManager from '@/components/ProductManager'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
-
 import { getActiveStore } from '@/lib/store-context'
 
 export default async function ProductosPage() {
@@ -23,8 +22,12 @@ export default async function ProductosPage() {
   const isPro = await checkSubscription()
 
   return (
-    <div className="animate-fade-in">
-      <ProductManager initialProducts={products} storeId={store.id} storeSlug={store.slug} isPro={isPro} />
-    </div>
+    <ProductManager
+      initialProducts={products}
+      storeId={store.id}
+      storeSlug={store.slug}
+      storeName={store.name}
+      isPro={isPro}
+    />
   )
 }

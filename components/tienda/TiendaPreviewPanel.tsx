@@ -15,6 +15,8 @@ import {
   Wand2,
   Package,
   Sliders,
+  Plus,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import WhatsAppCatalog from '@/components/WhatsAppCatalog'
@@ -194,6 +196,9 @@ export function TiendaPreviewPanel({
       return { value: item?.label || '', secondValue: item?.desc || '', isImage: false }
     }
     if (key === 'ingredientsSection.title') return { value: form.ingredientsSection.title, isImage: false }
+    if (key === 'ingredientsSection.centerImageUrl') {
+      return { value: form.ingredientsSection.centerImageUrl || '', isImage: true }
+    }
     if (key === 'ingredientsSection.left') {
       return { value: form.ingredientsSection.leftTitle, secondValue: form.ingredientsSection.leftDesc, isImage: false }
     }
@@ -320,8 +325,10 @@ export function TiendaPreviewPanel({
           i === idx ? { ...it, label: val, ...(secondVal !== undefined ? { desc: secondVal } : {}) } : it
         ),
       }))
-    } else if (key === 'ingredientsSection.title') form.setIngredientsSection(p => ({ ...p, title: val }))
-    else if (key === 'ingredientsSection.left') {
+    } else if (key === 'ingredientsSection.title') form.setIngredientsSection(p => ({ ...prevOr(p), title: val }))
+    else if (key === 'ingredientsSection.centerImageUrl') {
+      form.setIngredientsSection(p => ({ ...p, centerImageUrl: val }))
+    } else if (key === 'ingredientsSection.left') {
       form.setIngredientsSection(p => ({
         ...p,
         leftTitle: val,
@@ -406,6 +413,248 @@ export function TiendaPreviewPanel({
     }
   }
 
+  const prevOr = <T,>(p: T): T => p
+
+  // Helper to add a new component/item directly to any section from the live canvas
+  const canAddItemToSection = (secId?: SectionId | null): boolean => {
+    if (!secId) return false
+    return [
+      'visualCategories',
+      'bentoHighlights',
+      'ritual',
+      'lifestyleGallery',
+      'ugc',
+      'pressLogos',
+      'ambassadors',
+      'retailers',
+      'faqs',
+      'garantias',
+    ].includes(secId)
+  }
+
+  const handleAddItemToSection = (secId?: SectionId | null) => {
+    if (!form || !secId) return
+    if (secId === 'visualCategories') {
+      const nextIdx = form.visualCategories.length
+      form.setVisualCategories(prev => [
+        ...prev,
+        {
+          category: `Nueva Categoría ${nextIdx + 1}`,
+          imageUrl:
+            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80',
+        },
+      ])
+      setActiveField({
+        key: `visualCategories.${nextIdx}`,
+        label: `Categoría Visual #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'bentoHighlights') {
+      const nextIdx = form.bentoHighlights.items.length
+      form.setBentoHighlights(prev => ({
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            emoji: '✨',
+            title: `Nuevo Destacado #${nextIdx + 1}`,
+            desc: 'Describe el beneficio o diferencial clave de tu marca.',
+          },
+        ],
+      }))
+      setActiveField({
+        key: `bentoHighlights.items.${nextIdx}`,
+        label: `Tarjeta Bento #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'ritual') {
+      const nextIdx = form.processTimeline.items.length
+      form.setProcessTimeline(prev => ({
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            step: `0${nextIdx + 1}`,
+            title: `Paso ${nextIdx + 1}`,
+            desc: 'Explica este paso de uso o experiencia.',
+            imageUrl:
+              'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=85',
+          },
+        ],
+      }))
+      setActiveField({
+        key: `processTimeline.items.${nextIdx}`,
+        label: `Paso #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'lifestyleGallery') {
+      const nextIdx = form.lifestyleGallery.length
+      form.setLifestyleGallery(prev => [
+        ...prev,
+        'https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=800&q=85',
+      ])
+      setActiveField({
+        key: `lifestyleGallery.${nextIdx}`,
+        label: `Foto Lifestyle #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'ugc') {
+      const nextIdx = form.ugcGallery.length
+      form.setUgcGallery(prev => [
+        ...prev,
+        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80',
+      ])
+      setActiveField({
+        key: `ugcGallery.${nextIdx}`,
+        label: `Foto UGC #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'pressLogos') {
+      const nextIdx = form.pressLogos.length
+      form.setPressLogos(prev => [
+        ...prev,
+        { name: `SELLO #${nextIdx + 1}`, subtitle: 'Destacado Oficial' },
+      ])
+      setActiveField({
+        key: `pressLogos.${nextIdx}`,
+        label: `Sello de Prensa #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'ambassadors') {
+      const nextIdx = form.ambassadors.items.length
+      form.setAmbassadors(prev => ({
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            name: `Embajador #${nextIdx + 1}`,
+            role: 'Cliente Verificado',
+            imageUrl:
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80',
+          },
+        ],
+      }))
+      setActiveField({
+        key: `ambassadors.items.${nextIdx}`,
+        label: `Embajador #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'retailers') {
+      const nextIdx = form.retailers.items.length
+      form.setRetailers(prev => ({
+        ...prev,
+        items: [...prev.items, { name: `Ciudad / Punto #${nextIdx + 1}`, badge: 'Express 24h' }],
+      }))
+      setActiveField({
+        key: `retailers.items.${nextIdx}`,
+        label: `Punto / Ciudad #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'faqs') {
+      const nextIdx = form.faqs.items.length
+      form.setFaqs(prev => ({
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            q: '¿Nueva pregunta frecuente?',
+            a: 'Escribe aquí la respuesta clara para tus clientes.',
+          },
+        ],
+      }))
+      setActiveField({
+        key: `faqs.items.${nextIdx}`,
+        label: `Pregunta Frecuente #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    } else if (secId === 'garantias') {
+      const nextIdx = form.benefits.items.length
+      form.setBenefits(prev => ({
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            icon: 'ShieldCheck',
+            label: `Garantía #${nextIdx + 1}`,
+            desc: 'Compra protegida y atención personalizada.',
+          },
+        ],
+      }))
+      setActiveField({
+        key: `benefits.items.${nextIdx}`,
+        label: `Garantía #${nextIdx + 1}`,
+        sectionId: secId,
+      })
+    }
+  }
+
+  const canDeleteActiveField = (key?: string): boolean => {
+    if (!form || !key) return false
+    if (key.startsWith('visualCategories.')) return form.visualCategories.length > 1
+    if (key.startsWith('bentoHighlights.items.')) return form.bentoHighlights.items.length > 1
+    if (key.startsWith('processTimeline.items.')) return form.processTimeline.items.length > 1
+    if (key.startsWith('lifestyleGallery.')) return form.lifestyleGallery.length > 1
+    if (key.startsWith('ugcGallery.')) return form.ugcGallery.length > 1
+    if (key.startsWith('pressLogos.')) return form.pressLogos.length > 1
+    if (key.startsWith('ambassadors.items.')) return form.ambassadors.items.length > 1
+    if (key.startsWith('retailers.items.')) return form.retailers.items.length > 1
+    if (key.startsWith('faqs.items.')) return form.faqs.items.length > 1
+    if (key.startsWith('benefits.items.')) return form.benefits.items.length > 1
+    if (key.startsWith('testimonials.items.')) return form.testimonials.items.length > 1
+    return false
+  }
+
+  const handleDeleteActiveField = (key: string) => {
+    if (!form) return
+    const parts = key.split('.')
+    const idx = Number(parts[parts.length - 1] || 0)
+    if (key.startsWith('visualCategories.')) {
+      form.setVisualCategories(prev => prev.filter((_, i) => i !== idx))
+    } else if (key.startsWith('bentoHighlights.items.')) {
+      form.setBentoHighlights(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== idx),
+      }))
+    } else if (key.startsWith('processTimeline.items.')) {
+      form.setProcessTimeline(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== idx),
+      }))
+    } else if (key.startsWith('lifestyleGallery.')) {
+      form.setLifestyleGallery(prev => prev.filter((_, i) => i !== idx))
+    } else if (key.startsWith('ugcGallery.')) {
+      form.setUgcGallery(prev => prev.filter((_, i) => i !== idx))
+    } else if (key.startsWith('pressLogos.')) {
+      form.setPressLogos(prev => prev.filter((_, i) => i !== idx))
+    } else if (key.startsWith('ambassadors.items.')) {
+      form.setAmbassadors(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== idx),
+      }))
+    } else if (key.startsWith('retailers.items.')) {
+      form.setRetailers(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== idx),
+      }))
+    } else if (key.startsWith('faqs.items.')) {
+      form.setFaqs(prev => ({
+        ...prev,
+        items: prev.items.filter((_: unknown, i: number) => i !== idx),
+      }))
+    } else if (key.startsWith('benefits.items.')) {
+      form.setBenefits(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== idx),
+      }))
+    } else if (key.startsWith('testimonials.items.')) {
+      form.setTestimonials(prev => ({
+        ...prev,
+        items: prev.items.filter((_: unknown, i: number) => i !== idx),
+      }))
+    }
+    setActiveField(null)
+  }
+
   const activeFieldInfo = activeField ? getFieldValue(activeField.key) : null
 
   const handleFieldPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -431,72 +680,44 @@ export function TiendaPreviewPanel({
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden min-h-0 select-none">
-      {/* Floating Canvas Top Chrome (Sleek Modern Browser Frame Header) */}
-      <div className="bg-white border border-zinc-200/90 rounded-t-xl px-4 py-2.5 flex items-center justify-between select-none shrink-0 shadow-2xs gap-3">
-        {/* Left: Window controls / Mode indicator */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" />
-            <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" />
-            <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" />
-          </div>
-
-          <div className="h-4 w-px bg-zinc-200 mx-1 shrink-0" />
-
+      {/* Slim Studio Canvas Header */}
+      <div className="h-9 bg-white border border-zinc-200 rounded-t-xl px-3.5 flex items-center justify-between select-none shrink-0 gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           {previewMode === 'edit' ? (
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-900 truncate">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-zinc-800 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 shrink-0" />
               <span className="truncate">
                 {activeField
                   ? `Editando: ${activeField.label}`
                   : activeSectionTitle
-                    ? `Editando: ${activeSectionTitle}`
-                    : 'Modo Editor Interactivo (haz clic en cualquier texto, foto, botón o producto)'}
+                    ? `Bloque activo: ${activeSectionTitle}`
+                    : 'Lienzo Interactivo · Haz clic en cualquier texto, imagen o producto para editar'}
               </span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-900 truncate">
-              <Eye className="w-3.5 h-3.5 text-zinc-700 shrink-0" />
-              <span>Modo Vista: Experiencia real del cliente</span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-zinc-700 truncate">
+              <Eye className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+              <span>Simulación en vivo de cliente</span>
             </div>
           )}
         </div>
 
-        {/* Center: Fake browser address bar + Stock Context Pill */}
-        <div className="hidden md:flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-zinc-100/80 border border-zinc-200/70 px-3.5 py-1 rounded-full text-[11px] font-medium text-zinc-600 max-w-[280px] truncate shadow-2xs">
-            <Lock className="w-3 h-3 text-zinc-500 shrink-0" />
-            <span className="text-zinc-400">https://</span>
-            <span className="font-bold text-zinc-800 truncate">{previewStore.slug}.flashcheckout.co</span>
+        <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 bg-zinc-50 border border-zinc-200 px-2.5 py-0.5 rounded-md text-[10.5px] font-medium text-zinc-500 max-w-[240px] truncate">
+            <Lock className="w-2.5 h-2.5 text-zinc-400 shrink-0" />
+            <span className="font-semibold text-zinc-700 truncate">{previewStore.slug}.flashcheckout.co</span>
           </div>
-          <span
-            className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-bold text-emerald-800"
-            title="Productos activos sincronizados en el lienzo"
-          >
-            <Package className="w-3 h-3 text-emerald-600" />
-            <span>{previewStore.products?.length || 0} productos activos</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-[10px] font-bold text-zinc-700">
+            <Package className="w-3 h-3 text-zinc-600" />
+            <span>{previewStore.products?.length || 0} productos</span>
           </span>
-        </div>
-
-        {/* Right: Quick actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          <a
-            href={`/tienda/${previewStore.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-zinc-950 px-2.5 py-1 rounded-md hover:bg-zinc-100 transition-colors"
-            title="Abrir tienda real en pestaña nueva"
-          >
-            <span>Visitar Tienda</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
         </div>
       </div>
 
       {/* Viewport Canvas Body Frame */}
       <div
         className={cn(
-          'w-full flex-1 flex justify-center overflow-hidden relative select-none min-h-0 bg-[#E8E8ED] border-x border-b border-zinc-200/90 rounded-b-xl shadow-xs transition-all duration-300',
+          'w-full flex-1 flex justify-center overflow-hidden relative select-none min-h-0 bg-[#F4F4F5] border-x border-b border-zinc-200 rounded-b-xl shadow-2xs transition-all duration-300',
           device === 'escritorio' ? 'items-stretch p-0' : 'items-center p-3 sm:p-5'
         )}
       >
@@ -557,8 +778,8 @@ export function TiendaPreviewPanel({
 
         {/* FLOATING QUICK-EDIT POPOVER BAR FOR ANY CLICKED ELEMENT */}
         {previewMode === 'edit' && activeField && activeFieldInfo && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-xl bg-zinc-950/95 text-white backdrop-blur-xl border border-zinc-800 rounded-2xl p-3 shadow-[0_18px_45px_rgba(0,0,0,0.45)] animate-in fade-in slide-in-from-top-2 duration-150">
-            <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[120] w-[95%] max-w-2xl bg-zinc-950/98 text-white backdrop-blur-xl border border-zinc-800 rounded-2xl p-3.5 shadow-[0_24px_60px_rgba(0,0,0,0.65)] ring-1 ring-white/10 animate-in fade-in slide-in-from-top-2 duration-150 pointer-events-auto">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider shrink-0">
                   Edición Directa
@@ -567,14 +788,41 @@ export function TiendaPreviewPanel({
                   {activeField.label}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveField(null)}
-                className="w-6 h-6 rounded-lg hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white cursor-pointer border-0 bg-transparent shrink-0"
-                title="Cerrar editor rápido"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {canAddItemToSection(activeField.sectionId || activeSectionId) && (
+                  <button
+                    type="button"
+                    onClick={() => handleAddItemToSection(activeField.sectionId || activeSectionId)}
+                    className="h-6 px-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer border border-zinc-700 transition-colors"
+                    title="Añadir nuevo componente a esta sección"
+                  >
+                    <Plus className="w-3 h-3 text-emerald-400" />
+                    <span>Añadir componente</span>
+                  </button>
+                )}
+
+                {canDeleteActiveField(activeField.key) && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteActiveField(activeField.key)}
+                    className="h-6 px-2 rounded-md bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer border border-rose-500/30 transition-colors"
+                    title="Eliminar este elemento"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Eliminar</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setActiveField(null)}
+                  className="w-6 h-6 rounded-lg hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white cursor-pointer border-0 bg-transparent shrink-0"
+                  title="Cerrar editor rápido"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             {activeFieldInfo.isImage ? (
@@ -603,6 +851,14 @@ export function TiendaPreviewPanel({
                     className="hidden"
                   />
                 </label>
+                <button
+                  type="button"
+                  onClick={() => setActiveField(null)}
+                  className="h-8 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer border border-zinc-700 shrink-0"
+                >
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Listo</span>
+                </button>
               </div>
             ) : (
               <div className="space-y-2">
@@ -614,6 +870,12 @@ export function TiendaPreviewPanel({
                     onChange={e =>
                       setFieldValue(activeField.key, e.target.value, activeFieldInfo.secondValue)
                     }
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        setActiveField(null)
+                      }
+                    }}
                     placeholder="Escribe el texto aquí..."
                     className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-semibold text-white outline-none focus:border-emerald-400"
                   />
@@ -633,7 +895,13 @@ export function TiendaPreviewPanel({
                     onChange={e =>
                       setFieldValue(activeField.key, activeFieldInfo.value, e.target.value)
                     }
-                    placeholder="Descripción o subtítulo secundario..."
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        setActiveField(null)
+                      }
+                    }}
+                    placeholder="Descripción, subtítulo o URL secundaria..."
                     className="w-full bg-zinc-900/90 border border-zinc-800 rounded-lg px-3 py-1.5 text-[11.5px] text-zinc-200 outline-none focus:border-emerald-400"
                   />
                 )}
@@ -745,13 +1013,29 @@ export function TiendaPreviewPanel({
 
         {/* Floating Canvas Action Dock for Active Selected Section */}
         {previewMode === 'edit' && activeSectionId && (
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/92 text-white backdrop-blur-md border border-zinc-800/90 px-3 py-2 rounded-2xl shadow-[0_12px_36px_-6px_rgba(0,0,0,0.4)] flex items-center gap-2 select-none animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[110] bg-zinc-950/95 text-white backdrop-blur-md border border-zinc-800/90 px-3 py-2 rounded-2xl shadow-[0_12px_36px_-6px_rgba(0,0,0,0.45)] flex items-center gap-2 select-none animate-in fade-in slide-in-from-bottom-2 duration-200">
             <div className="flex items-center gap-2 pr-2 border-r border-zinc-800">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
-              <span className="text-xs font-bold text-zinc-100 max-w-[200px] truncate">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="text-xs font-bold text-zinc-100 max-w-[180px] truncate">
                 {activeSectionTitle || activeSectionId}
               </span>
             </div>
+
+            {/* Add Component/Element directly to this Section */}
+            {canAddItemToSection(activeSectionId) && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleAddItemToSection(activeSectionId)}
+                  className="h-7 px-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-[11px] font-extrabold inline-flex items-center gap-1 transition-colors cursor-pointer border-0 shrink-0"
+                  title="Añadir nuevo componente o tarjeta a esta sección"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Añadir elemento</span>
+                </button>
+                <div className="w-px h-4 bg-zinc-800" />
+              </>
+            )}
 
             {/* Reorder Buttons */}
             <div className="flex items-center gap-0.5">

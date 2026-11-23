@@ -1,6 +1,7 @@
 'use client'
 
-import { Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Trash2, ChevronLeft, ChevronRight, Sparkles, ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ProductImageItem } from './types'
 
@@ -18,102 +19,114 @@ export function ProductImageGalleryField({
   moveImage,
 }: ProductImageGalleryFieldProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <label className="text-[13px] font-medium tracking-tight text-zinc-500 ml-1">
-          Imágenes del producto ({productImages.length}/5)
-        </label>
-        <span className="text-[11px] text-zinc-400">La primera imagen será la principal</span>
+        <div className="flex items-center gap-1.5">
+          <ImageIcon className="w-3.5 h-3.5 text-zinc-500" />
+          <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+            Galería Multimedia ({productImages.length}/5)
+          </label>
+        </div>
+        <Link
+          href="/studio-ia"
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-600 hover:text-zinc-950 transition-colors"
+        >
+          <Sparkles className="w-3 h-3 text-amber-500" />
+          <span>Mejorar con Studio IA ↗</span>
+        </Link>
       </div>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+
+      <div className="grid grid-cols-5 gap-2">
         {productImages.map((img, idx) => (
-          <div 
+          <div
             key={img.id}
             className={cn(
-              "relative aspect-square rounded-xl overflow-hidden border border-zinc-200 group bg-zinc-50 shadow-sm transition-all duration-300",
-              idx === 0 && "ring-2 ring-zinc-950 ring-offset-2"
+              'relative aspect-square rounded-lg overflow-hidden border bg-zinc-50 group transition-all',
+              idx === 0
+                ? 'border-zinc-950 ring-1 ring-zinc-950'
+                : 'border-zinc-200 hover:border-zinc-300'
             )}
           >
-            <img 
-              src={img.preview} 
-              alt={`Imagen ${idx + 1}`} 
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+            <img
+              src={img.preview}
+              alt={`Imagen ${idx + 1}`}
+              className="w-full h-full object-cover"
             />
-            
-            {/* Principal Badge */}
+
             {idx === 0 && (
-              <div className="absolute top-2 left-2 bg-zinc-950 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-sm tracking-wider z-20">
-                Principal
+              <div className="absolute top-1 left-1 bg-zinc-950 text-white text-[8px] font-bold uppercase px-1.5 py-0.5 rounded tracking-wider z-20">
+                Portada
               </div>
             )}
 
-            {/* Hover Actions Panel */}
-            <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-10">
-              {/* Top Row: Delete */}
+            <div className="absolute inset-0 bg-zinc-950/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-1.5 z-10">
               <div className="flex justify-end">
-                <button 
+                <button
                   type="button"
                   onClick={() => removeImage(idx)}
-                  className="w-8 h-8 rounded-lg bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-sm"
+                  className="w-6 h-6 rounded bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all cursor-pointer"
                   title="Eliminar imagen"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3 h-3" />
                 </button>
               </div>
 
-              {/* Bottom Row: Reordering controls */}
-              <div className="flex justify-between items-center gap-1.5 w-full mt-auto">
+              <div className="flex justify-between items-center gap-1 w-full">
                 {idx > 0 ? (
-                  <button 
+                  <button
                     type="button"
                     onClick={() => moveImage(idx, 'left')}
-                    className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-90"
+                    className="w-5 h-5 rounded bg-white/25 hover:bg-white/40 text-white flex items-center justify-center cursor-pointer"
                     title="Mover a la izquierda"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3 h-3" />
                   </button>
                 ) : (
-                  <div className="w-8 h-8" />
+                  <div className="w-5 h-5" />
                 )}
-                
-                <span className="text-[10px] text-white/80 font-bold bg-black/35 px-2 py-1 rounded">
-                  {idx + 1}
-                </span>
 
                 {idx < productImages.length - 1 ? (
-                  <button 
+                  <button
                     type="button"
                     onClick={() => moveImage(idx, 'right')}
-                    className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-90"
+                    className="w-5 h-5 rounded bg-white/25 hover:bg-white/40 text-white flex items-center justify-center cursor-pointer"
                     title="Mover a la derecha"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3 h-3" />
                   </button>
                 ) : (
-                  <div className="w-8 h-8" />
+                  <div className="w-5 h-5" />
                 )}
               </div>
             </div>
           </div>
         ))}
 
-        {/* Upload Trigger card if images < 5 */}
         {productImages.length < 5 && (
-          <label className="border-2 border-dashed border-zinc-200 hover:border-zinc-950 hover:bg-zinc-50/50 aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group relative">
-            <input 
-              type="file" 
-              className="hidden" 
-              accept="image/jpeg, image/png, image/webp" 
+          <label
+            className={cn(
+              'border border-dashed border-zinc-300 hover:border-zinc-950 bg-zinc-50/60 hover:bg-zinc-100/70 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all group',
+              productImages.length === 0 ? 'col-span-5 py-6' : 'aspect-square'
+            )}
+          >
+            <input
+              type="file"
+              className="hidden"
+              accept="image/jpeg, image/png, image/webp"
               multiple
-              onChange={handleImageSelect} 
+              onChange={handleImageSelect}
             />
-            <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-zinc-100 group-hover:text-zinc-800 transition-all shadow-sm">
-              <Plus className="w-5 h-5 text-zinc-400 group-hover:text-zinc-800" />
+            <div className="w-7 h-7 rounded-md bg-white border border-zinc-200 flex items-center justify-center mb-1 group-hover:border-zinc-950 transition-colors shadow-2xs">
+              <Plus className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-950" />
             </div>
-            <span className="text-[10px] font-bold tracking-widest text-zinc-400 group-hover:text-zinc-600 transition-colors text-center px-2">
-              Añadir imagen
+            <span className="text-[10px] font-semibold text-zinc-600 group-hover:text-zinc-950 text-center px-1">
+              {productImages.length === 0 ? 'Subir fotos del producto (máx. 5)' : 'Añadir'}
             </span>
+            {productImages.length === 0 && (
+              <span className="text-[10px] text-zinc-400 mt-0.5">
+                JPG, PNG o WebP · La primera foto será la portada
+              </span>
+            )}
           </label>
         )}
       </div>

@@ -288,9 +288,12 @@ export default function WhatsAppCatalog({
         }
 
         /* Modo Editor: Indicadores hover y marcos visuales interactivos de alta gama */
+        .maker-edit-mode [data-maker-section]:not(.sticky):not(.fixed),
+        .maker-edit-mode [data-maker-tab]:not(.sticky):not(.fixed) {
+          position: relative;
+        }
         .maker-edit-mode [data-maker-section],
         .maker-edit-mode [data-maker-tab] {
-          position: relative;
           transition: outline 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
         .maker-edit-mode [data-maker-section]:hover,
@@ -306,7 +309,7 @@ export default function WhatsAppCatalog({
           position: absolute;
           top: 10px;
           right: 14px;
-          z-index: 50;
+          z-index: 25;
           background: #09090b;
           color: #ffffff;
           font-size: 10.5px;

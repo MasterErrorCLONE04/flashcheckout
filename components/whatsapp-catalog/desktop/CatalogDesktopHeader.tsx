@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { ShoppingBag, Search, X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { ShoppingBag, Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { SiWhatsapp } from 'react-icons/si'
 import { cn } from '@/lib/utils'
 import { Store, NavLink, CatalogSettings } from '../types'
 
@@ -137,7 +138,7 @@ export function CatalogDesktopHeader({
         data-maker-section="header"
         data-maker-title="Encabezado & Logo"
         className={cn(
-          'transition-all duration-300 z-50 select-none shrink-0 w-full cursor-pointer',
+          'transition-all duration-300 z-20 select-none shrink-0 w-full cursor-pointer',
           headerStyle === 'floating-glass'
             ? 'sticky top-3 max-w-[1380px] mx-auto px-6 h-[68px] bg-white/92 backdrop-blur-xl border border-zinc-200/80 rounded-full shadow-xs my-2'
             : cn(
@@ -306,7 +307,7 @@ export function CatalogDesktopHeader({
                 title="Atención por WhatsApp"
                 aria-label="WhatsApp"
               >
-                <MessageCircle className="w-[19px] h-[19px] stroke-[1.6]" />
+                <SiWhatsapp className="w-[17px] h-[17px] text-[#25D366]" />
               </a>
             )}
 

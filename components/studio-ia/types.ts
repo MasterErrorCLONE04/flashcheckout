@@ -41,6 +41,14 @@ export interface StudioIaClientProps {
     whatsappConnected: boolean
     isPro: boolean
     creditsAvailable: number
+    metaSocial?: {
+      connected: boolean
+      facebookPageId: string | null
+      facebookPageName: string | null
+      instagramAccountId: string | null
+      instagramUsername: string | null
+      defaultChannels: Array<'INSTAGRAM' | 'FACEBOOK'>
+    } | null
   }
   products: Product[]
   coupons: Coupon[]

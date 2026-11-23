@@ -36,26 +36,18 @@ export default async function ConversacionesPage() {
 
   if (!store) return <StoreCreationWizard />
 
-  const sessions = await prisma.whatsAppSession.findMany({
-    where: { 
-      storeId: store.id
-    },
-    orderBy: { lastInteraction: 'desc' }
-  })
+  const sessions = store.whatsappConnected
+    ? await prisma.whatsAppSession.findMany({
+        where: {
+          storeId: store.id,
+        },
+        orderBy: { lastInteraction: 'desc' },
+      })
+    : []
 
-  // Format and generate realistic mock conversation dialogues based on the session's active step
   const formattedSessions = sessions.map((s: WhatsAppSessionRecord) => {
     const name = s.customerName || `Cliente +${s.phoneNumber.slice(-4)}`
-    
-    // Format and read actual conversation dialogues, or generate realistic mocks if empty
-    let messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
-    
-    if (messages.length === 0) {
-      messages = [
-        { sender: 'user' as const, text: 'Hola! Buenas tardes', time: '14:20' },
-        { sender: 'bot' as const, text: `¡Hola! Bienvenido. 🤖 ¿En qué puedo ayudarte hoy?`, time: '14:21' }
-      ]
-    }
+    const messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
 
     return {
       id: s.id,
@@ -69,42 +61,13 @@ export default async function ConversacionesPage() {
       notes: Array.isArray(s.notes) ? s.notes : [],
       assignedTo: s.assignedTo || 'Tú',
       isFavorite: !!s.isFavorite,
-      status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed'
+      status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed',
     }
   })
 
-  if (formattedSessions.length === 0) {
-    formattedSessions.push({
-      id: 'demo-session',
-      phoneNumber: '573001234567',
-      customerName: 'Carolina Gómez (Demo)',
-      avatarUrl: null,
-      lastInteraction: new Date().toISOString(),
-      step: 'AWAITING_PAYMENT',
-      messages: [
-        { sender: 'user', text: '¡Hola! Vi los productos en el catálogo, ¿tienen envío a Medellín?', time: '10:30' },
-        { sender: 'bot', text: '¡Hola Carolina! 👋 Sí, hacemos envíos a Medellín con entrega de 1 a 2 días hábiles. ¿Qué producto te gustaría pedir hoy?', time: '10:30' },
-        { sender: 'user', text: 'Me interesa pedir 1 unidad para pagar por Bre-B o link de pago', time: '10:32' },
-        { sender: 'bot', text: '¡Excelente elección! Ya armé tu carrito y dejé listo tu enlace de pago seguro. ¿Deseas confirmar la dirección de entrega?', time: '10:32' }
-      ],
-      tags: ['Cliente VIP', 'Medellín'],
-      notes: [
-        {
-          id: 'demo-note-1',
-          text: 'Cliente interesada en pago inmediato. Conversación de demostración para probar etiquetas, notas y respuestas rápidas.',
-          createdAt: 'Hoy, 10:33',
-          author: 'Sistema'
-        }
-      ],
-      assignedTo: 'Agente IA',
-      isFavorite: true,
-      status: 'active'
-    })
-  }
-
   return (
-    <ChatHistoryViewer 
-      initialSessions={formattedSessions} 
+    <ChatHistoryViewer
+      initialSessions={formattedSessions}
       whatsappConnected={!!store.whatsappConnected}
     />
   )

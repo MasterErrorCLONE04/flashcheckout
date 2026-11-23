@@ -90,10 +90,14 @@ export default async function DashboardPage(props: {
   startDate.setDate(todayStart.getDate() - (daysRange - 1))
   startDate.setHours(0, 0, 0, 0)
 
-  const paidOrderCondition = [
-    { paymentStatus: { in: ['PAID', 'CONFIRMED'] } },
-    { status: { in: ['paid', 'confirmed', 'shipped_external', 'in_transit', 'delivered'] } },
-  ]
+  const paidOrderWhere = {
+    storeId: store.id,
+    status: { notIn: ['cancelled', 'rejected'] },
+    OR: [
+      { status: { in: ['paid', 'confirmed', 'in_transit', 'shipped_external', 'delivered'] } },
+      { paymentStatus: { in: ['PAID', 'CONFIRMED'] } },
+    ],
+  }
 
   const [
     totalRevenueAgg,
@@ -116,20 +120,19 @@ export default async function DashboardPage(props: {
     activeSessions,
   ] = await Promise.all([
     prisma.order.aggregate({
-      where: { storeId: store.id, OR: paidOrderCondition },
+      where: paidOrderWhere,
       _sum: { total: true },
       _count: { id: true },
     }),
     prisma.order.aggregate({
-      where: { storeId: store.id, createdAt: { gte: todayStart }, OR: paidOrderCondition },
+      where: { ...paidOrderWhere, createdAt: { gte: todayStart } },
       _sum: { total: true },
       _count: { id: true },
     }),
     prisma.order.aggregate({
       where: {
-        storeId: store.id,
+        ...paidOrderWhere,
         createdAt: { gte: yesterdayStart, lt: todayStart },
-        OR: paidOrderCondition,
       },
       _sum: { total: true },
       _count: { id: true },
@@ -137,16 +140,14 @@ export default async function DashboardPage(props: {
     prisma.whatsAppSession.count({ where: { storeId: store.id } }),
     prisma.order.count({
       where: {
-        storeId: store.id,
+        ...paidOrderWhere,
         source: { in: ['WHATSAPP', 'WHATSAPP_WEBVIEW'] },
-        OR: paidOrderCondition,
       },
     }),
     prisma.order.aggregate({
       where: {
-        storeId: store.id,
+        ...paidOrderWhere,
         source: { in: ['WHATSAPP', 'WHATSAPP_WEBVIEW'] },
-        OR: paidOrderCondition,
       },
       _sum: { total: true },
     }),
@@ -171,7 +172,7 @@ export default async function DashboardPage(props: {
       },
     }),
     prisma.order.findMany({
-      where: { storeId: store.id, createdAt: { gte: startDate }, OR: paidOrderCondition },
+      where: { ...paidOrderWhere, createdAt: { gte: startDate } },
       select: { total: true, createdAt: true, source: true },
     }),
     prisma.product.findFirst({
@@ -181,7 +182,7 @@ export default async function DashboardPage(props: {
     prisma.order.findMany({
       where: { storeId: store.id },
       orderBy: { createdAt: 'desc' },
-      take: 3,
+      take: 6,
     }),
     prisma.whatsAppSession.findMany({
       where: { storeId: store.id },
@@ -285,11 +286,11 @@ export default async function DashboardPage(props: {
 
   const chartData = Array.from(daysMap.values())
 
-  // Generate sparkline datasets dynamically
+  // Generate sparkline datasets dynamically from real daily data
   const sparklineRevenue = chartData.map(d => ({ value: d.total }))
   const sparklineOrders = chartData.map(d => ({ value: d.webSales + d.whatsappSales }))
-  const sparklineConversion = chartData.map((d, i) => ({ value: 6.5 + (i * 0.3) + (Math.sin(i) * 0.5) })) // simulated dynamic curve
-  const sparklineTicket = chartData.map(d => ({ value: d.total > 0 ? d.total / Math.max(1, (d.webSales + d.whatsappSales) / 1000) : 45000 }))
+  const sparklineConversion = chartData.map(d => ({ value: d.whatsappSales }))
+  const sparklineTicket = chartData.map(d => ({ value: d.total }))
 
   // Today in Detail numbers
   const todayWebRevenue = chartData[chartData.length - 1]?.webSales ?? 0
@@ -461,7 +462,7 @@ export default async function DashboardPage(props: {
       title: 'Conversación activa',
       subtitle: `${name} — WhatsApp`,
       timeText: getRelativeTime(session.lastInteraction),
-      href: '/historial-chats',
+      href: '/conversaciones',
       actionText: 'Abrir chat'
     })
   })
@@ -482,11 +483,14 @@ export default async function DashboardPage(props: {
   })
   
   const initialActivities = recentOrders.map((order) => {
-    const isPaid = order.paymentStatus === 'PAID' || order.status === 'paid'
+    const isPaid = order.paymentStatus === 'PAID' || order.paymentStatus === 'CONFIRMED' || order.status === 'paid' || order.status === 'confirmed'
     return {
       id: order.id,
       type: isPaid ? 'payment' : 'order',
-      title: isPaid ? 'Pago recibido' : 'Nuevo pedido',
+      title: isPaid ? 'Pedido confirmado' : order.paymentStatus === 'UPLOADED' ? 'Comprobante por validar' : 'Nuevo pedido',
+      customerName: order.customerName || 'Cliente',
+      source: order.source === 'WHATSAPP' || order.source === 'WHATSAPP_WEBVIEW' ? 'WhatsApp' : 'Tienda Web',
+      statusLabel: isPaid ? 'Pagado' : order.paymentStatus === 'UPLOADED' ? 'En validación' : 'Pendiente',
       code: order.id.slice(-6).toUpperCase(),
       amount: order.total,
       timeText: getRelativeTime(order.createdAt),

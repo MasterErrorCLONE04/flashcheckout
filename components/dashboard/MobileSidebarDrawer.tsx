@@ -133,12 +133,12 @@ export function MobileSidebarDrawer({
               <div className="p-3 space-y-3 border-t border-zinc-200 bg-white">
                 <div className="grid grid-cols-2 gap-1.5 text-xs font-medium text-zinc-600">
                   <Link
-                    href="/work/doc"
+                    href="/affiliate"
                     onClick={close}
                     className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
                   >
-                    <BookOpenText className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Docs</span>
+                    <Gift className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Afiliados</span>
                   </Link>
                   <Link
                     href="/help"
@@ -147,22 +147,6 @@ export function MobileSidebarDrawer({
                   >
                     <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Ayuda</span>
-                  </Link>
-                  <Link
-                    href="/changelog"
-                    onClick={close}
-                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
-                  >
-                    <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Novedades</span>
-                  </Link>
-                  <Link
-                    href="/affiliate"
-                    onClick={close}
-                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
-                  >
-                    <Gift className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Afiliados</span>
                   </Link>
                 </div>
               </div>

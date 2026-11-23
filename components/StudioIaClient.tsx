@@ -54,6 +54,8 @@ import {
 } from './studio-ia'
 import { useVoiceover } from './studio-ia/useVoiceover'
 import { usePhotoStudio } from './studio-ia/usePhotoStudio'
+import { SocialPublishModal, type MetaSocialBrief } from './studio-ia/SocialPublishModal'
+import { SiInstagram, SiFacebook } from 'react-icons/si'
 
 export { AI_AVATARS }
 export type { AiAvatar, AvatarLayout }
@@ -117,6 +119,10 @@ export default function StudioIaClient({
   // Estados de generación y publicación
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [showSocialModal, setShowSocialModal] = useState(false)
+  const [metaSocialState, setMetaSocialState] = useState<MetaSocialBrief | null>(
+    (store as any).metaSocial || null
+  )
   const [inspectorCopyTab, setInspectorCopyTab] = useState<'whatsapp' | 'instagram'>('whatsapp')
 
   // Contenido generado
@@ -538,50 +544,17 @@ export default function StudioIaClient({
   }
 
   return (
-    <div className="-mx-4 md:-mx-8 lg:-ml-12 -mt-4 md:-mt-6 -mb-24 lg:-mb-12 lg:h-[calc(100vh-53px)] min-h-[680px] flex flex-col bg-[#FAFAFA] font-sans text-left select-none overflow-hidden">
+    <div className="-mx-4 md:-mx-8 lg:-ml-12 lg:-mr-8 -mt-4 md:-mt-6 -mb-24 lg:-mb-12 lg:h-[calc(100vh-53px)] min-h-[680px] flex flex-col bg-[#FAFAFA] font-sans text-left select-none overflow-hidden">
       {/* ── 1. BARRA SUPERIOR COMPACTA DEL ESTUDIO (TOP STUDIO BAR) ────────── */}
-      <header className="h-13 shrink-0 bg-white border-b border-zinc-200 px-4 flex items-center justify-between gap-3 z-20">
-        {/* Izquierda: Identidad del Estudio + Producto Activo */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center shrink-0">
-              <Sparkles className="w-3.5 h-3.5" />
-            </div>
-            <div className="leading-none">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-extrabold text-zinc-950 tracking-tight">Studio IA</span>
-                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 border border-zinc-200">
-                  Pro Suite
-                </span>
-              </div>
-              <span className="text-[10px] text-zinc-400 font-medium hidden sm:block mt-0.5">
-                {store.name}
-              </span>
-            </div>
+      <header className="h-13 shrink-0 bg-white border-b border-zinc-200 px-5 flex items-center justify-between gap-3 z-20">
+        {/* Izquierda: Identidad limpia */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center shrink-0">
+            <Sparkles className="w-3.5 h-3.5" />
           </div>
-
-          <div className="h-4 w-px bg-zinc-200 hidden sm:block" />
-
-          {/* Selector rápido de producto en barra */}
-          {selectedProduct && (
-            <div className="hidden md:flex items-center gap-2 bg-zinc-50 border border-zinc-200/80 rounded-lg px-2.5 py-1 min-w-0">
-              {selectedProduct.imageUrl ? (
-                <img
-                  src={selectedProduct.imageUrl.split(',')[0]}
-                  alt=""
-                  className="w-5 h-5 rounded object-cover shrink-0 border border-zinc-200"
-                />
-              ) : (
-                <ShoppingBag className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-              )}
-              <span className="text-[11px] font-bold text-zinc-900 truncate max-w-[150px]">
-                {selectedProduct.name}
-              </span>
-              <span className="text-[10px] font-extrabold text-zinc-500 tabular-nums">
-                {formatCOP(selectedProduct.price)}
-              </span>
-            </div>
-          )}
+          <h1 className="text-sm font-bold text-zinc-950 tracking-tight">
+            Studio IA
+          </h1>
         </div>
 
         {/* Centro: Conmutador de Modos del Estudio (Segmented Control) */}
@@ -617,13 +590,24 @@ export default function StudioIaClient({
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
+            onClick={() => setShowSocialModal(true)}
+            className="h-8 px-3 bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            title="Publicar post o Reel en Instagram y Facebook"
+          >
+            <SiInstagram className="w-3 h-3 text-[#E1306C]" />
+            <SiFacebook className="w-3 h-3 text-[#1877F2]" />
+            <span>Publicar IG / FB</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => handlePublishWhatsApp('STATUS')}
             disabled={isPublishing || !generatedData}
             className="hidden sm:inline-flex h-8 px-3 bg-white hover:bg-zinc-50 disabled:opacity-50 text-zinc-800 border border-zinc-200 rounded-lg text-[11px] font-bold items-center gap-1.5 transition-all cursor-pointer active:scale-95"
             title="Publicar directamente en Estados de WhatsApp"
           >
             <span className="w-2 h-2 rounded-full bg-[#25D366]" />
-            <span>{isPublishing ? 'Publicando...' : 'Publicar en WhatsApp'}</span>
+            <span>{isPublishing ? 'Publicando...' : 'Estado WhatsApp'}</span>
           </button>
 
           <button
@@ -1671,22 +1655,22 @@ export default function StudioIaClient({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
+                  onClick={() => setShowSocialModal(true)}
+                  className="h-8.5 px-2.5 bg-white border border-zinc-200 hover:bg-zinc-100 text-zinc-900 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <SiInstagram className="w-3 h-3 text-[#E1306C]" />
+                  <SiFacebook className="w-3 h-3 text-[#1877F2]" />
+                  <span>Publicar IG / FB</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => handlePublishWhatsApp('STATUS')}
                   disabled={isPublishing || !generatedData}
                   className="h-8.5 px-2.5 bg-[#25D366] hover:bg-[#20ba59] disabled:opacity-50 text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Send className="w-3 h-3" />
                   <span>Estado WhatsApp</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handlePublishWhatsApp('TEST')}
-                  disabled={isPublishing || !generatedData}
-                  className="h-8.5 px-2.5 bg-white border border-zinc-200 hover:bg-zinc-100 disabled:opacity-50 text-zinc-800 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <MessageCircle className="w-3 h-3 text-zinc-500" />
-                  <span>Enviar a mi WA</span>
                 </button>
               </div>
             </div>
@@ -1748,6 +1732,42 @@ export default function StudioIaClient({
           </div>
         </div>
       )}
+
+      {/* Modal de Publicación Multicanal (Instagram, Facebook y WhatsApp) */}
+      <SocialPublishModal
+        isOpen={showSocialModal}
+        onClose={() => setShowSocialModal(false)}
+        storeName={store.name}
+        storeSlug={store.slug}
+        whatsappConnected={store.whatsappConnected}
+        metaSocial={metaSocialState}
+        onMetaUpdated={next => setMetaSocialState(next)}
+        product={selectedProduct}
+        mediaUrl={
+          lastRenderedVideoUrl ||
+          generatedVideoUrl ||
+          avatarVideoUrl ||
+          enhancedPhotoUrl ||
+          selectedProduct?.imageUrl?.split(',')[0]?.trim() ||
+          null
+        }
+        mediaType={
+          lastRenderedVideoUrl || generatedVideoUrl || avatarVideoUrl
+            ? 'video'
+            : 'image'
+        }
+        initialCaption={
+          generatedData?.copyInstagram ||
+          generatedData?.copyWhatsApp ||
+          selectedProduct?.description ||
+          ''
+        }
+        hookText={generatedData?.hook}
+        hashtags={generatedData?.hashtags}
+        onPublishedSuccess={creation => {
+          setSavedCreations(prev => [creation, ...prev])
+        }}
+      />
     </div>
   )
 }

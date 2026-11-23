@@ -81,36 +81,17 @@ export default function AgentSettingsManager({
   ]
 
   return (
-    <div className="-mx-4 md:-mx-8 lg:-ml-12 -mt-4 md:-mt-6 -mb-24 lg:-mb-12 lg:h-[calc(100vh-53px)] min-h-[680px] flex flex-col bg-[#FAFAFA] font-sans text-left select-none overflow-hidden">
+    <div className="-mx-4 md:-mx-8 lg:-ml-12 lg:-mr-8 -mt-4 md:-mt-6 -mb-24 lg:-mb-12 lg:h-[calc(100vh-53px)] min-h-[680px] flex flex-col bg-[#FAFAFA] font-sans text-left select-none overflow-hidden">
       {/* ── 1. BARRA SUPERIOR DE ESTUDIO (TOP STUDIO BAR) ────────────────── */}
-      <header className="h-13 shrink-0 bg-white border-b border-zinc-200 px-4 flex items-center justify-between gap-3 z-20">
-        {/* Izquierda: Identidad del Estudio */}
-        <div className="flex items-center gap-3 min-w-0 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4" />
-            </div>
-            <div className="leading-none">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-extrabold text-zinc-950 tracking-tight">
-                  Agente IA & Automatizaciones
-                </span>
-                <span
-                  className={cn(
-                    'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border',
-                    agent.settings.active
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-zinc-100 text-zinc-500 border-zinc-200'
-                  )}
-                >
-                  {agent.settings.active ? 'En línea' : 'Pausado'}
-                </span>
-              </div>
-              <span className="text-[10px] text-zinc-400 font-medium hidden sm:block mt-0.5">
-                {storeName}
-              </span>
-            </div>
+      <header className="h-13 shrink-0 bg-white border-b border-zinc-200 px-5 flex items-center justify-between gap-3 z-20">
+        {/* Izquierda: Identidad limpia */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center shrink-0">
+            <Bot className="w-3.5 h-3.5" />
           </div>
+          <h1 className="text-sm font-bold text-zinc-950 tracking-tight">
+            Agente IA
+          </h1>
         </div>
 
         {/* Centro: Conmutador de Secciones del Estudio (Segmented Control) */}

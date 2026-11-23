@@ -1,7 +1,5 @@
-import EnviosPageContent from '@/components/pages/EnviosPageContent'
+import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
-export default function EnviosPage() {
-  return <EnviosPageContent />
+export default function EnviosRedirectPage() {
+  redirect('/pedidos')
 }

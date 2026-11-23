@@ -114,27 +114,13 @@ export default async function DashboardLayout({
 
         <div className="flex items-center gap-3 shrink-0">
           {/* Utility Icons (Desktop Only) */}
-          <div className="hidden items-center gap-2.5 md:flex">
-            <Link
-              href="/changelog"
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
-              title="Novedades"
-            >
-              <Clock className="h-4 w-4" />
-            </Link>
+          <div className="hidden items-center gap-2 md:flex">
             <Link
               href="/affiliate"
               className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
               title="Programa de afiliados"
             >
               <Gift className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/work/doc"
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
-              title="Documentación"
-            >
-              <BookOpenText className="h-4 w-4" />
             </Link>
             <Link
               href="/help"

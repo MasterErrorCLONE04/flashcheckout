@@ -44,7 +44,7 @@ export function RitualDesktopSection({ settings }: { settings: CatalogResolvedSe
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-        {processTimeline.items.slice(0, 3).map((item, idx) => (
+        {processTimeline.items.map((item, idx) => (
           <div
             key={idx}
             data-maker-field={`processTimeline.items.${idx}`}
@@ -289,7 +289,7 @@ export function PressLogosDesktopSection({ settings }: { settings: CatalogResolv
       className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 select-none pt-16"
     >
       <div className="py-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 items-center justify-items-center">
-        {pressLogos.slice(0, 5).map((logo, idx) => {
+        {pressLogos.map((logo, idx) => {
           const mastheadClass =
             idx === 0
               ? 'font-serif italic text-xl sm:text-2xl font-bold tracking-[0.04em]'

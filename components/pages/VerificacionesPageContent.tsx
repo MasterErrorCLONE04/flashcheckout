@@ -3,8 +3,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getActiveStore } from '@/lib/store-context'
 import { getProofImageUrl } from '@/lib/supabase'
-import ManualVerificationPanel from '@/components/dashboard/ManualVerificationPanel'
-import StoreVerificationManager from '@/components/dashboard/StoreVerificationManager'
+import VerificacionesClient from '@/components/VerificacionesClient'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +28,6 @@ export default async function VerificacionesPage() {
   if (!userId) redirect('/sign-in')
 
   const store = await getActiveStore(userId)
-
   if (!store) return <StoreCreationWizard />
 
   const orders = await prisma.order.findMany({
@@ -45,13 +43,16 @@ export default async function VerificacionesPage() {
   const confirmedOrdersThisMonth = await prisma.order.findMany({
     where: {
       storeId: store.id,
-      paymentStatus: 'CONFIRMED',
+      paymentStatus: { in: ['CONFIRMED', 'PAID'] },
       createdAt: { gte: monthStart },
     },
     select: { total: true },
   })
 
-  const currentVolume = confirmedOrdersThisMonth.reduce((sum, current) => sum + current.total, 0)
+  const currentVolume = confirmedOrdersThisMonth.reduce(
+    (sum, current) => sum + current.total,
+    0
+  )
   const currentCount = confirmedOrdersThisMonth.length
 
   const serializedOrders = await Promise.all(
@@ -66,7 +67,7 @@ export default async function VerificacionesPage() {
   const serializedStore = {
     id: store.id,
     name: store.name,
-    whatsapp: store.whatsapp,
+    whatsapp: store.whatsapp || '',
     active: store.active,
     verificationLevel: store.verificationLevel,
     whatsappVerified: store.whatsappVerified,
@@ -76,28 +77,11 @@ export default async function VerificacionesPage() {
   }
 
   return (
-    <div className="space-y-6 pb-2 animate-in">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Verificar Pagos</h1>
-            <div className="text-[12px] font-medium text-zinc-500 mt-1 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Validacion manual - <span className="text-zinc-900 font-bold">{store.name}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <StoreVerificationManager
-        store={serializedStore}
-        currentVolume={currentVolume}
-        currentCount={currentCount}
-      />
-
-      <div className="h-px w-full bg-zinc-100 my-6" />
-
-      <ManualVerificationPanel initialOrders={serializedOrders} />
-    </div>
+    <VerificacionesClient
+      store={serializedStore}
+      initialOrders={serializedOrders}
+      currentVolume={currentVolume}
+      currentCount={currentCount}
+    />
   )
 }

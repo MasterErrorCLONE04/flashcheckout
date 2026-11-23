@@ -115,7 +115,11 @@ export function IngredientsDesktopSection({ settings }: { settings: CatalogResol
           {ingredientsSection.title}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-          <div className="md:text-right space-y-2">
+          <div
+            data-maker-field="ingredientsSection.left"
+            data-maker-label="Columna Izquierda Ingredientes"
+            className="md:text-right space-y-2"
+          >
             <h4 className="font-extrabold text-sm text-zinc-900">
               {ingredientsSection.leftTitle}
             </h4>
@@ -123,7 +127,11 @@ export function IngredientsDesktopSection({ settings }: { settings: CatalogResol
               {ingredientsSection.leftDesc}
             </p>
           </div>
-          <div className="flex justify-center">
+          <div
+            data-maker-field="ingredientsSection.centerImageUrl"
+            data-maker-label="Foto Central Ingredientes"
+            className="flex justify-center"
+          >
             {ingredientsSection.centerImageUrl && (
               <img
                 src={ingredientsSection.centerImageUrl}
@@ -132,7 +140,11 @@ export function IngredientsDesktopSection({ settings }: { settings: CatalogResol
               />
             )}
           </div>
-          <div className="md:text-left space-y-2">
+          <div
+            data-maker-field="ingredientsSection.right"
+            data-maker-label="Columna Derecha Ingredientes"
+            className="md:text-left space-y-2"
+          >
             <h4 className="font-extrabold text-sm text-zinc-900">
               {ingredientsSection.rightTitle}
             </h4>
@@ -465,9 +477,8 @@ export function GarantiasDesktopSection({ settings }: { settings: CatalogResolve
       className="w-full bg-[#F4F4F3] border-t border-[#EAEAE8] select-none pt-12 mt-16"
     >
       <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E5E5E3]">
-        {(benefits.items || [])
-          .slice(0, 3)
-          .map((item: { icon: CatalogIconName; label: string; desc: string }, idx: number) => {
+        {(benefits.items || []).map(
+          (item: { icon: CatalogIconName; label: string; desc: string }, idx: number) => {
             const ItemIcon = IconMap[item.icon] || Award
             const desc =
               idx === 0 && freeShipping?.enabled && freeShipping.threshold

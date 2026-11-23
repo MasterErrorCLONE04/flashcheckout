@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
-export default function HistorialChatsPage() {
+export default function HistorialChatsRedirectPage() {
   redirect('/conversaciones')
 }

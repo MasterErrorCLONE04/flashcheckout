@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
 import {
   TiendaClientProps,
   DeviceType,
@@ -24,7 +23,7 @@ import {
 } from './tienda'
 
 export default function TiendaClient({ initialStore, products }: TiendaClientProps) {
-  // Primary Studio Mode: 'secciones' (Page Builder) | 'estilo' (Design System) | 'ajustes' (Store Config)
+  // Primary Studio Mode: 'secciones' | 'estilo' | 'copiloto' | 'ajustes'
   const [mainMode, setMainMode] = useState<StudioMainMode>('secciones')
 
   // Selected Section inside 'secciones' mode (null = Overview list)
@@ -42,10 +41,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
   // Zen Mode (Fullscreen preview)
   const [isZenMode, setIsZenMode] = useState(false)
 
-  // AI Chat Left Sidebar (Antigravity Style)
-  const [isAiChatOpen, setIsAiChatOpen] = useState(true)
-
-  // AI Copilot Studio Modal (Fallback / Direct quick modal)
+  // AI Copilot Studio Modal
   const [isAiModalOpen, setIsAiModalOpen] = useState(false)
 
   // Real Smartphone QR Preview Modal
@@ -123,18 +119,14 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
         ? sectionTitles[selectedSectionId]
         : undefined
       : mainMode === 'estilo'
-      ? 'Paleta, Tipografía y Presets'
-      : mainMode === 'componentes'
-      ? 'Biblioteca de Componentes Modulares'
-      : mainMode === 'plantillas'
-      ? 'Plantillas & Blueprints de Tienda'
-      : mainMode === 'capas'
-      ? 'Árbol de Capas de la Página'
-      : 'Configuración General de Tienda'
+        ? 'Diseño, Paleta y Tipografía'
+        : mainMode === 'copiloto'
+          ? 'Arquitecto IA en Vivo'
+          : 'Configuración General de Tienda'
 
   return (
-    <div className="h-[calc(100vh-80px)] min-h-[550px] flex flex-col overflow-hidden animate-in duration-200 font-sans text-left -mx-4 -my-4 sm:-mx-6 sm:-my-6">
-      {/* Sleek Unified Studio Toolbar */}
+    <div className="-mx-4 md:-mx-8 lg:-ml-12 lg:-mr-8 -mt-4 md:-mt-6 -mb-24 lg:-mb-12 lg:h-[calc(100vh-53px)] min-h-[680px] flex flex-col bg-[#FAFAFA] overflow-hidden select-none font-sans text-left">
+      {/* Unified Studio Header Bar */}
       <TiendaStudioBar
         storeName={initialStore.name}
         subdomain={form.domains.subdomain}
@@ -156,8 +148,6 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
         onSaveChanges={form.handleSaveChanges}
         onOpenAiModal={() => setIsAiModalOpen(true)}
         isGeneratingAI={form.isGeneratingAI}
-        isAiChatOpen={isAiChatOpen}
-        onToggleAiChat={() => setIsAiChatOpen(v => !v)}
         canUndo={form.canUndo}
         canRedo={form.canRedo}
         onUndo={form.handleUndo}
@@ -166,12 +156,12 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
         lastSavedAt={form.lastSavedAt}
       />
 
-      {/* Main Studio Workspace - 3-Column Studio Architecture: [AI Copilot Chat] | [Live Canvas] | [Inspector] */}
-      <div className="flex-1 min-h-0 flex overflow-hidden bg-zinc-100/80">
-        {/* LEFT COLUMN: Antigravity AI Chat Panel */}
+      {/* Main Studio Workspace - 2-Column Studio Architecture: [Left Inspector / Copilot] | [Spacious Live Storefront Canvas] */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        {/* LEFT COLUMN: Unified Studio Inspector & AI Architect */}
         {!isZenMode && (
-          <>
-            {isAiChatOpen ? (
+          <aside className="w-full md:w-[390px] xl:w-[430px] shrink-0 h-full border-r border-zinc-200 bg-white flex flex-col overflow-hidden z-10">
+            {mainMode === 'copiloto' ? (
               <TiendaAiChatSidebar
                 storeName={initialStore.name}
                 products={form.storeProducts}
@@ -187,32 +177,54 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
                 aiProposalActive={form.aiProposalActive}
                 onAcceptProposal={form.handleAcceptAIGeneration}
                 onUndoProposal={form.handleUndoAIGeneration}
-                onClose={() => setIsAiChatOpen(false)}
               />
             ) : (
-              <div className="w-10 shrink-0 h-full border-r border-zinc-200 bg-white flex flex-col items-center py-3 gap-3 z-10 shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => setIsAiChatOpen(true)}
-                  className="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 flex items-center justify-center transition-colors cursor-pointer border border-zinc-200"
-                  title="Abrir Copiloto IA"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsAiChatOpen(true)}
-                  className="text-[9.5px] font-bold text-zinc-400 hover:text-zinc-900 uppercase tracking-widest [writing-mode:vertical-lr] rotate-180 border-0 bg-transparent cursor-pointer py-2"
-                >
-                  Copiloto IA
-                </button>
+              <div className="flex-1 overflow-y-auto p-4 pb-20 select-none">
+                {/* MODE 1: BLOQUES / SECCIONES (Master/Detail Page Builder) */}
+                {mainMode === 'secciones' && (
+                  <>
+                    {selectedSectionId === null ? (
+                      <SectionsOverview
+                        form={form}
+                        onSelectSection={handleSelectSection}
+                      />
+                    ) : (
+                      <SectionEditorRouter
+                        sectionId={selectedSectionId}
+                        form={form}
+                        onBack={() => setSelectedSectionId(null)}
+                      />
+                    )}
+                  </>
+                )}
+
+                {/* MODE 2: DISEÑO & MARCA (Palettes, Presets, Typography, Borders & AI Templates) */}
+                {mainMode === 'estilo' && <EstiloTab form={form} />}
+
+                {/* MODE 3: AJUSTES (Store Settings, Domains, SEO, Social, Policies) */}
+                {mainMode === 'ajustes' && <AjustesTab form={form} />}
+
+                {/* Legacy Fallbacks */}
+                {mainMode === 'componentes' && (
+                  <ComponentesTab
+                    form={form}
+                    onSelectSection={handleSelectSection}
+                  />
+                )}
+                {mainMode === 'plantillas' && <PlantillasTab form={form} />}
+                {mainMode === 'capas' && (
+                  <CapasTab
+                    form={form}
+                    onSelectSection={handleSelectSection}
+                  />
+                )}
               </div>
             )}
-          </>
+          </aside>
         )}
 
-        {/* CENTER COLUMN: Live Interactive Preview Simulator Canvas */}
-        <main className="flex-1 min-h-0 h-full flex flex-col p-3 sm:p-4 overflow-hidden">
+        {/* RIGHT COLUMN: Spacious Live Interactive Storefront Canvas */}
+        <main className="hidden md:flex flex-1 min-h-0 h-full flex-col p-3 lg:p-4 overflow-hidden bg-[#F4F4F5]">
           <TiendaPreviewPanel
             device={device}
             setDevice={setDevice}
@@ -231,7 +243,7 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             aiProposalActive={form.aiProposalActive}
             onAcceptAiProposal={form.handleAcceptAIGeneration}
             onUndoAiProposal={form.handleUndoAIGeneration}
-            onRefineAiProposal={() => setIsAiChatOpen(true)}
+            onRefineAiProposal={() => setMainMode('copiloto')}
             onMoveSectionUp={form.handleMoveSectionUp}
             onMoveSectionDown={form.handleMoveSectionDown}
             onToggleSectionVisibility={secId => {
@@ -249,56 +261,6 @@ export default function TiendaClient({ initialStore, products }: TiendaClientPro
             onOpenSettingsMode={() => setMainMode('ajustes')}
           />
         </main>
-
-        {/* RIGHT COLUMN: Inspector & Settings Sidebar */}
-        {!isZenMode && (
-          <aside className="w-[380px] xl:w-[410px] shrink-0 h-full border-l border-zinc-200/90 bg-white flex flex-col overflow-hidden shadow-xs z-10">
-            <div className="flex-1 overflow-y-auto p-4 pb-20 select-none">
-              {/* MODE 1: SECCIONES (Master/Detail Page Builder) */}
-              {mainMode === 'secciones' && (
-                <>
-                  {selectedSectionId === null ? (
-                    <SectionsOverview
-                      form={form}
-                      onSelectSection={handleSelectSection}
-                    />
-                  ) : (
-                    <SectionEditorRouter
-                      sectionId={selectedSectionId}
-                      form={form}
-                      onBack={() => setSelectedSectionId(null)}
-                    />
-                  )}
-                </>
-              )}
-
-              {/* MODE 2: ESTILOS (Global Theme & Typography) */}
-              {mainMode === 'estilo' && <EstiloTab form={form} />}
-
-              {/* MODE 3: COMPONENTES */}
-              {mainMode === 'componentes' && (
-                <ComponentesTab
-                  form={form}
-                  onSelectSection={handleSelectSection}
-                />
-              )}
-
-              {/* MODE 4: PLANTILLAS */}
-              {mainMode === 'plantillas' && <PlantillasTab form={form} />}
-
-              {/* MODE 5: CAPAS */}
-              {mainMode === 'capas' && (
-                <CapasTab
-                  form={form}
-                  onSelectSection={handleSelectSection}
-                />
-              )}
-
-              {/* MODE 6: AJUSTES (Store Settings, Domains, SEO, Policies) */}
-              {mainMode === 'ajustes' && <AjustesTab form={form} />}
-            </div>
-          </aside>
-        )}
       </div>
 
       {/* AI Design Studio Copilot Modal */}

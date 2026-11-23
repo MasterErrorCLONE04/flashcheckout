@@ -39,24 +39,20 @@ export async function GET() {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
     }
 
+    if (!store.whatsappConnected) {
+      return NextResponse.json({ sessions: [] })
+    }
+
     const sessions = await prisma.whatsAppSession.findMany({
-      where: { 
-        storeId: store.id
+      where: {
+        storeId: store.id,
       },
-      orderBy: { lastInteraction: 'desc' }
+      orderBy: { lastInteraction: 'desc' },
     })
 
     const formattedSessions = sessions.map((s: WhatsAppSessionRecord) => {
       const name = s.customerName || `Cliente +${s.phoneNumber.slice(-4)}`
-      
-      let messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
-      
-      if (messages.length === 0) {
-        messages = [
-          { sender: 'user' as const, text: 'Hola! Buenas tardes', time: '14:20' },
-          { sender: 'bot' as const, text: `¡Hola! Bienvenido. 🤖 ¿En qué puedo ayudarte hoy?`, time: '14:21' }
-        ]
-      }
+      const messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
 
       return {
         id: s.id,
@@ -70,12 +66,11 @@ export async function GET() {
         notes: Array.isArray(s.notes) ? s.notes : [],
         assignedTo: s.assignedTo || 'Tú',
         isFavorite: !!s.isFavorite,
-        status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed'
+        status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed',
       }
     })
 
     return NextResponse.json({ sessions: formattedSessions })
-
   } catch (err: unknown) {
     console.error('[API WhatsApp Sessions GET Error]', err)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

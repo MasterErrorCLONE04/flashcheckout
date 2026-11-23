@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { MessageCircle } from 'lucide-react'
+import { SiWhatsapp } from 'react-icons/si'
 import { cn } from '@/lib/utils'
 
 export interface FloatingWhatsAppButtonProps {
@@ -19,10 +19,12 @@ export function FloatingWhatsAppButton({
   showSection = true,
   device,
 }: FloatingWhatsAppButtonProps) {
-  if (!showSection || !enabled || !whatsapp) return null
+  if (!showSection || !enabled) return null
 
-  const cleanPhone = whatsapp.replace(/\D/g, '')
-  const message = encodeURIComponent(`¡Hola ${storeName || ''}! 👋 Vengo de su tienda web y me gustaría recibir asesoría con mi pedido.`)
+  const cleanPhone = (whatsapp || '').replace(/\D/g, '')
+  const message = encodeURIComponent(
+    `¡Hola ${storeName || ''}! 👋 Vengo de su tienda web y me gustaría recibir asesoría con mi pedido.`
+  )
 
   const isCompactDevice = device === 'movil' || device === 'tablet'
 
@@ -39,21 +41,25 @@ export function FloatingWhatsAppButton({
       )}
     >
       <a
-        href={`https://wa.me/${cleanPhone}?text=${message}`}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={cleanPhone ? `https://wa.me/${cleanPhone}?text=${message}` : '#whatsapp'}
+        target={cleanPhone ? '_blank' : undefined}
+        rel={cleanPhone ? 'noopener noreferrer' : undefined}
         aria-label="Chatear con un asesor por WhatsApp"
         className={cn(
-          'pointer-events-auto group relative flex items-center gap-2 rounded-full bg-[#111111] hover:bg-[#27272A] text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)] transition-all active:scale-95 no-underline border border-white/10',
-          isCompactDevice ? 'h-9.5 pl-3 pr-3.5' : 'h-11 pl-3.5 pr-4'
+          'pointer-events-auto group relative flex items-center gap-2.5 rounded-full bg-[#111111] hover:bg-[#1f1f22] text-white shadow-[0_8px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.3)] transition-all active:scale-95 no-underline border border-white/10',
+          isCompactDevice ? 'h-9.5 pl-2.5 pr-3.5' : 'h-11 pl-3 pr-4'
         )}
       >
-        <div className="relative flex items-center justify-center">
-          <MessageCircle className="w-4 h-4 text-[#25D366] fill-[#25D366]" />
-          <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#25D366] animate-ping" />
-          <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#25D366]" />
+        <div className="relative w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center shrink-0 shadow-xs">
+          <SiWhatsapp className="w-3.5 h-3.5 text-white fill-current" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#25D366] ring-2 ring-[#111111]" />
         </div>
-        <span className={cn('font-bold tracking-[0.05em] uppercase text-white leading-none', isCompactDevice ? 'text-[10px]' : 'text-[11px]')}>
+        <span
+          className={cn(
+            'font-bold tracking-[0.05em] uppercase text-white leading-none',
+            isCompactDevice ? 'text-[10px]' : 'text-[11px]'
+          )}
+        >
           {isCompactDevice ? 'WhatsApp' : '¿Dudas? Chatea aquí'}
         </span>
       </a>

@@ -273,7 +273,7 @@ Pídeme cualquier diseño o ajuste en lenguaje natural:
   }
 
   return (
-    <aside className="w-[340px] xl:w-[370px] shrink-0 h-full border-r border-zinc-200/90 bg-white text-zinc-900 flex flex-col overflow-hidden select-none z-10 shadow-xs">
+    <div className="w-full h-full bg-white text-zinc-900 flex flex-col overflow-hidden select-none">
       {/* Top Header - Clean Light Aesthetic */}
       <div className="px-4 py-3 bg-white border-b border-zinc-200/80 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
@@ -282,11 +282,11 @@ Pídeme cualquier diseño o ajuste en lenguaje natural:
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-zinc-950 tracking-wide">Copiloto IA</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-900 animate-pulse" />
+              <span className="text-xs font-black text-zinc-950 tracking-wide">Arquitecto IA de Tienda</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
             <p className="text-[10px] text-zinc-500 font-medium leading-none mt-0.5">
-              Diseño asistido en tiempo real
+              Rediseña bloques, colores, textos o genera banners con IA
             </p>
           </div>
         </div>
@@ -296,20 +296,10 @@ Pídeme cualquier diseño o ajuste en lenguaje natural:
             type="button"
             onClick={handleClearChat}
             className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-md transition-colors cursor-pointer border-0 bg-transparent"
-            title="Limpiar chat"
+            title="Reiniciar conversación"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-md transition-colors cursor-pointer border-0 bg-transparent"
-              title="Ocultar panel de IA"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
         </div>
       </div>
 
@@ -596,6 +586,6 @@ Pídeme cualquier diseño o ajuste en lenguaje natural:
           )}
         </div>
       </div>
-    </aside>
+    </div>
   )
 }

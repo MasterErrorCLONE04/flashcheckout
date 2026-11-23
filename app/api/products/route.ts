@@ -26,6 +26,8 @@ type ProductBody = {
   active?: boolean
   description?: string | null
   options?: unknown
+  aiRecommendation?: boolean
+  aiDescription?: string | null
 }
 
 type StoreWithProductCount = {
@@ -93,17 +95,20 @@ export async function POST(req: Request) {
       data: {
         name: body.name,
         price: Math.round(Number(body.price)),
-        stock: Number.isFinite(Number(body.stock)) ? Number(body.stock) : 0,
+        stock: Number.isFinite(Number(body.stock)) ? Math.max(0, Math.floor(Number(body.stock))) : 0,
         imageUrl: body.imageUrl ?? null,
         category: body.category ?? 'General',
         description: body.description ?? null,
         options: toJsonValue(body.options),
+        active: body.active !== undefined ? Boolean(body.active) : true,
+        aiRecommendation: body.aiRecommendation !== undefined ? Boolean(body.aiRecommendation) : true,
+        aiDescription: body.aiDescription ?? null,
         storeId: store.id,
       },
     })
 
     // Enqueue embedding generation
-    const embeddingText = `Producto: ${product.name}. Categoría: ${product.category}. Descripción: ${product.description || ''}. Precio: ${product.price}. Stock: ${product.stock}.`
+    const embeddingText = `Producto: ${product.name}. Categoría: ${product.category}. Descripción: ${product.description || ''}. Argumento IA: ${product.aiDescription || ''}. Precio: ${product.price}. Stock: ${product.stock}.`
     enqueueEmbeddingGeneration('PRODUCT', product.id, embeddingText, { storeId: product.storeId, name: product.name })
 
     return NextResponse.json({ product }, { status: 201 })
@@ -141,11 +146,13 @@ export async function PUT(req: Request) {
         ...(body.active !== undefined && { active: body.active }),
         ...(body.description !== undefined && { description: body.description }),
         ...(body.options !== undefined && { options: toJsonValue(body.options) }),
+        ...(body.aiRecommendation !== undefined && { aiRecommendation: Boolean(body.aiRecommendation) }),
+        ...(body.aiDescription !== undefined && { aiDescription: body.aiDescription }),
       },
     })
 
     // Enqueue embedding generation for updated product
-    const embeddingText = `Producto: ${updated.name}. Categoría: ${updated.category}. Descripción: ${updated.description || ''}. Precio: ${updated.price}. Stock: ${updated.stock}.`
+    const embeddingText = `Producto: ${updated.name}. Categoría: ${updated.category}. Descripción: ${updated.description || ''}. Argumento IA: ${updated.aiDescription || ''}. Precio: ${updated.price}. Stock: ${updated.stock}.`
     enqueueEmbeddingGeneration('PRODUCT', updated.id, embeddingText, { storeId: updated.storeId, name: updated.name })
 
     return NextResponse.json({ product: updated })

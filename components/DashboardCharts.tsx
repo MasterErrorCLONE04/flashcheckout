@@ -96,39 +96,39 @@ export function StackedBarChart({ data }: { data: BarChartItem[] }) {
 
   return (
     <div className="w-full h-full relative">
-      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
-        <BarChart data={data} margin={{ top: 15, right: 5, left: -10, bottom: 0 }}>
-          <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" />
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
+        <BarChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid vertical={false} stroke="#F4F4F5" strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 11, fill: '#71717A', fontWeight: '600' }}
-            dy={10}
+            tick={{ fontSize: 11, fill: '#71717A', fontWeight: '700' }}
+            dy={8}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
             tickFormatter={formatYAxis}
-            tick={{ fontSize: 11, fill: '#71717A', fontWeight: '600' }}
-            dx={-5}
+            tick={{ fontSize: 10, fill: '#A1A1AA', fontWeight: '600' }}
+            width={44}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.02)', radius: 6 }} />
-          <Bar 
-            dataKey="webSales" 
-            name="webSales" 
-            stackId="a" 
-            fill="#18181B" 
-            radius={[0, 0, 4, 4]} 
-            barSize={24}
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(24, 24, 27, 0.03)', radius: 8 }} />
+          <Bar
+            dataKey="webSales"
+            name="webSales"
+            stackId="a"
+            fill="#18181B"
+            radius={[4, 4, 4, 4]}
+            barSize={28}
           />
-          <Bar 
-            dataKey="whatsappSales" 
-            name="whatsappSales" 
-            stackId="a" 
-            fill="#71717A" 
-            radius={[4, 4, 0, 0]} 
-            barSize={24}
+          <Bar
+            dataKey="whatsappSales"
+            name="whatsappSales"
+            stackId="a"
+            fill="#10B981"
+            radius={[4, 4, 0, 0]}
+            barSize={28}
           />
         </BarChart>
       </ResponsiveContainer>
@@ -172,14 +172,14 @@ export function SalesChannelDonut({ whatsappTotal, webTotal }: DonutProps) {
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={110}>
         <PieChart>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius={48}
-            outerRadius={64}
+            innerRadius={38}
+            outerRadius={52}
             paddingAngle={3}
             dataKey="value"
           >
@@ -225,7 +225,7 @@ export function MiniSparkline({ data, strokeColor = '#71717A' }: { data: Sparkli
 
   return (
     <div className="w-full h-full opacity-85">
-      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={200}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={40} minHeight={28}>
         <AreaChart data={data} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -371,11 +371,11 @@ export function WeeklySalesAreaChart({ data }: { data: WeeklySalesItem[] }) {
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#71717A"
-            strokeWidth={2}
-            fill="none"
-            dot={{ r: 3, stroke: '#71717A', strokeWidth: 1, fill: '#FFF' }}
-            activeDot={{ r: 5, stroke: '#71717A', strokeWidth: 2, fill: '#FFF' }}
+            stroke="#18181B"
+            strokeWidth={2.5}
+            fill="url(#salesGradient)"
+            dot={{ r: 3.5, stroke: '#18181B', strokeWidth: 2, fill: '#FFF' }}
+            activeDot={{ r: 5, stroke: '#18181B', strokeWidth: 2, fill: '#FFF' }}
           />
         </AreaChart>
       </ResponsiveContainer>
