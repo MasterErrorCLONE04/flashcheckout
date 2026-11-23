@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/(pricing|enterprise|explorar|work|legal|solutions|tienda)',
+        source: '/(pricing|enterprise|explorar)',
         headers: [
           {
             key: 'X-Robots-Tag',
@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/(solutions|tienda|work|legal)/:path*',
+        source: '/(solutions|tienda|legal)/:path+',
         headers: [
           {
             key: 'X-Robots-Tag',
@@ -45,7 +45,16 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/(dashboard|productos|pedidos|configuracion|automatizaciones|descuentos|agente|studio-ia|clientes|pagos|conversaciones|api|sso-callback)/:path*',
+        source: '/(dashboard|tienda|productos|pedidos|configuracion|automatizaciones|descuentos|agente|studio-ia|clientes|pagos|conversaciones|integraciones|analitica|verificaciones|affiliate|help|hablar-con-nova|historial-chats|envios|pay|api|sso-callback)',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+        ],
+      },
+      {
+        source: '/(dashboard|productos|pedidos|configuracion|automatizaciones|descuentos|agente|studio-ia|clientes|pagos|conversaciones|integraciones|analitica|verificaciones|affiliate|help|hablar-con-nova|historial-chats|envios|pay|api|sso-callback)/:path*',
         headers: [
           {
             key: 'X-Robots-Tag',
