@@ -15,9 +15,7 @@ import {
   Tag,
   Store,
   Link2,
-  Building,
   Sparkles,
-  Zap,
 } from "lucide-react"
 
 export const getDashboardNavItems = (conversationsCount: number, ordersCount: number) => [
@@ -29,10 +27,8 @@ export const getDashboardNavItems = (conversationsCount: number, ordersCount: nu
   { href: "/studio-ia", icon: Sparkles, label: "Studio IA", badgeText: "NUEVO" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/pagos", icon: CreditCard, label: "Pagos" },
-  { href: "/automatizaciones", icon: Zap, label: "Automatizaciones" },
   { href: "/descuentos", icon: Tag, label: "Descuentos" },
   { href: "/tienda", icon: Store, label: "Tienda" },
-  { href: "/dashboard/the-office", icon: Building, label: "The Office" },
   { href: "/integraciones", icon: Link2, label: "Integraciones" },
   { href: "/configuracion", icon: Settings, label: "Configuración" },
 ]
@@ -91,7 +87,9 @@ export default function SidebarNav({
               <div
                 className={cn(
                   "pl-12 pr-3 flex items-center justify-between w-full transition-opacity duration-200",
-                  expanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  expanded
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100 group-has-[[data-state=open]]:opacity-100"
                 )}
               >
                 <span className="whitespace-nowrap text-[13px]">{item.label}</span>
@@ -122,11 +120,11 @@ export default function SidebarNav({
           "mx-2 rounded-xl transition-all duration-200",
           expanded
             ? "p-3.5 bg-zinc-50 border border-zinc-200/80"
-            : "p-1.5 group-hover:p-3.5 bg-transparent group-hover:bg-zinc-50 border border-transparent group-hover:border-zinc-200/80"
+            : "p-1.5 group-hover:p-3.5 group-has-[[data-state=open]]:p-3.5 bg-transparent group-hover:bg-zinc-50 group-has-[[data-state=open]]:bg-zinc-50 border border-transparent group-hover:border-zinc-200/80 group-has-[[data-state=open]]:border-zinc-200/80"
         )}
       >
         {!expanded && (
-          <div className="flex justify-center group-hover:hidden">
+          <div className="flex justify-center group-hover:hidden group-has-[[data-state=open]]:hidden">
             <Link href="/hablar-con-nova" onClick={onNavigate} className="relative block shrink-0">
               <div className="w-9 h-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500">
                 <Bot className="w-5 h-5" />
@@ -139,7 +137,7 @@ export default function SidebarNav({
         <div
           className={cn(
             "space-y-3 animate-in fade-in duration-200",
-            expanded ? "block" : "hidden group-hover:block"
+            expanded ? "block" : "hidden group-hover:block group-has-[[data-state=open]]:block"
           )}
         >
           <div className="flex items-center gap-2.5">

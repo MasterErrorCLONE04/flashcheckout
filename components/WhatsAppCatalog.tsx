@@ -27,6 +27,7 @@ export interface WhatsAppCatalogProps {
   initialName?: string
   initialAddress?: string
   device?: 'escritorio' | 'tablet' | 'movil'
+  activeSectionId?: string | null
 }
 
 export default function WhatsAppCatalog({
@@ -35,7 +36,8 @@ export default function WhatsAppCatalog({
   initialCart = {},
   initialName = '',
   initialAddress = '',
-  device
+  device,
+  activeSectionId,
 }: WhatsAppCatalogProps) {
   // Config & Styles Hook
   const settings = useCatalogSettings(store)
@@ -270,7 +272,7 @@ export default function WhatsAppCatalog({
 
   return (
     <div 
-      className="flex flex-col min-h-screen text-zinc-900 selection:bg-zinc-100 transition-colors duration-300"
+      className={`catalog-root flex flex-col ${device ? 'min-h-full' : 'min-h-screen'} text-zinc-900 selection:bg-zinc-100 transition-colors duration-300`}
       style={{ 
         fontFamily: resolvedFontFamily,
         backgroundColor: colors.fondo,
@@ -278,9 +280,121 @@ export default function WhatsAppCatalog({
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400..900;1,9..40,400..900&family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,400..900;1,400..900&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@600;700;800&display=swap');
+
+        /* Aplicar la fuente tipográfica seleccionada a todos los elementos del catálogo */
+        .catalog-root, .catalog-root * {
+          font-family: ${resolvedFontFamily} !important;
+        }
+
+        /* Modo Editor: Indicadores hover y marcos visuales interactivos de alta gama */
+        .maker-edit-mode [data-maker-section]:not(.sticky):not(.fixed),
+        .maker-edit-mode [data-maker-tab]:not(.sticky):not(.fixed) {
+          position: relative;
+        }
+        .maker-edit-mode [data-maker-section],
+        .maker-edit-mode [data-maker-tab] {
+          transition: outline 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .maker-edit-mode [data-maker-section]:hover,
+        .maker-edit-mode [data-maker-tab]:hover {
+          outline: 2px solid #2563eb !important;
+          outline-offset: -2px;
+          cursor: pointer !important;
+          box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.12) !important;
+        }
+        .maker-edit-mode [data-maker-section]::after,
+        .maker-edit-mode [data-maker-tab]::after {
+          content: '✏️ ' attr(data-maker-title) ' · Clic para personalizar';
+          position: absolute;
+          top: 10px;
+          right: 14px;
+          z-index: 25;
+          background: #09090b;
+          color: #ffffff;
+          font-size: 10.5px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 9999px;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+          transform: translateY(2px);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          max-width: calc(100% - 28px);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .maker-edit-mode [data-maker-section]:hover::after,
+        .maker-edit-mode [data-maker-tab]:hover::after {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        /* Sub-elementos editables al hacer clic (Títulos, botones, imágenes, tarjetas) */
+        .maker-edit-mode [data-maker-field]:hover {
+          outline: 1.5px dashed #10b981 !important;
+          outline-offset: 2px;
+          cursor: pointer !important;
+          background-color: rgba(16, 185, 129, 0.06);
+          border-radius: 4px;
+        }
+
+        /* Tarjetas de producto editables al instante */
+        .maker-edit-mode [data-maker-product-id] {
+          position: relative;
+        }
+        .maker-edit-mode [data-maker-product-id]:hover {
+          outline: 2px solid #7c3aed !important;
+          outline-offset: 2px;
+          cursor: pointer !important;
+        }
+        .maker-edit-mode [data-maker-product-id]::before {
+          content: '📦 Clic para editar producto';
+          position: absolute;
+          bottom: 8px;
+          left: 8px;
+          z-index: 45;
+          background: #7c3aed;
+          color: #ffffff;
+          font-size: 9.5px;
+          font-weight: 800;
+          padding: 3px 8px;
+          border-radius: 9999px;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.15s ease-in-out;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+        }
+        .maker-edit-mode [data-maker-product-id]:hover::before {
+          opacity: 1;
+        }
+        ${
+          activeSectionId
+            ? `
+        .maker-edit-mode [data-maker-section="${activeSectionId}"] {
+          outline: 2.5px solid #2563eb !important;
+          outline-offset: -2px !important;
+          box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.22) !important;
+        }
+        .maker-edit-mode [data-maker-section="${activeSectionId}"]::after {
+          content: '⚡ Editando: ' attr(data-maker-title);
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+          background: #2563eb !important;
+          color: #ffffff !important;
+          font-weight: 800 !important;
+        }
+        `
+            : ''
+        }
 
         /* Overrides para emular la paleta elegida del comercio */
+        .bg-emerald-600, .bg-emerald-700 {
+          background-color: ${colors.primario} !important;
+        }
         .bg-emerald-600, .bg-emerald-700 {
           background-color: ${colors.primario} !important;
         }
@@ -447,6 +561,7 @@ export default function WhatsAppCatalog({
         whatsapp={store.whatsapp}
         storeName={store.name}
         showSection={sections.floatingWhatsApp !== false}
+        device={device}
       />
     </div>
   )

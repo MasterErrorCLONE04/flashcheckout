@@ -1,23 +1,26 @@
-import { cn } from "@/lib/utils"
-import { Sparkles, CheckCircle2, Palette, Type, Check, Wand2, Loader2 } from 'lucide-react'
+'use client'
+
+import React, { useState } from 'react'
+import { cn } from '@/lib/utils'
+import {
+  Sparkles,
+  CheckCircle2,
+  Palette,
+  Type,
+  Check,
+  LayoutTemplate,
+} from 'lucide-react'
 import { PRESETS } from '../types'
 import { TiendaFormState } from '../useTiendaForm'
+import { VisualPalettePicker, PalettePreset } from '../VisualPalettePicker'
+import { PlantillasTab } from './PlantillasTab'
+import { toast } from 'sonner'
 
 interface EstiloTabProps {
   form: TiendaFormState
 }
 
-const QUICK_CATEGORIES = [
-  'Moda',
-  'Comida',
-  'Belleza',
-  'Tecnología',
-  'Hogar',
-  'Joyería',
-  'Deportes',
-  'Mascotas',
-  'Otros',
-]
+type StyleSubTab = 'colores' | 'tipografia' | 'plantillas'
 
 export function EstiloTab({ form }: EstiloTabProps) {
   const {
@@ -31,277 +34,375 @@ export function EstiloTab({ form }: EstiloTabProps) {
     setShadowStyle,
     typography,
     setTypography,
-    storeInfo,
-    setStoreInfo,
-    isGeneratingPage,
-    handleAutogeneratePage,
+    setColors,
+    setThemePreset,
   } = form
 
+  const [subTab, setSubTab] = useState<StyleSubTab>('colores')
+
+  const handleSelectPalette = (p: PalettePreset) => {
+    setColors({ ...p.colors })
+    setTypography(p.typography)
+    setThemePreset(p.id)
+    toast.success(`Paleta aplicada: ${p.name}`)
+  }
+
+  const SUB_TABS: Array<{ id: StyleSubTab; label: string; icon: React.ElementType }> = [
+    { id: 'colores', label: 'Paletas & Color', icon: Palette },
+    { id: 'tipografia', label: 'Tipografía & Forma', icon: Type },
+    { id: 'plantillas', label: 'Plantillas IA', icon: LayoutTemplate },
+  ]
+
   return (
-    <div className="space-y-6">
-      {/* Autogenerate Page by Business Type & Description */}
-      <div className="bg-zinc-950 text-white border border-zinc-800 rounded-xl p-5 space-y-3.5 text-left">
-        <div className="space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <Wand2 className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-sm font-bold text-white leading-none">
-                Autogenerar según mi negocio
+    <div className="space-y-4 text-left select-none">
+      {/* Sub-navigation inside Diseño & Marca */}
+      <div className="bg-zinc-100 p-1 rounded-xl flex items-center gap-1 border border-zinc-200/80">
+        {SUB_TABS.map(t => {
+          const Icon = t.icon
+          const isActive = subTab === t.id
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSubTab(t.id)}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer border-0 whitespace-nowrap',
+                isActive
+                  ? 'bg-white text-zinc-950 shadow-2xs'
+                  : 'text-zinc-500 hover:text-zinc-900 bg-transparent'
+              )}
+            >
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <span>{t.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* SUB-TAB 1: PALETAS, COLORES & PRESETS */}
+      {subTab === 'colores' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          {/* Custom Brand Color Swatches */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-zinc-950">
+                  Colores de Marca
+                </h3>
+                <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                  Haz clic en cualquier muestra para ajustar el color en vivo
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2 text-center text-[9.5px] font-bold text-zinc-600 uppercase tracking-tight pt-0.5">
+              {[
+                { key: 'primario' as const, label: 'Primario', val: colors.primario },
+                { key: 'secundario' as const, label: 'Secundario', val: colors.secundario },
+                { key: 'acento' as const, label: 'Acento', val: colors.acento },
+                { key: 'fondo' as const, label: 'Fondo', val: colors.fondo },
+                { key: 'texto' as const, label: 'Texto', val: colors.texto },
+              ].map(col => (
+                <div key={col.key} className="space-y-1.5 flex flex-col items-center">
+                  <input
+                    type="color"
+                    value={col.val}
+                    onChange={e => handleColorChange(col.key, e.target.value)}
+                    className="w-10 h-10 rounded-xl border border-zinc-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0 shadow-2xs"
+                  />
+                  <span>{col.label}</span>
+                  <span className="font-mono text-[9px] text-zinc-400 normal-case">{col.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Curated Visual Palettes */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-4">
+            <VisualPalettePicker
+              currentColors={colors}
+              onSelectPalette={handleSelectPalette}
+            />
+          </div>
+
+          {/* 1-Click Designer Presets */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-900" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-950">
+                    Presets Editoriales
+                  </h3>
+                </div>
+                <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                  Combinaciones completas de color, bordes y tipografía
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {PRESETS.map(preset => {
+                const isSelected = themePreset === preset.id
+                return (
+                  <div
+                    key={preset.id}
+                    onClick={() => handleApplyPreset(preset)}
+                    className={cn(
+                      'p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3',
+                      isSelected
+                        ? 'border-zinc-950 bg-zinc-50 shadow-2xs ring-1 ring-zinc-950'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    )}
+                  >
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-zinc-950">{preset.name}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded">
+                          {preset.badge}
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] font-medium text-zinc-500 leading-tight truncate">
+                        {preset.desc}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center -space-x-1">
+                        {preset.colorPills.map((c, i) => (
+                          <div
+                            key={i}
+                            className="w-4 h-4 rounded-full border border-white shadow-2xs"
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </div>
+                      {isSelected && (
+                        <CheckCircle2 className="w-4 h-4 text-zinc-950 ml-1 shrink-0" />
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB 2: TIPOGRAFÍA, BORDES & SOMBRAS */}
+      {subTab === 'tipografia' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          {/* Border Radius */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-zinc-950">
+                Curvatura de Bordes
               </h3>
+              <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                Estilo geométrico de tarjetas, imágenes y botones
+              </p>
             </div>
-            <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              IA + Giro
-            </span>
-          </div>
-          <p className="text-[11px] font-medium text-zinc-400 leading-snug">
-            Indica el giro y una breve descripción de tu negocio para adaptar paleta, portada, secciones y textos automáticamente.
-          </p>
-        </div>
 
-        <div className="space-y-2.5">
-          <select
-            value={QUICK_CATEGORIES.includes(storeInfo.category) ? storeInfo.category : 'Otros'}
-            onChange={e => setStoreInfo(prev => ({ ...prev, category: e.target.value }))}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-semibold text-white outline-none focus:border-zinc-600 cursor-pointer"
-          >
-            {QUICK_CATEGORIES.map(cat => (
-              <option key={cat} value={cat}>
-                Giro: {cat}
-              </option>
-            ))}
-          </select>
-
-          <textarea
-            rows={2}
-            value={storeInfo.desc}
-            onChange={e => setStoreInfo(prev => ({ ...prev, desc: e.target.value }))}
-            placeholder="Describe qué vendes, tu diferencial y tu público..."
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs font-medium text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-zinc-600 resize-none leading-relaxed"
-          />
-
-          <button
-            type="button"
-            onClick={handleAutogeneratePage}
-            disabled={isGeneratingPage}
-            className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
-          >
-            {isGeneratingPage ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Generando página...</span>
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-3.5 h-3.5" />
-                <span>Generar diseño y textos ahora</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-      {/* Presets 1-Clic Card */}
-      <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none">
-        <div className="flex items-center justify-between text-left">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <h3 className="text-sm font-black text-zinc-900 leading-none">Presets de Diseñador 1-Clic</h3>
-            </div>
-            <p className="text-[11px] font-semibold text-zinc-400">Transforma instantáneamente toda la estética de tu catálogo.</p>
-          </div>
-          {themePreset !== 'custom' && (
-            <span className="text-[9px] font-extrabold px-2 py-0.5 bg-zinc-100 text-zinc-700 rounded-full">
-              Preset Activo
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-2.5 pt-1">
-          {PRESETS.map((preset) => {
-            const isSelected = themePreset === preset.id
-            return (
-              <div
-                key={preset.id}
-                onClick={() => handleApplyPreset(preset)}
-                className={cn(
-                  "p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 group",
-                  isSelected 
-                    ? "border-zinc-950 bg-zinc-50/80 shadow-xs ring-1 ring-zinc-950" 
-                    : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50/50 bg-white"
-                )}
-              >
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-black text-xs text-zinc-900">{preset.name}</span>
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-zinc-100 text-zinc-600 rounded">
-                      {preset.badge}
-                    </span>
-                  </div>
-                  <p className="text-[11px] font-medium text-zinc-500 leading-tight">{preset.desc}</p>
-                </div>
-
-                {/* Color Pills Preview */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <div className="flex items-center -space-x-1">
-                    {preset.colorPills.map((c, i) => (
-                      <div 
-                        key={i}
-                        className="w-4 h-4 rounded-full border border-white shadow-xs" 
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
-                  {isSelected && (
-                    <CheckCircle2 className="w-4 h-4 text-zinc-950 ml-1 shrink-0" />
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'sharp' as const, label: 'Recto', desc: '0px · Editorial' },
+                { id: 'smooth' as const, label: 'Suave', desc: '14px · Moderno' },
+                { id: 'pill' as const, label: 'Cápsula', desc: '24px · Orgánico' },
+              ].map(r => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setBorderRadius(r.id)}
+                  className={cn(
+                    'p-2.5 border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1',
+                    borderRadius === r.id
+                      ? 'border-zinc-950 bg-zinc-950 text-white shadow-2xs'
+                      : 'border-zinc-200 hover:border-zinc-300 bg-white text-zinc-800'
                   )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Colores del tema */}
-      <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none">
-        <div className="flex items-center justify-between text-left">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <Palette className="w-4 h-4 text-indigo-500" />
-              <h3 className="text-sm font-black text-zinc-900 leading-none">Colores del tema</h3>
+                  style={{
+                    borderRadius: r.id === 'sharp' ? '4px' : r.id === 'pill' ? '20px' : '12px',
+                  }}
+                >
+                  <span className="font-bold text-xs leading-none">{r.label}</span>
+                  <span
+                    className={cn(
+                      'text-[9.5px] font-medium',
+                      borderRadius === r.id ? 'text-zinc-300' : 'text-zinc-400'
+                    )}
+                  >
+                    {r.desc}
+                  </span>
+                </button>
+              ))}
             </div>
-            <p className="text-[11px] font-semibold text-zinc-400">Personaliza libremente los colores de tu marca.</p>
+          </div>
+
+          {/* Shadows */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-zinc-950">
+                Profundidad y Sombras
+              </h3>
+              <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                Nivel de relieve en tarjetas de productos
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'flat' as const, label: 'Plana', desc: 'Sin sombra' },
+                { id: 'soft' as const, label: 'Sutil', desc: 'Sombra limpia' },
+                { id: 'floating' as const, label: 'Flotante', desc: 'Alto relieve' },
+              ].map(s => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setShadowStyle(s.id)}
+                  className={cn(
+                    'p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1',
+                    shadowStyle === s.id
+                      ? 'border-zinc-950 bg-zinc-950 text-white shadow-2xs'
+                      : 'border-zinc-200 hover:border-zinc-300 bg-white text-zinc-800'
+                  )}
+                >
+                  <span className="font-bold text-xs leading-none">{s.label}</span>
+                  <span
+                    className={cn(
+                      'text-[9.5px] font-medium',
+                      shadowStyle === s.id ? 'text-zinc-300' : 'text-zinc-400'
+                    )}
+                  >
+                    {s.desc}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Typography */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-zinc-950">
+                Tipografía de la Tienda
+              </h3>
+              <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                Fuente tipográfica aplicada en titulares, precios y botones
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              {[
+                {
+                  id: 'Plus Jakarta Sans',
+                  name: 'Plus Jakarta Sans',
+                  category: 'DTC Flagship',
+                  desc: 'Moderna, técnica y ultra legible',
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                },
+                {
+                  id: 'Outfit',
+                  name: 'Outfit',
+                  category: 'Geométrica',
+                  desc: 'Limpia y balanceada para marcas contemporáneas',
+                  fontFamily: "'Outfit', sans-serif",
+                },
+                {
+                  id: 'Inter',
+                  name: 'Inter',
+                  category: 'Suiza Neutral',
+                  desc: 'Clásica, sobria y de máxima claridad',
+                  fontFamily: "'Inter', sans-serif",
+                },
+                {
+                  id: 'Sora',
+                  name: 'Sora',
+                  category: 'Tech & Digital',
+                  desc: 'Curvas nítidas para gadgets y tecnología',
+                  fontFamily: "'Sora', sans-serif",
+                },
+                {
+                  id: 'DM Sans',
+                  name: 'DM Sans',
+                  category: 'Lifestyle',
+                  desc: 'Redondeada y cálida para moda o bienestar',
+                  fontFamily: "'DM Sans', sans-serif",
+                },
+                {
+                  id: 'Manrope',
+                  name: 'Manrope',
+                  category: 'Grotesk',
+                  desc: 'Gran impacto visual en titulares y precios',
+                  fontFamily: "'Manrope', sans-serif",
+                },
+                {
+                  id: 'Space Grotesk',
+                  name: 'Space Grotesk',
+                  category: 'Streetwear',
+                  desc: 'Vanguardista y audaz para marcas urbanas',
+                  fontFamily: "'Space Grotesk', monospace, sans-serif",
+                },
+                {
+                  id: 'Playfair Display',
+                  name: 'Playfair Display',
+                  category: 'Serif Lujo',
+                  desc: 'Elegancia editorial para joyería, café y cosmética',
+                  fontFamily: "'Playfair Display', serif",
+                },
+                {
+                  id: 'Cormorant Garamond',
+                  name: 'Cormorant Garamond',
+                  category: 'Artesanal',
+                  desc: 'Serif clásica para marcas de autor',
+                  fontFamily: "'Cormorant Garamond', serif",
+                },
+              ].map(font => {
+                const isSelected = typography === font.id
+                return (
+                  <div
+                    key={font.id}
+                    onClick={() => setTypography(font.id)}
+                    className={cn(
+                      'p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group',
+                      isSelected
+                        ? 'border-zinc-950 bg-zinc-50 shadow-2xs ring-1 ring-zinc-950'
+                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    )}
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="font-bold text-xs text-zinc-950"
+                          style={{ fontFamily: font.fontFamily }}
+                        >
+                          {font.name}
+                        </span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">
+                          {font.category}
+                        </span>
+                      </div>
+                      <span className="text-[10.5px] font-medium text-zinc-500 block leading-snug">
+                        {font.desc}
+                      </span>
+                    </div>
+                    {isSelected ? (
+                      <Check className="w-4 h-4 text-zinc-950 shrink-0 ml-2" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded-full border border-zinc-300 shrink-0 ml-2 group-hover:border-zinc-400" />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="grid grid-cols-5 gap-2 text-center text-[9px] font-bold text-zinc-500 uppercase tracking-tight select-none pt-1">
-          {[
-            { key: 'primario' as const, label: 'Primario', val: colors.primario },
-            { key: 'secundario' as const, label: 'Secundario', val: colors.secundario },
-            { key: 'acento' as const, label: 'Acento', val: colors.acento },
-            { key: 'fondo' as const, label: 'Fondo', val: colors.fondo },
-            { key: 'texto' as const, label: 'Texto', val: colors.texto },
-          ].map((col) => (
-            <div key={col.key} className="space-y-1.5 flex flex-col items-center">
-              <input 
-                type="color" 
-                value={col.val}
-                onChange={e => handleColorChange(col.key, e.target.value)}
-                className="w-10 h-10 rounded-xl border border-zinc-200 cursor-pointer overflow-hidden p-0 bg-transparent shrink-0 shadow-xs"
-              />
-              <span>{col.label}</span>
-              <span className="font-mono text-[9px] text-zinc-400 normal-case">{col.val}</span>
-            </div>
-          ))}
+      {/* SUB-TAB 3: PLANTILLAS IA (BLUEPRINTS) */}
+      {subTab === 'plantillas' && (
+        <div className="animate-in fade-in duration-150">
+          <PlantillasTab form={form} />
         </div>
-      </div>
-
-      {/* Curvatura de Bordes (Border Radius) */}
-      <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none text-left">
-        <div className="space-y-0.5">
-          <h3 className="text-sm font-black text-zinc-900 leading-none">Curvatura de Bordes</h3>
-          <p className="text-[11px] font-semibold text-zinc-400">Define qué tan redondeadas se verán las tarjetas y botones.</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2.5 pt-1">
-          {[
-            { id: 'sharp' as const, label: 'Sharp', desc: '0px • Editorial' },
-            { id: 'smooth' as const, label: 'Smooth', desc: '14px • Moderno' },
-            { id: 'pill' as const, label: 'Pill', desc: '24px • Amigable' },
-          ].map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => setBorderRadius(r.id)}
-              className={cn(
-                "p-3 border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5",
-                borderRadius === r.id
-                  ? "border-zinc-950 bg-zinc-900 text-white shadow-xs"
-                  : "border-zinc-200 hover:border-zinc-300 bg-white text-zinc-800"
-              )}
-              style={{ borderRadius: r.id === 'sharp' ? '0px' : r.id === 'pill' ? '24px' : '12px' }}
-            >
-              <span className="font-black text-xs leading-none">{r.label}</span>
-              <span className={cn("text-[9px] font-semibold leading-tight", borderRadius === r.id ? "text-zinc-300" : "text-zinc-400")}>
-                {r.desc}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Sombras y Elevación */}
-      <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none text-left">
-        <div className="space-y-0.5">
-          <h3 className="text-sm font-black text-zinc-900 leading-none">Sombras y Elevación</h3>
-          <p className="text-[11px] font-semibold text-zinc-400">Nivel de profundidad visual en tarjetas y contenedores.</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2.5 pt-1">
-          {[
-            { id: 'flat' as const, label: 'Plana (Flat)', desc: 'Sin sombras' },
-            { id: 'soft' as const, label: 'Suave (Soft)', desc: 'Sombra sutil' },
-            { id: 'floating' as const, label: 'Flotante', desc: 'Alto relieve' },
-          ].map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setShadowStyle(s.id)}
-              className={cn(
-                "p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1",
-                shadowStyle === s.id
-                  ? "border-zinc-950 bg-zinc-950 text-white shadow-sm"
-                  : "border-zinc-200 hover:border-zinc-300 bg-white text-zinc-800"
-              )}
-            >
-              <span className="font-black text-xs leading-none">{s.label}</span>
-              <span className={cn("text-[9px] font-semibold", shadowStyle === s.id ? "text-zinc-300" : "text-zinc-400")}>
-                {s.desc}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tipografía de Autor */}
-      <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-4 shadow-none text-left">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5">
-            <Type className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-sm font-black text-zinc-900 leading-none">Tipografía de Autor</h3>
-          </div>
-          <p className="text-[11px] font-semibold text-zinc-400">Tipografías Google Fonts calibradas para alta legibilidad.</p>
-        </div>
-
-        <div className="space-y-2 pt-1">
-          {[
-            { id: 'Outfit', name: 'Outfit', desc: 'Geométrica, moderna y limpia (Recomendada)' },
-            { id: 'Plus Jakarta Sans', name: 'Plus Jakarta Sans', desc: 'Tech, moderna y altamente legible' },
-            { id: 'Playfair Display', name: 'Playfair Display', desc: 'Serif de lujo, gourmet y editorial' },
-            { id: 'Space Grotesk', name: 'Space Grotesk', desc: 'Vanguardista, streetwear y urbana' },
-            { id: 'Inter', name: 'Inter', desc: 'Precisión suiza y balance neutral clásico' },
-          ].map((font) => {
-            const isSelected = typography === font.id
-            return (
-              <div
-                key={font.id}
-                onClick={() => setTypography(font.id)}
-                className={cn(
-                  "p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
-                  isSelected
-                    ? "border-zinc-950 bg-zinc-50 shadow-xs ring-1 ring-zinc-950"
-                    : "border-zinc-200 hover:border-zinc-300 bg-white"
-                )}
-              >
-                <div className="space-y-0.5">
-                  <span className="font-black text-xs text-zinc-900 block">{font.name}</span>
-                  <span className="text-[10px] font-medium text-zinc-500">{font.desc}</span>
-                </div>
-                {isSelected && <Check className="w-4 h-4 text-zinc-950 shrink-0" />}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -13,21 +13,80 @@ import { badRequest, notFound, unauthorized, internalServerError } from '@/lib/a
 
 export const dynamic = 'force-dynamic'
 
-function cleanJson(raw: string): any {
-  try {
-    const cleaned = raw
-      .replace(/<think>[\s\S]*?(<\/think>|$)/gi, '')
-      .replace(/```json/gi, '')
-      .replace(/```/g, '')
-      .trim()
-    const match = cleaned.match(/\{[\s\S]*\}/)
-    if (match) {
-      return JSON.parse(match[0])
+function sanitizeJsonCandidate(candidate: string): string {
+  // Escapar saltos de línea literales únicamente dentro de strings JSON ("...")
+  let inString = false
+  let escaped = false
+  let out = ''
+
+  for (let i = 0; i < candidate.length; i++) {
+    const ch = candidate[i]
+    if (escaped) {
+      out += ch
+      escaped = false
+      continue
     }
-  } catch (e) {
-    console.warn('[Studio IA Script API] Error al parsear JSON devuelto por IA:', e)
+    if (ch === '\\') {
+      out += ch
+      escaped = true
+      continue
+    }
+    if (ch === '"') {
+      inString = !inString
+      out += ch
+      continue
+    }
+    if (inString) {
+      if (ch === '\n') {
+        out += '\\n'
+        continue
+      }
+      if (ch === '\r') {
+        continue
+      }
+      if (ch === '\t') {
+        out += '\\t'
+        continue
+      }
+    }
+    out += ch
   }
-  return null
+
+  // Eliminar comas colgantes antes de } o ]
+  return out.replace(/,\s*([}\]])/g, '$1')
+}
+
+function cleanJson(raw: string): Record<string, any> | null {
+  if (!raw || typeof raw !== 'string') return null
+
+  const cleaned = raw
+    .replace(/<think>[\s\S]*?(<\/think>|$)/gi, '')
+    .replace(/```json/gi, '')
+    .replace(/```/g, '')
+    .trim()
+
+  // Buscar el bloque JSON principal que inicia con {"hook" o el primer objeto con claves entre comillas
+  const startMatch = cleaned.match(/\{\s*"hook"|\{\s*"[a-zA-Z]+"/)
+  const startIdx = startMatch?.index ?? cleaned.indexOf('{')
+  const endIdx = cleaned.lastIndexOf('}')
+
+  if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+    return null
+  }
+
+  const candidate = cleaned.slice(startIdx, endIdx + 1)
+
+  try {
+    return JSON.parse(candidate)
+  } catch {
+    try {
+      const repaired = sanitizeJsonCandidate(candidate)
+      return JSON.parse(repaired)
+    } catch (e) {
+      console.warn('[Studio IA Script API] JSON reparado no válido, usando fallback estructurado:', (e as Error).message)
+      return null
+    }
+  }
 }
 
 export async function POST(req: Request) {

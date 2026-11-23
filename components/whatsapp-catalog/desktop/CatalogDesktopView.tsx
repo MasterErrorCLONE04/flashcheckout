@@ -9,9 +9,23 @@ import { CatalogDesktopHero } from './CatalogDesktopHero'
 import {
   CatalogDesktopHomeSections,
   CatalogDesktopHomeBottomSections,
+  VisualCategoriesDesktopSection,
+  BentoDesktopSection,
+  IngredientsDesktopSection,
+  UgcDesktopSection,
+  RetailersDesktopSection,
+  StoryDesktopSection,
+  FaqsDesktopSection,
+  GarantiasDesktopSection,
 } from './CatalogDesktopHomeSections'
 import { CatalogDesktopHomeProducts } from './CatalogDesktopHomeProducts'
-import { CatalogWaterdropEditorialBlocks } from './CatalogWaterdropEditorialBlocks'
+import {
+  CatalogWaterdropEditorialBlocks,
+  RitualDesktopSection,
+  EditorialLifestyleGridSection,
+  PressLogosDesktopSection,
+  AmbassadorsDesktopSection,
+} from './CatalogWaterdropEditorialBlocks'
 import { CatalogDesktopShop } from './CatalogDesktopShop'
 import { CatalogDesktopAbout } from './CatalogDesktopAbout'
 import { CatalogDesktopProductDetail } from './CatalogDesktopProductDetail'
@@ -171,67 +185,112 @@ export function CatalogDesktopView({
         />
       )}
 
-      {/* WATERDROP EDITORIAL LANDING FLOW (INICIO) */}
+      {/* WATERDROP EDITORIAL LANDING FLOW (INICIO) - RENDERED BY DYNAMIC SECTION ORDER */}
       {!selectedProduct && activeNavTab === 'Inicio' && (
-        <>
-          {sections.banner !== false && (
-            <CatalogDesktopHero
-              heroType={heroType}
-              bannerUrls={bannerUrls}
-              heroPanels={heroPanels}
-              heroStyle={heroStyle}
-              radiusCard={radiusCard}
-              radiusBadge={radiusBadge}
-              radiusButton={radiusButton}
-              shadowCard={shadowCard}
-              colors={colors}
-              heroBadge={heroBadge}
-              bannerTitle={bannerTitle}
-              bannerSubtitle={bannerSubtitle}
-              bannerButton={bannerButton}
-              handleBannerButtonClick={handleBannerButtonClick}
-              heroVideoUrl={heroVideoUrl}
-              currentBannerIdx={currentBannerIdx}
-              setCurrentBannerIdx={setCurrentBannerIdx}
-              store={store}
-            />
-          )}
+        <div className="w-full space-y-4">
+          {settings.sectionOrder.map((sectionId: string) => {
+            switch (sectionId) {
+              case 'hero':
+                return sections.banner !== false ? (
+                  <CatalogDesktopHero
+                    key="hero"
+                    heroType={heroType}
+                    bannerUrls={bannerUrls}
+                    heroPanels={heroPanels}
+                    heroStyle={heroStyle}
+                    radiusCard={radiusCard}
+                    radiusBadge={radiusBadge}
+                    radiusButton={radiusButton}
+                    shadowCard={shadowCard}
+                    colors={colors}
+                    heroBadge={heroBadge}
+                    bannerTitle={bannerTitle}
+                    bannerSubtitle={bannerSubtitle}
+                    bannerButton={bannerButton}
+                    handleBannerButtonClick={handleBannerButtonClick}
+                    heroVideoUrl={heroVideoUrl}
+                    currentBannerIdx={currentBannerIdx}
+                    setCurrentBannerIdx={setCurrentBannerIdx}
+                    store={store}
+                  />
+                ) : null
 
-          {/* Section 1: Explore our Bestsellers Tabbed Carousel */}
-          <CatalogDesktopHomeProducts
-            allProducts={store.products}
-            settings={settings}
-            cart={cart}
-            changeQtyByKey={changeQtyByKey}
-            setSelectedProduct={setSelectedProduct}
-            onViewAllProducts={cat => {
-              if (cat) setSelectedCategory(cat)
-              setActiveNavTab('Productos')
-            }}
-          />
+              case 'bestsellers':
+                return sections.destacados !== false ? (
+                  <CatalogDesktopHomeProducts
+                    key="bestsellers"
+                    allProducts={store.products}
+                    settings={settings}
+                    cart={cart}
+                    changeQtyByKey={changeQtyByKey}
+                    setSelectedProduct={setSelectedProduct}
+                    onViewAllProducts={cat => {
+                      if (cat) setSelectedCategory(cat)
+                      setActiveNavTab('Productos')
+                    }}
+                  />
+                ) : null
 
-          {/* Optional extra modules (Visual Categories, Bento, Ingredients) */}
-          <CatalogDesktopHomeSections
-            settings={settings}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={cat => {
-              setSelectedCategory(cat)
-              setActiveNavTab('Productos')
-            }}
-          />
+              case 'visualCategories':
+                return (
+                  <VisualCategoriesDesktopSection
+                    key="visualCategories"
+                    settings={settings}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={cat => {
+                      setSelectedCategory(cat)
+                      setActiveNavTab('Productos')
+                    }}
+                  />
+                )
 
-          {/* Sections 2, 3, 4, 5: 3-Photo Ritual + 4x2 Mixed Editorial Grids + Press Logos + Ambassadors */}
-          <CatalogWaterdropEditorialBlocks
-            allProducts={store.products}
-            settings={settings}
-            cart={cart}
-            changeQtyByKey={changeQtyByKey}
-            setSelectedProduct={setSelectedProduct}
-          />
+              case 'bentoHighlights':
+                return <BentoDesktopSection key="bentoHighlights" settings={settings} />
 
-          {/* Sections 6, 7, 8, 9: Centered Stars & Staggered UGC Wall + Retailers + FAQ + 3-Col Pre-Footer Strip */}
-          <CatalogDesktopHomeBottomSections settings={settings} store={store} />
-        </>
+              case 'ritual':
+                return <RitualDesktopSection key="ritual" settings={settings} />
+
+              case 'lifestyleGallery':
+                return (
+                  <EditorialLifestyleGridSection
+                    key="lifestyleGallery"
+                    allProducts={store.products}
+                    settings={settings}
+                    cart={cart}
+                    changeQtyByKey={changeQtyByKey}
+                    setSelectedProduct={setSelectedProduct}
+                  />
+                )
+
+              case 'ingredientsSection':
+                return <IngredientsDesktopSection key="ingredientsSection" settings={settings} />
+
+              case 'ugc':
+                return <UgcDesktopSection key="ugc" settings={settings} />
+
+              case 'pressLogos':
+                return <PressLogosDesktopSection key="pressLogos" settings={settings} />
+
+              case 'ambassadors':
+                return <AmbassadorsDesktopSection key="ambassadors" settings={settings} />
+
+              case 'retailers':
+                return <RetailersDesktopSection key="retailers" settings={settings} store={store} />
+
+              case 'faqs':
+                return <FaqsDesktopSection key="faqs" settings={settings} />
+
+              case 'garantias':
+                return <GarantiasDesktopSection key="garantias" settings={settings} />
+
+              case 'story':
+                return <StoryDesktopSection key="story" settings={settings} />
+
+              default:
+                return null
+            }
+          })}
+        </div>
       )}
 
       {/* FULL SHOP CATALOG VIEW */}

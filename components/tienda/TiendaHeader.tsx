@@ -7,6 +7,7 @@ import { ActiveTab } from './types'
 interface TiendaHeaderProps {
   subdomain: string
   isSaving: boolean
+  hasUnsavedChanges?: boolean
   onSaveChanges: () => void
   activeTab: ActiveTab
   setActiveTab: (tab: ActiveTab) => void
@@ -27,6 +28,7 @@ const TABS: Array<{ id: ActiveTab; label: string }> = [
 export function TiendaHeader({
   subdomain,
   isSaving,
+  hasUnsavedChanges = false,
   onSaveChanges,
   activeTab,
   setActiveTab,
@@ -46,13 +48,22 @@ export function TiendaHeader({
               </Link>
             </Button>
 
-            <Button type="button" onClick={onSaveChanges} disabled={isSaving}>
+            <Button
+              type="button"
+              onClick={onSaveChanges}
+              disabled={isSaving}
+              className={hasUnsavedChanges ? 'bg-emerald-600 hover:bg-emerald-700 text-white relative' : ''}
+              title="Presiona Ctrl+S para guardar en cualquier momento"
+            >
               {isSaving ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <Save className="w-3.5 h-3.5" />
               )}
-              <span>{isSaving ? 'Guardando...' : 'Guardar cambios'}</span>
+              <span>{isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar cambios *' : 'Guardar cambios'}</span>
+              {hasUnsavedChanges && !isSaving && (
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse ml-1" />
+              )}
             </Button>
           </>
         }

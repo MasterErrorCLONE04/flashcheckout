@@ -41,6 +41,14 @@ export interface StudioIaClientProps {
     whatsappConnected: boolean
     isPro: boolean
     creditsAvailable: number
+    metaSocial?: {
+      connected: boolean
+      facebookPageId: string | null
+      facebookPageName: string | null
+      instagramAccountId: string | null
+      instagramUsername: string | null
+      defaultChannels: Array<'INSTAGRAM' | 'FACEBOOK'>
+    } | null
   }
   products: Product[]
   coupons: Coupon[]
@@ -52,7 +60,7 @@ export type CreativeTone = 'urgency' | 'luxury' | 'casual' | 'educational'
 export type MusicTrack = 'viral' | 'lofi' | 'luxury' | 'upbeat'
 export type AvatarLayout = 'BUBBLE_PIP' | 'SPLIT_UGC' | 'NONE'
 export type StudioMainTab = 'video' | 'foto' | 'contenido' | 'creaciones' | 'formatos'
-export type PhotoActionType = 'remove-bg' | 'generate-scene' | 'upscale'
+export type PhotoActionType = 'remove-bg' | 'generate-scene' | 'edit-photo' | 'upscale'
 export type PhotoScene = 'marble' | 'neon-podium' | 'luxury-wood' | 'sunlight-nature' | 'urban-minimal'
 
 export interface AiAvatar {

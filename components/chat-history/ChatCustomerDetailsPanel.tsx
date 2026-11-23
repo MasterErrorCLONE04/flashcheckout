@@ -7,7 +7,10 @@ import {
   Package,
   Zap,
   Plus,
-  Lock
+  Lock,
+  Trash2,
+  StickyNote,
+  ExternalLink
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChatSessionsState } from './useChatSessions'
@@ -27,254 +30,319 @@ export function ChatCustomerDetailsPanel({ chat }: ChatCustomerDetailsPanelProps
     showAddTag,
     setShowAddTag,
     handleRemoveTag,
+    handleDeleteNote,
     toggleStatus
   } = chat
 
   if (!activeSession) {
     return (
-      <div className="lg:col-span-12 xl:col-span-3 space-y-5">
-        <div className="bg-white border border-zinc-200 p-5 rounded-lg flex items-center justify-center text-center py-20 text-zinc-400">
-          Selecciona un chat
-        </div>
-      </div>
+      <aside className="w-full lg:w-[320px] xl:w-[350px] shrink-0 bg-white border-l border-zinc-200 p-6 flex items-center justify-center text-center text-xs font-semibold text-zinc-400">
+        Selecciona una conversación para ver el expediente CRM del cliente
+      </aside>
     )
   }
 
   return (
-    <div className="lg:col-span-12 xl:col-span-3 space-y-5">
-      {/* Card 1: Información del cliente */}
-      <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
-        <h4 className="text-xs font-bold text-zinc-950 tracking-wider select-none">Información del cliente</h4>
-        
-        <div className="flex items-center gap-3.5 select-none">
+    <aside className="w-full lg:w-[320px] xl:w-[350px] shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-zinc-200 flex flex-col h-full overflow-y-auto divide-y divide-zinc-200 select-none">
+      {/* 1. FICHA DEL CLIENTE */}
+      <div className="p-4 space-y-3.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-900">
+            Expediente CRM
+          </span>
+          <button
+            type="button"
+            onClick={() => router.push(`/clientes?search=${encodeURIComponent(activeSession.customerName)}`)}
+            className="text-[10.5px] font-bold text-zinc-600 hover:text-zinc-950 inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span>Directorio</span>
+            <ExternalLink className="w-3 h-3" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
           {activeSession.avatarUrl ? (
-            <img 
-              src={activeSession.avatarUrl} 
+            <img
+              src={activeSession.avatarUrl}
               alt={activeSession.customerName}
-              className="w-12 h-12 rounded-full object-cover shrink-0 border border-zinc-200"
+              className="w-11 h-11 rounded-full object-cover shrink-0 border border-zinc-200"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-lg font-extrabold text-zinc-600 uppercase shrink-0">
+            <div className="w-11 h-11 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-sm font-extrabold text-zinc-700 uppercase shrink-0">
               {activeSession.customerName.slice(0, 2)}
             </div>
           )}
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-xs font-bold text-zinc-950 truncate leading-tight">{activeSession.customerName}</h4>
-              <span className="bg-emerald-50 border border-emerald-200 text-emerald-600 text-[8px] px-1 py-0.2 rounded font-extrabold uppercase shrink-0">
-                Cliente
-              </span>
-            </div>
-            <span className="text-[10px] font-semibold text-zinc-400 mt-1 block flex items-center gap-1">
+            <h4 className="text-xs font-extrabold text-zinc-950 truncate">
+              {activeSession.customerName}
+            </h4>
+            <button
+              type="button"
+              onClick={() => copyToClipboard('+' + activeSession.phoneNumber)}
+              className="text-[11px] font-mono font-semibold text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mt-0.5 cursor-pointer"
+            >
               <span>+{activeSession.phoneNumber}</span>
-              <button 
-                onClick={() => copyToClipboard('+' + activeSession.phoneNumber)}
-                className="text-zinc-300 hover:text-zinc-500 cursor-pointer ml-0.5"
-                title="Copiar"
-              >
-                <Copy className="w-2.5 h-2.5" />
-              </button>
-            </span>
+              <Copy className="w-2.5 h-2.5" />
+            </button>
           </div>
         </div>
 
-        <div className="h-px bg-zinc-100" />
-
-        <div className="space-y-3.5 text-xs font-semibold text-zinc-600">
-          <div className="flex justify-between items-baseline">
-            <span className="text-zinc-400 select-none">Cliente desde:</span>
-            <span className="text-zinc-950">
-              {detailsLoading ? 'Cargando...' : activeDetails?.firstInteractionDate || '15 mar 2025'}
+        <div className="grid grid-cols-3 gap-2 pt-1">
+          <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200/70">
+            <span className="text-[9px] font-bold uppercase text-zinc-400 block">Compras</span>
+            <span className="text-xs font-extrabold text-zinc-950 tabular-nums mt-0.5 block">
+              {detailsLoading
+                ? '...'
+                : `$${(activeDetails?.totalSpent || 0).toLocaleString('es-CO')}`}
             </span>
           </div>
-          
-          <div className="flex justify-between items-baseline">
-            <span className="text-zinc-400 select-none">Total compras:</span>
-            <span className="text-zinc-950 font-bold">
-              {detailsLoading ? 'Cargando...' : `$${activeDetails?.totalSpent.toLocaleString('es-CO') || '0'}`}
+          <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200/70">
+            <span className="text-[9px] font-bold uppercase text-zinc-400 block">Pedidos</span>
+            <span className="text-xs font-extrabold text-zinc-950 tabular-nums mt-0.5 block">
+              {detailsLoading ? '...' : activeDetails?.ordersCount || 0}
             </span>
           </div>
-          
-          <div className="flex justify-between items-baseline">
-            <span className="text-zinc-400 select-none">Pedidos:</span>
-            <span className="text-zinc-950">
-              {detailsLoading ? 'Cargando...' : `${activeDetails?.ordersCount || 0} pedidos`}
+          <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200/70">
+            <span className="text-[9px] font-bold uppercase text-zinc-400 block">Desde</span>
+            <span className="text-[10.5px] font-bold text-zinc-900 truncate mt-0.5 block">
+              {detailsLoading
+                ? '...'
+                : activeDetails?.firstInteractionDate ||
+                  new Date(activeSession.lastInteraction).toLocaleDateString('es-CO', {
+                    day: '2-digit',
+                    month: 'short'
+                  })}
             </span>
           </div>
         </div>
-
-        <button
-          onClick={() => router.push(`/clientes?search=${activeSession.customerName}`)}
-          className="w-full text-center py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-all cursor-pointer mt-2 block"
-        >
-          Ver perfil completo
-        </button>
       </div>
 
-      {/* Card 2: Carrito actual */}
-      <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
-        <div className="flex justify-between items-baseline select-none">
-          <h4 className="text-xs font-bold text-zinc-950 tracking-wider">Carrito actual</h4>
-          <span className="text-[10px] text-zinc-400 font-bold">{activeDetails?.cartItems.length || 0} productos</span>
+      {/* 2. BOLSA / CARRITO EN VIVO */}
+      <div className="p-4 space-y-3">
+        <div className="flex justify-between items-center">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-900">
+            Bolsa Activa en WhatsApp
+          </span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700">
+            {activeDetails?.cartItems.length || 0} ítems
+          </span>
         </div>
 
         {activeDetails && activeDetails.cartItems.length > 0 ? (
           <div className="space-y-3">
-            <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
               {activeDetails.cartItems.map((item, idx) => (
-                <div key={idx} className="flex gap-2.5 items-center text-xs font-semibold text-zinc-700 py-1.5 border-b border-zinc-50 last:border-none">
+                <div
+                  key={idx}
+                  className="flex gap-2.5 items-center text-xs py-1.5 border-b border-zinc-100 last:border-none"
+                >
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name} className="w-8.5 h-8.5 rounded border border-zinc-100 object-cover shrink-0" />
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-8 h-8 rounded border border-zinc-200 object-cover shrink-0"
+                    />
                   ) : (
-                    <div className="w-8.5 h-8.5 bg-zinc-50 border border-zinc-200 rounded flex items-center justify-center text-zinc-400 shrink-0">
-                      <Package className="w-4 h-4" />
+                    <div className="w-8 h-8 bg-zinc-50 border border-zinc-200 rounded flex items-center justify-center text-zinc-400 shrink-0">
+                      <Package className="w-3.5 h-3.5" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h5 className="font-bold text-zinc-900 truncate text-[11px] leading-tight">{item.name}</h5>
-                    <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">Cant: {item.qty}</p>
+                    <h5 className="font-bold text-zinc-900 truncate text-[11px] leading-tight">
+                      {item.name}
+                    </h5>
+                    <p className="text-[9.5px] text-zinc-400 font-semibold">Cant: {item.qty}</p>
                   </div>
-                  <span className="font-bold text-zinc-900 shrink-0 text-[11px]">${(item.price * item.qty).toLocaleString('es-CO')}</span>
+                  <span className="font-extrabold text-zinc-950 shrink-0 text-[11px] tabular-nums">
+                    ${(item.price * item.qty).toLocaleString('es-CO')}
+                  </span>
                 </div>
               ))}
             </div>
 
-            <div className="h-px bg-zinc-100 pt-1" />
-
-            <div className="space-y-2 text-[11px] font-semibold text-zinc-600">
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Subtotal</span>
-                <span>${activeDetails.cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0).toLocaleString('es-CO')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Envío</span>
-                <span className="text-emerald-600 font-bold">Gratis</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold text-zinc-950 pt-1.5 border-t border-zinc-50">
-                <span>Total</span>
-                <span>${activeDetails.cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0).toLocaleString('es-CO')}</span>
-              </div>
+            <div className="flex justify-between items-baseline text-xs font-extrabold text-zinc-950 pt-1 border-t border-zinc-100">
+              <span>Total estimado</span>
+              <span className="tabular-nums">
+                $
+                {activeDetails.cartItems
+                  .reduce((acc, i) => acc + i.price * i.qty, 0)
+                  .toLocaleString('es-CO')}
+              </span>
             </div>
 
             <button
+              type="button"
               onClick={handleSendPaymentLink}
-              className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-3 select-none active:scale-[0.98]"
+              className="w-full h-9 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
-              <span>Enviar link de pago</span>
+              <span>Enviar Link de Pago al Chat</span>
             </button>
           </div>
         ) : (
-          <p className="text-[10px] text-zinc-400 font-semibold py-4 text-center select-none">No hay productos en el carrito</p>
+          <p className="text-[11px] text-zinc-400 font-medium py-2">
+            El cliente no tiene productos en su bolsa en este momento.
+          </p>
         )}
       </div>
 
-      {/* Card 3: Historial reciente */}
-      <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
-        <div className="flex justify-between items-baseline select-none">
-          <h4 className="text-xs font-bold text-zinc-950 tracking-wider">Historial reciente</h4>
-          <button 
-            onClick={() => router.push(`/pedidos?search=${activeSession.customerName}`)} 
-            className="text-[10px] font-bold text-emerald-600 hover:underline cursor-pointer"
+      {/* 3. NOTAS INTERNAS DEL EQUIPO (AHORA VISIBLES Y GESTIONABLES) */}
+      <div className="p-4 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
+            <StickyNote className="w-3.5 h-3.5 text-amber-500" />
+            Notas Internas ({activeSession.notes.length})
+          </span>
+        </div>
+
+        {activeSession.notes.length === 0 ? (
+          <p className="text-[11px] text-zinc-400 font-medium">
+            Sin notas privadas. Usa la pestaña &ldquo;Nota Interna&rdquo; abajo en el chat para agregar una.
+          </p>
+        ) : (
+          <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
+            {activeSession.notes.map(note => (
+              <div
+                key={note.id}
+                className="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200/80 text-xs space-y-1 relative group"
+              >
+                <p className="text-[11px] font-medium text-zinc-800 leading-relaxed pr-5">
+                  {note.text}
+                </p>
+                <div className="flex items-center justify-between text-[9.5px] font-semibold text-amber-700/80">
+                  <span>{note.author}</span>
+                  <span>{note.createdAt}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteNote(activeSession.id, note.id)}
+                  className="absolute top-2 right-2 text-zinc-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  title="Eliminar nota"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 4. ETIQUETAS Y PEDIDOS RECIENTES */}
+      <div className="p-4 space-y-3">
+        <div className="flex justify-between items-center">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-900">
+            Etiquetas
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowAddTag(!showAddTag)}
+            className="text-[10.5px] font-bold text-zinc-600 hover:text-zinc-950 flex items-center gap-0.5 cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Añadir</span>
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {activeSession.tags.map((tag, tIdx) => (
+            <span
+              key={tIdx}
+              className="px-2 py-0.5 rounded-md border border-zinc-200 bg-zinc-50 text-zinc-800 text-[10px] font-bold flex items-center gap-1"
+            >
+              <span>{tag}</span>
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(activeSession.id, tag)}
+                className="text-zinc-400 hover:text-rose-600 cursor-pointer"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          {activeSession.tags.length === 0 && (
+            <span className="text-[11px] text-zinc-400 font-medium">Sin etiquetas asignadas</span>
+          )}
+        </div>
+      </div>
+
+      {/* 5. HISTORIAL DE PEDIDOS DEL CLIENTE */}
+      <div className="p-4 space-y-3 flex-1">
+        <div className="flex justify-between items-center">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-900">
+            Pedidos del Cliente
+          </span>
+          <button
+            type="button"
+            onClick={() => router.push(`/pedidos?search=${encodeURIComponent(activeSession.customerName)}`)}
+            className="text-[10.5px] font-bold text-zinc-600 hover:text-zinc-950 cursor-pointer"
           >
             Ver todos
           </button>
         </div>
 
         {activeDetails && activeDetails.orders.length > 0 ? (
-          <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+          <div className="space-y-2">
             {activeDetails.orders.slice(0, 4).map((order, idx) => {
               const isPaid = order.status === 'paid' || order.paymentStatus === 'PAID'
-              const statusText = isPaid ? 'Pagado' : order.status === 'failed' ? 'Reembolsado' : 'Pendiente'
-              const statusColor = isPaid 
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
-                : order.status === 'failed'
-                ? 'bg-rose-50 text-rose-600 border-rose-200'
-                : 'bg-amber-50 text-amber-600 border-amber-200'
-
               return (
-                <div key={idx} className="flex justify-between items-center text-[10px] font-semibold py-1.5 border-b border-zinc-50 last:border-none">
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-zinc-800 truncate">Pedido #{order.id.slice(-6).toUpperCase()}</span>
-                    <span className="text-[9px] text-zinc-400 mt-0.5">{new Date(order.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    <span className={cn("px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase border scale-90", statusColor)}>
-                      {statusText}
+                <div
+                  key={idx}
+                  className="p-2.5 rounded-lg border border-zinc-200/80 bg-zinc-50/50 flex justify-between items-center text-xs"
+                >
+                  <div>
+                    <span className="font-bold text-zinc-900 block text-[11px]">
+                      #{order.id.slice(-6).toUpperCase()}
                     </span>
-                    <span className="font-bold text-zinc-950">${order.total.toLocaleString('es-CO')}</span>
-                    <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isPaid ? "bg-emerald-500" : order.status === 'failed' ? "bg-rose-500" : "bg-amber-500")} />
+                    <span className="text-[9.5px] text-zinc-400 font-semibold">
+                      {new Date(order.createdAt).toLocaleDateString('es-CO', {
+                        day: '2-digit',
+                        month: 'short'
+                      })}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-extrabold text-zinc-950 block text-[11px] tabular-nums">
+                      ${order.total.toLocaleString('es-CO')}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-[8.5px] font-extrabold uppercase px-1.5 py-0.2 rounded border inline-block mt-0.5',
+                        isPaid
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      )}
+                    >
+                      {isPaid ? 'Pagado' : 'Pendiente'}
+                    </span>
                   </div>
                 </div>
               )
             })}
           </div>
         ) : (
-          <p className="text-[10px] text-zinc-400 font-semibold py-4 text-center select-none">No registra pedidos anteriores</p>
+          <p className="text-[11px] text-zinc-400 font-medium">
+            Aún no registra órdenes cerradas.
+          </p>
         )}
-      </div>
 
-      {/* Card 4: Etiquetas */}
-      <div className="bg-white border border-zinc-200 p-5 rounded-lg space-y-4">
-        <div className="flex justify-between items-baseline select-none">
-          <h4 className="text-xs font-bold text-zinc-950 tracking-wider">Etiquetas</h4>
-          <button 
-            onClick={() => setShowAddTag(!showAddTag)} 
-            className="text-[10px] font-bold text-emerald-600 hover:underline cursor-pointer"
-          >
-            Editar
-          </button>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {activeSession.tags.map((tag, tIdx) => {
-            let color = 'text-[#6F42C1] bg-purple-50 border-purple-200'
-            if (tag.toLowerCase().includes('compra')) color = 'text-emerald-700 bg-emerald-50 border-emerald-200'
-            if (tag.toLowerCase().includes('envio') || tag.toLowerCase().includes('domicilio')) color = 'text-amber-700 bg-amber-50 border-amber-200'
-
-            return (
-              <span 
-                key={tIdx} 
-                className={cn(
-                  "px-2 py-0.5 rounded-md border text-[9px] font-bold flex items-center gap-1 leading-none",
-                  color
-                )}
-              >
-                <span>{tag}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(activeSession.id, tag)}
-                  className="hover:text-zinc-950 text-[10px] ml-0.5 opacity-60 hover:opacity-100"
-                >
-                  ×
-                </button>
-              </span>
-            )
-          })}
-
+        <div className="pt-2">
           <button
-            onClick={() => setShowAddTag(!showAddTag)}
-            className="flex items-center justify-center gap-1 px-2 py-0.5 border border-dashed border-zinc-200 hover:border-zinc-300 rounded-md text-[9px] font-bold text-zinc-500 transition-colors bg-white cursor-pointer"
+            type="button"
+            onClick={() => toggleStatus(activeSession.id)}
+            className={cn(
+              'w-full h-8.5 flex items-center justify-center gap-1.5 border rounded-lg text-[11px] font-bold transition-all cursor-pointer',
+              activeSession.status === 'closed'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : 'border-rose-200 bg-white text-rose-600 hover:bg-rose-50'
+            )}
           >
-            <Plus className="w-2.5 h-2.5 text-zinc-500" />
-            <span>Nueva etiqueta</span>
+            <Lock className="w-3 h-3" />
+            <span>
+              {activeSession.status === 'closed' ? 'Reabrir conversación' : 'Cerrar conversación'}
+            </span>
           </button>
         </div>
       </div>
-
-      {/* Close session button action */}
-      <button
-        onClick={() => toggleStatus(activeSession.id)}
-        className={cn(
-          "w-full flex items-center justify-center gap-2 border rounded-lg py-3 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer",
-          activeSession.status === 'closed'
-            ? "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/50"
-            : "border-rose-200 bg-white text-rose-600 hover:bg-rose-50/30"
-        )}
-      >
-        <Lock className="w-3.5 h-3.5" />
-        <span>{activeSession.status === 'closed' ? 'Reabrir conversación' : 'Cerrar conversación'}</span>
-      </button>
-    </div>
+    </aside>
   )
 }

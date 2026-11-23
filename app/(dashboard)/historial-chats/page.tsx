@@ -1,7 +1,5 @@
-import HistorialChatsPageContent from '@/components/pages/HistorialChatsPageContent'
+import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
-export default function HistorialChatsPage() {
-  return <HistorialChatsPageContent />
+export default function HistorialChatsRedirectPage() {
+  redirect('/conversaciones')
 }

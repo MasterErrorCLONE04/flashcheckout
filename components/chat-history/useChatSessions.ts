@@ -79,7 +79,7 @@ export function useChatSessions(initialSessions: ChatSessionInit[]) {
         const res = await fetch('/api/whatsapp/sessions')
         if (res.ok) {
           const data = await res.json()
-          if (data.sessions) {
+          if (Array.isArray(data.sessions) && data.sessions.length > 0) {
             setSessions(data.sessions)
           }
         }
@@ -91,10 +91,11 @@ export function useChatSessions(initialSessions: ChatSessionInit[]) {
     return () => clearInterval(pollInterval)
   }, [])
 
-  // Auto scroll chat to bottom
+  // Auto scroll chat to bottom only when switching session or when message count changes
+  const activeMessagesCount = activeSession?.messages.length ?? 0
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [activeSession?.messages])
+  }, [activeSessionId, activeMessagesCount])
 
   // Filtering
   const filteredSessions = sessions.filter(s => {
@@ -269,8 +270,13 @@ export function useChatSessions(initialSessions: ChatSessionInit[]) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: activeSessionId, text: newMsg })
       })
-      if (!res.ok) throw new Error()
-      toast.success('Mensaje enviado')
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || 'Error al enviar mensaje')
+      if (data?.deliveredViaWhatsApp === false && data?.warning) {
+        toast.info('Respuesta registrada en el chat (WhatsApp en modo offline/demo)')
+      } else {
+        toast.success('Mensaje enviado al cliente')
+      }
     } catch {
       toast.error('Error al enviar el mensaje por WhatsApp')
     } finally {

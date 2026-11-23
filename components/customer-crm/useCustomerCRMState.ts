@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { CustomerRecord, SerializedOrder } from './types'
 
+export type SortMode = 'recent' | 'ltv' | 'intent'
+
 export function useCustomerCRMState(
   initialCustomers: CustomerRecord[],
   initialOrders: SerializedOrder[]
@@ -11,42 +13,47 @@ export function useCustomerCRMState(
   const [customers, setCustomers] = useState<CustomerRecord[]>(initialCustomers)
   const [orders] = useState<SerializedOrder[]>(initialOrders)
 
-  // Filters & Search
+  // Filters, Search & Sort
   const [search, setSearch] = useState('')
   const [segmentFilter, setSegmentFilter] = useState('Todos')
   const [statusFilter, setStatusFilter] = useState('Todos')
+  const [sortBy, setSortBy] = useState<SortMode>('recent')
   const [showAllHistory, setShowAllHistory] = useState(false)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 8
+  const itemsPerPage = 10
 
   // Detail panel state
-  const [selectedCustomerKey, setSelectedCustomerKey] = useState<string | null>(null)
+  const [selectedCustomerKey, setSelectedCustomerKey] = useState<string | null>(
+    initialCustomers.length > 0 ? initialCustomers[0].customerKey : null
+  )
 
-  // Set default selection to first customer if available on load
-  useEffect(() => {
-    if (initialCustomers.length > 0 && !selectedCustomerKey) {
-      setSelectedCustomerKey(initialCustomers[0].customerKey)
-    }
-  }, [initialCustomers, selectedCustomerKey])
+  // Filter & Sort logic
+  const filteredCustomers = customers
+    .filter(c => {
+      const q = search.toLowerCase()
+      const matchesSearch =
+        c.name.toLowerCase().includes(q) ||
+        c.phone.includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.city.toLowerCase().includes(q) ||
+        c.intentDetail.toLowerCase().includes(q)
 
-  // Filter logic
-  const filteredCustomers = customers.filter(c => {
-    const matchesSearch =
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
+      const matchesSegment = segmentFilter === 'Todos' || c.segment === segmentFilter
+      const matchesStatus = statusFilter === 'Todos' || c.status === statusFilter
 
-    const matchesSegment = segmentFilter === 'Todos' || c.segment === segmentFilter
-    const matchesStatus = statusFilter === 'Todos' || c.status === statusFilter
-
-    return matchesSearch && matchesSegment && matchesStatus
-  })
+      return matchesSearch && matchesSegment && matchesStatus
+    })
+    .sort((a, b) => {
+      if (sortBy === 'ltv') return b.totalSpent - a.totalSpent
+      if (sortBy === 'intent') return b.intentAmount - a.intentAmount
+      return new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime()
+    })
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, segmentFilter, statusFilter])
+  }, [search, segmentFilter, statusFilter, sortBy])
 
   // Pagination bounds
   const totalPages = Math.max(Math.ceil(filteredCustomers.length / itemsPerPage), 1)
@@ -57,13 +64,19 @@ export function useCustomerCRMState(
 
   // Customer orders for purchase history
   const activeCustomerOrders = activeCustomer
-    ? orders.filter(o => o.customerKey === activeCustomer.customerKey)
+    ? orders.filter(
+        o =>
+          o.customerKey === activeCustomer.customerKey ||
+          (activeCustomer.phone && o.customerPhone.endsWith(activeCustomer.phone.slice(-10)))
+      )
     : []
-  const visibleCustomerOrders = showAllHistory ? activeCustomerOrders : activeCustomerOrders.slice(0, 5)
+  const visibleCustomerOrders = showAllHistory
+    ? activeCustomerOrders
+    : activeCustomerOrders.slice(0, 6)
   const activeAverageTicket =
-    activeCustomer && activeCustomer.totalOrders > 0
-      ? Math.round(activeCustomer.totalSpent / activeCustomer.totalOrders)
-      : 0
+    activeCustomer && activeCustomer.paidOrders > 0
+      ? Math.round(activeCustomer.totalSpent / activeCustomer.paidOrders)
+      : activeCustomer?.intentAmount || 0
   const hasActiveFilters =
     search.trim() !== '' || segmentFilter !== 'Todos' || statusFilter !== 'Todos'
 
@@ -78,9 +91,10 @@ export function useCustomerCRMState(
     setShowAllHistory(false)
   }, [selectedCustomerKey])
 
-  // Edit customer profile state
+  // Edit existing customer notes/profile state (no manual customer creation)
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
   const [editEmail, setEditEmail] = useState('')
   const [editBirthDate, setEditBirthDate] = useState('')
   const [editCity, setEditCity] = useState('')
@@ -90,6 +104,7 @@ export function useCustomerCRMState(
   const handleStartEdit = () => {
     if (!activeCustomer) return
     setEditName(activeCustomer.name)
+    setEditPhone(activeCustomer.phone)
     setEditEmail(activeCustomer.email)
     setEditBirthDate(activeCustomer.birthDate)
     setEditCity(activeCustomer.city)
@@ -103,23 +118,24 @@ export function useCustomerCRMState(
 
     setIsSaving(true)
     try {
+      const cleanPhone = editPhone.replace(/\D/g, '')
       const res = await fetch('/api/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: activeCustomer.id,
-          phone: activeCustomer.phone,
-          name: editName,
-          email: editEmail,
-          birthDate: editBirthDate,
-          city: editCity,
-          notes: editNotes,
+          phone: cleanPhone || activeCustomer.phone,
+          name: editName.trim(),
+          email: editEmail.trim(),
+          birthDate: editBirthDate.trim(),
+          city: editCity.trim(),
+          notes: editNotes.trim(),
         }),
       })
 
-      if (!res.ok) throw new Error('Error al guardar')
-      const data = await res.json()
-      const savedCustomer = data.customer as { id?: string; phone?: string | null } | undefined
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || 'Error al guardar')
+      const savedCustomer = data?.customer as { id?: string; phone?: string | null } | undefined
 
       setCustomers(prev =>
         prev.map(c => {
@@ -127,12 +143,12 @@ export function useCustomerCRMState(
             return {
               ...c,
               id: savedCustomer?.id || c.id,
-              phone: savedCustomer?.phone || c.phone,
-              name: editName,
-              email: editEmail,
-              birthDate: editBirthDate,
-              city: editCity,
-              notes: editNotes,
+              phone: savedCustomer?.phone || cleanPhone || c.phone,
+              name: editName.trim(),
+              email: editEmail.trim(),
+              birthDate: editBirthDate.trim(),
+              city: editCity.trim(),
+              notes: editNotes.trim(),
             }
           }
           return c
@@ -140,28 +156,93 @@ export function useCustomerCRMState(
       )
 
       setIsEditing(false)
-      toast.success('Información del cliente guardada con éxito')
-    } catch (err) {
-      console.error(err)
-      toast.error('Ocurrió un error al guardar los cambios')
+      toast.success('Ficha del cliente actualizada')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Ocurrió un error al guardar')
     } finally {
       setIsSaving(false)
     }
   }
 
-  // Metrics Calculations (KPI cards derived with pure real database values)
+  const handleExportCsv = () => {
+    const headers = [
+      'Cliente',
+      'WhatsApp',
+      'Email',
+      'Ciudad',
+      'Clasificación',
+      'Compras Pagadas',
+      'Total Pagado (COP)',
+      'Intentos sin Pagar',
+      'Monto en Intención (COP)',
+      'Detalle Intención',
+      'Última Actividad',
+      'Notas',
+    ]
+    const rows = customers.map(c => [
+      c.name,
+      c.phone ? `+${c.phone}` : '',
+      c.email,
+      c.city,
+      c.segment === 'Intención' ? 'Intención de compra' : c.segment,
+      c.paidOrders,
+      c.totalSpent,
+      c.intentOrders,
+      c.intentAmount,
+      c.intentDetail,
+      new Date(c.lastOrderDate).toLocaleDateString('es-CO'),
+      c.notes,
+    ])
+
+    const csvContent =
+      '\uFEFF' +
+      [
+        headers.join(','),
+        ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')),
+      ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `Clientes_e_Intenciones_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('Reporte de clientes e intenciones exportado en CSV')
+  }
+
+  // Metrics Calculations (Paid Buyers vs Purchase Intent)
   const totalUniqueCustomers = customers.length
-  const active30Days = customers.filter(c => c.status === 'Activo').length
+  const paidCustomersCount = customers.filter(c => c.paidOrders > 0).length
+  const intentCustomersCount = customers.filter(c => c.paidOrders === 0).length
   const totalLtvSum = customers.reduce((sum, c) => sum + c.totalSpent, 0)
-  const avgLtv = customers.length > 0 ? Math.round(totalLtvSum / customers.length) : 0
+  const totalIntentSum = customers.reduce((sum, c) => sum + c.intentAmount, 0)
+  const avgLtv = paidCustomersCount > 0 ? Math.round(totalLtvSum / paidCustomersCount) : 0
+  const repeatCustomersCount = customers.filter(c => c.paidOrders >= 2).length
+  const repeatRate =
+    paidCustomersCount > 0
+      ? Math.round((repeatCustomersCount / paidCustomersCount) * 100)
+      : 0
+
+  const segmentCounts = {
+    Todos: customers.length,
+    Frecuente: customers.filter(c => c.segment === 'Frecuente').length,
+    Comprador: customers.filter(c => c.segment === 'Comprador').length,
+    Intención: customers.filter(c => c.segment === 'Intención').length,
+  }
 
   return {
+    customers,
     search,
     setSearch,
     segmentFilter,
     setSegmentFilter,
     statusFilter,
     setStatusFilter,
+    sortBy,
+    setSortBy,
+    segmentCounts,
     showAllHistory,
     setShowAllHistory,
     currentPage,
@@ -183,6 +264,8 @@ export function useCustomerCRMState(
     setIsEditing,
     editName,
     setEditName,
+    editPhone,
+    setEditPhone,
     editEmail,
     setEditEmail,
     editBirthDate,
@@ -194,10 +277,14 @@ export function useCustomerCRMState(
     isSaving,
     handleStartEdit,
     handleSaveCustomer,
+    handleExportCsv,
     totalUniqueCustomers,
-    active30Days,
+    paidCustomersCount,
+    intentCustomersCount,
     totalLtvSum,
+    totalIntentSum,
     avgLtv,
+    repeatCustomersCount,
+    repeatRate,
   }
 }
-

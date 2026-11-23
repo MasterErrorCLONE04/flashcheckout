@@ -1,14 +1,15 @@
 'use client'
 
+import React from 'react'
 import {
-  CheckCircle,
+  CheckCircle2,
   Clock,
   AlertCircle,
-  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   RefreshCw,
+  FileCheck2,
+  CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Payment } from './types'
@@ -25,6 +26,7 @@ interface PagosTableProps {
   rowsPerPage: number
   setRowsPerPage: React.Dispatch<React.SetStateAction<number>>
   formatCurrency: (val: number) => string
+  selectedPaymentId?: string | null
   onSelectPayment: (payment: Payment) => void
 }
 
@@ -37,126 +39,177 @@ export function PagosTable({
   currentPage,
   setCurrentPage,
   totalPages,
-  rowsPerPage,
-  setRowsPerPage,
   formatCurrency,
+  selectedPaymentId,
   onSelectPayment,
 }: PagosTableProps) {
   return (
-    <>
-      {/* TRANSACTIONS TABLE */}
-      <div className="overflow-x-auto border border-zinc-200 rounded-lg bg-white">
-        <table className="w-full min-w-[850px] text-left border-collapse text-xs xl:text-sm">
-          <thead>
-            <tr className="bg-zinc-50 border-b border-zinc-200 text-[10px] xl:text-xs font-bold text-zinc-500 select-none">
-              <th className="py-3 px-2.5 xl:px-4">Pago</th>
-              <th className="py-3 px-2.5 xl:px-4">Cliente</th>
-              <th className="py-3 px-2.5 xl:px-4">Pedido</th>
-              <th className="py-3 px-2.5 xl:px-4">Método de pago</th>
-              <th className="py-3 px-2.5 xl:px-4">Estado</th>
-              <th className="py-3 px-2.5 xl:px-4">Fecha</th>
-              <th className="py-3 px-2.5 xl:px-4">Monto</th>
-              <th className="py-3 px-2.5 xl:px-4 text-center whitespace-nowrap">Acciones</th>
+    <div className="flex-1 min-w-0 h-full flex flex-col bg-white overflow-hidden">
+      {/* Scrollable Table Container */}
+      <div className="flex-1 overflow-auto">
+        <table className="w-full min-w-[820px] text-left border-collapse">
+          <thead className="sticky top-0 z-10 bg-zinc-50/95 backdrop-blur-xs border-b border-zinc-200">
+            <tr className="text-[10px] font-black uppercase tracking-wider text-zinc-400 select-none">
+              <th className="py-2.5 px-4">Orden & Referencia</th>
+              <th className="py-2.5 px-3">Cliente</th>
+              <th className="py-2.5 px-3">Detalle del Pedido</th>
+              <th className="py-2.5 px-3">Método de Cobro</th>
+              <th className="py-2.5 px-3">Estado</th>
+              <th className="py-2.5 px-3 text-right">Fecha</th>
+              <th className="py-2.5 px-4 text-right">Monto</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 font-semibold text-zinc-700">
+
+          <tbody className="divide-y divide-zinc-100 text-xs">
             {loading ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-zinc-400 font-medium select-none">
-                  <div className="flex items-center justify-center gap-2">
-                    <RefreshCw className="w-4 h-4 animate-spin text-[#6F42C1]" />
-                    <span>Cargando transacciones reales...</span>
+                <td colSpan={7} className="py-16 text-center text-zinc-400 select-none">
+                  <div className="flex items-center justify-center gap-2 font-semibold">
+                    <RefreshCw className="w-4 h-4 animate-spin text-zinc-700" />
+                    <span>Sincronizando libro de transacciones...</span>
                   </div>
                 </td>
               </tr>
             ) : totalPaymentsCount === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-zinc-400 font-medium select-none">
-                  No se encontraron registros de pagos.
+                <td colSpan={7} className="py-16 text-center text-zinc-400 select-none">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-100 text-zinc-400 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-bold text-zinc-900">
+                      No se encontraron transacciones con este filtro
+                    </p>
+                    <p className="text-[11px] text-zinc-400">
+                      Los pagos recibidos por Mercado Pago, Stripe, Bre-B o Contra Entrega aparecerán aquí.
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : (
-              paginatedPayments.map((p, idx) => {
+              paginatedPayments.map(p => {
                 const MetodoIcon = p.metodo.icon
+                const isSelected = selectedPaymentId === p.id
+
                 return (
-                  <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
-                    {/* Payment reference */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        {p.estado === 'Exitoso' && <CheckCircle className="w-4 h-4 text-zinc-500 shrink-0" />}
-                        {p.estado === 'Pendiente' && <Clock className="w-4 h-4 text-amber-500 shrink-0" />}
-                        {p.estado === 'Fallido' && <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />}
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-zinc-900 leading-tight text-xs xl:text-sm">{p.id}</h4>
-                          <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 mt-0.5 select-all">Ref: {p.ref}</p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Client profile */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
+                  <tr
+                    key={p.id}
+                    onClick={() => onSelectPayment(p)}
+                    className={cn(
+                      'transition-colors cursor-pointer group',
+                      isSelected ? 'bg-zinc-950/[0.04]' : 'hover:bg-zinc-50/80'
+                    )}
+                  >
+                    {/* Orden & Referencia */}
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
-                        <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 select-none", p.cliente.bg)}>
-                          {p.cliente.initials}
+                        <div
+                          className={cn(
+                            'w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-colors',
+                            isSelected
+                              ? 'bg-zinc-950 text-white border-zinc-950'
+                              : p.estado === 'Exitoso'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : p.estado === 'Por Validar'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : p.estado === 'Fallido'
+                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                    : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                          )}
+                        >
+                          {p.estado === 'Exitoso' && <CheckCircle2 className="w-4 h-4" />}
+                          {p.estado === 'Por Validar' && <FileCheck2 className="w-4 h-4" />}
+                          {p.estado === 'Pendiente' && <Clock className="w-4 h-4" />}
+                          {p.estado === 'Fallido' && <AlertCircle className="w-4 h-4" />}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-bold text-zinc-900 leading-tight text-xs xl:text-sm">{p.cliente.name}</h4>
-                          <p className="text-[10px] xl:text-xs font-semibold text-zinc-400 mt-0.5">{p.cliente.phone}</p>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-black text-zinc-950">
+                              {p.pedido}
+                            </span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600">
+                              {p.source}
+                            </span>
+                          </div>
+                          <p className="text-[10.5px] font-mono font-medium text-zinc-400 truncate max-w-[140px]">
+                            Ref: {p.ref}
+                          </p>
                         </div>
                       </div>
                     </td>
 
-                    {/* Pedido */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-[#6F42C1] hover:underline cursor-pointer">{p.pedido}</span>
-                        <span className="text-[9px] font-semibold text-zinc-500 mt-0.5">{p.prodCount} productos</span>
-                      </div>
-                    </td>
-
-                    {/* Método de pago */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className={cn("w-7.5 h-7.5 rounded-lg flex items-center justify-center border shrink-0", p.metodo.iconBg, p.metodo.iconColor)}>
-                          <MetodoIcon className="w-4 h-4" />
+                    {/* Cliente */}
+                    <td className="py-3 px-3 whitespace-nowrap">
+                      <div className="min-w-0">
+                        <div className="font-bold text-zinc-950 truncate max-w-[160px]">
+                          {p.cliente.name}
                         </div>
-                        <span className="text-zinc-800 text-[11px] xl:text-xs">{p.metodo.label}</span>
+                        <div className="text-[10.5px] font-medium text-zinc-400 tabular-nums">
+                          {p.cliente.phone ? `+${p.cliente.phone}` : 'Sin teléfono'}
+                        </div>
                       </div>
                     </td>
 
-                    {/* Estado Capsule */}
-                    <td className="py-3 px-2.5 xl:px-4">
-                      <span className={cn(
-                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold select-none",
-                        p.estado === 'Exitoso' && 'bg-zinc-100 border border-zinc-200 text-zinc-800',
-                        p.estado === 'Pendiente' && 'bg-amber-50 border border-amber-100 text-amber-700',
-                        p.estado === 'Fallido' && 'bg-red-50 border border-red-100 text-red-700'
-                      )}>
-                        {p.estado}
+                    {/* Detalle del Pedido */}
+                    <td className="py-3 px-3">
+                      <div className="max-w-[200px] truncate font-medium text-zinc-700">
+                        {p.itemsSummary}
+                      </div>
+                      <span className="text-[10px] font-semibold text-zinc-400">
+                        {p.prodCount} {p.prodCount === 1 ? 'unidad' : 'unidades'}
+                      </span>
+                    </td>
+
+                    {/* Método de Cobro */}
+                    <td className="py-3 px-3 whitespace-nowrap">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-50 border border-zinc-200/80 text-zinc-800 font-bold text-[11px]">
+                        <MetodoIcon className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+                        <span>{p.metodo.label}</span>
+                        {p.proofImageUrl && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-blue-600"
+                            title="Comprobante adjunto"
+                          />
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Estado */}
+                    <td className="py-3 px-3 whitespace-nowrap">
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border',
+                          p.estado === 'Exitoso' &&
+                            'bg-emerald-50 border-emerald-200 text-emerald-700',
+                          p.estado === 'Por Validar' &&
+                            'bg-blue-50 border-blue-200 text-blue-700',
+                          p.estado === 'Pendiente' &&
+                            'bg-amber-50 border-amber-200 text-amber-800',
+                          p.estado === 'Fallido' &&
+                            'bg-rose-50 border-rose-200 text-rose-700'
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full',
+                            p.estado === 'Exitoso' && 'bg-emerald-500',
+                            p.estado === 'Por Validar' && 'bg-blue-600 animate-pulse',
+                            p.estado === 'Pendiente' && 'bg-amber-500',
+                            p.estado === 'Fallido' && 'bg-rose-500'
+                          )}
+                        />
+                        {p.estado === 'Exitoso' ? 'Pagado' : p.estado}
                       </span>
                     </td>
 
                     {/* Fecha */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap text-zinc-600">{p.fecha}</td>
-
-                    {/* Monto */}
-                    <td className="py-3 px-2.5 xl:px-4 whitespace-nowrap font-bold text-zinc-900 text-xs xl:text-sm">
-                      ${formatCurrency(p.monto)}
+                    <td className="py-3 px-3 whitespace-nowrap text-right text-[11px] font-medium text-zinc-500">
+                      {p.fecha}
                     </td>
 
-                    {/* Actions */}
-                    <td className="py-3 px-2.5 xl:px-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button 
-                          onClick={() => onSelectPayment(p)} 
-                          className="px-3 py-1 border border-zinc-200 hover:bg-zinc-50 text-zinc-800 text-xs font-bold rounded-lg transition-all cursor-pointer select-none"
-                        >
-                          Ver
-                        </button>
-                        <button className="p-1 text-zinc-400 hover:text-zinc-700 transition-colors shrink-0">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </div>
+                    {/* Monto */}
+                    <td className="py-3 px-4 whitespace-nowrap text-right font-black text-zinc-950 tabular-nums">
+                      ${formatCurrency(p.monto)}
                     </td>
                   </tr>
                 )
@@ -166,62 +219,38 @@ export function PagosTable({
         </table>
       </div>
 
-      {/* Table pagination footer */}
-      <div className="flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-bold text-zinc-500 select-none">
-        <span>Mostrando {totalPaymentsCount > 0 ? startIndex + 1 : 0} - {Math.min(endIndex, totalPaymentsCount)} de {totalPaymentsCount} pagos</span>
-        
-        <div className="flex items-center gap-1">
-          <button 
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            className="p-1 border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-40 cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <button 
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={cn(
-                "px-2.5 py-1 rounded transition-all cursor-pointer text-xs font-bold",
-                currentPage === page 
-                  ? "bg-zinc-900 border border-zinc-900 text-white font-extrabold" 
-                  : "border border-zinc-200 hover:bg-zinc-50"
-              )}
-            >
-              {page}
-            </button>
-          ))}
-          
-          <button 
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            className="p-1 border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-40 cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+      {/* Pie fijo de paginación */}
+      <div className="h-11 px-4 border-t border-zinc-200 bg-zinc-50/70 flex items-center justify-between text-[11px] font-semibold text-zinc-500 shrink-0">
+        <span>
+          {totalPaymentsCount > 0
+            ? `Mostrando ${startIndex + 1}–${Math.min(endIndex, totalPaymentsCount)} de ${totalPaymentsCount} transacciones`
+            : '0 transacciones'}
+        </span>
 
-        <div className="flex items-center gap-2">
-          <span>Filas por página:</span>
-          <div className="relative shrink-0">
-            <select
-              value={rowsPerPage}
-              onChange={e => {
-                setRowsPerPage(Number(e.target.value))
-                setCurrentPage(1)
-              }}
-              className="bg-white border border-zinc-200 rounded-lg pl-3 pr-8 py-1.5 font-bold text-zinc-700 focus:outline-none focus:border-zinc-950 appearance-none cursor-pointer"
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className="w-7 h-7 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-600 flex items-center justify-center disabled:opacity-40 cursor-pointer"
             >
-              <option value={8}>8</option>
-              <option value={15}>15</option>
-              <option value={30}>30</option>
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <span className="px-2 text-[11px] font-bold text-zinc-700 tabular-nums">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              className="w-7 h-7 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-600 flex items-center justify-center disabled:opacity-40 cursor-pointer"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-        </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }

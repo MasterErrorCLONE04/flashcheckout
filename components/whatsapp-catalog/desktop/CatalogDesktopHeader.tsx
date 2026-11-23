@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { ShoppingBag, Search, X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { ShoppingBag, Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { SiWhatsapp } from 'react-icons/si'
 import { cn } from '@/lib/utils'
 import { Store, NavLink, CatalogSettings } from '../types'
 
@@ -84,7 +85,11 @@ export function CatalogDesktopHeader({
       {/* Waterdrop Architectural Top Promo Strip */}
       {announcement?.enabled && promoMessages.length > 0 && (
         <div
-          className="w-full h-[34px] text-[11.5px] font-semibold tracking-[-0.01em] select-none shrink-0 flex items-center"
+          data-maker-section="header"
+          data-maker-field="announcement.text"
+          data-maker-label="Barra de Anuncio Superior"
+          data-maker-title="Barra de Anuncios"
+          className="w-full h-[34px] text-[11.5px] font-semibold tracking-[-0.01em] select-none shrink-0 flex items-center cursor-pointer"
           style={{
             backgroundColor: announcement.bgColor || colors.acento || '#8CE5A7',
             color: announcement.textColor || '#111111',
@@ -130,16 +135,18 @@ export function CatalogDesktopHeader({
 
       {/* Gallery-White Flagship Waterdrop Navbar */}
       <header
+        data-maker-section="header"
+        data-maker-title="Encabezado & Logo"
         className={cn(
-          'transition-all duration-300 z-50 select-none shrink-0 w-full',
+          'transition-all duration-300 z-20 select-none shrink-0 w-full cursor-pointer',
           headerStyle === 'floating-glass'
             ? 'sticky top-3 max-w-[1380px] mx-auto px-6 h-[68px] bg-white/92 backdrop-blur-xl border border-zinc-200/80 rounded-full shadow-xs my-2'
             : cn(
-                'sticky top-0 backdrop-blur-md border-b h-[68px]',
-                isDarkCanvas
-                  ? 'bg-zinc-950/92 border-zinc-800'
-                  : 'bg-white/96 border-zinc-200/60'
-              )
+              'sticky top-0 backdrop-blur-md border-b h-[68px]',
+              isDarkCanvas
+                ? 'bg-zinc-950/92 border-zinc-800'
+                : 'bg-white/96 border-zinc-200/60'
+            )
         )}
       >
         <div
@@ -152,6 +159,8 @@ export function CatalogDesktopHeader({
           <div className="flex items-center gap-10 min-w-0">
             <button
               type="button"
+              data-maker-field="storeInfo.name"
+              data-maker-label="Nombre / Logo de Tienda"
               onClick={() => setActiveNavTab('Inicio')}
               className="flex items-center gap-2.5 cursor-pointer bg-transparent border-0 p-0 text-left shrink-0 group"
             >
@@ -298,7 +307,7 @@ export function CatalogDesktopHeader({
                 title="Atención por WhatsApp"
                 aria-label="WhatsApp"
               >
-                <MessageCircle className="w-[19px] h-[19px] stroke-[1.6]" />
+                <SiWhatsapp className="w-[17px] h-[17px] text-[#25D366]" />
               </a>
             )}
 

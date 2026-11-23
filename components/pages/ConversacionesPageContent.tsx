@@ -36,51 +36,24 @@ export default async function ConversacionesPage() {
 
   if (!store) return <StoreCreationWizard />
 
-  const sessions = await prisma.whatsAppSession.findMany({
-    where: { 
-      storeId: store.id
-    },
-    orderBy: { lastInteraction: 'desc' }
-  })
+  const sessions = store.whatsappConnected
+    ? await prisma.whatsAppSession.findMany({
+        where: {
+          storeId: store.id,
+        },
+        orderBy: { lastInteraction: 'desc' },
+      })
+    : []
 
-  // Format and generate realistic mock conversation dialogues based on the session's active step
   const formattedSessions = sessions.map((s: WhatsAppSessionRecord) => {
     const name = s.customerName || `Cliente +${s.phoneNumber.slice(-4)}`
-    
-    // Format and read actual conversation dialogues, or generate realistic mocks if empty
-    let messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
-    
-    if (messages.length === 0) {
-      messages = [
-        { sender: 'user' as const, text: 'Hola! Buenas tardes', time: '14:20' },
-        { sender: 'bot' as const, text: `¡Hola! Bienvenido. 🤖 ¿En qué puedo ayudarte hoy?`, time: '14:21' }
-      ]
-    }
-
-    const avatarUrl = s.avatarUrl
-
-    // Try to fetch profile picture in background if connected to Evolution and not stored yet
-    if (!avatarUrl && store.whatsappConnected && store.whatsappInstanceName) {
-      import('@/lib/whatsapp/evolution').then(async ({ evolutionClient }) => {
-        try {
-          const fetchedUrl = await evolutionClient.fetchProfilePictureUrl(store.whatsappInstanceName!, s.phoneNumber)
-          if (fetchedUrl) {
-            await prisma.whatsAppSession.update({
-              where: { id: s.id },
-              data: { avatarUrl: fetchedUrl }
-            })
-          }
-        } catch (err) {
-          console.error('Error fetching profile picture in background:', err)
-        }
-      }).catch(err => console.error(err))
-    }
+    const messages = Array.isArray(s.messages) ? (s.messages as ConversationMessage[]) : []
 
     return {
       id: s.id,
       phoneNumber: s.phoneNumber,
       customerName: name,
-      avatarUrl: avatarUrl || null,
+      avatarUrl: s.avatarUrl || null,
       lastInteraction: s.lastInteraction.toISOString(),
       step: s.step,
       messages,
@@ -88,13 +61,13 @@ export default async function ConversacionesPage() {
       notes: Array.isArray(s.notes) ? s.notes : [],
       assignedTo: s.assignedTo || 'Tú',
       isFavorite: !!s.isFavorite,
-      status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed'
+      status: (s.status === 'closed' ? 'closed' : 'active') as 'active' | 'closed',
     }
   })
 
   return (
-    <ChatHistoryViewer 
-      initialSessions={formattedSessions} 
+    <ChatHistoryViewer
+      initialSessions={formattedSessions}
       whatsappConnected={!!store.whatsappConnected}
     />
   )

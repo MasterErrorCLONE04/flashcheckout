@@ -185,6 +185,12 @@ export async function PUT(req: Request) {
       slug,
       active,
       settings,
+      mpAccessToken,
+      mpPublicKey,
+      mpConnected,
+      stripeSecretKey,
+      stripePublicKey,
+      stripeConnected,
     } = body
 
     const store = await getActiveStore(userId, undefined, storeId)
@@ -282,6 +288,12 @@ export async function PUT(req: Request) {
         }),
         ...(cleanSlug && { slug: cleanSlug }),
         ...(active !== undefined && { active }),
+        ...(mpAccessToken !== undefined && { mpAccessToken }),
+        ...(mpPublicKey !== undefined && { mpPublicKey }),
+        ...(mpConnected !== undefined && { mpConnected: Boolean(mpConnected) }),
+        ...(stripeSecretKey !== undefined && { stripeSecretKey }),
+        ...(stripePublicKey !== undefined && { stripePublicKey }),
+        ...(stripeConnected !== undefined && { stripeConnected: Boolean(stripeConnected) }),
         ...(mergedSettings !== undefined && {
           settings: mergedSettings as Prisma.InputJsonValue,
         }),

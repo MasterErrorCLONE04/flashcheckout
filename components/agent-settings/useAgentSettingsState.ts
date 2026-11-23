@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   ActionButton,
@@ -26,9 +27,20 @@ export function useAgentSettingsState({
   initialProducts: ProductExtended[]
   initialFaqs: FaqItem[]
 }) {
+  const searchParams = useSearchParams()
   const [settings, setSettings] = useState<AgentSettings>(initialSettings)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<AgentTabType>('configuracion')
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as AgentTabType | null
+    if (
+      tabParam &&
+      ['configuracion', 'modo-cierre', 'catalogo', 'respuestas', 'automatizaciones', 'comportamiento', 'integraciones'].includes(tabParam)
+    ) {
+      setActiveTab(tabParam)
+    }
+  }, [searchParams])
   
   // Modo de Cierre (Opción A: Flows vs Opción B: Web)
   const [checkoutMode, setCheckoutMode] = useState<'WEB_CHECKOUT' | 'WHATSAPP_FLOW'>(
@@ -258,46 +270,108 @@ export function useAgentSettingsState({
     }
   }
 
-  function handleSendMessage(e: React.FormEvent) {
+  async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault()
     if (!inputText.trim()) return
 
     const userMsg = inputText.trim()
     setInputText('')
-    
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+
+    const timeStr = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
     setChatMessages(prev => [...prev, { sender: 'user', text: userMsg, time: timeStr }])
-    
     setIsTyping(true)
 
-    setTimeout(() => {
-      setIsTyping(false)
-      let botResponse = `Hola, soy el asistente virtual de ${storeName}. Estoy configurado para atenderte 24/7.`
-      let actionButton: ActionButton | undefined = undefined
-      
+    try {
+      const res = await fetch('/api/ai/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionKey: `sim_${storeId}`,
+          message: userMsg,
+          channel: 'WEB',
+          storeId,
+        }),
+      })
+      const data = await res.json().catch(() => null)
       const lower = userMsg.toLowerCase()
-      if (lower.includes('producto') || lower.includes('catalogo') || lower.includes('precio') || lower.includes('cuanto') || lower.includes('comprar')) {
-        if (checkoutMode === 'WHATSAPP_FLOW') {
-          botResponse = `¡Con gusto! Abre nuestro catálogo interactivo para que elijas tus productos y completes tu pedido directamente dentro de WhatsApp:`
-          actionButton = { text: 'Ver Catálogo 🛍️', type: 'flow' }
-        } else {
-          botResponse = `¡Con gusto! Puedes ver nuestro catálogo interactivo y realizar tu compra de forma segura en nuestra web:`
-          actionButton = { text: '🛍️ Abrir Catálogo Web', type: 'web', url: `/tienda/${storeSlug}` }
-        }
-      } else if (lower.includes('hola') || lower.includes('buenos')) {
-        botResponse = settings.welcomeMessage || '¡Hola! ¿En qué puedo ayudarte hoy?'
-        actionButton = checkoutMode === 'WHATSAPP_FLOW'
+      const wantsCatalog =
+        lower.includes('producto') ||
+        lower.includes('catalogo') ||
+        lower.includes('catálogo') ||
+        lower.includes('precio') ||
+        lower.includes('comprar')
+
+      const actionButton: ActionButton | undefined = wantsCatalog
+        ? checkoutMode === 'WHATSAPP_FLOW'
           ? { text: 'Ver Catálogo 🛍️', type: 'flow' }
           : { text: '🛍️ Abrir Catálogo Web', type: 'web', url: `/tienda/${storeSlug}` }
-      } else if (lower.includes('domicilio') || lower.includes('envio')) {
-        botResponse = 'Ofrecemos despachos express. Si me dices tu dirección, puedo ayudarte a calcular el envío.'
-      } else if (faqs.length > 0) {
-        const match = faqs.find(f => lower.includes(f.question.toLowerCase()))
-        if (match) botResponse = match.answer
+        : undefined
+
+      if (res.ok && data?.success && typeof data.response === 'string' && data.response.trim()) {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: data.response.trim(),
+            time: timeStr,
+            actionButton,
+          },
+        ])
+        return
       }
 
-      setChatMessages(prev => [...prev, { sender: 'bot', text: botResponse, time: timeStr, actionButton }])
-    }, 1000)
+      // Fallback local con datos reales de FAQs y productos de la tienda si el gateway no tiene API key
+      let botResponse =
+        settings.welcomeMessage || `¡Hola! Soy el asistente de ${storeName}. ¿En qué puedo ayudarte?`
+
+      const faqMatch = faqs.find(f => lower.includes(f.question.toLowerCase()))
+      if (faqMatch) {
+        botResponse = faqMatch.answer
+      } else if (wantsCatalog && products.length > 0) {
+        const list = products
+          .filter(p => p.active)
+          .slice(0, 4)
+          .map(p => `• *${p.name}* — $${p.price.toLocaleString('es-CO')}`)
+          .join('\n')
+        botResponse = `Estos son algunos de nuestros productos disponibles en *${storeName}*:\n\n${list}\n\n¿Cuál te gustaría agregar a tu pedido?`
+      }
+
+      setChatMessages(prev => [
+        ...prev,
+        { sender: 'bot', text: botResponse, time: timeStr, actionButton },
+      ])
+    } catch {
+      setChatMessages(prev => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `Soy el asistente de ${storeName}. Pregúntame por nuestros productos o precios.`,
+          time: timeStr,
+        },
+      ])
+    } finally {
+      setIsTyping(false)
+    }
+  }
+
+  function handlePreviewInSimulator(text: string, label?: string) {
+    const timeStr = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+    setChatMessages(prev => [
+      ...prev,
+      {
+        sender: 'bot',
+        text: label ? `*[${label}]*\n${text}` : text,
+        time: timeStr,
+      },
+    ])
   }
 
   return {
@@ -339,7 +413,8 @@ export function useAgentSettingsState({
     handleAddFaq,
     handleDeleteFaq,
     handleSaveBehavior,
-    handleSendMessage
+    handleSendMessage,
+    handlePreviewInSimulator
   }
 }
 

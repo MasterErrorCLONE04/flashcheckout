@@ -48,6 +48,12 @@ export default async function StudioIaPageContent() {
   const isPro = await checkSubscription()
 
   // 5. Preparar datos de la tienda serializables
+  const rawSettings =
+    store.settings && typeof store.settings === 'object'
+      ? (store.settings as Record<string, any>)
+      : {}
+  const rawMeta = rawSettings.metaSocial
+
   const storeInfo = {
     id: store.id,
     name: store.name,
@@ -55,7 +61,19 @@ export default async function StudioIaPageContent() {
     whatsapp: store.whatsapp,
     whatsappConnected: store.whatsappConnected,
     isPro: Boolean(isPro),
-    creditsAvailable: isPro ? 35 : 3
+    creditsAvailable: isPro ? 35 : 3,
+    metaSocial: rawMeta
+      ? {
+          connected: Boolean(rawMeta.connected && rawMeta.accessToken),
+          facebookPageId: rawMeta.facebookPageId || null,
+          facebookPageName: rawMeta.facebookPageName || null,
+          instagramAccountId: rawMeta.instagramAccountId || null,
+          instagramUsername: rawMeta.instagramUsername || null,
+          defaultChannels: Array.isArray(rawMeta.defaultChannels)
+            ? rawMeta.defaultChannels
+            : ['INSTAGRAM', 'FACEBOOK'],
+        }
+      : null,
   }
 
   const serializableProducts = products.map(p => ({

@@ -131,49 +131,14 @@ export function MobileSidebarDrawer({
 
               {/* Footer Info & Secondary Links */}
               <div className="p-3 space-y-3 border-t border-zinc-200 bg-white">
-                {!isPro ? (
-                  <Link href="/pricing" onClick={close} className="block">
-                    <div className="flex flex-col gap-2 bg-zinc-50 border border-zinc-200 rounded-xl p-3">
-                      <div className="flex justify-between items-center text-xs font-semibold text-zinc-800">
-                        <span>Productos usados</span>
-                        <span className="tabular-nums">{productCount} / 10</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-zinc-200 rounded-full overflow-hidden">
-                        <div
-                          className={cn(
-                            'h-full rounded-full',
-                            productCount >= 10
-                              ? 'bg-red-500'
-                              : productCount >= 8
-                              ? 'bg-amber-500'
-                              : 'bg-zinc-900'
-                          )}
-                          style={{ width: `${Math.min((productCount / 10) * 100, 100)}%` }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-semibold text-zinc-600">
-                        Actualizar a Pro →
-                      </span>
-                    </div>
-                  </Link>
-                ) : (
-                  <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-xs">
-                    <span className="flex items-center gap-1.5 font-semibold text-zinc-800">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      Plan Premium
-                    </span>
-                    <span className="text-zinc-500 tabular-nums">{productCount} productos</span>
-                  </div>
-                )}
-
                 <div className="grid grid-cols-2 gap-1.5 text-xs font-medium text-zinc-600">
                   <Link
-                    href="/work/doc"
+                    href="/affiliate"
                     onClick={close}
                     className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
                   >
-                    <BookOpenText className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Docs</span>
+                    <Gift className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Afiliados</span>
                   </Link>
                   <Link
                     href="/help"
@@ -182,22 +147,6 @@ export function MobileSidebarDrawer({
                   >
                     <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Ayuda</span>
-                  </Link>
-                  <Link
-                    href="/changelog"
-                    onClick={close}
-                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
-                  >
-                    <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Novedades</span>
-                  </Link>
-                  <Link
-                    href="/affiliate"
-                    onClick={close}
-                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-zinc-100 transition-colors"
-                  >
-                    <Gift className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Afiliados</span>
                   </Link>
                 </div>
               </div>

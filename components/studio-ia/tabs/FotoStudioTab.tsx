@@ -18,6 +18,8 @@ interface FotoStudioTabProps {
   selectedProduct: Product | null
   onSelectProduct: (product: Product) => void
   enhancedPhotoUrl: string | null
+  onSelectEnhancedPhoto?: (url: string | null) => void
+  photoHistory?: string[]
   isProcessingPhoto: boolean
   photoActionType: PhotoActionType | null
   selectedScene: PhotoScene
@@ -33,6 +35,8 @@ export function FotoStudioTab({
   selectedProduct,
   onSelectProduct,
   enhancedPhotoUrl,
+  onSelectEnhancedPhoto,
+  photoHistory = [],
   isProcessingPhoto,
   photoActionType,
   selectedScene,
@@ -192,32 +196,47 @@ export function FotoStudioTab({
               })}
             </div>
 
-            {/* Prompt personalizado opcional */}
-            <div className="space-y-1.5 pt-1">
+            {/* Prompt personalizado opcional + Edición guiada */}
+            <div className="space-y-2 pt-1">
               <label className="text-[11px] font-bold text-zinc-700 block">
-                Instrucción adicional para la IA (Opcional)
+                Edición con Instrucciones IA o Detalle de Escenario
               </label>
               <input
                 type="text"
                 value={customScenePrompt}
                 onChange={(e) => onChangeCustomScenePrompt(e.target.value)}
-                placeholder="Ej: Iluminación cálida de atardecer, reflejos de agua..."
+                placeholder="Ej: Con gotas de agua fresca, hojas de menta y luz de atardecer..."
                 className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-zinc-900"
               />
             </div>
 
-            <button
-              onClick={() => onEnhancePhoto('generate-scene')}
-              disabled={isProcessingPhoto || !selectedProduct?.imageUrl}
-              className="w-full h-9 px-4 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-95"
-            >
-              <Sparkles className={cn("w-3.5 h-3.5", isProcessingPhoto && "animate-spin text-zinc-400")} />
-              <span>
-                {isProcessingPhoto 
-                  ? 'Generando escenario con Replicate FLUX...' 
-                  : 'Generar Escenario de Estudio con IA'}
-              </span>
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                onClick={() => onEnhancePhoto('generate-scene')}
+                disabled={isProcessingPhoto || !selectedProduct?.imageUrl}
+                className="w-full h-9 px-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+              >
+                <Sparkles className={cn("w-3.5 h-3.5", isProcessingPhoto && photoActionType === 'generate-scene' && "animate-spin text-zinc-400")} />
+                <span>
+                  {isProcessingPhoto && photoActionType === 'generate-scene'
+                    ? 'Generando escenario...'
+                    : 'Aplicar Escenario 3D'}
+                </span>
+              </button>
+
+              <button
+                onClick={() => onEnhancePhoto('edit-photo')}
+                disabled={isProcessingPhoto || !selectedProduct?.imageUrl || !customScenePrompt.trim()}
+                className="w-full h-9 px-3 bg-white border border-zinc-900 hover:bg-zinc-50 disabled:opacity-50 text-zinc-900 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              >
+                <Wand2 className={cn("w-3.5 h-3.5", isProcessingPhoto && photoActionType === 'edit-photo' && "animate-spin")} />
+                <span>
+                  {isProcessingPhoto && photoActionType === 'edit-photo'
+                    ? 'Editando foto...'
+                    : 'Editar con Prompt IA'}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -276,6 +295,30 @@ export function FotoStudioTab({
               </div>
             </div>
           </div>
+
+          {/* Historial de versiones generadas en la sesión */}
+          {photoHistory.length > 1 && onSelectEnhancedPhoto && (
+            <div className="pt-3 border-t border-zinc-100 space-y-2">
+              <span className="text-[11px] font-bold text-zinc-600 block">
+                Versiones generadas en esta sesión (clic para elegir):
+              </span>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {photoHistory.map((url, idx) => (
+                  <button
+                    key={url + idx}
+                    type="button"
+                    onClick={() => onSelectEnhancedPhoto(url)}
+                    className={cn(
+                      "w-14 h-14 rounded-md overflow-hidden border-2 shrink-0 cursor-pointer transition-all",
+                      enhancedPhotoUrl === url ? "border-zinc-900 ring-1 ring-zinc-900" : "border-zinc-200 opacity-75 hover:opacity-100"
+                    )}
+                  >
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Botones de acción al tener foto mejorada */}
           {enhancedPhotoUrl && (

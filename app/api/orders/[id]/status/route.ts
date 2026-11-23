@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { waClient } from '@/lib/whatsapp/cloud-api'
@@ -20,7 +21,25 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const { id: orderId } = await params
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { store: { select: { userId: true } } },
+    })
+
+    if (!existingOrder) {
+      return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 })
+    }
+
+    if (existingOrder.store.userId !== userId) {
+      return NextResponse.json({ error: 'No autorizado para modificar este pedido' }, { status: 403 })
+    }
+
     const body = (await req.json()) as StatusUpdateBody
 
     const updateData: Record<string, string | boolean> = {}
@@ -93,10 +112,15 @@ export async function PATCH(
         }
 
         if (automationName) {
+          const nameCandidates =
+            automationName === 'Pedido listo para retiro / envio'
+              ? ['Pedido listo para retiro / envío', 'Pedido listo para retiro / envio', 'Pedido listo']
+              : [automationName]
+
           const aut = await prisma.automation.findFirst({
             where: {
               storeId: updatedOrder.storeId,
-              name: { equals: automationName, mode: 'insensitive' },
+              OR: nameCandidates.map(n => ({ name: { equals: n, mode: 'insensitive' as const } })),
               active: true,
             },
             select: { id: true, customTemplate: true },

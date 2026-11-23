@@ -1,18 +1,25 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateEmbedding } from '@/lib/ai/services/embedding-service'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    console.log('[AI Migration] Iniciando generación masiva de embeddings...')
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
 
-    // 1. Obtener todos los productos activos
+    console.log(`[AI Migration] Iniciando generación de embeddings para usuario ${userId}...`)
+
+    // 1. Obtener los productos de las tiendas del usuario autenticado
     const products = await prisma.product.findMany({
+      where: { store: { userId } },
       include: { store: true }
     })
-    console.log(`[AI Migration] Encontrados ${products.length} productos en la base de datos.`)
+    console.log(`[AI Migration] Encontrados ${products.length} productos de las tiendas del usuario.`)
 
     let productsMigrated = 0
     let productsErrors = 0
@@ -33,9 +40,11 @@ export async function GET(req: Request) {
       }
     }
 
-    // 2. Obtener todas las FAQs
-    const faqs = await prisma.faq.findMany()
-    console.log(`[AI Migration] Encontradas ${faqs.length} FAQs en la base de datos.`)
+    // 2. Obtener las FAQs de las tiendas del usuario autenticado
+    const faqs = await prisma.faq.findMany({
+      where: { store: { userId } },
+    })
+    console.log(`[AI Migration] Encontradas ${faqs.length} FAQs de las tiendas del usuario.`)
 
     let faqsMigrated = 0
     let faqsErrors = 0

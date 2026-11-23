@@ -51,7 +51,8 @@ export function ProductDetailDrawer({
   return (
     <div
       className={cn(
-        'lg:hidden inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200',
+        'inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200',
+        !device && 'lg:hidden',
         device ? 'absolute' : 'fixed'
       )}
     >

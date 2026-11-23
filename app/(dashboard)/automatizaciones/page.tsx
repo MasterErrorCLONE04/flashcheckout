@@ -1,5 +1,5 @@
-import AutomatizacionesPageContent from '@/components/pages/AutomatizacionesPageContent'
+import { redirect } from 'next/navigation'
 
-export default function AutomatizacionesPage() {
-  return <AutomatizacionesPageContent />
+export default function AutomatizacionesRedirectPage() {
+  redirect('/agente?tab=automatizaciones')
 }

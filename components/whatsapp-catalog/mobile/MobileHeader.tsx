@@ -17,6 +17,13 @@ export interface MobileHeaderProps {
   itemsInCart: number
   setIsMobileMenuOpen: (open: boolean) => void
   handleMobileTabClick: (tab: string) => void
+  colors?: {
+    primario: string
+    secundario: string
+    acento?: string
+    fondo: string
+    texto: string
+  }
 }
 
 export function MobileHeader({
@@ -27,6 +34,7 @@ export function MobileHeader({
   itemsInCart,
   setIsMobileMenuOpen,
   handleMobileTabClick,
+  colors,
 }: MobileHeaderProps) {
   const promoMessages = React.useMemo(() => {
     const raw = announcement?.text || ''
@@ -48,11 +56,16 @@ export function MobileHeader({
   }, [promoMessages.length])
 
   const currentPromo = promoMessages[promoIdx % Math.max(1, promoMessages.length)]
+  const textHex = colors?.texto || '#111111'
+  const bgHex = colors?.fondo || '#FFFFFF'
 
   return (
     <>
       {announcement?.enabled && currentPromo && (
         <div
+          data-maker-section="header"
+          data-maker-field="announcement.text"
+          data-maker-label="Barra de Anuncio Superior"
           className="w-full py-1.5 px-3 text-[10px] font-semibold leading-tight select-none shrink-0 flex items-center justify-between gap-2"
           style={{
             backgroundColor: announcement.bgColor || '#DDF3E4',
@@ -89,36 +102,49 @@ export function MobileHeader({
         </div>
       )}
 
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-200/80 h-14 flex items-center justify-between px-4 relative">
+      <header
+        data-maker-section="header"
+        data-maker-title="Encabezado & Navegación"
+        className="sticky top-0 z-40 backdrop-blur-md border-b border-black/10 h-14 flex items-center justify-between px-4 relative"
+        style={{ backgroundColor: bgHex, color: textHex }}
+      >
         <div className="flex items-center w-10">
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(true)}
-            className="text-zinc-900 hover:text-zinc-600 cursor-pointer border-none bg-transparent p-1"
+            className="hover:opacity-75 cursor-pointer border-none bg-transparent p-1"
+            style={{ color: textHex }}
             aria-label="Abrir menú"
           >
             <Menu className="w-5 h-5 stroke-[1.8]" />
           </button>
         </div>
 
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 pointer-events-none">
+        <div
+          data-maker-field="storeInfo.name"
+          data-maker-label="Nombre / Logo de Tienda"
+          className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2"
+        >
           {store.logoUrl ? (
             <div className="flex items-center gap-2">
               <img
                 src={store.logoUrl}
                 alt={formattedStoreName}
-                className="h-6 max-w-[88px] object-contain shrink-0"
+                className="h-6 max-w-[100px] object-contain shrink-0"
               />
             </div>
           ) : (
-            <span className="font-black text-base text-zinc-950 tracking-[-0.04em] lowercase leading-none">
+            <span
+              className="font-black text-base tracking-[-0.04em] lowercase leading-none"
+              style={{ color: textHex }}
+            >
               {formattedStoreName.toLowerCase()}
               <sup className="text-[8px] font-bold ml-0.5">®</sup>
             </span>
           )}
 
           {schedule?.enabled && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-semibold bg-zinc-100 text-zinc-700 select-none shrink-0">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-semibold bg-emerald-500/10 text-emerald-700 select-none shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               <span>{schedule.alwaysOpen ? '24/7' : 'Abierto'}</span>
             </span>
@@ -129,7 +155,8 @@ export function MobileHeader({
           <button
             type="button"
             onClick={() => handleMobileTabClick('carrito')}
-            className="h-9 px-1.5 flex items-center gap-1 relative bg-transparent border-0 cursor-pointer text-zinc-950"
+            className="h-9 px-1.5 flex items-center gap-1 relative bg-transparent border-0 cursor-pointer"
+            style={{ color: textHex }}
             aria-label="Ver carrito"
           >
             <ShoppingBag className="w-4.5 h-4.5 stroke-[1.8]" />

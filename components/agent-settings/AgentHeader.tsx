@@ -8,6 +8,7 @@ import {
   Sliders,
   Link as LinkIcon,
   Zap,
+  Bell,
   Check,
   Loader2,
 } from 'lucide-react'
@@ -89,6 +90,7 @@ export function AgentHeader({ agent }: AgentHeaderProps) {
           },
           { id: 'catalogo', label: 'Productos y Catálogo', icon: Package },
           { id: 'respuestas', label: 'Respuestas Rápidas', icon: MessageSquare },
+          { id: 'automatizaciones', label: 'Automatizaciones', icon: Bell },
           { id: 'comportamiento', label: 'Comportamiento', icon: Sliders },
           { id: 'integraciones', label: 'Integraciones', icon: LinkIcon },
         ]}

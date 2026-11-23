@@ -24,6 +24,7 @@ export interface MobileProductFeedProps {
   cart: Record<string, number>
   changeQtyByKey: (key: string, delta: number) => void
   setSelectedProduct: (p: Product) => void
+  device?: string
 }
 
 export function MobileProductFeed({
@@ -42,6 +43,7 @@ export function MobileProductFeed({
   cart,
   changeQtyByKey,
   setSelectedProduct,
+  device,
 }: MobileProductFeedProps) {
   const {
     colors,
@@ -57,6 +59,9 @@ export function MobileProductFeed({
     getBadgeStyle,
   } = settings
 
+  const isTablet = device === 'tablet'
+  const textHex = colors?.texto || '#111111'
+
   const collectionTabs = React.useMemo(() => {
     const uniqueCats = Array.from(
       new Set(allProducts.map(p => (p.category || '').trim()).filter(Boolean))
@@ -69,7 +74,11 @@ export function MobileProductFeed({
   }
 
   return (
-    <div className="space-y-5">
+    <div
+      data-maker-section="bestsellers"
+      data-maker-title="Colección Bestsellers & Tarjetas"
+      className="space-y-5"
+    >
       {/* Dynamic Free Shipping Progress Bar */}
       {activeNavTab === 'Inicio' && freeShipping?.enabled && total > 0 && (
         <div
@@ -135,7 +144,7 @@ export function MobileProductFeed({
       {/* Waterdrop Horizontal Same-Baseline Underlined Collection Tabs */}
       <div
         id="mobile-categories-row"
-        className="flex items-baseline gap-5 overflow-x-auto scrollbar-none border-b border-[#EAEAE8]"
+        className="flex items-baseline gap-5 overflow-x-auto scrollbar-none border-b border-black/10"
       >
         {collectionTabs.map(tab => {
           const isActive = selectedCategory === tab
@@ -146,10 +155,12 @@ export function MobileProductFeed({
               onClick={() => setSelectedCategory(tab)}
               className={cn(
                 'pb-2.5 text-[14px] tracking-[-0.015em] whitespace-nowrap transition-colors cursor-pointer bg-transparent border-0 border-b-2 -mb-[1px]',
-                isActive
-                  ? 'font-extrabold text-[#111111] border-[#111111]'
-                  : 'font-normal text-[#A1A1AA] border-transparent hover:text-[#111111]'
+                isActive ? 'font-extrabold' : 'font-normal opacity-55 hover:opacity-100 border-transparent'
               )}
+              style={{
+                color: textHex,
+                borderColor: isActive ? textHex : 'transparent',
+              }}
             >
               {tab === 'Todos' ? 'Los más vendidos' : tab}
             </button>
@@ -157,11 +168,11 @@ export function MobileProductFeed({
         })}
       </div>
 
-      {/* Clean 2-Column Waterdrop Studio Grid */}
+      {/* Responsive Studio Grid (2 cols on Mobile, 3 cols on Tablet) */}
       {filteredProducts.length === 0 ? (
-        <div className="py-12 text-center bg-[#F6F6F4] rounded-[4px] space-y-2">
-          <ShoppingBag className="w-8 h-8 text-zinc-300 mx-auto stroke-[1.5]" />
-          <p className="text-xs font-semibold text-[#71717A]">
+        <div className="py-12 text-center bg-black/[0.03] rounded-[6px] space-y-2">
+          <ShoppingBag className="w-8 h-8 opacity-35 mx-auto stroke-[1.5]" />
+          <p className="text-xs font-semibold opacity-65">
             No encontramos productos en esta colección
           </p>
         </div>
@@ -170,11 +181,17 @@ export function MobileProductFeed({
           id="catalog-products"
           className={cn(
             'gap-3.5',
-            viewMode === 'grid' ? 'grid grid-cols-2' : 'grid grid-cols-1'
+            viewMode === 'grid'
+              ? isTablet
+                ? 'grid grid-cols-3 gap-4'
+                : 'grid grid-cols-2'
+              : 'grid grid-cols-1'
           )}
         >
-          {(activeNavTab === 'Inicio' ? filteredProducts.slice(0, 6) : filteredProducts).map(
-            (product, idx) => (
+          {(activeNavTab === 'Inicio'
+            ? filteredProducts.slice(0, isTablet ? 9 : 6)
+            : filteredProducts
+          ).map((product, idx) => (
               <CatalogProductCard
                 key={product.id}
                 product={product}

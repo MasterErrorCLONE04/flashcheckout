@@ -19,22 +19,23 @@ export function resolveBusinessCategory(
   rawCategory?: string | null,
   description?: string | null
 ): BusinessCategoryId {
+  const text = `${description || ''}`.toLowerCase()
+  // Si la descripción o prompt tiene palabras clave explícitas, tienen prioridad sobre la categoría guardada
+  if (/(comida|restaurante|cafe|café|coffee|pastel|postre|panader|hamburgues|pizza|sushi|gourmet|bebida|chocolate|snack|grano|tostado)/.test(text)) return 'Comida'
+  if (/(belleza|skincare|maquillaje|cosmet|cosmét|perfume|capilar|spa|uñas|barber|facial|crema|suero)/.test(text)) return 'Belleza'
+  if (/(tecno|celular|iphone|comput|laptop|audio|audifono|audífono|gadget|gamer|electr|auricular|smartwatch)/.test(text)) return 'Tecnología'
+  if (/(joya|joyer|anillo|collar|reloj|accesorio|plata|oro|bisuter|diamante|aretes|pulsera)/.test(text)) return 'Joyería'
+  if (/(hogar|mueble|decora|cocina|sabana|sábana|colchon|colchón|lampara|lámpara|planta|vajilla)/.test(text)) return 'Hogar'
+  if (/(deporte|fitness|gym|gimnasio|suplemento|proteina|proteína|ciclismo|running|entrenam|pesa)/.test(text)) return 'Deportes'
+  if (/(mascota|perro|gato|veterinar|pet|concentrado|cachorro)/.test(text)) return 'Mascotas'
+  if (/(ropa|moda|vestido|camis|calzado|zapato|tenis|boutique|streetwear|jean|hoodie|textil)/.test(text)) return 'Moda'
+
   const cat = (rawCategory || '').trim()
   if (cat in TEMPLATES && cat !== 'Otros') {
     return cat as BusinessCategoryId
   }
 
-  const text = `${cat} ${description || ''}`.toLowerCase()
-  if (/(ropa|moda|vestido|camis|calzado|zapato|tenis|boutique|streetwear|jean|hoodie)/.test(text)) return 'Moda'
-  if (/(comida|restaurante|cafe|café|pastel|postre|panader|hamburgues|pizza|sushi|gourmet|bebida|chocolate|snack)/.test(text)) return 'Comida'
-  if (/(belleza|skincare|maquillaje|cosmet|cosmét|perfume|capilar|spa|uñas|barber)/.test(text)) return 'Belleza'
-  if (/(tecno|celular|iphone|comput|laptop|audio|audifono|audífono|gadget|gamer|electr)/.test(text)) return 'Tecnología'
-  if (/(joya|joyer|anillo|collar|reloj|accesorio|plata|oro|bisuter)/.test(text)) return 'Joyería'
-  if (/(hogar|mueble|decora|cocina|sabana|sábana|colchon|colchón|lampara|lámpara|planta)/.test(text)) return 'Hogar'
-  if (/(deporte|fitness|gym|gimnasio|suplemento|proteina|proteína|ciclismo|running)/.test(text)) return 'Deportes'
-  if (/(mascota|perro|gato|veterinar|pet|concentrado)/.test(text)) return 'Mascotas'
-
-  return cat in TEMPLATES ? (cat as BusinessCategoryId) : 'Otros'
+  return 'Otros'
 }
 
 export function buildIndustryStoreBlueprint(params: {
@@ -48,31 +49,168 @@ export function buildIndustryStoreBlueprint(params: {
   const tpl = TEMPLATES[resolvedCategory]
 
   const lowerDesc = cleanDesc.toLowerCase()
+  const isCoffee = /(cafe|café|coffee|tueste|origen|grano|barista|prensa|filtrado)/.test(lowerDesc)
+  const isStreetwear = /(urbano|streetwear|oversize|sneaker|gorra|hoodie)/.test(lowerDesc)
+
   const overridePresetId =
-    resolvedCategory === 'Moda' && /(urbano|streetwear|oversize|sneaker|gorra|hoodie)/.test(lowerDesc)
-      ? 'streetwear'
-      : tpl.presetId === 'midnight'
-        ? 'waterdrop'
-        : tpl.presetId
+    isCoffee
+      ? 'artisan-warm'
+      : isStreetwear
+        ? 'streetwear'
+        : tpl.presetId === 'midnight'
+          ? 'waterdrop'
+          : tpl.presetId
 
   const preset = PRESETS.find(p => p.id === overridePresetId) || PRESETS[0]
-  const bio = tpl.bio(cleanName, cleanDesc)
+  const bio = isCoffee
+    ? `${cleanName}: café de especialidad de origen colombiano, tueste artesanal y envíos a todo el país.`
+    : tpl.bio(cleanName, cleanDesc)
   const niche = cleanDesc || tpl.nicheFallback
 
-  const heroPanels = [
-    tpl.bannerUrl,
-    tpl.lifestyleGallery[0] || tpl.bannerUrl,
-    tpl.visualCategories[0]?.imageUrl || tpl.bannerUrl,
-    tpl.lifestyleGallery[1] || tpl.heritageImg,
-  ].filter(Boolean)
+  const bannerUrl = isCoffee
+    ? 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop'
+    : isStreetwear
+      ? 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop'
+      : tpl.bannerUrl
+
+  const heroPanels = isCoffee
+    ? [
+        'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=600&auto=format&fit=crop',
+      ]
+    : isStreetwear
+      ? [
+          'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=600&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600&auto=format&fit=crop',
+        ]
+      : [
+          tpl.bannerUrl,
+          tpl.lifestyleGallery[0] || tpl.bannerUrl,
+          tpl.visualCategories[0]?.imageUrl || tpl.bannerUrl,
+          tpl.lifestyleGallery[1] || tpl.heritageImg,
+        ].filter(Boolean)
+
+  const visualCategories = isCoffee
+    ? [
+        { category: 'Café de Origen', imageUrl: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=400&auto=format&fit=crop' },
+        { category: 'Tueste por Lotes', imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400&auto=format&fit=crop' },
+        { category: 'Métodos de Filtrado', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=400&auto=format&fit=crop' },
+        { category: 'Kits & Degustación', imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=400&auto=format&fit=crop' },
+      ]
+    : isStreetwear
+      ? [
+          { category: 'Hoodies Oversize', imageUrl: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=400&auto=format&fit=crop' },
+          { category: 'Graphic Tees', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400&auto=format&fit=crop' },
+          { category: 'Pantalones Cargo', imageUrl: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?q=80&w=400&auto=format&fit=crop' },
+          { category: 'Accesorios & Caps', imageUrl: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=400&auto=format&fit=crop' },
+        ]
+      : tpl.visualCategories
+
+  const lifestyleGallery = isCoffee
+    ? [
+        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1498804103079-a6351b050096?q=80&w=600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1442512595331-e89e73853f31?q=80&w=600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=600&auto=format&fit=crop',
+      ]
+    : isStreetwear
+      ? [
+          'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=600&auto=format&fit=crop',
+        ]
+      : tpl.lifestyleGallery
+
+  const brandStoryBg = isCoffee
+    ? 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=900&auto=format&fit=crop'
+    : isStreetwear
+      ? 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=900&auto=format&fit=crop'
+      : tpl.brandStoryBg
+
+  const heritageImg = isCoffee
+    ? 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=800&auto=format&fit=crop'
+    : isStreetwear
+      ? 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop'
+      : tpl.heritageImg
 
   const ugcGallery = [
-    ...tpl.lifestyleGallery,
-    ...tpl.visualCategories.map(v => v.imageUrl),
-    tpl.brandStoryBg,
-    tpl.heritageImg,
-    tpl.bannerUrl,
+    ...lifestyleGallery,
+    ...visualCategories.map(v => v.imageUrl),
+    brandStoryBg,
+    heritageImg,
+    bannerUrl,
   ].filter(Boolean)
+
+  const pressLogosByCategory: Record<BusinessCategoryId, Array<{ name: string; subtitle: string }>> = {
+    Moda: [
+      { name: 'VOGUE', subtitle: 'Selección Editorial' },
+      { name: 'FORBES', subtitle: 'Comercio Digital' },
+      { name: 'GQ', subtitle: 'Diseño & Calidad' },
+      { name: 'ELLE', subtitle: 'Tendencia Local' },
+      { name: 'TRUSTED', subtitle: '4.9★ Verificado' },
+    ],
+    Comida: [
+      { name: 'SPECIALTY COFFEE', subtitle: 'Origen Certificado' },
+      { name: 'MICHELIN GUIDE', subtitle: 'Recomendación' },
+      { name: 'TASTE ATLAS', subtitle: 'Sabor Auténtico' },
+      { name: 'FORBES GOURMET', subtitle: 'Selección Premium' },
+      { name: '5★ FRESH', subtitle: 'Receta del Día' },
+    ],
+    Belleza: [
+      { name: 'VOGUE BEAUTY', subtitle: 'Fórmula Limpia' },
+      { name: 'GLAMOUR', subtitle: 'Eficacia Clínica' },
+      { name: 'ELLE', subtitle: 'Rutina Diaria' },
+      { name: 'DERMA TEST', subtitle: '100% Seguro' },
+      { name: 'CRUELTY FREE', subtitle: 'Ética Certificada' },
+    ],
+    Joyería: [
+      { name: 'VOGUE JEWELS', subtitle: 'Alta Joyería' },
+      { name: 'HARPER’S BAZAAR', subtitle: 'Diseño Exclusivo' },
+      { name: 'ELLE LUXE', subtitle: 'Piezas Eternas' },
+      { name: 'GOLD STANDARD', subtitle: 'Oro & Ley Verificada' },
+      { name: 'EDITORIAL 5★', subtitle: 'Garantía Total' },
+    ],
+    Tecnología: [
+      { name: 'WIRED', subtitle: 'Tecnología Top' },
+      { name: 'TECHCRUNCH', subtitle: 'Innovación 2026' },
+      { name: 'THE VERGE', subtitle: 'Rendimiento Pro' },
+      { name: 'XATAKA', subtitle: 'Compra Inteligente' },
+      { name: 'GARANTÍA 12M', subtitle: 'Soporte Directo' },
+    ],
+    Hogar: [
+      { name: 'ARCHITECTURAL DIGEST', subtitle: 'Interiorismo' },
+      { name: 'ELLE DECOR', subtitle: 'Espacios Vivos' },
+      { name: 'DWELL', subtitle: 'Diseño Moderno' },
+      { name: 'CASAS & DISEÑO', subtitle: 'Ambientes Cálidos' },
+      { name: 'GARANTÍA HOGAR', subtitle: 'Materiales Nobles' },
+    ],
+    Deportes: [
+      { name: 'MEN’S HEALTH', subtitle: 'Nutrición Limpia' },
+      { name: 'WOMEN’S HEALTH', subtitle: 'Bienestar Diario' },
+      { name: 'FITNESS LAB', subtitle: 'Rendimiento Puro' },
+      { name: 'BIO CERTIFIED', subtitle: '0% Aditivos' },
+      { name: 'TRUSTED 4.9★', subtitle: 'Comunidad Activa' },
+    ],
+    Mascotas: [
+      { name: 'PET HEALTH', subtitle: 'Nutrición Vet' },
+      { name: 'DOG MAGAZINE', subtitle: 'Bienestar Animal' },
+      { name: 'CAT LIFE', subtitle: 'Confort Premium' },
+      { name: '100% SEGURO', subtitle: 'Libre de Tóxicos' },
+      { name: 'HAPPY PETS', subtitle: '5★ Aprobado' },
+    ],
+    Otros: [
+      { name: 'FORBES', subtitle: 'Comercio Digital' },
+      { name: 'VOGUE', subtitle: 'Selección Editorial' },
+      { name: 'GQ', subtitle: 'Diseño & Calidad' },
+      { name: 'TRUSTED', subtitle: '4.9★ Verificado' },
+      { name: 'CALIDAD TOTAL', subtitle: 'Compra Segura' },
+    ],
+  }
 
   const aiSettings: TiendaSettings = {
     themePreset: preset.id,
@@ -110,18 +248,18 @@ export function buildIndustryStoreBlueprint(params: {
       categorias: true,
       editorialCategories: true,
       beneficios: true,
-      bentoHighlights: false,
+      bentoHighlights: true,
       accordionSpecs: false,
-      brandStory: false,
-      visualCategories: false,
+      brandStory: true,
+      visualCategories: true,
       processTimeline: true,
       pressLogos: true,
       ambassadors: true,
       ugcGallery: true,
       retailers: true,
-      lifestyleGallery: false,
+      lifestyleGallery: true,
       newsletterWidget: true,
-      ingredientsSection: false,
+      ingredientsSection: true,
       paymentMethods: true,
       testimonials: true,
       faqs: true,
@@ -157,13 +295,7 @@ export function buildIndustryStoreBlueprint(params: {
         },
       ],
     },
-    pressLogos: [
-      { name: 'VOGUE', subtitle: 'Selección Editorial' },
-      { name: 'FORBES', subtitle: 'Comercio Digital' },
-      { name: 'GQ', subtitle: 'Diseño & Calidad' },
-      { name: 'ELLE', subtitle: 'Tendencia Local' },
-      { name: 'TRUSTED', subtitle: '4.9★ Verificado' },
-    ],
+    pressLogos: pressLogosByCategory[resolvedCategory] || pressLogosByCategory.Moda,
     ambassadors: {
       title: 'Recomendado por nuestra comunidad',
       subtitle: 'Personas reales y especialistas que eligen nuestra marca todos los días',
@@ -203,6 +335,30 @@ export function buildIndustryStoreBlueprint(params: {
       ],
     },
     lifestyleGallery: tpl.lifestyleGallery,
+    ingredientsSection: {
+      title: 'Pureza & Calidad en Cada Detalle',
+      leftTitle: 'Selección & Materia Prima',
+      leftDesc: 'Insumos verificados y estándares de excelencia garantizados en cada pieza.',
+      centerImageUrl: tpl.heritageImg || tpl.bannerUrl,
+      rightTitle: 'Respaldo & Trazabilidad',
+      rightDesc: 'Atención personalizada y acompañamiento en cada etapa de tu pedido.',
+    },
+    sectionOrder: [
+      'hero',
+      'pressLogos',
+      'bestsellers',
+      'visualCategories',
+      'bentoHighlights',
+      'ritual',
+      'ingredientsSection',
+      'lifestyleGallery',
+      'ugc',
+      'retailers',
+      'faqs',
+      'garantias',
+      'story',
+      'footer',
+    ],
     accordionSpecs: { tabs: tpl.accordionTabs },
     brandStory: {
       title: tpl.brandStoryTitle(cleanName),

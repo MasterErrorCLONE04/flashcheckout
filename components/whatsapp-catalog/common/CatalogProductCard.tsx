@@ -170,6 +170,8 @@ export function CatalogProductCard({
   if (variant === 'plinth' && viewMode === 'grid') {
     return (
       <div
+        data-maker-product-id={product.id}
+        data-maker-product-name={product.name}
         onClick={() => setSelectedProduct(product)}
         className={cn(
           'group relative aspect-[3/4] w-full overflow-hidden rounded-[4px] p-5 sm:p-6 flex flex-col justify-between cursor-pointer select-none transition-colors duration-300',
@@ -253,6 +255,8 @@ export function CatalogProductCard({
 
   return (
     <div
+      data-maker-product-id={product.id}
+      data-maker-product-name={product.name}
       className={cn(
         'group relative flex flex-col justify-between h-full select-none cursor-pointer transition-all duration-300',
         isStudio ? 'p-0' : cn('p-3.5 overflow-hidden', radiusCard, cardBgStyle, shadowCard),

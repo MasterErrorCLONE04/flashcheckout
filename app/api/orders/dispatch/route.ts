@@ -1,9 +1,15 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { initiateDispatchOffer } from '@/lib/dispatch/matching-algorithm'
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const body = await req.json()
     const { orderId, deliveryType, externalCarrier, trackingNumber, storeLat = 4.6097, storeLng = -74.0817 } = body
 
@@ -18,6 +24,10 @@ export async function POST(req: Request) {
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    if (order.store.userId !== userId) {
+      return NextResponse.json({ error: 'No autorizado para despachar este pedido' }, { status: 403 })
     }
 
     // A. Envío Externo (Transportadora / Repartidor propio)

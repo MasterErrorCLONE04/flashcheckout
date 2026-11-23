@@ -8,6 +8,9 @@ export type Product = {
   description?: string | null
   options?: any
   active: boolean
+  aiRecommendation?: boolean
+  aiDescription?: string | null
+  createdAt?: Date | string
 }
 
 export type ProductImageItem = {
@@ -28,11 +31,19 @@ export type ProductFormData = {
   stock: string
   category: string
   description: string
+  active: boolean
+  aiRecommendation: boolean
+  aiDescription: string
 }
+
+export type ProductStatusFilter = 'all' | 'active' | 'low_stock' | 'out_of_stock' | 'hidden'
+export type ProductSortBy = 'recent' | 'price_desc' | 'price_asc' | 'stock_asc' | 'name_asc'
+export type ProductViewMode = 'grid' | 'table'
 
 export interface ProductManagerProps {
   initialProducts: Product[]
   storeId: string
   storeSlug: string
+  storeName?: string
   isPro: boolean
 }

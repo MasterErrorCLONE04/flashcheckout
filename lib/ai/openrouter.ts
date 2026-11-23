@@ -194,7 +194,7 @@ function generateFallbackAIResponse(messages: ChatMessage[]): string {
   })
 
   // 1. Flujo Conversacional para Clientes (WhatsApp Context)
-  if ((systemMsg.includes('WhatsApp') || systemMsg.includes('cliente')) && !systemMsg.includes('copiloto') && !systemMsg.includes('guía de la plataforma')) {
+  if ((systemMsg.includes('WhatsApp') || systemMsg.includes('cliente')) && !systemMsg.includes('copiloto') && !systemMsg.includes('guía de la plataforma') && !systemMsg.includes('Director Creativo')) {
     if (q.includes('hola') || q.includes('buenos dias') || q.includes('buenas tardes')) {
       return `¡Hola! Bienvenido. 🤖 Soy tu asistente de ventas virtual. ¿En qué te puedo colaborar hoy? Puedes escribir los productos que buscas para conocer nuestras opciones.`
     }

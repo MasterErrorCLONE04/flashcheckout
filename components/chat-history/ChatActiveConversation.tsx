@@ -6,17 +6,13 @@ import {
   Star,
   Tag,
   CheckCircle,
-  MoreVertical,
-  ShieldAlert,
   Plus,
-  Smile,
-  Paperclip,
-  Zap,
   Send,
-  MessageCircle
+  MessageCircle,
+  Sparkles,
+  Copy
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
 import { ChatSessionsState } from './useChatSessions'
 import { ChatMessageBubble } from './ChatMessageBubble'
 
@@ -37,112 +33,164 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
     newTagText,
     setNewTagText,
     handleAddTag,
-    composerTab,
-    setComposerTab,
     handleTakeover,
     takeoverText,
     setTakeoverText,
     sending,
-    newNoteText,
-    setNewNoteText,
-    handleAddNote
+    copyToClipboard
   } = chat
 
   if (!activeSession) {
     return (
-      <div className="lg:col-span-8 xl:col-span-6 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col justify-between h-[680px] relative">
-        <div className="flex-grow flex flex-col items-center justify-center p-8 text-center text-zinc-400">
-          <MessageCircle className="w-12 h-12 text-zinc-200 mb-2" />
-          <p className="font-bold text-xs tracking-wider">Selecciona un chat para ver el historial</p>
+      <section className="flex-1 min-w-0 bg-[#F4F4F5] flex flex-col items-center justify-center p-8 text-center select-none">
+        <div className="w-12 h-12 rounded-2xl bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 mb-3 shadow-2xs">
+          <MessageCircle className="w-6 h-6" />
         </div>
-      </div>
+        <h3 className="text-sm font-bold text-zinc-900">Selecciona una conversación</h3>
+        <p className="text-xs text-zinc-500 mt-1 max-w-xs">
+          Elige un cliente en la columna izquierda para responder en tiempo real, enviar links de pago o gestionar su pedido.
+        </p>
+      </section>
     )
   }
 
   return (
-    <div className="lg:col-span-8 xl:col-span-6 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col justify-between h-[680px] relative">
-      {/* Header section with assignee and toolbar */}
-      <div className="bg-white border-b border-zinc-100 p-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="relative select-none">
+    <section className="flex-1 min-w-0 bg-[#F4F4F5] flex flex-col justify-between h-full overflow-hidden relative">
+      {/* Cabecera de la conversación activa */}
+      <div className="bg-white border-b border-zinc-200 px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative select-none shrink-0">
             {activeSession.avatarUrl ? (
-              <img 
-                src={activeSession.avatarUrl} 
+              <img
+                src={activeSession.avatarUrl}
                 alt={activeSession.customerName}
-                className="w-8.5 h-8.5 rounded-full object-cover shrink-0 border border-zinc-200"
+                className="w-9 h-9 rounded-full object-cover border border-zinc-200"
               />
             ) : (
-              <div className="w-8.5 h-8.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-extrabold text-zinc-600 flex items-center justify-center uppercase">
+              <div className="w-9 h-9 rounded-full bg-zinc-950 text-white text-xs font-extrabold flex items-center justify-center uppercase">
                 {activeSession.customerName.slice(0, 2)}
               </div>
             )}
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border border-white flex items-center justify-center" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
           </div>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-xs font-bold text-zinc-950 leading-none">{activeSession.customerName}</h4>
-              <span className="text-emerald-500 flex items-center shrink-0">
-                <Check className="w-3 h-3 text-white bg-emerald-500 rounded-full p-0.5" />
-              </span>
-              <span className="text-[10px] text-zinc-400 font-semibold select-all">+{activeSession.phoneNumber}</span>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-extrabold text-zinc-950 truncate">
+                {activeSession.customerName}
+              </h4>
+              <button
+                type="button"
+                onClick={() => copyToClipboard('+' + activeSession.phoneNumber)}
+                className="text-[10.5px] text-zinc-500 hover:text-zinc-900 font-mono font-semibold inline-flex items-center gap-1 cursor-pointer"
+                title="Copiar número de WhatsApp"
+              >
+                <span>+{activeSession.phoneNumber}</span>
+                <Copy className="w-2.5 h-2.5" />
+              </button>
             </div>
-            
-            {/* Assignment Selector Dropdown */}
-            <div className="flex items-center gap-1">
+
+            <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] text-zinc-400 font-semibold">Asignado a:</span>
               <select
                 value={activeSession.assignedTo}
-                onChange={(e) => handleAssigneeChange(activeSession.id, e.target.value)}
-                className="bg-transparent border-none text-[10px] font-bold text-zinc-700 cursor-pointer focus:outline-none hover:text-zinc-950 transition-colors p-0 leading-none"
+                onChange={e => handleAssigneeChange(activeSession.id, e.target.value)}
+                className="bg-zinc-100 border border-zinc-200 rounded px-1.5 py-0.2 text-[10px] font-bold text-zinc-800 cursor-pointer focus:outline-none"
               >
-                <option value="Tú">Tú</option>
-                <option value="Bot de IA">Bot de IA</option>
+                <option value="Tú">Tú (Humano)</option>
+                <option value="Bot de IA">Nova (Bot IA)</option>
                 <option value="Soporte Técnico">Soporte</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Header Action Tools */}
-        <div className="flex items-center gap-1 text-zinc-400">
-          <button 
+        {/* Acciones rápidas del chat */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
             onClick={() => toggleFavorite(activeSession.id)}
             className={cn(
-              "w-7.5 h-7.5 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center transition-all cursor-pointer",
-              activeSession.isFavorite ? "text-amber-500" : "text-zinc-400 hover:text-zinc-700"
+              'h-8 w-8 rounded-lg border flex items-center justify-center transition-all cursor-pointer',
+              activeSession.isFavorite
+                ? 'border-amber-200 bg-amber-50 text-amber-500'
+                : 'border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'
             )}
-            title="Favorito"
+            title="Marcar favorito"
           >
-            <Star className={cn("w-3.5 h-3.5", activeSession.isFavorite && "fill-current")} />
+            <Star className={cn('w-3.5 h-3.5', activeSession.isFavorite && 'fill-current')} />
           </button>
-          <button 
+
+          <button
+            type="button"
             onClick={() => setShowAddTag(!showAddTag)}
-            className="w-7.5 h-7.5 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-            title="Etiquetas"
+            className={cn(
+              'h-8 px-2.5 rounded-lg border text-[11px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer',
+              showAddTag
+                ? 'bg-zinc-950 text-white border-zinc-950'
+                : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+            )}
+            title="Agregar etiqueta"
           >
             <Tag className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Etiquetar</span>
           </button>
-          <button 
+
+          <button
+            type="button"
             onClick={() => toggleStatus(activeSession.id)}
             className={cn(
-              "w-7.5 h-7.5 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center transition-all cursor-pointer",
-              activeSession.status === 'closed' ? "text-emerald-500" : "text-zinc-400 hover:text-zinc-700"
+              'h-8 px-3 rounded-lg border text-[11px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer',
+              activeSession.status === 'closed'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
             )}
-            title="Resolver"
           >
             <CheckCircle className="w-3.5 h-3.5" />
-          </button>
-          <div className="w-px h-4 bg-zinc-200 mx-1" />
-          <button className="w-7.5 h-7.5 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer">
-            <MoreVertical className="w-3.5 h-3.5" />
+            <span>{activeSession.status === 'closed' ? 'Reabrir' : 'Resolver'}</span>
           </button>
         </div>
       </div>
 
-      {/* Chat Stream Dialog Area */}
-      <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-zinc-50/20 custom-scrollbar flex flex-col">
-        <div className="w-fit mx-auto text-[9px] font-bold text-zinc-400 bg-zinc-100/80 px-2 py-0.5 rounded-md uppercase tracking-wider mb-2 shrink-0 select-none">
-          Hoy
+      {/* Popover superior para nueva etiqueta */}
+      {showAddTag && (
+        <form
+          onSubmit={handleAddTag}
+          className="bg-white border-b border-zinc-200 px-4 py-2.5 flex items-center gap-2 z-20 animate-in fade-in duration-150"
+        >
+          <Tag className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+          <input
+            type="text"
+            value={newTagText}
+            onChange={e => setNewTagText(e.target.value)}
+            placeholder="Nueva etiqueta (ej. VIP, Pendiente pago, Mayorista)..."
+            className="flex-1 h-8 bg-zinc-50 border border-zinc-200 rounded-lg px-3 text-xs font-medium text-zinc-900 outline-none focus:bg-white focus:border-zinc-950"
+            required
+          />
+          <button
+            type="submit"
+            className="h-8 px-3 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs rounded-lg cursor-pointer flex items-center gap-1"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Añadir</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddTag(false)
+              setNewTagText('')
+            }}
+            className="h-8 px-2.5 border border-zinc-200 hover:bg-zinc-50 text-zinc-600 font-bold text-xs rounded-lg cursor-pointer"
+          >
+            Cancelar
+          </button>
+        </form>
+      )}
+
+      {/* Área central de mensajes */}
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 flex flex-col">
+        <div className="w-fit mx-auto text-[10px] font-bold text-zinc-500 bg-white border border-zinc-200/80 px-3 py-0.5 rounded-full shadow-2xs shrink-0 select-none">
+          Historial de WhatsApp en Tiempo Real
         </div>
 
         <div className="space-y-4 flex-1">
@@ -154,12 +202,14 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
               avatarUrl={activeSession.avatarUrl}
             />
           ))}
-          
-          {/* Cart item added notification banner inside chat feed if cart is active */}
+
           {activeDetails && activeDetails.cartItems.length > 0 && (
-            <div className="w-fit mx-auto text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/50 px-3 py-1 rounded-full flex items-center gap-1 select-none">
+            <div className="w-fit mx-auto text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5 select-none shadow-2xs">
               <Check className="w-3 h-3 text-emerald-600" />
-              <span>Producto agregado al carrito</span>
+              <span>
+                El cliente tiene {activeDetails.cartItems.length}{' '}
+                {activeDetails.cartItems.length === 1 ? 'producto' : 'productos'} en su bolsa activa
+              </span>
             </div>
           )}
 
@@ -167,154 +217,43 @@ export function ChatActiveConversation({ chat }: ChatActiveConversationProps) {
         </div>
       </div>
 
-      {/* Tag Add Popover Form */}
-      {showAddTag && (
-        <form 
-          onSubmit={handleAddTag} 
-          className="absolute bottom-[160px] left-6 right-6 p-4 bg-white border border-zinc-200 rounded-lg z-30 animate-in fade-in duration-200 flex gap-2"
-        >
-          <input
-            type="text"
-            value={newTagText}
-            onChange={e => setNewTagText(e.target.value)}
-            placeholder="Escribe el nombre de la etiqueta..."
-            className="flex-1 bg-zinc-500/5 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:bg-white focus:border-zinc-300 font-semibold"
-            required
-          />
-          <button
-            type="submit"
-            className="bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs rounded-lg px-4 py-1.5 active:scale-95 transition-transform cursor-pointer flex items-center gap-1"
-          >
-            <Plus className="w-3 h-3" />
-            <span>Agregar</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setShowAddTag(false); setNewTagText(''); }}
-            className="border border-zinc-200 hover:bg-zinc-50 text-zinc-500 font-bold text-xs rounded-lg px-3 py-1.5 active:scale-95 transition-transform cursor-pointer"
-          >
-            Cancelar
-          </button>
-        </form>
-      )}
-
-      {/* Bot takeover warning notification banner */}
-      <div className="bg-amber-50 border-t border-b border-amber-100 p-2.5 flex items-center gap-2 px-4.5">
-        <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-        <p className="text-[9px] text-amber-800 font-bold tracking-wide leading-none select-none">
-          El bot está respondiendo automáticamente. Al enviar un mensaje tomarás el control.
-        </p>
-      </div>
-
-      {/* Message Composer Footer Input area */}
-      <div className="p-4 bg-white border-t border-zinc-200 shrink-0 space-y-3">
-        {/* Tabs Responder / Nota Interna */}
-        <div className="flex gap-4 border-b border-zinc-100 text-[10px] font-bold text-zinc-500 pb-1.5">
-          <button
-            type="button"
-            onClick={() => setComposerTab('reply')}
-            className={cn(
-              "pb-0.5 relative transition-colors cursor-pointer",
-              composerTab === 'reply' ? "text-emerald-600" : "hover:text-zinc-900"
-            )}
-          >
-            Responder
-            {composerTab === 'reply' && <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setComposerTab('note')}
-            className={cn(
-              "pb-0.5 relative transition-colors cursor-pointer",
-              composerTab === 'note' ? "text-emerald-600" : "hover:text-zinc-900"
-            )}
-          >
-            Nota interna
-            {composerTab === 'note' && <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />}
-          </button>
-        </div>
-
-        {composerTab === 'reply' ? (
-          <form onSubmit={handleTakeover} className="space-y-3">
+      {/* Compositor Inferior */}
+      <div className="bg-white border-t border-zinc-200 p-3.5 space-y-2 shrink-0">
+        <form onSubmit={handleTakeover} className="flex items-end gap-2">
+          <div className="flex-1 relative">
             <textarea
-              rows={1}
+              rows={2}
               value={takeoverText}
               onChange={e => setTakeoverText(e.target.value)}
-              placeholder="Escribe tu mensaje..."
-              className="w-full bg-zinc-50 border border-zinc-200 hover:border-zinc-300 focus:border-zinc-400 focus:bg-white rounded-lg px-4 py-2.5 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
-              onKeyDown={(e) => {
+              placeholder="Escribe un mensaje para enviar al WhatsApp del cliente (Enter para enviar)..."
+              className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-950 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 outline-none font-medium resize-none transition-all leading-relaxed"
+              onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   handleTakeover(e)
                 }
               }}
             />
-            
-            <div className="flex items-center justify-between gap-4 text-zinc-400">
-              <div className="flex items-center gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => toast.info('Emojis (Próximamente)')}
-                  className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-                >
-                  <Smile className="w-4 h-4 text-zinc-400" />
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => toast.info('Adjuntar archivos (Próximamente)')}
-                  className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-                >
-                  <Paperclip className="w-4 h-4 text-zinc-400" />
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setTakeoverText('¡Hola! Claro que sí, con gusto te ayudo.')
-                    toast.success('Respuesta rápida cargada')
-                  }}
-                  className="w-8 h-8 rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 flex items-center justify-center hover:text-zinc-700 transition-all cursor-pointer"
-                  title="Respuesta rápida"
-                >
-                  <Zap className="w-4 h-4 text-zinc-400" />
-                </button>
-              </div>
+          </div>
 
-              <button
-                type="submit"
-                disabled={!takeoverText.trim() || sending}
-                className="w-8 h-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:scale-100 hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
-              >
-                <Send className="w-3.5 h-3.5 fill-current rotate-45 -translate-x-[2px] translate-y-[2px]" />
-              </button>
-            </div>
-          </form>
-        ) : (
-          <form onSubmit={handleAddNote} className="space-y-3">
-            <textarea
-              rows={1}
-              value={newNoteText}
-              onChange={e => setNewNoteText(e.target.value)}
-              placeholder="Escribe una nota interna..."
-              className="w-full bg-amber-50/30 border border-amber-200/50 hover:border-amber-200 focus:border-amber-300 focus:bg-white rounded-lg px-4 py-2.5 text-xs outline-none font-semibold resize-none transition-all custom-scrollbar leading-relaxed"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleAddNote(e)
-                }
-              }}
-            />
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={!newNoteText.trim()}
-                className="px-4 py-1.5 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-45 cursor-pointer"
-              >
-                Guardar nota
-              </button>
-            </div>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={!takeoverText.trim() || sending}
+            className="h-10 px-4 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 shrink-0 cursor-pointer active:scale-95"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>{sending ? 'Enviando...' : 'Enviar'}</span>
+          </button>
+        </form>
+
+        <div className="flex items-center justify-between text-[10px] text-zinc-400 font-medium px-0.5">
+          <span className="flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-emerald-600" />
+            El bot responde automáticamente; al enviar un mensaje humano tomas el control de la sesión.
+          </span>
+          <span className="hidden sm:inline">Enter para enviar · Shift+Enter nueva línea</span>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -15,10 +15,10 @@ export function useDescuentosState() {
   const [filterTipoDesc, setFilterTipoDesc] = useState('Todos')
 
   // Pagination
-  const [rowsPerPage, setRowsPerPage] = useState(8)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
 
-  // Modal State
+  // Inspector / Editor State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
@@ -29,7 +29,7 @@ export function useDescuentosState() {
   const [desc, setDesc] = useState('')
   const [tipo, setTipo] = useState<CouponTipo>('Código')
   const [tipoDesc, setTipoDesc] = useState<CouponTipoDesc>('Porcentaje')
-  const [valorNum, setValorNum] = useState('')
+  const [valorNum, setValorNum] = useState('15')
   const [validoHasta, setValidoHasta] = useState('')
   const [estado, setEstado] = useState<CouponEstado>('Activo')
 
@@ -59,7 +59,9 @@ export function useDescuentosState() {
     setEditingId(null)
     setCode('')
     setDesc('')
-    setValorNum('')
+    setTipo('Código')
+    setTipoDesc('Porcentaje')
+    setValorNum('15')
     setValidoHasta('')
     setEstado('Activo')
     setIsModalOpen(true)
@@ -77,10 +79,28 @@ export function useDescuentosState() {
     setIsModalOpen(true)
   }
 
+  const generateRandomCode = () => {
+    const prefixes = ['FLASH', 'VIP', 'PROMO', 'BIENVENIDO', 'OFERTA']
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+    const num = valorNum || Math.floor(10 + Math.random() * 40)
+    setCode(`${prefix}${num}`)
+  }
+
+  const handleCopyCode = (couponCode: string) => {
+    navigator.clipboard.writeText(couponCode)
+    toast.success(`Código ${couponCode} copiado al portapapeles`)
+  }
+
+  const handleCopyPromoText = (c: { code: string; valor: string; desc?: string }) => {
+    const text = `🎁 ¡Tienes un cupón especial! Usa el código *${c.code}* en nuestro checkout para obtener *${c.valor}*${c.desc ? ` (${c.desc})` : ''}.`
+    navigator.clipboard.writeText(text)
+    toast.success('Mensaje promocional copiado para enviar por WhatsApp')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!code.trim()) {
-      toast.error('El código es requerido')
+      toast.error('El código del cupón es requerido')
       return
     }
 
@@ -108,28 +128,30 @@ export function useDescuentosState() {
       const method = editingId ? 'PUT' : 'POST'
       const body = {
         id: editingId || undefined,
-        code: code.trim(),
+        code: code.trim().toUpperCase(),
         desc,
         tipo,
         tipoDesc,
         valor: finalValor,
         validoHasta: validoHasta || 'Sin fecha límite',
-        estado
+        estado,
       }
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       })
 
       if (res.ok) {
-        toast.success(editingId ? 'Descuento actualizado exitosamente' : 'Descuento creado exitosamente')
+        toast.success(
+          editingId ? 'Descuento actualizado exitosamente' : 'Descuento creado exitosamente'
+        )
         setIsModalOpen(false)
         setEditingId(null)
         setCode('')
         setDesc('')
-        setValorNum('')
+        setValorNum('15')
         setValidoHasta('')
         setEstado('Activo')
         fetchCoupons()
@@ -151,6 +173,9 @@ export function useDescuentosState() {
       const res = await fetch(`/api/coupons?id=${id}`, { method: 'DELETE' })
       if (res.ok) {
         toast.success('Descuento eliminado')
+        if (editingId === id) {
+          openCreateModal()
+        }
         fetchCoupons()
       } else {
         const err = await res.json()
@@ -164,19 +189,21 @@ export function useDescuentosState() {
   }
 
   const handleToggleStatus = async (coupon: Coupon) => {
-    const newEstado = coupon.estado === 'Activo' ? 'Inactivo' : 'Activo'
+    const newEstado: CouponEstado = coupon.estado === 'Activo' ? 'Inactivo' : 'Activo'
     try {
       const res = await fetch('/api/coupons', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: coupon.id,
-          estado: newEstado
-        })
+          estado: newEstado,
+        }),
       })
       if (res.ok) {
-        toast.success(`Descuento ${newEstado === 'Activo' ? 'activado' : 'desactivado'}`)
-        fetchCoupons()
+        toast.success(`Cupón ${coupon.code} ${newEstado === 'Activo' ? 'activado' : 'pausado'}`)
+        setCoupons(prev =>
+          prev.map(c => (c.id === coupon.id ? { ...c, estado: newEstado } : c))
+        )
       } else {
         toast.error('Error al actualizar el estado')
       }
@@ -186,13 +213,41 @@ export function useDescuentosState() {
   }
 
   const handleExport = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(coupons, null, 2))
-    const downloadAnchor = document.createElement('a')
-    downloadAnchor.setAttribute("href", dataStr)
-    downloadAnchor.setAttribute("download", "descuentos.json")
-    document.body.appendChild(downloadAnchor)
-    downloadAnchor.click()
-    downloadAnchor.remove()
+    const headers = [
+      'Código',
+      'Descripción',
+      'Aplicación',
+      'Tipo de Beneficio',
+      'Valor',
+      'Usos',
+      'Vigencia',
+      'Estado',
+    ]
+    const rows = coupons.map(c => [
+      c.code,
+      c.desc,
+      c.tipo,
+      c.tipoDesc,
+      c.valor,
+      c.usos,
+      c.validoHasta,
+      c.estado,
+    ])
+    const csvContent =
+      '\uFEFF' +
+      [
+        headers.join(','),
+        ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')),
+      ].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `Descuentos_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('Cupones exportados en CSV')
   }
 
   // Filter Logic
@@ -201,8 +256,9 @@ export function useDescuentosState() {
     if (activeTab === 'Programadas' && c.estado !== 'Programado') return false
     if (activeTab === 'Inactivas' && c.estado !== 'Inactivo') return false
 
-    const matchesSearch = c.code.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          c.desc.toLowerCase().includes(searchQuery.toLowerCase())
+    const q = searchQuery.toLowerCase()
+    const matchesSearch =
+      c.code.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
     if (!matchesSearch) return false
 
     if (filterEstado !== 'Todos' && c.estado !== filterEstado) return false
@@ -213,7 +269,7 @@ export function useDescuentosState() {
   })
 
   // Pagination Logic
-  const totalPages = Math.ceil(filteredCoupons.length / rowsPerPage)
+  const totalPages = Math.max(Math.ceil(filteredCoupons.length / rowsPerPage), 1)
   const paginatedCoupons = filteredCoupons.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
@@ -226,7 +282,6 @@ export function useDescuentosState() {
   const inactiveCount = coupons.filter(c => c.estado === 'Inactivo').length
   const totalUses = coupons.reduce((sum, c) => sum + c.usos, 0)
 
-  // Chart data calculations
   const pctCount = coupons.filter(c => c.tipoDesc === 'Porcentaje').length
   const freeShipCount = coupons.filter(c => c.tipoDesc === 'Envío gratis').length
   const fixedCount = coupons.filter(c => c.tipoDesc === 'Monto fijo').length
@@ -235,13 +290,13 @@ export function useDescuentosState() {
   const freeShipPercent = totalCount > 0 ? Math.round((freeShipCount / totalCount) * 100) : 0
   const fixedPercent = totalCount > 0 ? Math.round((fixedCount / totalCount) * 100) : 0
 
-  const mostUsedCoupon = coupons.length > 0 
-    ? [...coupons].sort((a, b) => b.usos - a.usos)[0]
-    : null
+  const mostUsedCoupon =
+    coupons.length > 0 ? [...coupons].sort((a, b) => b.usos - a.usos)[0] : null
 
-  const mostUsedPercent = totalUses > 0 && mostUsedCoupon
-    ? Math.round((mostUsedCoupon.usos / totalUses) * 100)
-    : 0
+  const mostUsedPercent =
+    totalUses > 0 && mostUsedCoupon
+      ? Math.round((mostUsedCoupon.usos / totalUses) * 100)
+      : 0
 
   return {
     mounted,
@@ -298,6 +353,9 @@ export function useDescuentosState() {
     mostUsedPercent,
     openCreateModal,
     openEditModal,
+    generateRandomCode,
+    handleCopyCode,
+    handleCopyPromoText,
     handleSubmit,
     handleDelete,
     handleToggleStatus,

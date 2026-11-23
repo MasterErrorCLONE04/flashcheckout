@@ -77,7 +77,12 @@ export function CatalogDesktopHero({
   // 1. FLAGSHIP FULL-BLEED WATERDROP 4-PANEL EDITORIAL COLLAGE
   if (heroStyle === 'waterdrop-collage') {
     return (
-      <section id="catalog-banner" className="w-full shrink-0 select-none bg-white">
+      <section
+        id="catalog-banner"
+        data-maker-section="hero"
+        data-maker-title="Portada & Hero Collage"
+        className="w-full shrink-0 select-none bg-white cursor-pointer"
+      >
         <div className="relative w-full h-[460px] lg:h-[550px] xl:h-[610px] overflow-hidden bg-white">
           {heroType === 'video' && heroVideoUrl ? (
             <video
@@ -91,7 +96,11 @@ export function CatalogDesktopHero({
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-12 gap-[5px] w-full h-full bg-white">
               {/* Panel 1: Left Macro Accent (2/12) */}
-              <div className="hidden md:block md:col-span-2 h-full overflow-hidden bg-[#F6F6F4]">
+              <div
+                data-maker-field="heroPanels.0"
+                data-maker-label="Foto Panel #1 (Izquierda)"
+                className="hidden md:block md:col-span-2 h-full overflow-hidden bg-[#F6F6F4]"
+              >
                 <img
                   src={resolvedPanels[0]}
                   alt={store.name}
@@ -103,7 +112,11 @@ export function CatalogDesktopHero({
               </div>
 
               {/* Panel 2: Center Hero Campaign Focus (5/12) */}
-              <div className="col-span-1 md:col-span-5 h-full overflow-hidden bg-[#F6F6F4]">
+              <div
+                data-maker-field="heroPanels.1"
+                data-maker-label="Foto Panel #2 (Central Principal)"
+                className="col-span-1 md:col-span-5 h-full overflow-hidden bg-[#F6F6F4]"
+              >
                 <img
                   src={resolvedPanels[1]}
                   alt={bannerTitle}
@@ -115,7 +128,11 @@ export function CatalogDesktopHero({
               </div>
 
               {/* Panel 3: Secondary Studio Portrait (3/12) */}
-              <div className="col-span-1 md:col-span-3 h-full overflow-hidden bg-[#F6F6F4]">
+              <div
+                data-maker-field="heroPanels.2"
+                data-maker-label="Foto Panel #3 (Retrato Estudio)"
+                className="col-span-1 md:col-span-3 h-full overflow-hidden bg-[#F6F6F4]"
+              >
                 <img
                   src={resolvedPanels[2]}
                   alt={store.name}
@@ -127,7 +144,11 @@ export function CatalogDesktopHero({
               </div>
 
               {/* Panel 4: Far Right Lifestyle Crop (2/12) */}
-              <div className="hidden md:block md:col-span-2 h-full overflow-hidden bg-[#F6F6F4]">
+              <div
+                data-maker-field="heroPanels.3"
+                data-maker-label="Foto Panel #4 (Derecha)"
+                className="hidden md:block md:col-span-2 h-full overflow-hidden bg-[#F6F6F4]"
+              >
                 <img
                   src={resolvedPanels[3]}
                   alt={store.name}
@@ -147,7 +168,11 @@ export function CatalogDesktopHero({
           <div className="absolute inset-x-0 top-0 z-10 pointer-events-none">
             <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pt-6 flex items-center justify-between">
               {heroBadge ? (
-                <span className="pointer-events-auto inline-flex items-center px-4 py-2 rounded-full text-[10.5px] font-bold uppercase tracking-[0.12em] bg-black/28 text-white backdrop-blur-xl border border-white/25 shadow-xs">
+                <span
+                  data-maker-field="heroBadge"
+                  data-maker-label="Etiqueta Superior Hero"
+                  className="pointer-events-auto inline-flex items-center px-4 py-2 rounded-full text-[10.5px] font-bold uppercase tracking-[0.12em] bg-black/28 text-white backdrop-blur-xl border border-white/25 shadow-xs"
+                >
                   {heroBadge}
                 </span>
               ) : (
@@ -174,11 +199,19 @@ export function CatalogDesktopHero({
           <div className="absolute inset-x-0 bottom-0 z-10">
             <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pb-9 pt-12 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
               <div className="max-w-2xl space-y-2 text-left">
-                <h1 className="text-3xl sm:text-[44px] xl:text-[52px] font-extrabold text-white tracking-[-0.038em] leading-[1.03] drop-shadow-[0_2px_16px_rgba(0,0,0,0.22)]">
+                <h1
+                  data-maker-field="bannerTitle"
+                  data-maker-label="Título Principal Hero"
+                  className="text-3xl sm:text-[44px] xl:text-[52px] font-extrabold text-white tracking-[-0.038em] leading-[1.03] drop-shadow-[0_2px_16px_rgba(0,0,0,0.22)]"
+                >
                   {bannerTitle}
                 </h1>
                 {bannerSubtitle && (
-                  <p className="text-xs sm:text-[15px] font-medium text-white/92 max-w-xl leading-relaxed line-clamp-2 tracking-[-0.01em]">
+                  <p
+                    data-maker-field="bannerSubtitle"
+                    data-maker-label="Subtítulo Hero"
+                    className="text-xs sm:text-[15px] font-medium text-white/92 max-w-xl leading-relaxed line-clamp-2 tracking-[-0.01em]"
+                  >
                     {bannerSubtitle}
                   </p>
                 )}
@@ -186,6 +219,8 @@ export function CatalogDesktopHero({
 
               <button
                 type="button"
+                data-maker-field="bannerButton.text"
+                data-maker-label="Botón de Acción Hero"
                 onClick={handleBannerButtonClick}
                 className="self-start sm:self-auto shrink-0 px-8 py-3.5 rounded-full bg-white hover:bg-zinc-950 text-zinc-950 hover:text-white font-extrabold text-[11.5px] uppercase tracking-[0.08em] shadow-[0_8px_30px_rgba(0,0,0,0.18)] active:scale-98 transition-all duration-300 cursor-pointer border-0"
               >
@@ -199,11 +234,13 @@ export function CatalogDesktopHero({
   }
 
   // 2. SPLIT 50/50 HERO
-  if (heroStyle === 'split-hero') {
+  if (heroStyle === 'split-hero' || heroStyle === 'split') {
     return (
       <section
         id="catalog-banner"
-        className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-6 pb-2 shrink-0"
+        data-maker-section="hero"
+        data-maker-title="Portada & Hero Split"
+        className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-6 pb-2 shrink-0 cursor-pointer"
       >
         <div
           className={cn(
@@ -214,6 +251,8 @@ export function CatalogDesktopHero({
           <div className="md:col-span-6 space-y-4 text-left">
             {heroBadge && (
               <span
+                data-maker-field="heroBadge"
+                data-maker-label="Etiqueta Superior Hero"
                 className={cn(
                   'inline-flex items-center px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em]',
                   radiusBadge
@@ -224,17 +263,25 @@ export function CatalogDesktopHero({
               </span>
             )}
             <h1
+              data-maker-field="bannerTitle"
+              data-maker-label="Título Principal Hero"
               className="text-3xl xl:text-5xl font-extrabold leading-[1.05] tracking-[-0.035em]"
               style={{ color: colors.texto }}
             >
               {bannerTitle}
             </h1>
-            <p className="text-xs xl:text-sm font-medium leading-relaxed max-w-md text-zinc-600">
+            <p
+              data-maker-field="bannerSubtitle"
+              data-maker-label="Subtítulo Hero"
+              className="text-xs xl:text-sm font-medium leading-relaxed max-w-md text-zinc-600"
+            >
               {bannerSubtitle}
             </p>
             <div className="pt-2">
               <button
                 type="button"
+                data-maker-field="bannerButton.text"
+                data-maker-label="Botón de Acción Hero"
                 onClick={handleBannerButtonClick}
                 className={cn(
                   'px-8 py-3.5 text-white font-extrabold text-xs uppercase tracking-[0.07em] inline-flex items-center gap-2 active:scale-95 transition-all border-0 cursor-pointer',
@@ -247,7 +294,11 @@ export function CatalogDesktopHero({
               </button>
             </div>
           </div>
-          <div className="md:col-span-6 relative h-[360px] overflow-hidden bg-zinc-200 rounded-[4px]">
+          <div
+            data-maker-field="bannerUrl"
+            data-maker-label="Imagen Principal Hero"
+            className="md:col-span-6 relative h-[360px] overflow-hidden bg-zinc-200 rounded-[4px]"
+          >
             {heroType === 'video' && heroVideoUrl ? (
               <video
                 src={heroVideoUrl}
@@ -274,12 +325,14 @@ export function CatalogDesktopHero({
   return (
     <section
       id="catalog-banner"
-      className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-5 pb-2 shrink-0"
+      data-maker-section="hero"
+      data-maker-title="Portada & Hero"
+      className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 pt-5 pb-2 shrink-0 cursor-pointer"
     >
       <div
         className={cn(
           'relative w-full overflow-hidden flex items-end p-8 xl:p-12 text-left select-none group bg-zinc-950',
-          heroStyle === 'minimal-banner' ? 'h-[300px]' : 'h-[440px]',
+          heroStyle === 'minimal-banner' || heroStyle === 'compact' ? 'h-[300px]' : 'h-[440px]',
           radiusCard,
           shadowCard
         )}
@@ -294,7 +347,11 @@ export function CatalogDesktopHero({
             className="absolute inset-0 w-full h-full object-cover z-0"
           />
         ) : bannerUrls.length > 0 ? (
-          <div className="absolute inset-0 w-full h-full">
+          <div
+            data-maker-field="bannerUrl"
+            data-maker-label="Imagen Principal Hero"
+            className="absolute inset-0 w-full h-full"
+          >
             {bannerUrls.map((url, idx) => (
               <img
                 key={idx}
@@ -315,6 +372,8 @@ export function CatalogDesktopHero({
           <div className="space-y-2.5 max-w-xl">
             {heroBadge && (
               <span
+                data-maker-field="heroBadge"
+                data-maker-label="Etiqueta Superior Hero"
                 className={cn(
                   'inline-flex items-center px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-md bg-white/15 border border-white/25',
                   radiusBadge
@@ -323,16 +382,26 @@ export function CatalogDesktopHero({
                 {heroBadge}
               </span>
             )}
-            <h1 className="text-2xl xl:text-[44px] font-extrabold text-white leading-[1.06] tracking-[-0.035em]">
+            <h1
+              data-maker-field="bannerTitle"
+              data-maker-label="Título Principal Hero"
+              className="text-2xl xl:text-[44px] font-extrabold text-white leading-[1.06] tracking-[-0.035em]"
+            >
               {bannerTitle}
             </h1>
-            <p className="text-xs xl:text-sm font-medium text-white/85 leading-relaxed max-w-lg">
+            <p
+              data-maker-field="bannerSubtitle"
+              data-maker-label="Subtítulo Hero"
+              className="text-xs xl:text-sm font-medium text-white/85 leading-relaxed max-w-lg"
+            >
               {bannerSubtitle}
             </p>
           </div>
 
           <button
             type="button"
+            data-maker-field="bannerButton.text"
+            data-maker-label="Botón de Acción Hero"
             onClick={handleBannerButtonClick}
             className={cn(
               'self-start sm:self-auto shrink-0 px-8 py-3.5 bg-white hover:bg-zinc-950 text-zinc-950 hover:text-white font-extrabold text-[11.5px] uppercase tracking-[0.08em] shadow-md active:scale-95 transition-all border-0 cursor-pointer',

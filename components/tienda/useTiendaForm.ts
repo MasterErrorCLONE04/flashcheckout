@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import type { PublicCheckoutStore } from '@/lib/checkout/types'
 import { buildIndustryStoreBlueprint } from '@/lib/store-blueprints'
@@ -9,6 +9,7 @@ import {
   Product,
   ThemePreset,
   TiendaSettings,
+  SectionId,
 } from './types'
 import {
   getInitialAccordionSpecs,
@@ -27,6 +28,7 @@ import {
   getInitialProcessTimeline,
   getInitialRetailers,
   getInitialSections,
+  getInitialSectionOrder,
   getInitialTestimonials,
   getInitialUgcGallery,
   getInitialVisualCategories,
@@ -154,6 +156,9 @@ export function useTiendaForm(
     setColors(prev => ({ ...prev, [key]: value }))
   }
 
+  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(() =>
+    getInitialSectionOrder(parsedSettings, fallback)
+  )
   const [sections, setSections] = useState(getInitialSections(parsedSettings, fallback))
   const [bentoHighlights, setBentoHighlights] = useState(getInitialBentoHighlights(parsedSettings, fallback))
   const [visualCategories, setVisualCategories] = useState(getInitialVisualCategories(parsedSettings, fallback))
@@ -228,6 +233,8 @@ export function useTiendaForm(
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingPage, setIsGeneratingPage] = useState(false)
   const [storeActive, setStoreActive] = useState(initialStore.active)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const isFirstMount = useRef(true)
 
   const [storeInfo, setStoreInfo] = useState({
     name: initialStore.name,
@@ -259,12 +266,95 @@ export function useTiendaForm(
   const commonSettingsParams = {
     colors, typography, themePreset, borderRadius, shadowStyle, headerStyle, heroStyle, heroBadge,
     heroPanels, cardStyle, cardAspectRatio, badgeStyle, catalogColumns, showVariantSwatches,
-    sections, bannerUrl, bannerTitle, bannerSubtitle, announcement, bannerButton, benefits,
+    sectionOrder, sections, bannerUrl, bannerTitle, bannerSubtitle, announcement, bannerButton, benefits,
     socialsShowInCatalog, schedule, whatsappTemplate, socials, policies, address: storeInfo.address,
     bentoHighlights, accordionSpecs, brandStory, brandStoryPage, visualCategories, processTimeline,
     ambassadors, pressLogos, retailers, ugcGallery, lifestyleGallery, newsletterWidget, navbarLinks,
     heroType, heroVideoUrl, ingredientsSection, freeShipping, paymentMethods, testimonials, faqs,
     floatingWhatsApp,
+  }
+
+  // Snapshot serializable para detectar cambios no guardados
+  const currentSnapshot = useMemo(() => {
+    return JSON.stringify({
+      storeInfo,
+      domains,
+      logoUrl,
+      storeActive,
+      params: commonSettingsParams,
+      seo,
+    })
+  }, [storeInfo, domains, logoUrl, storeActive, commonSettingsParams, seo])
+
+  const lastSavedSnapshotRef = useRef<string>('')
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      lastSavedSnapshotRef.current = currentSnapshot
+      isFirstMount.current = false
+      return
+    }
+    setHasUnsavedChanges(currentSnapshot !== lastSavedSnapshotRef.current)
+  }, [currentSnapshot])
+
+  // Guardado de borrador local automático en background (localStorage)
+  useEffect(() => {
+    if (!currentSnapshot || isFirstMount.current) return
+    const draftKey = `flashcheckout_store_draft_${initialStore.id}`
+    if (hasUnsavedChanges) {
+      const timer = setTimeout(() => {
+        try {
+          localStorage.setItem(draftKey, currentSnapshot)
+        } catch {
+          // Ignorar excepciones de cuota en navegadores privados
+        }
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [currentSnapshot, hasUnsavedChanges, initialStore.id])
+
+  // Advertir al usuario si intenta recargar o salir con cambios pendientes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
+
+  // Atajo de teclado Ctrl+S / Cmd+S para guardar cambios al instante
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleSaveChanges()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [commonSettingsParams, storeInfo, domains, logoUrl, storeActive, seo, domains.customDomain])
+
+  const [storeProducts, setStoreProducts] = useState<Product[]>(products)
+  const [demoProductsOverride, setDemoProductsOverride] = useState<any[] | null>(null)
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setStoreProducts(products)
+  }, [products])
+
+  const updateProductInStore = (updatedProduct: Product) => {
+    setStoreProducts(prev => prev.map(p => (p.id === updatedProduct.id ? { ...p, ...updatedProduct } : p)))
+    setDemoProductsOverride(prev =>
+      prev ? prev.map(p => (p.id === updatedProduct.id ? { ...p, ...updatedProduct } : p)) : null
+    )
+  }
+
+  const addProductToStore = (newProduct: Product) => {
+    setStoreProducts(prev => [newProduct, ...prev])
+    setDemoProductsOverride(null)
   }
 
   const previewStore: PublicCheckoutStore = {
@@ -274,7 +364,7 @@ export function useTiendaForm(
     whatsapp: storeInfo.whatsapp,
     logoUrl: logoUrl || null,
     bio: storeInfo.desc,
-    products,
+    products: (demoProductsOverride && storeProducts.length === 0 ? demoProductsOverride : storeProducts) as any,
     cardPaymentsEnabled: true,
     aiSettings: buildTiendaAiSettings(commonSettingsParams),
     bannerUrl: bannerUrl || null,
@@ -319,6 +409,43 @@ export function useTiendaForm(
     setSections(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
+  const handleMoveSectionUp = (id: SectionId) => {
+    setSectionOrder(prev => {
+      const idx = prev.indexOf(id)
+      if (idx <= 0) return prev
+      const next = [...prev]
+      const temp = next[idx - 1]
+      next[idx - 1] = next[idx]
+      next[idx] = temp
+      return next
+    })
+  }
+
+  const handleMoveSectionDown = (id: SectionId) => {
+    setSectionOrder(prev => {
+      const idx = prev.indexOf(id)
+      if (idx === -1 || idx >= prev.length - 1) return prev
+      const next = [...prev]
+      const temp = next[idx + 1]
+      next[idx + 1] = next[idx]
+      next[idx] = temp
+      return next
+    })
+  }
+
+  const handleAddSection = (id: SectionId, sectionKey?: keyof typeof sections) => {
+    setSectionOrder(prev => (prev.includes(id) ? prev : [...prev, id]))
+    if (sectionKey) {
+      setSections(prev => ({ ...prev, [sectionKey]: true }))
+    }
+  }
+
+  const handleRemoveSection = (id: SectionId, sectionKey?: keyof typeof sections) => {
+    if (sectionKey) {
+      setSections(prev => ({ ...prev, [sectionKey]: false }))
+    }
+  }
+
   const handleSaveChanges = async () => {
     setIsSaving(true)
     try {
@@ -333,6 +460,14 @@ export function useTiendaForm(
         active: storeActive,
         aiSettings: buildTiendaAiSettings({ ...commonSettingsParams, seo, customDomain: domains.customDomain }),
       })
+      lastSavedSnapshotRef.current = currentSnapshot
+      setHasUnsavedChanges(false)
+      setLastSavedAt(new Date())
+      try {
+        localStorage.removeItem(`flashcheckout_store_draft_${initialStore.id}`)
+      } catch {
+        // Ignorar
+      }
     } catch (err: any) {
       console.error(err)
       toast.error(err.message || 'Ocurrió un error al guardar los ajustes.')
@@ -341,9 +476,47 @@ export function useTiendaForm(
     }
   }
 
-  const handleAutogeneratePage = async () => {
+  const [aiProposalActive, setAiProposalActive] = useState(false)
+  const [lastUsedPrompt, setLastUsedPrompt] = useState('')
+  const [lastAiInventorySummary, setLastAiInventorySummary] = useState<{
+    hasRealProducts: boolean
+    totalProducts: number
+    totalStock: number
+    categories: string[]
+    topProductNames: string[]
+  } | null>(null)
+  const aiPreviousSnapshotRef = useRef<Record<string, unknown> | null>(null)
+
+  const handleAIPromptGenerate = async (params: {
+    prompt: string
+    scope: 'all' | 'style' | 'copy'
+    category?: string
+  }) => {
     setIsGeneratingPage(true)
-    const toastId = toast.loading('Diseñando y redactando tu página según tu negocio...')
+    setLastUsedPrompt(params.prompt)
+    const toastId = toast.loading(
+      storeProducts.length > 0
+        ? `Analizando tus ${storeProducts.length} productos en stock y diseñando con IA...`
+        : 'Transformando tu tienda con IA...'
+    )
+
+    // Snapshot para revertir si el usuario desea deshacer
+    aiPreviousSnapshotRef.current = {
+      themePreset, colors: { ...colors }, typography, borderRadius, shadowStyle,
+      headerStyle, heroStyle, heroBadge, heroPanels: [...heroPanels],
+      cardStyle, cardAspectRatio, badgeStyle, bannerTitle, bannerSubtitle, bannerUrl,
+      bannerButton: { ...bannerButton },
+      announcement: { ...announcement }, bentoHighlights: { ...bentoHighlights },
+      brandStory: { ...brandStory }, brandStoryPage: { ...brandStoryPage },
+      faqs: { ...faqs }, testimonials: { ...testimonials }, benefits: { ...benefits },
+      processTimeline: { ...processTimeline }, ambassadors: { ...ambassadors },
+      retailers: { ...retailers }, pressLogos: [...pressLogos], ugcGallery: [...ugcGallery],
+      lifestyleGallery: [...lifestyleGallery], visualCategories: [...visualCategories],
+      ingredientsSection: { ...ingredientsSection }, accordionSpecs: { ...accordionSpecs },
+      sections: { ...sections }, sectionOrder: [...sectionOrder], storeInfo: { ...storeInfo },
+      demoProductsOverride,
+    }
+
     try {
       const res = await fetch('/api/stores/generate-page', {
         method: 'POST',
@@ -351,75 +524,267 @@ export function useTiendaForm(
         body: JSON.stringify({
           storeId: initialStore.id,
           name: storeInfo.name,
-          category: storeInfo.category,
+          category: params.category || storeInfo.category,
           description: storeInfo.desc,
+          prompt: params.prompt,
+          scope: params.scope,
+          previewOnly: true,
         }),
       })
       const data = await res.json()
-      if (!res.ok || !data.generated) throw new Error(data.error || 'No se pudo autogenerar la página')
+      if (!res.ok || !data.generated) throw new Error(data.error || 'No se pudo generar con IA')
 
       const gen: TiendaSettings = data.generated.aiSettings
-      if (data.generated.bio) setStoreInfo(prev => ({ ...prev, desc: data.generated.bio }))
-      if (gen.themePreset) setThemePreset(gen.themePreset)
-      if (gen.colors) {
-        setColors(prev => ({
-          primario: gen.colors?.primario || prev.primario,
-          secundario: gen.colors?.secundario || prev.secundario,
-          acento: gen.colors?.acento || prev.acento,
-          fondo: gen.colors?.fondo || prev.fondo,
-          texto: gen.colors?.texto || prev.texto,
-        }))
+      const lowerPrompt = params.prompt.toLowerCase()
+
+      if (data.inventoryContext) {
+        setLastAiInventorySummary(data.inventoryContext)
       }
-      if (gen.typography) setTypography(gen.typography)
-      if (gen.borderRadius) setBorderRadius(gen.borderRadius)
-      if (gen.shadowStyle) setShadowStyle(gen.shadowStyle)
-      if (gen.headerStyle) setHeaderStyle(gen.headerStyle)
-      if (gen.heroStyle) setHeroStyle(gen.heroStyle)
-      if (gen.heroBadge !== undefined) setHeroBadge(gen.heroBadge)
-      if (gen.heroPanels) setHeroPanels(gen.heroPanels)
-      if (gen.cardStyle) setCardStyle(gen.cardStyle)
-      if (gen.cardAspectRatio) setCardAspectRatio(gen.cardAspectRatio)
-      if (gen.badgeStyle) setBadgeStyle(gen.badgeStyle)
-      if (gen.bannerUrl) setBannerUrl(gen.bannerUrl)
-      if (gen.bannerTitle) setBannerTitle(gen.bannerTitle)
-      if (gen.bannerSubtitle) setBannerSubtitle(gen.bannerSubtitle)
-      if (gen.sections) setSections(getInitialSections(gen))
-      if (gen.announcement) {
-        setAnnouncement(prev => ({
-          enabled: gen.announcement?.enabled ?? true,
-          text: gen.announcement?.text || prev.text,
-          bgColor: gen.announcement?.bgColor || prev.bgColor,
-          textColor: gen.announcement?.textColor || prev.textColor,
-        }))
+
+      if (params.scope !== 'copy') {
+        if (gen.themePreset) setThemePreset(gen.themePreset)
+        if (gen.colors) {
+          setColors({
+            primario: gen.colors.primario || colors.primario,
+            secundario: gen.colors.secundario || colors.secundario,
+            acento: gen.colors.acento || colors.acento,
+            fondo: gen.colors.fondo || colors.fondo,
+            texto: gen.colors.texto || colors.texto,
+          })
+        }
+        if (gen.typography) setTypography(gen.typography)
+        if (gen.borderRadius) setBorderRadius(gen.borderRadius)
+        if (gen.shadowStyle) setShadowStyle(gen.shadowStyle)
+        if (gen.headerStyle) setHeaderStyle(gen.headerStyle)
+        if (gen.heroStyle) setHeroStyle(gen.heroStyle)
+        if (gen.heroPanels?.length) setHeroPanels(gen.heroPanels)
+        if (gen.bannerUrl) setBannerUrl(gen.bannerUrl)
+        if (gen.cardStyle) setCardStyle(gen.cardStyle)
+        if (gen.cardAspectRatio) setCardAspectRatio(gen.cardAspectRatio)
+        if (gen.badgeStyle) setBadgeStyle(gen.badgeStyle)
+        if (gen.lifestyleGallery?.length) setLifestyleGallery(gen.lifestyleGallery)
+        if (gen.visualCategories?.length) setVisualCategories(gen.visualCategories)
+        if (/3\s*columnas/.test(lowerPrompt)) setCatalogColumns('3')
+        else if (/5\s*columnas/.test(lowerPrompt)) setCatalogColumns('5')
+        else if (/4\s*columnas/.test(lowerPrompt)) setCatalogColumns('4')
       }
-      if (gen.benefits?.items) setBenefits({ items: gen.benefits.items })
-      if (gen.processTimeline) setProcessTimeline(getInitialProcessTimeline(gen))
-      if (gen.ambassadors) setAmbassadors(getInitialAmbassadors(gen))
-      if (gen.pressLogos) setPressLogos(gen.pressLogos)
-      if (gen.retailers) setRetailers(getInitialRetailers(gen))
-      if (gen.ugcGallery) setUgcGallery(gen.ugcGallery)
-      if (gen.bentoHighlights) setBentoHighlights(getInitialBentoHighlights(gen))
-      if (gen.brandStory) setBrandStory(getInitialBrandStory(gen))
-      if (gen.brandStoryPage) setBrandStoryPage(getInitialBrandStoryPage(gen))
-      if (gen.faqs?.items) setFaqs(prev => ({ ...prev, enabled: true, items: gen.faqs!.items! }))
-      if (gen.testimonials?.items) {
-        setTestimonials(prev => ({
-          ...prev,
-          enabled: true,
-          title: gen.testimonials?.title || prev.title,
-          subtitle: gen.testimonials?.subtitle || prev.subtitle,
-          items: gen.testimonials!.items!,
-        }))
+
+      if (params.scope !== 'style') {
+        if (data.generated.bio) setStoreInfo(prev => ({ ...prev, desc: data.generated.bio }))
+        if (data.store?.category) setStoreInfo(prev => ({ ...prev, category: data.store.category }))
+        if (gen.heroBadge !== undefined) setHeroBadge(gen.heroBadge)
+        if (gen.bannerTitle) setBannerTitle(gen.bannerTitle)
+        if (gen.bannerSubtitle) setBannerSubtitle(gen.bannerSubtitle)
+        if (gen.bannerButton) {
+          setBannerButton(prev => ({
+            ...prev,
+            text: gen.bannerButton?.text || prev.text,
+            action: (gen.bannerButton?.action as any) || prev.action,
+            link: gen.bannerButton?.link || prev.link,
+          }))
+        }
+        if (gen.announcement?.text) {
+          setAnnouncement(prev => ({
+            ...prev,
+            enabled: true,
+            text: gen.announcement?.text || prev.text,
+            bgColor: gen.announcement?.bgColor || gen.colors?.acento || prev.bgColor,
+            textColor: gen.announcement?.textColor || prev.textColor,
+          }))
+        }
+        if (gen.freeShipping) {
+          setFreeShipping({
+            enabled: gen.freeShipping.enabled ?? true,
+            threshold: gen.freeShipping.threshold || 120000,
+          })
+        }
+        if (gen.bentoHighlights) setBentoHighlights(getInitialBentoHighlights(gen))
+        if (gen.brandStory) setBrandStory(getInitialBrandStory(gen))
+        if (gen.brandStoryPage) setBrandStoryPage(getInitialBrandStoryPage(gen))
+        if (gen.faqs?.items) setFaqs(prev => ({ ...prev, enabled: true, items: gen.faqs!.items! }))
+        if (gen.benefits?.items) setBenefits({ items: gen.benefits.items })
+        if (gen.processTimeline) setProcessTimeline(getInitialProcessTimeline(gen))
+        if (gen.testimonials) setTestimonials(getInitialTestimonials(gen))
+        if (gen.ambassadors) setAmbassadors(getInitialAmbassadors(gen))
+        if (gen.retailers) setRetailers(getInitialRetailers(gen))
+        if (gen.pressLogos?.length) setPressLogos(gen.pressLogos)
+        if (gen.ugcGallery?.length) setUgcGallery(gen.ugcGallery)
+        if (gen.ingredientsSection) setIngredientsSection(getInitialIngredientsSection(gen))
+        if (gen.accordionSpecs) setAccordionSpecs(getInitialAccordionSpecs(gen))
+        if (gen.sections) {
+          const nextSections = getInitialSections(gen)
+          // Comandos quirúrgicos por lenguaje natural sobre secciones
+          if (/(oculta|quita|sin)\s+(faq|preguntas)/.test(lowerPrompt)) nextSections.faqs = false
+          if (/(oculta|quita|sin)\s+(prensa|logos)/.test(lowerPrompt)) nextSections.pressLogos = false
+          if (/(oculta|quita|sin)\s+(embajadores|influencers)/.test(lowerPrompt)) nextSections.ambassadors = false
+          if (/(oculta|quita|sin)\s+(tiendas|retailers)/.test(lowerPrompt)) nextSections.retailers = false
+          if (/(muestra|activa|agrega|añade)\s+(historia|story)/.test(lowerPrompt)) nextSections.brandStory = true
+          if (/(muestra|activa|agrega|añade)\s+(bento|beneficios)/.test(lowerPrompt)) nextSections.bentoHighlights = true
+          setSections(nextSections)
+        }
+        if (gen.sectionOrder?.length) setSectionOrder(gen.sectionOrder as SectionId[])
+        if (storeProducts.length > 0 || data.inventoryContext?.hasRealProducts) {
+          setDemoProductsOverride(null)
+        } else if (data.generated.previewProducts) {
+          setDemoProductsOverride(data.generated.previewProducts)
+        }
       }
-      toast.success('¡Página adaptada a tu negocio!', {
-        id: toastId,
-        description: 'Estética Waterdrop, portada collage, secciones y textos guardados.',
-      })
+
+      setAiProposalActive(true)
+      toast.success(
+        storeProducts.length > 0
+          ? `¡Diseño con IA creado usando tus ${storeProducts.length} productos en stock!`
+          : '¡Diseño con IA aplicado a la vista previa!',
+        {
+          id: toastId,
+          description: 'Haz clic en cualquier elemento del lienzo para editarlo o presiona Mantener.',
+        }
+      )
     } catch (err: any) {
-      toast.error(err.message || 'Error al autogenerar la página', { id: toastId })
+      toast.error(err.message || 'Error al transformar con IA', { id: toastId })
     } finally {
       setIsGeneratingPage(false)
     }
+  }
+
+  const handleUndoAIGeneration = () => {
+    if (!aiPreviousSnapshotRef.current) return
+    restoreSnapshotState(aiPreviousSnapshotRef.current)
+    setAiProposalActive(false)
+    toast.info('Diseño anterior restaurado con éxito')
+  }
+
+  const [historyPast, setHistoryPast] = useState<any[]>([])
+  const [historyFuture, setHistoryFuture] = useState<any[]>([])
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+  const isRestoringHistoryRef = useRef(false)
+  const isInitialMountRef = useRef(true)
+
+  const restoreSnapshotState = (s: any) => {
+    isRestoringHistoryRef.current = true
+    if (s.themePreset) setThemePreset(s.themePreset)
+    if (s.colors) setColors(s.colors)
+    if (s.typography) setTypography(s.typography)
+    if (s.borderRadius) setBorderRadius(s.borderRadius)
+    if (s.shadowStyle) setShadowStyle(s.shadowStyle)
+    if (s.headerStyle) setHeaderStyle(s.headerStyle)
+    if (s.heroStyle) setHeroStyle(s.heroStyle)
+    if (s.heroBadge !== undefined) setHeroBadge(s.heroBadge)
+    if (s.heroPanels) setHeroPanels(s.heroPanels)
+    if (s.cardStyle) setCardStyle(s.cardStyle)
+    if (s.cardAspectRatio) setCardAspectRatio(s.cardAspectRatio)
+    if (s.badgeStyle) setBadgeStyle(s.badgeStyle)
+    if (s.bannerTitle) setBannerTitle(s.bannerTitle)
+    if (s.bannerSubtitle) setBannerSubtitle(s.bannerSubtitle)
+    if (s.bannerUrl) setBannerUrl(s.bannerUrl)
+    if (s.announcement) setAnnouncement(s.announcement)
+    if (s.bentoHighlights) setBentoHighlights(s.bentoHighlights)
+    if (s.brandStory) setBrandStory(s.brandStory)
+    if (s.brandStoryPage) setBrandStoryPage(s.brandStoryPage)
+    if (s.faqs) setFaqs(s.faqs)
+    if (s.testimonials) setTestimonials(s.testimonials)
+    if (s.benefits) setBenefits(s.benefits)
+    if (s.processTimeline) setProcessTimeline(s.processTimeline)
+    if (s.ambassadors) setAmbassadors(s.ambassadors)
+    if (s.retailers) setRetailers(s.retailers)
+    if (s.pressLogos) setPressLogos(s.pressLogos)
+    if (s.ugcGallery) setUgcGallery(s.ugcGallery)
+    if (s.lifestyleGallery) setLifestyleGallery(s.lifestyleGallery)
+    if (s.visualCategories) setVisualCategories(s.visualCategories)
+    if (s.ingredientsSection) setIngredientsSection(s.ingredientsSection)
+    if (s.accordionSpecs) setAccordionSpecs(s.accordionSpecs)
+    if (s.bannerButton) setBannerButton(s.bannerButton)
+    if (s.sections) setSections(s.sections)
+    if (s.sectionOrder) setSectionOrder(s.sectionOrder)
+    if (s.storeInfo) setStoreInfo(s.storeInfo)
+    if (s.demoProductsOverride !== undefined) setDemoProductsOverride(s.demoProductsOverride)
+    setTimeout(() => {
+      isRestoringHistoryRef.current = false
+    }, 120)
+  }
+
+  const handleUndo = () => {
+    if (historyPast.length === 0) return
+    const prev = historyPast[historyPast.length - 1]
+    const current = {
+      themePreset, colors: { ...colors }, typography, borderRadius, shadowStyle,
+      headerStyle, heroStyle, heroBadge, heroPanels: [...heroPanels],
+      cardStyle, cardAspectRatio, badgeStyle, bannerTitle, bannerSubtitle, bannerUrl,
+      bannerButton: { ...bannerButton },
+      announcement: { ...announcement }, bentoHighlights: { ...bentoHighlights },
+      brandStory: { ...brandStory }, brandStoryPage: { ...brandStoryPage },
+      faqs: { ...faqs }, testimonials: { ...testimonials }, benefits: { ...benefits },
+      processTimeline: { ...processTimeline }, ambassadors: { ...ambassadors },
+      retailers: { ...retailers }, pressLogos: [...pressLogos], ugcGallery: [...ugcGallery],
+      lifestyleGallery: [...lifestyleGallery], visualCategories: [...visualCategories],
+      ingredientsSection: { ...ingredientsSection }, accordionSpecs: { ...accordionSpecs },
+      sections: { ...sections }, sectionOrder: [...sectionOrder], storeInfo: { ...storeInfo },
+      demoProductsOverride,
+    }
+    setHistoryPast(past => past.slice(0, -1))
+    setHistoryFuture(future => [current, ...future])
+    restoreSnapshotState(prev)
+    toast.info('Cambio deshecho (Undo)')
+  }
+
+  const handleRedo = () => {
+    if (historyFuture.length === 0) return
+    const next = historyFuture[0]
+    const current = {
+      themePreset, colors: { ...colors }, typography, borderRadius, shadowStyle,
+      headerStyle, heroStyle, heroBadge, heroPanels: [...heroPanels],
+      cardStyle, cardAspectRatio, badgeStyle, bannerTitle, bannerSubtitle, bannerUrl,
+      bannerButton: { ...bannerButton },
+      announcement: { ...announcement }, bentoHighlights: { ...bentoHighlights },
+      brandStory: { ...brandStory }, brandStoryPage: { ...brandStoryPage },
+      faqs: { ...faqs }, testimonials: { ...testimonials }, benefits: { ...benefits },
+      processTimeline: { ...processTimeline }, ambassadors: { ...ambassadors },
+      retailers: { ...retailers }, pressLogos: [...pressLogos], ugcGallery: [...ugcGallery],
+      lifestyleGallery: [...lifestyleGallery], visualCategories: [...visualCategories],
+      ingredientsSection: { ...ingredientsSection }, accordionSpecs: { ...accordionSpecs },
+      sections: { ...sections }, sectionOrder: [...sectionOrder], storeInfo: { ...storeInfo },
+      demoProductsOverride,
+    }
+    setHistoryFuture(future => future.slice(1))
+    setHistoryPast(past => [...past, current])
+    restoreSnapshotState(next)
+    toast.info('Cambio rehecho (Redo)')
+  }
+
+  // Atajos de teclado globales Ctrl+Z y Ctrl+Y
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      const isInput =
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        Boolean(target?.isContentEditable)
+      if (isInput) return
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault()
+          handleRedo()
+        } else {
+          e.preventDefault()
+          handleUndo()
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault()
+        handleRedo()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [historyPast.length, historyFuture.length])
+
+  const handleAcceptAIGeneration = () => {
+    setAiProposalActive(false)
+    toast.success('¡Propuesta aceptada! Guarda cambios cuando desees con Ctrl+S.')
+  }
+
+  const handleAutogeneratePage = async () => {
+    await handleAIPromptGenerate({ prompt: storeInfo.desc, scope: 'all' })
   }
 
   const toggleStoreStatus = async () => {
@@ -434,6 +799,7 @@ export function useTiendaForm(
     heroPanels, setHeroPanels, cardStyle, setCardStyle, cardAspectRatio, setCardAspectRatio,
     badgeStyle, setBadgeStyle, catalogColumns, setCatalogColumns, showVariantSwatches, setShowVariantSwatches,
     colors, setColors, typography, setTypography, handleApplyPreset, handleColorChange,
+    sectionOrder, setSectionOrder, handleMoveSectionUp, handleMoveSectionDown, handleAddSection, handleRemoveSection,
     sections, setSections, handleSectionToggle, bentoHighlights, setBentoHighlights,
     visualCategories, setVisualCategories, processTimeline, setProcessTimeline,
     ambassadors, setAmbassadors, pressLogos, setPressLogos, retailers, setRetailers,
@@ -447,9 +813,18 @@ export function useTiendaForm(
     floatingWhatsApp, setFloatingWhatsApp, announcement, setAnnouncement, bannerButton, setBannerButton,
     benefits, setBenefits, socialsShowInCatalog, setSocialsShowInCatalog, schedule, setSchedule,
     whatsappTemplate, setWhatsappTemplate, copied, isSaving, isGeneratingPage, storeActive,
+    hasUnsavedChanges, setHasUnsavedChanges,
+    canUndo: historyPast.length > 0,
+    canRedo: historyFuture.length > 0,
+    handleUndo,
+    handleRedo,
+    lastSavedAt,
+    isGeneratingAI: isGeneratingPage, aiProposalActive, lastUsedPrompt, lastAiInventorySummary,
+    handleAIPromptGenerate, handleUndoAIGeneration, handleAcceptAIGeneration,
     storeInfo, setStoreInfo, domains, setDomains, seo, setSeo, socials, setSocials,
     policies, setPolicies, previewStore, handleImageUpload, copyStoreUrl,
     handleSaveChanges, handleAutogeneratePage, toggleStoreStatus,
+    storeProducts, updateProductInStore, addProductToStore, editingProductId, setEditingProductId,
   }
 }
 

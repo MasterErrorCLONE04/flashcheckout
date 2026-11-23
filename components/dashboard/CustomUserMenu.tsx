@@ -17,7 +17,7 @@ export default function CustomUserMenu({
   variant = 'avatar', 
   storeName = 'Café del Valle' 
 }: { 
-  variant?: 'avatar' | 'card'
+  variant?: 'avatar' | 'card' | 'sidebar'
   storeName?: string
 }) {
   const { user, isLoaded } = useUser()
@@ -34,10 +34,36 @@ export default function CustomUserMenu({
   const primaryEmail = user.primaryEmailAddress?.emailAddress
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger className="outline-none shrink-0 w-full" asChild>
-        {variant === 'card' ? (
-          <button className="flex items-center justify-between w-full p-1.5 hover:bg-zinc-100/50 rounded-xl transition-all cursor-pointer text-left border border-transparent select-none">
+        {variant === 'sidebar' ? (
+          <button
+            type="button"
+            className="flex items-center justify-center group-hover:justify-between group-has-[[data-state=open]]:justify-between w-full p-1.5 hover:bg-zinc-100/60 data-[state=open]:bg-zinc-100/80 rounded-xl transition-all cursor-pointer text-left border border-transparent select-none overflow-hidden"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar className="w-9 h-9 shrink-0 border border-zinc-200 ring-2 ring-zinc-50 hover:ring-zinc-100 transition-all">
+                <AvatarImage src={user.imageUrl} alt={user.fullName || "User Profile"} />
+                <AvatarFallback className="bg-zinc-100 text-zinc-600 text-xs font-semibold">
+                  {user.firstName?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden group-hover:block group-has-[[data-state=open]]:block min-w-0 flex-grow">
+                <div className="text-xs xl:text-sm font-bold text-zinc-950 truncate leading-tight">
+                  {user.fullName || 'Usuario'}
+                </div>
+                <div className="text-[10px] xl:text-xs font-semibold text-zinc-400 truncate mt-0.5">
+                  Tienda: {storeName}
+                </div>
+              </div>
+            </div>
+            <ChevronsUpDown className="hidden group-hover:block group-has-[[data-state=open]]:block w-4 h-4 text-zinc-400 shrink-0 mr-1" />
+          </button>
+        ) : variant === 'card' ? (
+          <button
+            type="button"
+            className="flex items-center justify-between w-full p-1.5 hover:bg-zinc-100/50 rounded-xl transition-all cursor-pointer text-left border border-transparent select-none"
+          >
             <div className="flex items-center gap-3 min-w-0">
               <Avatar className="w-9 h-9 border border-zinc-200 ring-2 ring-zinc-50 hover:ring-zinc-100 transition-all">
                 <AvatarImage src={user.imageUrl} alt={user.fullName || "User Profile"} />
@@ -53,16 +79,23 @@ export default function CustomUserMenu({
             <ChevronsUpDown className="w-4 h-4 text-zinc-400 shrink-0 mr-1" />
           </button>
         ) : (
-          <Avatar className="w-8 h-8 border border-zinc-200 ring-2 ring-zinc-50 hover:ring-zinc-200 transition-all cursor-pointer">
-            <AvatarImage src={user.imageUrl} alt={user.fullName || "User Profile"} />
-            <AvatarFallback className="bg-zinc-100 text-zinc-600 text-xs font-semibold">
-              {user.firstName?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
+          <button type="button" className="rounded-full outline-none cursor-pointer">
+            <Avatar className="w-8 h-8 border border-zinc-200 ring-2 ring-zinc-50 hover:ring-zinc-200 transition-all cursor-pointer">
+              <AvatarImage src={user.imageUrl} alt={user.fullName || "User Profile"} />
+              <AvatarFallback className="bg-zinc-100 text-zinc-600 text-xs font-semibold">
+                {user.firstName?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+          </button>
         )}
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end" className="w-[220px] p-3 bg-white border shadow-md rounded-lg z-50 flex flex-col gap-1 text-zinc-950">
+      <DropdownMenuContent
+        side={variant === 'sidebar' ? 'top' : 'bottom'}
+        align={variant === 'sidebar' ? 'start' : 'end'}
+        sideOffset={8}
+        className="w-[220px] p-3 bg-white border shadow-md rounded-lg z-50 flex flex-col gap-1 text-zinc-950"
+      >
         <DropdownMenuLabel className="font-medium p-0">
           <div className="flex flex-col">
             <div className="px-2 py-0 font-medium text-sm text-zinc-900">{user.fullName}</div>

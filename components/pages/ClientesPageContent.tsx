@@ -2,37 +2,12 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getActiveStore } from '@/lib/store-context'
+import { cartStateToLines } from '@/lib/whatsapp/session-state'
 import CustomerCRM from '@/components/CustomerCRM'
 import StoreCreationWizard from '@/components/StoreCreationWizard'
-import { PageHeader } from '@/components/ui/page-header'
+import type { CustomerRecord, SerializedOrder, CustomerSegment } from '@/components/customer-crm/types'
 
 export const dynamic = 'force-dynamic'
-
-type CustomerRecord = {
-  id: string | null
-  customerKey: string
-  phone: string
-  name: string
-  email: string
-  totalOrders: number
-  totalSpent: number
-  lastOrderDate: string
-  status: 'Activo' | 'Inactivo'
-  segment: 'Frecuente' | 'Ocasional' | 'Nuevo'
-  city: string
-  birthDate: string
-  notes: string
-}
-
-type SerializedOrder = {
-  id: string
-  customerKey: string
-  customerName: string
-  customerPhone: string
-  total: number
-  status: string
-  createdAt: string
-}
 
 const normalizePhone = (phone?: string | null) => phone?.replace(/[^\d]/g, '') || ''
 
@@ -55,6 +30,35 @@ const getCustomerKey = (phone?: string | null, name?: string | null) => {
   return nameKey ? `name:${nameKey}` : ''
 }
 
+const PAID_STATUS_SET = new Set([
+  'paid',
+  'confirmed',
+  'CONFIRMED',
+  'shipped_external',
+  'in_transit',
+  'delivered',
+])
+
+function isOrderPaid(order: { status: string; paymentStatus: string }): boolean {
+  return (
+    order.paymentStatus === 'PAID' ||
+    order.paymentStatus === 'CONFIRMED' ||
+    PAID_STATUS_SET.has(order.status)
+  )
+}
+
+function summarizeOrderItems(items: unknown): string {
+  if (!Array.isArray(items) || items.length === 0) return 'Pedido en tienda'
+  const labels = items
+    .map((it: any) => {
+      const name = typeof it?.name === 'string' ? it.name : typeof it?.title === 'string' ? it.title : ''
+      const qty = Number(it?.qty ?? it?.quantity ?? 1) || 1
+      return name ? `${qty}x ${name}` : ''
+    })
+    .filter(Boolean)
+  return labels.length > 0 ? labels.join(', ') : 'Pedido en tienda'
+}
+
 export default async function ClientesPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
@@ -63,7 +67,7 @@ export default async function ClientesPage() {
 
   if (!store) return <StoreCreationWizard />
 
-  const [orders, savedCustomers] = await Promise.all([
+  const [orders, savedCustomers, whatsappSessions] = await Promise.all([
     prisma.order.findMany({
       where: { storeId: store.id },
       orderBy: { createdAt: 'desc' },
@@ -72,12 +76,16 @@ export default async function ClientesPage() {
       where: { storeId: store.id },
       orderBy: { updatedAt: 'desc' },
     }),
+    prisma.whatsAppSession.findMany({
+      where: { storeId: store.id },
+      orderBy: { lastInteraction: 'desc' },
+    }),
   ])
 
-  const savedCustomerByPhone = new Map<string, typeof savedCustomers[number]>()
-  const savedCustomerByName = new Map<string, typeof savedCustomers[number]>()
+  const savedCustomerByPhone = new Map<string, (typeof savedCustomers)[number]>()
+  const savedCustomerByName = new Map<string, (typeof savedCustomers)[number]>()
 
-  savedCustomers.forEach((customer) => {
+  savedCustomers.forEach(customer => {
     const cleanPhone = normalizePhone(customer.phone)
     if (cleanPhone) savedCustomerByPhone.set(cleanPhone, customer)
 
@@ -87,111 +95,151 @@ export default async function ClientesPage() {
 
   const customerMap = new Map<string, CustomerRecord>()
 
-  savedCustomers.forEach((customer) => {
-    const customerKey = getCustomerKey(customer.phone, customer.name)
-    if (!customerKey) return
+  // 1. Consolidate all orders (distinguishing Paid vs Purchase Intent)
+  orders.forEach(order => {
+    if (order.status === 'cancelled') return
 
-    customerMap.set(customerKey, {
-      id: customer.id,
-      customerKey,
-      phone: normalizePhone(customer.phone),
-      name: customer.name,
-      email: customer.email || '',
-      totalOrders: 0,
-      totalSpent: 0,
-      lastOrderDate: customer.updatedAt.toISOString(),
-      status: 'Inactivo',
-      segment: 'Nuevo',
-      city: customer.city || '',
-      birthDate: customer.birthDate || '',
-      notes: customer.notes || '',
-    })
-  })
-  orders.forEach((order) => {
-    const cleanPhone = normalizePhone(order.customerPhone)
+    const cleanPhone = normalizePhone(order.customerPhone || order.customerWhatsAppId)
     const cleanName = order.customerName?.trim() || 'Cliente sin nombre'
     const customerKey = getCustomerKey(cleanPhone, cleanName)
     if (!customerKey) return
 
-    if (!customerMap.has(customerKey)) {
-      const savedCustomer = cleanPhone
-        ? savedCustomerByPhone.get(cleanPhone)
-        : savedCustomerByName.get(normalizeNameKey(cleanName))
+    const savedCustomer = cleanPhone
+      ? savedCustomerByPhone.get(cleanPhone)
+      : savedCustomerByName.get(normalizeNameKey(cleanName))
 
+    if (!customerMap.has(customerKey)) {
       customerMap.set(customerKey, {
         id: savedCustomer?.id || null,
         customerKey,
         phone: cleanPhone,
         name: savedCustomer?.name || cleanName,
         email: savedCustomer?.email || '',
+        paidOrders: 0,
+        intentOrders: 0,
         totalOrders: 0,
         totalSpent: 0,
+        intentAmount: 0,
+        intentDetail: '',
         lastOrderDate: order.createdAt.toISOString(),
-        status: 'Inactivo',
-        segment: 'Nuevo',
+        status: 'Intención',
+        segment: 'Intención',
         city: savedCustomer?.city || order.city || '',
         birthDate: savedCustomer?.birthDate || '',
         notes: savedCustomer?.notes || '',
       })
     }
 
-    const customer = customerMap.get(customerKey)
-    if (!customer) return
+    const customer = customerMap.get(customerKey)!
+    const paid = isOrderPaid(order)
+    const itemsText = summarizeOrderItems(order.items)
 
     customer.totalOrders += 1
-    customer.totalSpent += order.total
+    if (paid) {
+      customer.paidOrders += 1
+      customer.totalSpent += order.total
+    } else {
+      customer.intentOrders += 1
+      customer.intentAmount += order.total
+      if (!customer.intentDetail) {
+        customer.intentDetail =
+          order.paymentStatus === 'UPLOADED'
+            ? `Comprobante subido · ${itemsText}`
+            : `Checkout sin pagar · ${itemsText}`
+      }
+    }
+
+    if (!customer.city && order.city) {
+      customer.city = order.city
+    }
 
     if (order.createdAt.getTime() > new Date(customer.lastOrderDate).getTime()) {
       customer.lastOrderDate = order.createdAt.toISOString()
     }
   })
 
-  const now = Date.now()
-  const customersList: CustomerRecord[] = Array.from(customerMap.values())
-    .map((customer) => {
-      const diffTime = now - new Date(customer.lastOrderDate).getTime()
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  // 2. Include WhatsApp sessions that showed purchase intent (active cart or conversation)
+  whatsappSessions.forEach(session => {
+    const cleanPhone = normalizePhone(session.phoneNumber)
+    const cleanName = session.customerName?.trim() || `Cliente +${cleanPhone.slice(-4)}`
+    const customerKey = getCustomerKey(cleanPhone, cleanName)
+    if (!customerKey) return
 
-      let segment: CustomerRecord['segment'] = 'Nuevo'
-      if (customer.totalOrders > 4) {
+    const cartLines = cartStateToLines(session.cart)
+    const cartTotal = cartLines.reduce((acc, item) => acc + item.price * item.qty, 0)
+    const cartSummary =
+      cartLines.length > 0
+        ? `Carrito en WhatsApp · ${cartLines.map(i => `${i.qty}x ${i.name}`).join(', ')}`
+        : 'Consulta de catálogo en WhatsApp'
+
+    if (!customerMap.has(customerKey)) {
+      const savedCustomer = cleanPhone ? savedCustomerByPhone.get(cleanPhone) : undefined
+      customerMap.set(customerKey, {
+        id: savedCustomer?.id || null,
+        customerKey,
+        phone: cleanPhone,
+        name: savedCustomer?.name || cleanName,
+        email: savedCustomer?.email || '',
+        paidOrders: 0,
+        intentOrders: cartLines.length > 0 ? 1 : 0,
+        totalOrders: cartLines.length > 0 ? 1 : 0,
+        totalSpent: 0,
+        intentAmount: cartTotal,
+        intentDetail: cartSummary,
+        lastOrderDate: session.lastInteraction.toISOString(),
+        status: 'Intención',
+        segment: 'Intención',
+        city: savedCustomer?.city || session.address || '',
+        birthDate: savedCustomer?.birthDate || '',
+        notes: savedCustomer?.notes || '',
+      })
+    } else {
+      const existing = customerMap.get(customerKey)!
+      if (cartTotal > 0 && existing.paidOrders === 0 && existing.intentAmount === 0) {
+        existing.intentAmount = cartTotal
+        existing.intentDetail = cartSummary
+      }
+      if (session.lastInteraction.getTime() > new Date(existing.lastOrderDate).getTime()) {
+        existing.lastOrderDate = session.lastInteraction.toISOString()
+      }
+    }
+  })
+
+  const customersList: CustomerRecord[] = Array.from(customerMap.values())
+    .map(customer => {
+      let segment: CustomerSegment = 'Intención'
+      if (customer.paidOrders >= 2) {
         segment = 'Frecuente'
-      } else if (customer.totalOrders > 1) {
-        segment = 'Ocasional'
+      } else if (customer.paidOrders === 1) {
+        segment = 'Comprador'
       }
 
       return {
         ...customer,
-        status: (diffDays <= 30 ? 'Activo' : 'Inactivo') as 'Activo' | 'Inactivo',
+        status: (customer.paidOrders > 0 ? 'Pagado' : 'Intención') as 'Pagado' | 'Intención',
         segment,
       }
     })
     .sort((a, b) => new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime())
 
-  // Serialize orders list for past purchases timeline
-  const serializedOrders: SerializedOrder[] = orders.map((o) => ({
+  const serializedOrders: SerializedOrder[] = orders.map(o => ({
     id: o.id,
-    customerKey: getCustomerKey(o.customerPhone, o.customerName),
+    customerKey: getCustomerKey(o.customerPhone || o.customerWhatsAppId, o.customerName),
     customerName: o.customerName,
-    customerPhone: normalizePhone(o.customerPhone),
+    customerPhone: normalizePhone(o.customerPhone || o.customerWhatsAppId),
     total: o.total,
     status: o.status,
-    createdAt: o.createdAt.toISOString()
+    paymentStatus: o.paymentStatus,
+    isPaid: isOrderPaid(o),
+    itemsSummary: summarizeOrderItems(o.items),
+    createdAt: o.createdAt.toISOString(),
   }))
 
   return (
-    <div className="space-y-6 pb-2 animate-in">
-      <PageHeader
-        title="Directorio de Clientes"
-        statusDot="emerald"
-        subtitle={
-          <>
-            Gestión de relación (CRM) —{' '}
-            <span className="text-zinc-900 font-semibold">Clientes y ventas históricas</span>
-          </>
-        }
-      />
-
-      <CustomerCRM initialCustomers={customersList} initialOrders={serializedOrders} />
-    </div>
+    <CustomerCRM
+      initialCustomers={customersList}
+      initialOrders={serializedOrders}
+      storeName={store.name}
+    />
   )
 }

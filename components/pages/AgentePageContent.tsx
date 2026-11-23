@@ -64,12 +64,16 @@ export default async function AgentePage() {
   }))
 
   return (
-    <div className="pb-2 animate-in">
+    <div className="w-full">
       <AgentSettingsManager 
         initialSettings={defaultSettings} 
         storeName={store.name}
         storeSlug={store.slug}
         storeId={store.id}
+        storeWhatsapp={store.whatsapp}
+        whatsappConnected={store.whatsappConnected}
+        mpConnected={store.mpConnected}
+        stripeConnected={store.stripeConnectChargesEnabled}
         initialProducts={formattedProducts}
         initialFaqs={formattedFaqs}
       />

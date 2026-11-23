@@ -83,56 +83,135 @@ export default async function DashboardPage(props: {
   
   const yesterdayStart = new Date(todayStart)
   yesterdayStart.setDate(yesterdayStart.getDate() - 1)
-  
-  const dayBeforeYesterdayStart = new Date(yesterdayStart)
-  dayBeforeYesterdayStart.setDate(dayBeforeYesterdayStart.getDate() - 1)
 
-  // 1. Total Revenue calculation
-  const totalRevenueAgg = await prisma.order.aggregate({
-    where: {
-      storeId: store.id,
-      OR: [
-        { mpPreferenceId: null, stripeCheckoutSessionId: null },
-        { paymentStatus: 'PAID' },
-        { status: 'paid' },
-      ],
-    },
-    _sum: { total: true },
-    _count: { id: true }
-  })
+  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+
+  const startDate = new Date()
+  startDate.setDate(todayStart.getDate() - (daysRange - 1))
+  startDate.setHours(0, 0, 0, 0)
+
+  const paidOrderWhere = {
+    storeId: store.id,
+    status: { notIn: ['cancelled', 'rejected'] },
+    OR: [
+      { status: { in: ['paid', 'confirmed', 'in_transit', 'shipped_external', 'delivered'] } },
+      { paymentStatus: { in: ['PAID', 'CONFIRMED'] } },
+    ],
+  }
+
+  const [
+    totalRevenueAgg,
+    todayOrdersAgg,
+    yesterdayOrdersAgg,
+    whatsappSessionsCount,
+    whatsappOrdersCount,
+    whatsappTotalRevenue,
+    chatsToday,
+    activeChatsCount,
+    lowStockCount,
+    pendingProofsCount,
+    waitingDriversCount,
+    weeklyOrders,
+    lowestStockProduct,
+    recentOrders,
+    recentSessions,
+    manualPayments,
+    readyToShip,
+    activeSessions,
+  ] = await Promise.all([
+    prisma.order.aggregate({
+      where: paidOrderWhere,
+      _sum: { total: true },
+      _count: { id: true },
+    }),
+    prisma.order.aggregate({
+      where: { ...paidOrderWhere, createdAt: { gte: todayStart } },
+      _sum: { total: true },
+      _count: { id: true },
+    }),
+    prisma.order.aggregate({
+      where: {
+        ...paidOrderWhere,
+        createdAt: { gte: yesterdayStart, lt: todayStart },
+      },
+      _sum: { total: true },
+      _count: { id: true },
+    }),
+    prisma.whatsAppSession.count({ where: { storeId: store.id } }),
+    prisma.order.count({
+      where: {
+        ...paidOrderWhere,
+        source: { in: ['WHATSAPP', 'WHATSAPP_WEBVIEW'] },
+      },
+    }),
+    prisma.order.aggregate({
+      where: {
+        ...paidOrderWhere,
+        source: { in: ['WHATSAPP', 'WHATSAPP_WEBVIEW'] },
+      },
+      _sum: { total: true },
+    }),
+    prisma.whatsAppSession.count({
+      where: { storeId: store.id, lastInteraction: { gte: todayStart } },
+    }),
+    prisma.whatsAppSession.count({
+      where: { storeId: store.id, lastInteraction: { gte: twoHoursAgo } },
+    }),
+    prisma.product.count({
+      where: { storeId: store.id, stock: { lte: 5 }, active: true },
+    }),
+    prisma.order.count({
+      where: { storeId: store.id, paymentStatus: 'UPLOADED' },
+    }),
+    prisma.order.count({
+      where: {
+        storeId: store.id,
+        deliveryRequested: true,
+        driverId: null,
+        status: { notIn: ['delivered', 'cancelled'] },
+      },
+    }),
+    prisma.order.findMany({
+      where: { ...paidOrderWhere, createdAt: { gte: startDate } },
+      select: { total: true, createdAt: true, source: true },
+    }),
+    prisma.product.findFirst({
+      where: { storeId: store.id, active: true },
+      orderBy: { stock: 'asc' },
+    }),
+    prisma.order.findMany({
+      where: { storeId: store.id },
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+    }),
+    prisma.whatsAppSession.findMany({
+      where: { storeId: store.id },
+      orderBy: { lastInteraction: 'desc' },
+      take: 2,
+    }),
+    prisma.order.findMany({
+      where: { storeId: store.id, paymentStatus: 'UPLOADED' },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    }),
+    prisma.order.findMany({
+      where: { storeId: store.id, status: { in: ['confirmed', 'paid'] } },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    }),
+    prisma.whatsAppSession.findMany({
+      where: { storeId: store.id },
+      orderBy: { lastInteraction: 'desc' },
+      take: 5,
+    }),
+  ])
+
   const totalRevenueVal = totalRevenueAgg._sum.total ?? 0
   const totalOrdersCount = totalRevenueAgg._count.id ?? 0
 
-  // 2. Today and yesterday sales calculation
-  const todayOrdersAgg = await prisma.order.aggregate({
-    where: {
-      storeId: store.id,
-      createdAt: { gte: todayStart },
-      OR: [
-        { mpPreferenceId: null, stripeCheckoutSessionId: null },
-        { paymentStatus: 'PAID' },
-        { status: 'paid' },
-      ],
-    },
-    _sum: { total: true },
-    _count: { id: true },
-  })
   const revenueToday = todayOrdersAgg._sum.total ?? 0
   const ordersToday = todayOrdersAgg._count.id ?? 0
 
-  const yesterdayOrdersAgg = await prisma.order.aggregate({
-    where: {
-      storeId: store.id,
-      createdAt: { gte: yesterdayStart, lt: todayStart },
-      OR: [
-        { mpPreferenceId: null, stripeCheckoutSessionId: null },
-        { paymentStatus: 'PAID' },
-        { status: 'paid' },
-      ],
-    },
-    _sum: { total: true },
-    _count: { id: true },
-  })
   const revenueYesterday = yesterdayOrdersAgg._sum.total ?? 0
   const ordersYesterday = yesterdayOrdersAgg._count.id ?? 0
 
@@ -145,44 +224,17 @@ export default async function DashboardPage(props: {
     ? ((ordersToday - ordersYesterday) / ordersYesterday * 100)
     : 0
 
-  // 3. Conversion Global (using WhatsAppSessions as a proxy for chatbot visits)
-  const whatsappSessionsCount = await prisma.whatsAppSession.count({
-    where: { storeId: store.id }
-  })
-  // Total visits/interactions baseline
-  const totalSessionsVal = totalOrdersCount + whatsappSessionsCount + 45
+  // 3. Conversion Global (using real WhatsAppSessions + orders)
+  const totalSessionsVal = totalOrdersCount + whatsappSessionsCount
   const conversionRate = totalSessionsVal > 0 
     ? ((totalOrdersCount / totalSessionsVal) * 100)
     : 0
 
   // 4. Sales by WhatsApp source
-  const whatsappOrdersCount = await prisma.order.count({
-    where: {
-      storeId: store.id,
-      source: 'WHATSAPP',
-      OR: [
-        { mpPreferenceId: null, stripeCheckoutSessionId: null },
-        { paymentStatus: 'PAID' },
-        { status: 'paid' },
-      ],
-    },
-  })
   const whatsappPct = totalOrdersCount > 0
     ? Math.round((whatsappOrdersCount / totalOrdersCount) * 100)
     : 0
 
-  const whatsappTotalRevenue = await prisma.order.aggregate({
-    where: {
-      storeId: store.id,
-      source: 'WHATSAPP',
-      OR: [
-        { mpPreferenceId: null, stripeCheckoutSessionId: null },
-        { paymentStatus: 'PAID' },
-        { status: 'paid' },
-      ],
-    },
-    _sum: { total: true }
-  })
   const whatsappTotalVal = whatsappTotalRevenue._sum.total ?? 0
   const webTotalVal = Math.max(totalRevenueVal - whatsappTotalVal, 0)
 
@@ -195,62 +247,12 @@ export default async function DashboardPage(props: {
     : 0
 
   // 6. WhatsApp Bot Details
-  const chatsToday = await prisma.whatsAppSession.count({
-    where: {
-      storeId: store.id,
-      lastInteraction: { gte: todayStart }
-    }
-  })
-  const chatsTodayCount = chatsToday * 6 + (ordersToday * 2) // simulated messages from active sessions
-
-  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000)
-  const activeChatsCount = await prisma.whatsAppSession.count({
-    where: {
-      storeId: store.id,
-      lastInteraction: { gte: twoHoursAgo }
-    }
-  })
+  const chatsTodayCount = chatsToday
 
   // 7. Operational Alerts
-  const lowStockCount = await prisma.product.count({
-    where: { storeId: store.id, stock: { lte: 5 }, active: true },
-  })
-
-  const pendingProofsCount = await prisma.order.count({
-    where: {
-      storeId: store.id,
-      paymentStatus: 'UPLOADED'
-    }
-  })
-
-  const waitingDriversCount = await prisma.order.count({
-    where: {
-      storeId: store.id,
-      deliveryRequested: true,
-      driverId: null,
-      status: { notIn: ['delivered', 'cancelled'] }
-    }
-  })
-
   const totalAlertsCount = lowStockCount + pendingProofsCount + waitingDriversCount
 
   // 8. Stacked Chart Daily Processing
-  const startDate = new Date()
-  startDate.setDate(todayStart.getDate() - (daysRange - 1))
-  startDate.setHours(0, 0, 0, 0)
-
-  const weeklyOrders = await prisma.order.findMany({
-    where: {
-      storeId: store.id,
-      createdAt: { gte: startDate },
-      OR: [
-        { mpPreferenceId: null, stripeCheckoutSessionId: null },
-        { paymentStatus: 'PAID' },
-        { status: 'paid' },
-      ],
-    },
-    select: { total: true, createdAt: true, source: true },
-  })
 
   const daysMap = new Map()
   const daysKeys = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -284,11 +286,11 @@ export default async function DashboardPage(props: {
 
   const chartData = Array.from(daysMap.values())
 
-  // Generate sparkline datasets dynamically
+  // Generate sparkline datasets dynamically from real daily data
   const sparklineRevenue = chartData.map(d => ({ value: d.total }))
   const sparklineOrders = chartData.map(d => ({ value: d.webSales + d.whatsappSales }))
-  const sparklineConversion = chartData.map((d, i) => ({ value: 6.5 + (i * 0.3) + (Math.sin(i) * 0.5) })) // simulated dynamic curve
-  const sparklineTicket = chartData.map(d => ({ value: d.total > 0 ? d.total / Math.max(1, (d.webSales + d.whatsappSales) / 1000) : 45000 }))
+  const sparklineConversion = chartData.map(d => ({ value: d.whatsappSales }))
+  const sparklineTicket = chartData.map(d => ({ value: d.total }))
 
   // Today in Detail numbers
   const todayWebRevenue = chartData[chartData.length - 1]?.webSales ?? 0
@@ -297,12 +299,19 @@ export default async function DashboardPage(props: {
   const todayWhatsappPct = todayTotalRevenue > 0 ? Math.round((todayWhatsappRevenue / todayTotalRevenue) * 100) : 0
   const todayWebPct = todayTotalRevenue > 0 ? 100 - todayWhatsappPct : 0
 
-  // 9. AI Insights Generation (telemetry-driven)
-  const lowestStockProduct = await prisma.product.findFirst({
-    where: { storeId: store.id, active: true },
-    orderBy: { stock: 'asc' }
-  })
+  // Helper function to calculate relative time
+  function getRelativeTime(date: Date): string {
+    const diffMs = Date.now() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return 'Hace unos seg'
+    if (diffMins < 60) return `Hace ${diffMins} min`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `Hace ${diffHours} hr`
+    const diffDays = Math.floor(diffHours / 24)
+    return `Hace ${diffDays} d`
+  }
 
+  // 9. AI Insights Generation (telemetry-driven)
   const insights: string[] = [
     whatsappPct > 50 
       ? `El bot convirtió un ${whatsappPct}% de tus ventas totales esta semana.`
@@ -317,18 +326,6 @@ export default async function DashboardPage(props: {
   ]
 
   // 10. Unified Activity Timeline (Real orders, low stock, and chat activity combined)
-  const recentOrders = await prisma.order.findMany({
-    where: { storeId: store.id },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-  })
-
-  const recentSessions = await prisma.whatsAppSession.findMany({
-    where: { storeId: store.id },
-    orderBy: { lastInteraction: 'desc' },
-    take: 2,
-  })
-
   const timelineItems: {
     time: string
     title: string
@@ -339,8 +336,8 @@ export default async function DashboardPage(props: {
   }[] = []
 
   // Add recent orders to timeline
-  recentOrders.forEach((order, index) => {
-    const minText = index === 0 ? 'Hace 2 min' : index === 1 ? 'Hace 12 min' : 'Hace 30 min'
+  recentOrders.forEach((order) => {
+    const minText = getRelativeTime(order.createdAt)
     const isPaid = order.paymentStatus === 'PAID' || order.status === 'paid'
     const isUploaded = order.paymentStatus === 'UPLOADED'
     
@@ -372,7 +369,7 @@ export default async function DashboardPage(props: {
   // Add low stock to timeline
   if (lowStockCount > 0 && lowestStockProduct) {
     timelineItems.push({
-      time: 'Hace 5 min',
+      time: 'Inventario',
       title: `Stock crítico: ${lowestStockProduct.name} llegó a ${lowestStockProduct.stock} unidades`,
       detail: `Categoría: ${lowestStockProduct.category || 'General'}`,
       badge: 'Stock bajo',
@@ -382,8 +379,8 @@ export default async function DashboardPage(props: {
   }
 
   // Add recent chat sessions to timeline
-  recentSessions.forEach((session, index) => {
-    const minText = index === 0 ? 'Hace 8 min' : 'Hace 15 min'
+  recentSessions.forEach((session) => {
+    const minText = getRelativeTime(session.lastInteraction)
     timelineItems.push({
       time: minText,
       title: `Nuevo chat iniciado en WhatsApp`,
@@ -394,17 +391,6 @@ export default async function DashboardPage(props: {
     })
   })
 
-  // Sort timeline mock-chronologically based on pre-assigned tags
-  const orderTimeMap: Record<string, number> = {
-    'Hace 2 min': 1,
-    'Hace 5 min': 2,
-    'Hace 8 min': 3,
-    'Hace 12 min': 4,
-    'Hace 15 min': 5,
-    'Hace 30 min': 6
-  }
-  timelineItems.sort((a, b) => (orderTimeMap[a.time] ?? 9) - (orderTimeMap[b.time] ?? 9))
-
   // 11. General Business Health Score
   const healthScore = Math.max(
     100 - (pendingProofsCount * 10) - (lowStockCount * 6) - (waitingDriversCount * 15),
@@ -413,45 +399,6 @@ export default async function DashboardPage(props: {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const storeUrl = `${appUrl}/tienda/${store.slug}`
-
-  // Helper function to calculate relative time
-  function getRelativeTime(date: Date): string {
-    const diffMs = Date.now() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    if (diffMins < 1) return 'Hace unos seg'
-    if (diffMins < 60) return `Hace ${diffMins} min`
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `Hace ${diffHours} hr`
-    const diffDays = Math.floor(diffHours / 24)
-    return `Hace ${diffDays} d`
-  }
-
-  // Fetch real data for the Smart Inbox alerts
-  const manualPayments = await prisma.order.findMany({
-    where: {
-      storeId: store.id,
-      paymentStatus: 'UPLOADED'
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 5
-  })
-
-  const readyToShip = await prisma.order.findMany({
-    where: {
-      storeId: store.id,
-      status: { in: ['confirmed', 'paid'] }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 5
-  })
-
-  const activeSessions = await prisma.whatsAppSession.findMany({
-    where: {
-      storeId: store.id
-    },
-    orderBy: { lastInteraction: 'desc' },
-    take: 5
-  })
 
   const alerts: DashboardAlert[] = []
 
@@ -515,7 +462,7 @@ export default async function DashboardPage(props: {
       title: 'Conversación activa',
       subtitle: `${name} — WhatsApp`,
       timeText: getRelativeTime(session.lastInteraction),
-      href: '/historial-chats',
+      href: '/conversaciones',
       actionText: 'Abrir chat'
     })
   })
@@ -536,11 +483,14 @@ export default async function DashboardPage(props: {
   })
   
   const initialActivities = recentOrders.map((order) => {
-    const isPaid = order.paymentStatus === 'PAID' || order.status === 'paid'
+    const isPaid = order.paymentStatus === 'PAID' || order.paymentStatus === 'CONFIRMED' || order.status === 'paid' || order.status === 'confirmed'
     return {
       id: order.id,
       type: isPaid ? 'payment' : 'order',
-      title: isPaid ? 'Pago recibido' : 'Nuevo pedido',
+      title: isPaid ? 'Pedido confirmado' : order.paymentStatus === 'UPLOADED' ? 'Comprobante por validar' : 'Nuevo pedido',
+      customerName: order.customerName || 'Cliente',
+      source: order.source === 'WHATSAPP' || order.source === 'WHATSAPP_WEBVIEW' ? 'WhatsApp' : 'Tienda Web',
+      statusLabel: isPaid ? 'Pagado' : order.paymentStatus === 'UPLOADED' ? 'En validación' : 'Pendiente',
       code: order.id.slice(-6).toUpperCase(),
       amount: order.total,
       timeText: getRelativeTime(order.createdAt),
