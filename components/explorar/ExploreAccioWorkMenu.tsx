@@ -46,10 +46,10 @@ export default function ExploreAccioWorkMenu({
 
             <div className="pt-2">
               <Link
-                href="/accio"
+                href="/solutions/sales-agent"
                 className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#00a86b] hover:bg-[#008f5b] text-white text-xs font-bold transition-all shadow-md hover:shadow-lg"
               >
-                <span>Descargar Accio Work</span>
+                <span>Conocer Agente de Ventas IA</span>
                 <ArrowRight className="size-4" />
               </Link>
             </div>

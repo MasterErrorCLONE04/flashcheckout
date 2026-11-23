@@ -76,27 +76,24 @@ const Footer = () => {
 
   const footerLinks = {
     PRODUCT: [
-      { label: 'Servicio al Cliente', href: '#' },
+      { label: 'Agente de Ventas IA', href: '/solutions/sales-agent' },
+      { label: 'Atención al Cliente', href: '/solutions/customer-support' },
+      { label: 'Ecommerce y Retail', href: '/solutions/ecommerce-retail' },
       { label: 'Precios', href: '/pricing' },
-      { label: 'Seguridad', href: '#' },
-      { label: 'Expertos Flash', href: '#' },
-      { label: 'Contrata un Experto', href: '#' },
-      { label: 'Afiliados', href: '#' },
+      { label: 'Explorar Tiendas', href: '/explorar' },
+      { label: 'Empresas', href: '/enterprise' },
     ],
     RESOURCES: [
-      { label: 'Contáctanos', href: '#' },
-      { label: 'API', href: '#' },
-      { label: 'Guía', href: '#' },
-      { label: 'Blog', href: '#' },
-      { label: 'Changelog', href: '#' },
+      { label: 'Educación y Formación', href: '/solutions/education-training' },
+      { label: 'Salud y Bienestar', href: '/solutions/fitness-wellness' },
+      { label: 'Viajes y Hospitalidad', href: '/solutions/travel-hospitality' },
+      { label: 'Crear Tienda Gratis', href: '/sign-up' },
+      { label: 'Iniciar Sesión', href: '/sign-in' },
     ],
     COMPANY: [
-      { label: 'Carreras', href: '#' },
-      { label: 'Politica de privacidad', href: '#' },
-      { label: 'Terminos de servicio', href: '#' },
-      { label: 'DPA', href: '#' },
-      { label: 'Política de cookies', href: '#' },
-      { label: 'Trust Center', href: '#' },
+      { label: 'Soluciones Enterprise', href: '/enterprise' },
+      { label: 'Términos de Servicio', href: '/legal/terms' },
+      { label: 'Política de Privacidad', href: '/legal/terms' },
     ]
   }
 
@@ -117,13 +114,13 @@ const Footer = () => {
           </div>
 
           <div className="grid w-full grid-cols-4 gap-4 md:w-auto md:grid-cols-6">
-            <Link href="/help" className="contents" target="_blank">
+            <Link href="/enterprise" className="contents">
               <button
                 data-slot="button"
                 className="isolate md:[isolation:auto] flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium outline-hidden transition-all duration-200 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 px-5 py-3 col-span-4 h-11 text-base md:col-span-2"
-                aria-label="Help"
+                aria-label="Contacto Enterprise"
               >
-                Contact
+                Contacto
               </button>
             </Link>
 

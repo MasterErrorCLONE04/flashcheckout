@@ -15,6 +15,50 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ['*.trycloudflare.com', 'localhost:3000', '*.lhr.life', '*.localhost.run'],
+  async redirects() {
+    return [
+      {
+        source: '/about',
+        destination: '/enterprise',
+        permanent: true,
+      },
+      {
+        source: '/sell',
+        destination: '/pricing',
+        permanent: true,
+      },
+      {
+        source: '/work',
+        destination: '/solutions/sales-agent',
+        permanent: true,
+      },
+      {
+        source: '/work/:path*',
+        destination: '/solutions/sales-agent',
+        permanent: true,
+      },
+      {
+        source: '/solutions',
+        destination: '/solutions/ecommerce-retail',
+        permanent: true,
+      },
+      {
+        source: '/accio',
+        destination: '/solutions/sales-agent',
+        permanent: true,
+      },
+      {
+        source: '/cocreate',
+        destination: '/enterprise',
+        permanent: true,
+      },
+      {
+        source: '/producto/:path*',
+        destination: '/explorar',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

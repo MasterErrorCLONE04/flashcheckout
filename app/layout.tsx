@@ -85,7 +85,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Suspense } from "react";
 import WebViewProvider from "@/components/WebViewProvider";
 
 export default function RootLayout({
@@ -161,11 +160,9 @@ export default function RootLayout({
           />
         </head>
         <body className="min-h-screen bg-secondary text-foreground font-sans">
-          <Suspense fallback={null}>
-            <WebViewProvider>
-              {children}
-            </WebViewProvider>
-          </Suspense>
+          <WebViewProvider>
+            {children}
+          </WebViewProvider>
           <Toaster 
             position="top-right" 
             expand={false} 

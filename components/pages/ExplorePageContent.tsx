@@ -20,6 +20,7 @@ export default async function ExplorePage({
   const theme: ExploreTheme = params.theme === 'dark' ? 'dark' : 'light'
 
   const normalizedCategory = category === 'Tecnologia' ? 'Tecnología' : category
+  const hasPriceFilter = minPrice > 0 || maxPrice < 5000000
   const stores = await prisma.store.findMany({
     where: {
       active: true,
@@ -33,15 +34,19 @@ export default async function ExplorePage({
           ],
         }
         : {}),
-      ...(category !== 'Todos'
+      ...(category !== 'Todos' && category !== 'Tiendas'
         ? { category: { equals: normalizedCategory, mode: 'insensitive' as const } }
         : {}),
-      products: {
-        some: {
-          price: { gte: minPrice, lte: maxPrice },
-          active: true
-        }
-      }
+      ...(hasPriceFilter
+        ? {
+            products: {
+              some: {
+                price: { gte: minPrice, lte: maxPrice },
+                active: true,
+              },
+            },
+          }
+        : {}),
     },
     include: {
       products: {

@@ -294,7 +294,7 @@ export default function ExploreHeaderBar({
               className="relative py-1"
             >
               <Link
-                href="/about"
+                href="/enterprise"
                 className={`transition-colors ${
                   showAboutMenu ? 'text-black dark:text-white font-bold' : 'hover:text-black dark:hover:text-white'
                 }`}
@@ -312,7 +312,7 @@ export default function ExploreHeaderBar({
               className="relative py-1"
             >
               <Link
-                href="/help"
+                href="/solutions/customer-support"
                 className={`transition-colors ${
                   showHelpCenterMenu ? 'text-black dark:text-white font-bold' : 'hover:text-black dark:hover:text-white'
                 }`}
@@ -326,15 +326,15 @@ export default function ExploreHeaderBar({
               className="relative py-1"
             >
               <Link
-                href="/accio"
+                href="/solutions/sales-agent"
                 className={`transition-colors ${
                   showAccioWorkMenu ? 'text-black dark:text-white font-bold' : 'hover:text-black dark:hover:text-white'
                 }`}
               >
-                Accio Work
+                Agente IA 24/7
               </Link>
             </div>
-            <Link href="/sell" className="hover:text-black dark:hover:text-white transition-colors">
+            <Link href="/pricing" className="hover:text-black dark:hover:text-white transition-colors">
               Vende en Flashcheckouts.com
             </Link>
           </div>

@@ -30,7 +30,7 @@ export default function ExploreAboutMenu({
             
             {/* Card 1: Por qué elegir */}
             <Link
-              href="/about"
+              href="/enterprise"
               className="group flex flex-col space-y-3"
             >
               <div className="h-40 rounded-xl overflow-hidden border border-zinc-200/80 dark:border-white/10 relative">
@@ -45,14 +45,14 @@ export default function ExploreAboutMenu({
                   Por qué elegir Flashcheckouts.com
                 </h4>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-2">
-                  50M+ compradores ya compran de proveedores verificados aquí, en un marketplace B2B impulsado por asistentes de compras con IA
+                  Comercios verificados venden con catálogo conversacional, cobros Bre-B instantáneos y Agente Vendedor IA en WhatsApp.
                 </p>
               </div>
             </Link>
 
-            {/* Card 2: CoCreate Pitch */}
+            {/* Card 2: Planes y Escala */}
             <Link
-              href="/cocreate"
+              href="/pricing"
               className="group flex flex-col space-y-3"
             >
               <div className="h-40 rounded-xl overflow-hidden border border-zinc-200/80 dark:border-white/10 relative">
